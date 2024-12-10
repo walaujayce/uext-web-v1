@@ -1,0 +1,121 @@
+.background{
+    position: fixed;
+    height: 100dvh;
+    background-size: cover;
+}
+
+.login{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    transform: translateY(40%);
+}
+
+.login .input{
+    width: 100%;
+}
+
+.login .uextLogo{
+    width: 914px;
+    height: 72px;
+    margin-bottom: 40px;
+}
+
+.login .title{
+    text-align: center;
+    margin-bottom: 120px;
+    font-size: 48px;
+    color: var(--1000, #000);
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.login h1{
+    text-align: center;
+}
+
+.login .input{
+    margin-bottom: 40px;
+}
+
+.login .btn-gp{
+    display: flex;
+    margin-top: 48px;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.st1,
+.st2,
+.st3,
+.st4{
+    display: none;
+}
+
+.st1.active,
+.st2.active,
+.st3.active,
+.st4.active{
+    display: flex;
+    flex-direction: column;
+}
+
+.langSwitch{
+    display: flex;
+    gap: 20px;  
+    position: absolute;
+    top: 48px;
+    right: 48px;
+}
+
+.langSwitch .chi,.langSwitch .eng{
+    color: rgb(156, 156, 156);
+    font-size: 24px; 
+}
+
+.langSwitch .chi.active ,.langSwitch .eng.active{
+    color: rgb(32, 32, 32);
+    font-weight: 500;
+}
+
+
+@media (max-width:1920px) {
+    .login{
+        max-width: 640px;
+        margin: 0 auto;
+        transform: translateY(65%);
+    }
+    .login .uextLogo{
+        width: 338px;
+        height: 27px;
+        margin-bottom: 16px;
+    }
+    .login .title{
+        font-size: 24px;
+        margin-bottom: 40px;
+    }
+    .login .input{
+        margin-bottom: 24px;
+    }
+    .login .btn-gp{
+        margin-top: 16px;
+        gap:24px;
+    }
+    .login h1{
+        font-size: 20px;
+    }
+    .login .st3 .btn-gp{
+        margin-top: 48px;
+    }
+    .langSwitch{
+        gap: 12px;
+        top: 24px;
+        right: 24px;
+    }
+    .langSwitch .chi,.langSwitch .eng{
+        font-size: 16px; 
+    }
+}

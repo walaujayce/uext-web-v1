@@ -1,0 +1,280 @@
+/* Revised Version of Input CSS */
+
+.input{
+    display: flex;
+    flex-direction: column;
+    position: relative;
+}
+.input-gp{
+    position: relative;
+}
+input, textarea{
+    /* Structure & Styles */
+    display: flex;
+    justify-content: space-between;
+    padding: 20px 16px;
+    background-color: #F7F7F7;
+    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0);
+    border-bottom: 2px solid transparent;
+    width: 100%;
+    height: 64px;
+
+    /* Typography */
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: 24px;
+    text-align: start;
+    font-weight: 400;
+    color: var(--700, #4D4D4D);
+}
+
+input:hover{
+    cursor: pointer;
+}
+
+input:focus{
+    color: var(--850, #262626);
+    font-weight: 500;
+    border-bottom: 2px solid var(--950, #0D0D0D);
+}
+
+input:focus .label-container p{
+    color:#0D0D0D;
+}
+
+label{
+    /* Structure & Styles */
+    display: flex;
+    align-items: center;
+    column-gap: 6px;
+    font-size: 20px;
+    line-height: 100%;
+    margin-bottom: 6px;
+
+    /* Typography */
+    color: var(--600, #666);
+}
+
+label .info{
+    width: 24px;
+    height: 24px;
+    display: none;
+}
+.input .suffix{
+    display: none;
+    height: 24px; 
+    width: 24px;
+    position: absolute;
+    top: 50%;   
+    right: 16px; 
+    transform: translate(0%, -50%);
+}
+.input .suffix:hover{
+    cursor: pointer;
+}
+.input.suffix .input-gp .suffix{
+    display: block;
+}
+
+.assistive-text{
+    display: none;
+    color: var(--300, #B3B3B3);
+    font-size: 18px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 100%; /* 20px */
+}
+
+/* Control for info button (Add Class "info" to show) */
+.info.active{
+    display: block;
+}
+
+/* Control for assistive text (Add Class "assist" to show)*/
+.assistive-text.active{
+    display: block;
+    margin-top: 8px;
+}
+
+/* Error Status */
+.input.error input,
+.input.error textarea{
+    background: #FFF0F0;
+}
+.input.error label,
+.input.error ::placeholder,
+.input.error .assistive-text{
+    color: #FA3F2E;
+}
+.error input:focus,
+.error textarea:focus{
+    font-weight: 500;
+    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.25);
+    border-bottom: 2px solid #FA3F2E;
+}
+.error .info{
+    content: url(/src/assets/information-outline-error.svg);
+}
+.error .suffix{
+    content: url(/src/assets/menu-down-error.svg);
+}
+
+/* Empty Status */
+.input.empty ::placeholder,
+.input.empty .assistive-text{
+    color: var(--300, #B3B3B3);
+}
+
+/* Dropdown Input */
+.input.dropdown .suffix{
+    content: url(/src/assets/menu-down.svg);
+}
+
+.input .list{
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: calc(100% + 16px);
+    width: 100%;
+    z-index: 99;
+    box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.25);
+    height: 0px;
+    overflow: hidden;
+    transition: all ease-out 300ms;
+}
+.input .list.active{
+    height: 240px;
+    transition: all ease-out 300ms;
+    overflow-y: scroll;
+}
+.input .list .item{
+    display: flex;
+    padding: 20px 16px !important;
+    border-bottom: 1.5px solid var(--150, #D9D9D9);
+    background: #F7F7F7;
+    color: var(--700, #4D4D4D);
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 100%; /* 24px */
+}
+.input .list .item:hover{
+    border-bottom: 1.5px solid var(--400, #999);
+    background: var(--50, #F2F2F2);
+    color: var(--850, #262626);
+    font-weight: 500; 
+    cursor: pointer;
+}
+
+
+/* Search Input */
+.input.search label{
+    display: none;
+}
+
+
+/* Textarea CSS */
+
+textarea{
+    border: none;
+    height: 400px;
+    outline:0px none transparent;
+}
+
+textarea:focus{
+    color: var(--850, #262626);
+    font-weight: 500;
+    border: none;
+    border-bottom: 2px solid var(--950, #0D0D0D);
+}
+
+
+@media (max-width:1920px) {
+    input, textarea{
+        padding: 12px;
+        box-shadow: 2px 2px 2px 0px rgba(0, 0, 0, 0);
+        height: 48px;
+        font-size: 16px;
+    }
+    label{
+        column-gap: 4px;
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+    label .info{
+        width: 16px;
+        height: 16px;
+    }
+    .input .suffix{
+        height: 20px; 
+        width: 20px;
+    }
+    .assistive-text{
+        font-size: 14px;
+    }
+    .assistive-text.active{
+        margin-top: 6px;
+    }
+    .input .list{
+        top: calc(100% + 12px);
+        box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0.25);
+        height: 0px;
+    }
+    .input .list.active{
+        height: 160px;
+    }
+    .input .list .item{
+        padding: 12px !important;
+        border-bottom: 1.5px solid var(--150, #D9D9D9);
+        font-size: 16px;
+    }
+    .input .list .item:hover{
+        border-bottom: 1.5px solid var(--400, #999);
+    }
+    textarea{
+        height: 240px;
+    }
+}
+
+@media (max-width:1366px) {
+    input, textarea{
+        padding: 10px;
+        box-shadow: 1px 1px 1px 1px rgba(0, 0, 0, 0);
+        height: 40px;
+        font-size: 14px;
+    }
+    label{
+        column-gap: 2px;
+        margin-bottom: 4px;
+    }
+    label p{
+        font-size: 12px;
+    }
+    label .info{
+        width: 11px;
+        height: 11px;
+    }
+    .input .suffix{
+        height: 14px; 
+        width: 14px;
+        right: 10px;
+    }
+    .assistive-text{
+        font-size: 11px;
+    }
+    .assistive-text.active{
+        margin-top: 4px;
+    }
+    .input .list.active{
+        height: 120px;
+    }
+    .input .list .item{
+        padding: 10px !important;
+        border-bottom: 1.5px solid var(--150, #D9D9D9);
+        font-size: 14px;
+    }
+    .input .list .item:hover{
+        border-bottom: 1.5px solid var(--400, #999);
+    }
+    textarea{
+        height: 180px;
+    }
+}

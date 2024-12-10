@@ -1,0 +1,641 @@
+.overlay{
+    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+}
+
+.overlay.active{
+    display: block;
+}
+
+.overlay .warn{
+    display: flex;
+    width: 1024px;
+    padding: 48px;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: var(--0, #FFF);
+
+    position: fixed;
+    left: 50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+}
+
+.overlay .warn .icon{
+    width: 160px;
+    height: 160px;
+    margin-bottom: 24px;
+}
+
+.overlay .warn .title{
+    color: var(--1000, #000);
+    text-align: center;
+    font-size: 48px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    margin-bottom: 8px;
+}
+
+.overlay .warn .desc{
+    color: var(--500, #808080);
+    text-align: center;
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-bottom: 72px;
+}
+
+.btn-gp{
+    display: flex;
+    gap: 48px;
+}
+
+@media (max-width:1920px) {
+    .overlay .warn{
+        width: 480px;
+        padding: 32px;
+    }
+    .overlay .warn .icon{
+        width: 80px;
+        height: 80px;
+        margin-bottom: 24px;
+    }
+    .overlay .warn .title{
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+    .overlay .warn .desc{
+        font-size: 16px;
+        margin-bottom: 24px;
+    }
+    .btn-gp{
+        gap: 24px;
+    }
+}
+
+
+/* Add Patient PopUp CSS */
+.addPatient{
+    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+}
+
+.addPatient .close{
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    top: 24px;
+    right: 24px;
+}
+
+.addPatient .close:hover{
+    cursor: pointer;
+    content: url(/src/assets/close-active.svg);
+}
+
+.addPatient .window{
+    display: flex;
+    width: 1426px;
+    min-height: 880px;
+    padding: 40px 80px 80px;
+    flex-direction: column;
+    align-items: center;
+    background: var(--0, #FFF);
+
+    position: fixed;
+    left: 50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+}
+
+.addPatient .icon{
+    display: none;
+    width: 160px;
+    height: 160px;
+}
+
+.addPatient .title{
+    color: var(--1000, #000);
+    text-align: center;
+    font-size: 48px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    margin-bottom: 48px;
+}
+
+.addPatient .tab-list{
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+    margin-bottom: 48px;
+}
+
+.addPatient .tab{
+    display: flex;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    flex: 1 0 0;
+    border-bottom: 3px solid var(--150, #D9D9D9);
+
+    /* Typography */
+    color: var(--150, #D9D9D9);
+    text-align: center;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.addPatient .tab.active{
+    color: var(--850, #262626);
+    font-weight: 500;
+    border-bottom: 3px solid var(--850, #262626);
+}
+
+.addPatient .tab.completed{
+    color: var(--150, #D9D9D9);
+    font-weight: 400;
+    border-bottom: 3px solid var(--850, #262626);
+}
+
+.addPatient .grid{
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(6 , 1fr);
+    column-gap: 24px;
+    row-gap: 40px;
+    margin-bottom: 48px;
+}
+
+.g-c-6{
+    grid-column: span 6;
+}
+
+.g-c-3{
+    grid-column: span 3;
+}
+
+.addPatient .btn-gp{
+    display: flex;
+    gap: 24px;
+    margin-top: 40px;
+    text-align: center;
+}
+
+.grid.st2{
+    display: none;
+}
+
+.btn-gp.st2,
+.btn-gp.st3,
+.btn-gp.st6{
+    display: none;
+}
+
+.grid.st4-1, .grid.st4-2{
+    display: none;
+}
+.grid.st4-1.active , .grid.st4-2.active{
+    display: grid;
+}
+
+.btn-gp.st4-1, .btn-gp.st4-2{
+    display: none;
+}
+.btn-gp.st4-1.active, .btn-gp.st4-2.active{
+    display: flex;
+}
+
+.connecting{
+    display: none;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    padding: 80px 0px;
+}
+
+.connecting img{
+    width: 200px;
+    height: 200px;
+}
+
+.connecting p{
+    color: var(--1000, #000);
+    text-align: center;
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+
+/* Add Device PopUp CSS */
+
+.addDevice{
+    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+}
+
+.addDevice .close{
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    top: 24px;
+    right: 24px;
+}
+
+.addDevice .close:hover{
+    cursor: pointer;
+    content: url(/src/assets/close-active.svg);
+}
+
+.addDevice .window{
+    display: flex;
+    width: 1426px;
+    min-height: 880px;
+    padding: 40px 80px 80px;
+    gap: 48px;
+    flex-direction: column;
+    align-items: center;
+    background: var(--0, #FFF);
+
+    position: fixed;
+    left: 50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+}
+
+.addDevice .icon{
+    display: none;
+    width: 160px;
+    height: 160px;
+}
+
+.addDevice .title{
+    color: var(--1000, #000);
+    text-align: center;
+    font-size: 48px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+
+.addDevice .tab-list{
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+}
+
+.addDevice .tab{
+    display: flex;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    flex: 1 0 0;
+    border-bottom: 3px solid var(--150, #D9D9D9);
+
+    /* Typography */
+    color: var(--150, #D9D9D9);
+    text-align: center;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.addDevice .tab.active{
+    color: var(--850, #262626);
+    font-weight: 500;
+    border-bottom: 3px solid var(--850, #262626);
+}
+
+.addDevice .tab.completed{
+    color: var(--150, #D9D9D9);
+    font-weight: 400;
+    border-bottom: 3px solid var(--850, #262626);
+}
+
+.addDevice .grid{
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(6 , 1fr);
+    column-gap: 24px;
+    row-gap: 40px;
+}
+
+.g-c-6{
+    grid-column: span 6;
+}
+
+.g-c-3{
+    grid-column: span 3;
+}
+
+.addDevice .btn-gp{
+    display: flex;
+    gap: 24px;
+    margin-top: 40px;
+    text-align: center;
+}
+
+.addDevice .st1,
+.addDevice .st2,
+.addDevice .st3,
+.addDevice .st4{
+    display: none;
+}
+
+.addDevice .grid.st1.active,
+.addDevice .grid.st2.active,
+.addDevice .grid.st3.active,
+.addDevice .grid.st4.active{
+    display: grid;
+}
+
+.addDevice .btn-gp.st1.active,
+.addDevice .btn-gp.st2.active,
+.addDevice .btn-gp.st3.active,
+.addDevice .btn-gp.st4.active{
+    display: flex;
+}
+
+.connecting{
+    display: none;
+    flex-direction: column;
+    gap: 24px;
+    align-items: center;
+    padding: 80px 0px;
+}
+
+.connecting.active{
+    display: flex;
+}
+
+.connecting img{
+    width: 200px;
+    height: 200px;
+}
+
+.connecting p{
+    color: var(--1000, #000);
+    text-align: center;
+    font-size: 32px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+@media (max-width:1920px) {
+    .addPatient .close,
+    .addDevice .close{
+        width: 32px;
+        height: 32px;
+        top: 12px;
+        right: 12px;
+    }
+    .addPatient .window,
+    .addDevice .window{
+        width: 800px;
+        min-height: 540px;
+        padding: 40px 80px;
+        gap: 0px;
+    }
+    .addPatient .icon,
+    .addDevice .icon{
+        width: 80px;
+        height: 80px;
+    }
+    
+    .addPatient .title,
+    .addDevice .title{
+        font-size: 32px;
+        margin-bottom: 24px;
+    }
+    .addPatient .tab-list,
+    .addDevice .tab-list{
+        margin-bottom: 16px;
+    }   
+    .addPatient .tab,
+    .addDevice .tab{
+        border-bottom: 3px solid var(--150, #D9D9D9);
+        font-size: 18px;
+    }
+    .addPatient .grid,
+    .addDevice .grid{
+        column-gap: 24px;
+        row-gap: 24px;
+        margin-bottom: 24px;    
+    }
+    .connecting{
+        gap: 24px;
+        padding: 24px 0px;
+    }
+    .connecting img{
+        width: 120px;
+        height: 120px;
+    }
+    .connecting p{
+        font-size: 16px;
+    }
+}
+
+
+/* addLog */
+
+.addLog,
+.editLog,
+.addUser,
+.changePassword{
+    display: none;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+}
+
+.addLog.active,
+.editLog.active,
+.addUser.active,
+.changePassword.active{
+    display: flex;
+}
+
+.addLog .window,
+.editLog .window,
+.addUser .window,
+.changePassword .window{
+    display: flex;
+    width: 942px;
+    min-height: 880px;
+    padding: 80px;
+    flex-direction: column;
+    align-items: center;
+    background: var(--0, #FFF);
+
+    position: fixed;
+    left: 50%;
+    top:50%;
+    transform: translate(-50%,-50%);
+}
+
+.addLog .close,
+.editLog .close,
+.addUser .close,
+.changePassword .close{
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    top: 24px;
+    right: 24px;
+}
+
+.addLog .close:hover,
+.editLog .close:hover,
+.addUser .close:hover,
+.changePassword .close:hover{
+    cursor: pointer;
+    content: url(/src/assets/close-active.svg);
+}
+
+.addLog .title,
+.editLog .title,
+.addUser .title,
+.changePassword .title{
+    color: var(--1000, #000);
+    text-align: center;
+    font-size: 48px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+    margin-bottom: 4px;
+}
+
+.addLog .subtitle,
+.editLog .subtitle,
+.addUser .subtitle,
+.changePassword .subtitle{
+    color: var(--500, #808080);
+    text-align: center;
+    font-size: 28px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+    margin-bottom: 48px;
+}
+
+.addLog .grid,
+.editLog .grid,
+.addUser .grid,
+.changePassword .grid{
+    display: grid;
+    width: 100%;
+    row-gap: 48px;
+    margin-bottom: 48px;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+
+/* addUser Separate CSS */
+
+.addUser .window{
+    min-height: 0;
+}
+
+.addUser .grid,
+.addUser .btn-gp{
+    display: none;
+}
+
+.addUser .grid.st-1.active,
+.addUser .grid.st-2.active{
+    display: grid;
+}
+.addUser .btn-gp.st-1.active,
+.addUser .btn-gp.st-2.active{
+    display: flex;
+}
+
+.addUser .btn-gp,
+.changePassword .btn-gp{
+    margin-top: 48px;
+}
+
+@media (max-width:1920px) {
+    .addLog .window,
+    .editLog .window,
+    .addUser .window,
+    .changePassword .window{
+        width: 480px;
+        min-height: 0;
+        padding: 32px;
+    }
+    .addLog .close,
+    .editLog .close,
+    .addUser .close,
+    .changePassword .close{
+        width: 24px;
+        height: 24px;
+        top: 12px;
+        right: 12px;
+    }
+    .addLog .title,
+    .editLog .title,
+    .addUser .title,
+    .changePassword .title{
+        font-size: 24px;
+        margin-bottom: 4px;
+    }
+    .addLog .subtitle,
+    .editLog .subtitle,
+    .addUser .subtitle,
+    .changePassword .subtitle{
+        font-size: 16px;
+        margin-bottom: 24px;
+    }
+    .addLog .grid,
+    .editLog .grid,
+    .addUser .grid,
+    .changePassword .grid{
+        row-gap: 16px;
+        margin-bottom: 48px;
+        grid-template-columns: repeat(6, 1fr);
+    }
+    .addUser .btn-gp,
+    .changePassword .btn-gp{
+    margin-top: 0px;
+    }
+
+    .btn-gp{
+        gap: 24px;
+    }
+}
