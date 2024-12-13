@@ -26,6 +26,12 @@ export default defineConfig({
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api\/7285/, '/api/v1'), // Rewrite '/api' to ''
       },
+        // Proxy for the SignalR
+        '/signalR/7284': {
+          target: 'ws://192.9.120.70:7284', // Your API server
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/signalR\/7284/, '/notifyHub'), // Rewrite '/api' to ''
+        },
       },
 },
 })

@@ -1,0 +1,319 @@
+.main{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    row-gap: 24px;
+}
+
+.main .box{
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--850, #262626);
+}
+
+.main .box .btn img{
+    content: url(../element/arrow-left-bottom.svg);
+}
+
+.main .box .btn:hover{
+    img{
+        content: url(../element/arrow-left-bottom-active.svg);
+    }
+}
+
+/* acc Setting Tab Content */
+.accSection{
+    display: flex;  
+    flex-direction: column;
+    row-gap: 48px;
+    max-height: calc(100vh - 25vh);
+    overflow: hidden;
+    overflow-y: scroll;
+}
+
+.accSetting{
+    display: flex;
+    padding-bottom: 48px;
+    gap: 80px;
+    border-bottom: 2px solid var(--300, #B3B3B3);
+}
+
+.accSetting h2{
+    width: 320px;
+    flex-shrink: 0;
+}
+
+.opt-list{
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    width: 100%;
+}
+
+.opt-grid{
+    display: grid;
+    row-gap: 24px;
+    column-gap: 24px;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.opt-grid .input{
+    display: flex;
+    flex-direction: column;
+}
+
+.g-col-2{
+    grid-column: span 2;
+}
+.g-col-3{
+    grid-column: span 3;
+}
+
+.opt-list .btn-gp{
+    display: flex;
+    gap: 24px;
+    width: fit-content;
+}
+
+.input.connection .suffix{
+    content: url(../element/reconnect.svg);
+}
+
+.ver-stat{
+    color: rgba(0, 0, 0, 0.50);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+
+.opt-grid .opt-box{
+    display: none;
+    flex-direction: column;
+}
+
+.opt-grid .opt{
+    display: flex;
+    align-items: flex-start;
+    padding: 20px;
+    gap: 40px;
+    background: #FAFAFA;
+    border-bottom: 3px solid transparent;
+}
+
+.opt-grid .opt img{
+    height: 44px;
+    width: 44px;
+}
+
+.opt-grid .opt .desc-box{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 12px;
+    width: 100%;
+}
+
+.opt-grid .opt .desc-box p{
+    color: var(--850, #262626);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 140%; /* 33.6px */
+}
+
+.opt-grid .opt .desc{
+    display: flex;
+    gap: 24px;
+    justify-content: space-between;
+    align-items: flex-end;
+}
+
+.opt-grid .opt .desc p{
+    color: var(--700, #4D4D4D);
+    font-size: 20px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 125%; /* 25px */
+}
+
+.opt-grid .opt .desc .desc-input{
+    display: flex;
+    width: 20%;
+    align-items: flex-end;
+    padding-bottom: 4px;
+    border-bottom: 1px solid var(--1000, #000);
+    opacity: 0.3;
+}
+
+.opt-grid .opt.custom .desc .desc-input{
+    width: 100%;
+}
+.opt-grid .opt.custom .desc p{
+    color: var(--850, #262626);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 100%; /* 24px */
+}
+
+.opt-grid .opt .desc .desc-input input{
+    padding: 0;
+    height: fit-content;
+    line-height: 100%;
+    text-align: center;
+    border: none;
+    background: transparent;
+}
+
+.opt-grid .opt .desc .desc-input input:focus{
+    border: none;
+}
+
+.opt-grid .opt .desc .desc-input::after{
+    content: "min";
+    font-size: 20px;
+}
+
+.opt-grid .opt .desc .desc-input.rpm::after{
+    content: "rpm";
+}
+
+.opt-grid .opt .desc .desc-input.bpm::after{
+    content: "bpm";
+}
+
+.opt-grid .opt.custom .desc .desc-input::after{
+    content: "";
+}
+
+.input.dropdown.role .list.active{
+    height: 195px;
+}
+
+/* Hover and Active Status */
+
+.opt-grid .opt.on:hover{
+    cursor: pointer;
+    background: var(--50, #F2F2F2);
+}
+
+.opt-grid.active{
+    opacity: 1;
+}
+
+.opt-grid .opt.on.active{
+    border-bottom: 3px solid var(--850, #262626);
+    background: var(--50, #F2F2F2);
+    img{
+        content: url(../element/checkbox-filled-outline.svg);
+    }
+}
+
+@media (max-width:1920px) {
+    .accSection{
+        row-gap: 24px;
+        max-height: calc(100vh - 20vh);
+    }
+    .accSetting{
+        padding-bottom: 24px;
+        gap: 16px;
+        border-bottom: 1.5px solid var(--300, #B3B3B3);
+    }
+    .opt-list{
+        gap: 24px;
+    }
+    .opt-grid{
+        row-gap: 16px;
+        column-gap: 16px;
+    }
+    .opt-grid .opt{
+        padding: 12px;
+        gap: 16px;
+        border-bottom: 2px solid transparent;
+    }
+    .opt-grid .opt.on.active{
+        border-bottom: 2px solid var(--850, #262626);
+    }
+    .opt-grid .opt img{
+        height: 24px;
+        width: 24px;
+    }
+    .opt-grid .opt .desc-box{
+        gap: 6px;
+        width: 100%;
+    }
+    .opt-grid .opt .desc-box p{
+        font-size: 16px;
+    }
+    .opt-grid .opt .desc{
+        gap: 24px;
+    }
+    .opt-grid .opt .desc p{
+        font-size: 14px;
+    }
+    .opt-grid .opt .desc .desc-input{
+        width: 20%;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--1000, #000);
+    }
+    .opt-grid .opt.custom .desc p{
+        font-size: 14px;
+    }
+    .opt-grid .opt .desc .desc-input input{
+        padding: 0;
+        height: fit-content;
+        line-height: 100%;
+        text-align: center;
+        border: none;
+        background: transparent;
+    }
+    .opt-grid .opt .desc .desc-input::after{
+        content: "min";
+        font-size: 16px;
+    }
+    .input.dropdown.role .list.active{
+        height: 123px;
+    }
+}
+
+@media (max-width:1366px) {
+    .main .box {
+        padding-bottom: 8px;
+    }
+    .main {
+        row-gap: 20px;
+    }
+    .accSetting {
+        display: flex;
+        align-items: flex-start;
+        gap: 40px;
+    }
+    .accSetting h2{
+        width: auto;
+        min-width: 100px;
+        font-size: 14px;
+    }
+    .opt-list .btn-gp {
+        gap: 16px;
+    }
+    .input.dropdown.role .list.active{
+        height: 105px;
+    }
+    .opt-grid .opt {
+        padding: 12px;
+        gap: 12px;
+        border-bottom: 1.5px solid transparent;
+    }
+    .opt-grid .opt img{
+        height: 20px;
+        width: 20px;
+    }
+    .opt-grid .opt .desc-box p {
+        font-size: 14px;
+    }
+    .opt-grid .opt .desc-box p {
+        font-size: 12px;
+    }
+}

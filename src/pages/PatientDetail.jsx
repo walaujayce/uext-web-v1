@@ -20,7 +20,7 @@ function PatientDetail(){
                 <PatientProfile/>
                 <div className="main">
                     <div className="tab">
-                        <Link to='/patient/patient-detail/patient-monitor'>
+                        <Link to='/patient/patient-detail/patient-monitor' state={{reload:true}}>
                             <span className={`opt opt-1 
                             ${location.pathname === "/patient/patient-detail/patient-monitor" ? "active" : ""
                             }`}>Monitor</span>
@@ -38,7 +38,6 @@ function PatientDetail(){
                         </a>
                     </div>
                     <Outlet/>
-                    {/*Patient Monitor */}
                 </div>
             </div>
         </>

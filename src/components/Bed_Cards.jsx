@@ -42,11 +42,11 @@ export function Bed_vacant(){
 };
 
 
-export function Bed_default(){
+export function Bed_default({macaddress}){
     return(
             <a className="bed default">
                 <div className="b-num">1003</div>
-                <div className="name">Chan Tai Ming</div>
+                <div className="name">{macaddress}</div>
                 <div className="tag">
                     <img src="" alt="" />
                     <p className="timer">02:14:42</p>
@@ -78,11 +78,11 @@ export function Bed_attention(){
     );
 };
 
-export function Bed_alert({hold}){
+export function Bed_alert({hold},{macaddress}){
     return(
         <a href="patient-monitor.html" className="bed alert">
             <div className="b-num">1005</div>
-            <div className="name">Chan Tai Ming</div>
+            <div className="name">{macaddress}</div>
             <div className="tag">
                 <img src="" alt="" />
                 <p className="timer">{hold}</p>

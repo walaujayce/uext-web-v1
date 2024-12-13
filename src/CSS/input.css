@@ -7,6 +7,12 @@
 }
 .input-gp{
     position: relative;
+    
+}
+.input-gp2{
+    position: relative;
+    width: 10vw;
+    
 }
 input, textarea{
     /* Structure & Styles */
@@ -74,10 +80,13 @@ label .info{
 .input.suffix .input-gp .suffix{
     display: block;
 }
+.input.suffix .input-gp2 .suffix{
+    display: block;
+}
 
 .assistive-text{
     display: none;
-    color: var(--300, #B3B3B3);
+    color: var(--300, #FA3F2E);
     font-size: 18px;
     font-style: normal;
     font-weight: 400;

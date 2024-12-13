@@ -1,0 +1,207 @@
+.main{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    row-gap: 24px;
+}
+
+.main .box{
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 12px;
+    border-bottom: 1.5px solid var(--850, #262626);
+}
+
+.main .box .btn img{
+    content: url(/src/assets/arrow-left-bottom.svg);
+}
+
+.main .box .btn:hover{
+    img{
+        content: url(/src/assets/arrow-left-bottom-active.svg);
+    }
+}
+
+/* device Setting Tab Content */
+.device{
+    display: flex;  
+    flex-direction: column;
+    row-gap: 48px;
+    max-height: calc(100vh - 25vh);
+    overflow: hidden;
+    overflow-y: scroll;
+}
+
+.deviceSetting{
+    display: flex;
+    padding-bottom: 48px;
+    gap: 80px;
+    border-bottom: 2px solid var(--300, #B3B3B3);
+}
+
+.deviceSetting h2{
+    width: 320px;
+    flex-shrink: 0;
+}
+
+.opt-list{
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    width: 100%;
+}
+
+.opt-grid{
+    display: grid;
+    row-gap: 24px;
+    column-gap: 24px;
+    grid-template-columns: repeat(6, 1fr);
+}
+
+.opt-grid .input{
+    display: flex;
+    flex-direction: column;
+}
+
+.opt-grid .input.g-col-2{
+    grid-column: span 2;
+}
+.opt-grid .input.g-col-3{
+    grid-column: span 3;
+}
+
+.opt-list .btn-gp{
+    display: flex;
+    gap: 24px;
+    width: fit-content;
+}
+
+.input.connection .suffix{
+    content: url(/src/assets/reconnect.svg);
+}
+
+.ver-stat{
+    color: rgba(0, 0, 0, 0.50);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+
+
+@media (max-width:1920px) {
+    .device{
+        row-gap: 24px;
+        max-height: calc(100vh - 25vh);
+        padding-bottom: 48px;
+    }
+    .deviceSetting{
+        padding-bottom: 24px;
+        gap: 16px;
+        border-bottom: 1.5px solid var(--300, #B3B3B3);
+    }
+    .opt-list{
+        gap: 24px;
+    }
+    .opt-grid{
+        row-gap: 16px;
+        column-gap: 16px;
+    }
+    .opt-grid .opt{
+        padding: 12px;
+        gap: 16px;
+        border-bottom: 2px solid transparent;
+    }
+    .opt-grid .opt.on.active{
+        border-bottom: 2px solid var(--850, #262626);
+    }
+    .opt-grid .opt img{
+        height: 24px;
+        width: 24px;
+    }
+    .opt-grid .opt .desc-box{
+        gap: 6px;
+        width: 100%;
+    }
+    .opt-grid .opt .desc-box p{
+        font-size: 16px;
+    }
+    .opt-grid .opt .desc{
+        gap: 24px;
+    }
+    .opt-grid .opt .desc p{
+        font-size: 14px;
+    }
+    .opt-grid .opt .desc .desc-input{
+        width: 20%;
+        padding-bottom: 4px;
+        border-bottom: 1px solid var(--1000, #000);
+    }
+    .opt-grid .opt.custom .desc p{
+        font-size: 14px;
+    }
+    .opt-grid .opt .desc .desc-input input{
+        padding: 0;
+        height: fit-content;
+        line-height: 100%;
+        text-align: center;
+        border: none;
+        background: transparent;
+    }
+    .opt-grid .opt .desc .desc-input::after{
+        content: "min";
+        font-size: 16px;
+    }
+    .input.dropdown.role .list.active{
+        height: 123px;
+    }
+    .ver-stat{
+        font-size: 16px;
+    }
+}
+
+@media (max-width:1366px) {
+    .device{
+        row-gap: 20px;
+        max-height: calc(100vh - 27vh);
+    }
+    .main .box {
+        padding-bottom: 8px;
+    }
+    .main {
+        row-gap: 20px;
+    }
+    .deviceSetting {
+        display: flex;
+        align-items: flex-start;
+        gap: 40px;
+    }
+    .deviceSetting h2{
+        width: 15%;
+        font-size: 14px;
+    }
+    .opt-list .btn-gp {
+        gap: 16px;
+    }
+    .input.dropdown.role .list.active{
+        height: 105px;
+    }
+    .opt-grid .opt {
+        padding: 12px;
+        gap: 12px;
+        border-bottom: 1.5px solid transparent;
+    }
+    .opt-grid .opt img{
+        height: 20px;
+        width: 20px;
+    }
+    .opt-grid .opt .desc-box p {
+        font-size: 14px;
+    }
+    .opt-grid .opt .desc-box p {
+        font-size: 12px;
+    }
+    .ver-stat{
+        font-size: 14px;
+    }
+}

@@ -1,9 +1,26 @@
-import React from "react";
+import React, { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import "/src/CSS/index.css";
 
 function Navbar() {
+  {
+    /* nav link 字體反黑 */
+  }
   const location = useLocation();
+
+  {
+    /* Account Setting Dropdown Menu Logic */
+  }
+  const [isActiveAccount, setActiveAccount] = useState(false);
+
+  const handleMouseEnter = () => {
+    setActiveAccount(true);
+  };
+
+  const handleMouseLeave = () => {
+    setActiveAccount(false);
+  };
+
   return (
     <header>
       {/* UEXT LOGO */}
@@ -13,18 +30,39 @@ function Navbar() {
 
       {/* sub-pages */}
       <div className="navbar">
-        <Link to="/home" 
-        className={`nav-link ${location.pathname === "/home" ? "active" : ""}`}
-        >Home</Link>
-        <Link to="/patient" 
-        className={`nav-link ${location.pathname === "/patient" ? "active" : ""}`}
-        >Patient</Link>
-        <Link to="/device" 
-        className={`nav-link ${location.pathname === "/device" ? "active" : ""}`}
-        >Device</Link>
-        <Link to="/account" 
-        className={`nav-link ${location.pathname === "/account" ? "active" : ""}`}
-        >Account</Link>
+        <Link
+          to="/home"
+          className={`nav-link ${
+            location.pathname === "/home" ? "active" : ""
+          }`}
+        >
+          Home
+        </Link>
+        <Link
+          to="/patient"
+          className={`nav-link ${
+            location.pathname === "/patient" ? "active" : ""
+          }`}
+        >
+          Patient
+        </Link>
+        <Link
+          to="/device"
+          state={{ reload: true }}
+          className={`nav-link ${
+            location.pathname === "/device" ? "active" : ""
+          }`}
+        >
+          Device
+        </Link>
+        <Link
+          to="/account"
+          className={`nav-link ${
+            location.pathname === "/account" ? "active" : ""
+          }`}
+        >
+          Account
+        </Link>
       </div>
 
       {/* Settings */}
@@ -91,19 +129,24 @@ function Navbar() {
             </div>
           </div>
         </div>
-        <div className="setting">
+        {/* Account */}
+        <div
+          className={`setting ${isActiveAccount ? "active" : ""}`}
+          onMouseEnter={handleMouseEnter}
+          onMouseLeave={handleMouseLeave}
+        >
           <img
             src="/src/assets/account-active.svg"
             alt=""
             className="settingBtn"
           />
-          <div className="list">
+          <div className={`list ${isActiveAccount ? "active" : ""}`}>
             <div className="profile">
               <img src="/src/assets/account-active.svg" alt="" />
               <p>UEXT - Amy</p>
             </div>
-            <a href="account.html" className="option acc">
-              <img src="/src/assets/account.svg" alt="" />
+            <a href="#" className="option setting">
+              <img src="/src/assets/setting.svg" alt="" style={{width:"34px"}} />
               <p>Account Settings</p>
             </a>
             <a href="#" className="option pw" id="changePassword">

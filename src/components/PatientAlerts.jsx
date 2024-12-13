@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState,useEffect,useRef } from "react";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
@@ -112,15 +112,33 @@ function PatientAlerts() {
     {/* HANDLE DROP DOWN MENU */}
     const [isSensitivityDropDown, setSensitivityDropDown] = useState(false);
     const [placeholder, setPlaceholder] = useState("None"); // Input placeholder
-
+    
     const handleSensitivityDropDown = () => {
-      setSensitivityDropDown((prev) => !prev);
+        setSensitivityDropDown((prev) => !prev);
     };
     const handleItemClick = (sensitivity) => {
-      setPlaceholder(sensitivity);
-      handleSensitivityDropDown;
-      console.log("the state is ", isSensitivityDropDown);
+        setPlaceholder(sensitivity);
+        handleSensitivityDropDown;
+        console.log("the state is ", isSensitivityDropDown);
     };
+    
+    {/* HANDLE DROP DOWN MENU CLICK OUTSIDE */}
+    const dropdownRef = useRef(null);
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target)
+      ) {
+        setSensitivityDropDown(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
 
 return(
     <div className="alertSection">
@@ -246,7 +264,7 @@ return(
                                     <p>Sensitivity</p>
                                     <div className="desc">
                                         <p>Alert when exit rate exceeds a specific percentage.</p>
-                                        <div className="input dropdown section suffix" onClick={handleSensitivityDropDown}>
+                                        <div className="input dropdown section suffix" onClick={handleSensitivityDropDown} ref={dropdownRef}>
                                             <div className="input-gp">
                                                 <input type="text" className="placeholder" id="name" name="name" placeholder={placeholder} />
                                                 <img className="suffix" src="" alt="dropdown icon"/>

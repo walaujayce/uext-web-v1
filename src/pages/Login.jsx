@@ -23,14 +23,14 @@ function Login() {
     try {
       if (!username || !password) {
         setError("User account and password are required");
-        alert("User account and password are required")
+        alert(error)
         return;
       }
 
       const response = await fetch('/api/User');
       if (!response.ok) {
         setError("User account not found");
-        alert("User account not found")
+        alert(error)
         return;
       }
 

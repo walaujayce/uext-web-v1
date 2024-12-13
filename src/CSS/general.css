@@ -364,6 +364,11 @@ header .list{
         content: url(/src/assets/logout-active.svg);
     }
 }
+.setting .option.setting:hover{
+    img{
+        content: url(/src/assets/setting-active.svg);
+    }
+}
 
 
 /* Top Bar */

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation,useSearchParams } from "react-router-dom";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
@@ -11,11 +12,14 @@ function PatientMonitor() {
   const [position, setPosition] = useState("");
   const [duration, setDuration] = useState("");
 
+  const [searchParams] = useSearchParams();
+  const macaddress = searchParams.get("macaddress") || "";
+
   const postData = async () => {
     try {
       const url = "/api/7285/rawdatum";
       const body = {
-        MAC: "80C9553B5BA0",
+        MAC: macaddress,
       };
 
       const response = await fetch(url, {
@@ -68,26 +72,26 @@ function PatientMonitor() {
         <div className="box">
           <OpenCVComponent deviceid="12345" rawdata={rawdatum} />
           <div className="bt-box">
-            <div className="spec col">
+            {/* <div className="spec col">
               <p className="tag">Position</p>
               <h3>{`${position}`}</h3>
             </div>
             <div className="spec col">
               <p className="tag">Duration</p>
               <h3>{`${duration}`}</h3>
-            </div>
+            </div> */}
             <div className="spec row">
               <div className="mr high">
                 <img src="/src/assets/mr-high.svg" alt="" />
-                <p>12%</p>
+                {/* <p>12%</p> */}
               </div>
               <div className="mr mid">
                 <img src="/src/assets/mr-mid.svg" alt="" />
-                <p>28%</p>
+                {/* <p>28%</p> */}
               </div>
               <div className="mr low">
                 <img src="/src/assets/mr-low.svg" alt="" />
-                <p>60%</p>
+                {/* <p>60%</p> */}
               </div>
             </div>
           </div>
@@ -95,17 +99,17 @@ function PatientMonitor() {
       </div>
       <div className="h-rate">
         <div className="title">Health Rate</div>
-        <img src="/src/assets/heart-rate.png" alt="" />
+        <img src="/src/assets/health-rate.png" alt="" />
         <div className="spec">
-          <div>102</div>
+          <div>--</div>
           <div className="tag">Hz</div>
         </div>
       </div>
       <div className="respiration">
         <div className="title">Respiration</div>
-        <img src="/src/assets/respiration.png" alt="" />
+        <img src="/src/assets/health-rate.png" alt="" />
         <div className="spec">
-          <div>31</div>
+          <div>--</div>
           <div className="tag">Hz</div>
         </div>
       </div>
