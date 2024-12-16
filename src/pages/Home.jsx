@@ -16,6 +16,7 @@ import {
   Bed_vacant,
   Bed_default,
 } from "../components/Bed_Cards";
+import Bed_Sort_by_Status from "../components/Bed_Sort_by_Status";
 
 function Home() {
   const [devices, setDevices] = useState([]);
@@ -43,12 +44,26 @@ function Home() {
     const { STAT, POS, MAC, HOLD } = device;
 
     if (STAT === 0) {
-      return <Bed_disconnect />;
+      return (
+        <Bed_disconnect
+          key={MAC}
+          macaddress={MAC}
+          hold={formatSecondsToDHMS(HOLD)}
+        />
+      );
     } else if (STAT === 1) {
       return POS === 4 || POS === 5 ? (
-        <Bed_alert key={MAC} hold={formatSecondsToDHMS(HOLD)} />
+        <Bed_alert
+          key={MAC}
+          macaddress={MAC}
+          hold={formatSecondsToDHMS(HOLD)}
+        />
       ) : POS === 3 ? (
-        <Bed_attention />
+        <Bed_attention
+          key={MAC}
+          macaddress={MAC}
+          hold={formatSecondsToDHMS(HOLD)}
+        />
       ) : (
         <Bed_default
           key={MAC}
@@ -85,6 +100,21 @@ function Home() {
     return dateTime;
   };
 
+  {
+    /* Handle Sort by BED/STATUS */
+  }
+  const [sort_by_bed, setSort_by_bed] = useState(true);
+  const [sort_by_status, setSort_by_status] = useState(false);
+  const handleToggleSort = (type) => {
+    if (type === "bed") {
+      setSort_by_bed(true);
+      setSort_by_status(false);
+    } else {
+      setSort_by_bed(false);
+      setSort_by_status(true);
+    }
+  };
+
   return (
     <>
       <Navbar />
@@ -100,21 +130,150 @@ function Home() {
               <div className="sort">
                 <div className="label">Sort by</div>
                 <div className="opt-box">
-                  <div className="opt s1 active">Bed</div>
-                  <div className="opt s2">Status</div>
-                  <div className="bg-bk s1"></div>
+                  <div
+                    className={`opt s1 ${sort_by_bed ? "active" : ""}`}
+                    onClick={() => handleToggleSort("bed")}
+                  >
+                    Bed
+                  </div>
+                  <div
+                    className={`opt s2 ${sort_by_status ? "active" : ""}`}
+                    onClick={() => handleToggleSort("status")}
+                  >
+                    Status
+                  </div>
+                  <div className={`bg-bk ${sort_by_bed ? "s1" : "s2"}`}></div>
                 </div>
               </div>
             </div>
             {/* Bed Grid Sort by Bed */}
-            <div className="grid active">
+            <div className={`grid ${sort_by_bed ? "active" : ""}`}>
               {devices.map((device) => (
-                <Link to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                <Link
+                  to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
                   key={device.MAC}
                 >
                   {renderDeviceComponent(device)}{" "}
                 </Link>
               ))}
+            </div>
+            {/* Bed Grid Sort by Status */}
+            <div className={`by-status ${sort_by_status ? "active" : ""}`}>
+              {/* Alert Status */}
+              <div className="status">
+                <div className="title">Alerts</div>
+                <div className="status-grid">
+                  <a href="patient-monitor.html" className="bed alert">
+                    <div className="b-num">1003</div>
+                    <div className="name">Chan Tai Ming</div>
+                    <div className="tag">
+                      <img src="" alt="" />
+                      <p className="timer">02:14:42</p>
+                    </div>
+                    <div className="dis-tag">
+                      <img src="/src/assets/link-off.svg" alt="" />
+                      <p>Disconnected</p>
+                    </div>
+                    <img
+                      className="add"
+                      src="/src/assets/add.svg"
+                      alt="add icon"
+                    />
+                  </a>
+                </div>
+              </div>
+              {/* Attention Status */}
+              <div className="status">
+                <div className="title">Attention</div>
+                <div className="status-grid">
+                  <a href="patient-monitor.html" className="bed attention">
+                    <div className="b-num">1004</div>
+                    <div className="name">Chan Tai Ming</div>
+                    <div className="tag">
+                      <img src="" alt="" />
+                      <p className="timer">02:14:42</p>
+                    </div>
+                    <div className="dis-tag">
+                      <img src="/src/assets/link-off.svg" alt="" />
+                      <p>Disconnected</p>
+                    </div>
+                    <img
+                      className="add"
+                      src="/src/assets/add.svg"
+                      alt="add icon"
+                    />
+                  </a>
+                </div>
+              </div>
+              {/* Disconnected Status */}
+              <div className="status">
+                <div className="title">Disconnected</div>
+                <div className="status-grid">
+                  <a href="patient-monitor.html" className="bed disconnect">
+                    <div className="b-num">1011</div>
+                    <div className="name">Chan Tai Ming</div>
+                    <div className="tag">
+                      <img src="" alt="" />
+                      <p className="timer">02:14:42</p>
+                    </div>
+                    <div className="dis-tag">
+                      <img src="/src/assets/link-off.svg" alt="" />
+                      <p>Disconnected</p>
+                    </div>
+                    <img
+                      className="add"
+                      src="/src/assets/add.svg"
+                      alt="add icon"
+                    />
+                  </a>
+                </div>
+              </div>
+              {/* Default Status */}
+              <div className="status">
+                <div className="title">Normal</div>
+                <div className="status-grid">
+                  <a href="patient-monitor.html" className="bed">
+                    <div className="b-num">1001</div>
+                    <div className="name">Chan Tai Ming</div>
+                    <div className="tag">
+                      <img src="" alt="" />
+                      <p className="timer">02:14:42</p>
+                    </div>
+                    <div className="dis-tag">
+                      <img src="/src/assets/link-off.svg" alt="" />
+                      <p>Disconnected</p>
+                    </div>
+                    <img
+                      className="add"
+                      src="/src/assets/add.svg"
+                      alt="add icon"
+                    />
+                  </a>
+                </div>
+              </div>
+              {/* Vacant Status */}
+              <div className="status">
+                <div className="title">Vacant</div>
+                <div className="status-grid">
+                  <a href="patient-monitor.html" className="bed vacant">
+                    <div className="b-num">1028</div>
+                    <div className="name">Chan Tai Ming</div>
+                    <div className="tag">
+                      <img src="" alt="" />
+                      <p className="timer">02:14:42</p>
+                    </div>
+                    <div className="dis-tag">
+                      <img src="/src/assets/link-off.svg" alt="" />
+                      <p>Disconnected</p>
+                    </div>
+                    <img
+                      className="add"
+                      src="/src/assets/add.svg"
+                      alt="add icon"
+                    />
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>

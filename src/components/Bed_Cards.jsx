@@ -4,14 +4,14 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 
-export function Bed_disconnect(){
+export function Bed_disconnect({hold, macaddress}){
     return(
-        <a href="#" className="bed disconnect">
+        <a className="bed disconnect">
             <div className="b-num">1001</div>
-            <div className="name">Chan Tai Ming</div>
+            <div className="name">{macaddress}</div>
             <div className="tag">
                 <img src="" alt="" />
-                <p className="timer">02:14:42</p>
+                <p className="timer">{hold}</p>
             </div>
             <div className="dis-tag">
                 <img src="/src/assets/link-off.svg" alt="" />
@@ -25,7 +25,7 @@ export function Bed_disconnect(){
 
 export function Bed_vacant(){
     return(
-        <a href="#" className="bed vacant">
+        <a className="bed vacant">
             <div className="b-num">1002</div>
             <div className="name">Click to add patient</div>
             <div className="tag">
@@ -42,14 +42,14 @@ export function Bed_vacant(){
 };
 
 
-export function Bed_default({macaddress}){
+export function Bed_default({hold, macaddress}){
     return(
             <a className="bed default">
                 <div className="b-num">1003</div>
                 <div className="name">{macaddress}</div>
                 <div className="tag">
                     <img src="" alt="" />
-                    <p className="timer">02:14:42</p>
+                    <p className="timer">{hold}</p>
                 </div>
                 <div className="dis-tag">
                     <img src="/src/assets/link-off.svg" alt="" />
@@ -60,14 +60,14 @@ export function Bed_default({macaddress}){
         );
 };
 
-export function Bed_attention(){
+export function Bed_attention({hold, macaddress}){
     return(
-        <a href="patient-monitor.html" className="bed attention">
+        <a className="bed attention">
             <div className="b-num">1004</div>
-            <div className="name">Chan Tai Ming</div>
+            <div className="name">{macaddress}</div>
             <div className="tag">
                 <img src="" alt="" />
-                <p className="timer">02:14:42</p>
+                <p className="timer">{hold}</p>
             </div>
             <div className="dis-tag">
                 <img src="/src/assets/link-off.svg" alt="" />
@@ -78,9 +78,9 @@ export function Bed_attention(){
     );
 };
 
-export function Bed_alert({hold},{macaddress}){
+export function Bed_alert({hold, macaddress}){
     return(
-        <a href="patient-monitor.html" className="bed alert">
+        <a className="bed alert">
             <div className="b-num">1005</div>
             <div className="name">{macaddress}</div>
             <div className="tag">

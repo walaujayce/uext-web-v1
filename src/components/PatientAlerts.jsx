@@ -5,9 +5,12 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/patient.css";
 import "/src/CSS/patient-custom.css";
+import { useSearchParams } from 'react-router-dom';
+
 
 function PatientAlerts() {
-
+    const [searchParams] = useSearchParams();
+  const macaddress = searchParams.get("macaddress") || "";
     {/* NOTIFICATION TIME RANGE ARRAY */} 
     const NotificationTimeRange = [
         { id: 1, label: "00 - 24" },
@@ -258,13 +261,13 @@ return(
                 <div className="opt-list">
                     <div className={`opt-grid ${exitBedRateToggleState ? "active" : ""}`}>
                         <div className="opt-box">
-                            <div className={`opt ${exitBedRateToggleState ? "on" : ""} ${exitBedRateToggleState ? "active" : ""} `}>
-                                <img src="/src/assets/checkbox-blank-outline.svg" alt="" />
+                            <div className={`opt ${exitBedRateToggleState ? "on" : ""} `}>
+                                <img src={`${exitBedRateToggleState ? "/src/assets/checkbox-filled-outline.svg" : "/src/assets/checkbox-blank-outline.svg"} `} alt="" />
                                 <div className="desc-box">
                                     <p>Sensitivity</p>
                                     <div className="desc">
                                         <p>Alert when exit rate exceeds a specific percentage.</p>
-                                        <div className="input dropdown section suffix" onClick={handleSensitivityDropDown} ref={dropdownRef}>
+                                        <div className="input dropdown suffix" onClick={handleSensitivityDropDown} ref={dropdownRef}>
                                             <div className="input-gp">
                                                 <input type="text" className="placeholder" id="name" name="name" placeholder={placeholder} />
                                                 <img className="suffix" src="" alt="dropdown icon"/>

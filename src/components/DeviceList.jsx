@@ -70,7 +70,7 @@ const DeviceList = ( {handleHideDeviceList} ) => {
           <div className="btn" id="addDevice" onClick={handleAddDeviceClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">New Device</p>
-            {isOverlayVisible && (
+            {isOverlayVisible && (  
               <AddNewDevice callback={handleAddDeviceClick} />
             )}
           </div>
@@ -109,7 +109,7 @@ const DeviceList = ( {handleHideDeviceList} ) => {
             </Link>
             {port === "7285" &&
               devices.map((device) => (
-                <Link to={`/device/${device.Deviceid}`} key={device.Deviceid}>
+                <Link to={`/device/device-settings?macaddress=${device.Devicemac}`} key={device.Deviceid}  onClick={handleHideDeviceList}>
                   <div className="item">
                     <h3 className="fg1">
                       {device.devicetype === 0
@@ -140,7 +140,7 @@ const DeviceList = ( {handleHideDeviceList} ) => {
               ))}
             {port === "7284" &&
               devices.map((device) => (
-                <Link to={`/device/${device.deviceid}`} key={device.deviceid}>
+                <Link to={`/device/device-settings?macaddress=${device.macaddress}`} key={device.macaddress}  onClick={handleHideDeviceList}>
                   <div className="item">
                     <h3 className="fg1">
                       {device.devicetype === 0

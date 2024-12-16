@@ -14,11 +14,8 @@ function Device() {
 
   const location = useLocation();
   useEffect(() => {
-    if (location.state?.reload) {
-      // Perform any reset logic or force a refresh
-      console.log("Resetting Device component");
-      setShowDeviceList(true);
-    }
+    const isDeviceSettingsRoute = location.pathname.includes("device-settings");
+    setShowDeviceList(!isDeviceSettingsRoute);
   }, [location]);
 
   return (

@@ -7,11 +7,18 @@ import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import "/src/CSS/patient.css";
 import PatientProfile from '../components/PatientProfile';
-import { Link, Outlet, useLocation } from 'react-router-dom';
+import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 
 function PatientDetail(){
     const location = useLocation();
+
+    const navigate = useNavigate();
+
+    const handleBackBtnClick = () => {
+      navigate("/home");
+    };
+  
 
     return(
         <>
@@ -32,7 +39,7 @@ function PatientDetail(){
                         </Link>
                         <a  className="opt opt-3">Analysis</a>
                         <a  className="opt opt-4">Logs</a>
-                        <a  className="btn frameless" href="">
+                        <a  className="btn frameless" onClick={handleBackBtnClick}>
                             <img src="" alt="" className="prefix"/>
                             <p className="btn-text">Back</p>
                         </a>

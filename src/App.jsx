@@ -16,23 +16,56 @@ import PatientDetail from "./pages/PatientDetail";
 import PatientMonitor from "./components/PatientMonitor";
 import PatientAlerts from "./components/PatientAlerts";
 import DeviceSettings from "./components/DeviceSetting";
+import AccountSetting from "./components/AccountSetting";
+import PrivateRoute from "./JS/PrivateRoute";
 
 function App() {
   return (
-    <Router>
-      <Routes>
-        {/* <Route path="/" element={<Login />} />
-        <Route path='/home' element={<Home/>}/>
-        <Route path='/patient' element={<Patient/>}/>
-        <Route path='/patient/patient-detail' element={<PatientDetail/>}>
-          <Route index element={<Navigate to="patient-monitor" replace />} />   
-          <Route path='patient-monitor' element={<PatientMonitor/>}/>
-          <Route path='patient-alerts' element={<PatientAlerts/>}/>
-        </Route>
-        <Route path='/device' element={<Device/>}/>
-        <Route path='/account' element={<Account/>}/>
-        <Route path="*" element={<Navigate to="/" />}/> */}
-        <Route path="/home" element={<Home />} />
+    <Routes>
+      <Route path="/" element={<Login />} />
+      <Route
+        path="/home"
+        element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/patient"
+        element={
+          <PrivateRoute>
+            <Patient />
+          </PrivateRoute>
+        }
+      />
+      <Route path="/patient/patient-detail" element={<PatientDetail />}>
+        <Route index element={<Navigate to="patient-monitor" replace />} />
+        <Route path="patient-monitor" element={<PatientMonitor />} />
+        <Route path="patient-alerts" element={<PatientAlerts />} />
+      </Route>
+      <Route
+        path="/device"
+        element={
+          <PrivateRoute>
+            <Device />
+          </PrivateRoute>
+        }
+      >
+        <Route path="device-settings" element={<DeviceSettings />} />
+      </Route>
+      <Route
+        path="/account"
+        element={
+          <PrivateRoute>
+            <Account />
+          </PrivateRoute>
+        }
+      >
+        <Route path="account-settings" element={<AccountSetting />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" />} />
+      {/* <Route path="/home" element={<Home />} />
         <Route path="/patient" element={<Patient />} />
         <Route path="/patient/patient-detail" element={<PatientDetail />}>
           <Route index element={<Navigate to="patient-monitor" replace />} />
@@ -42,10 +75,11 @@ function App() {
         <Route path="/device" element={<Device />}>
           <Route path="device-settings" element={<DeviceSettings />} />
         </Route>
-        <Route path="/account" element={<Account />} />
-        <Route path="*" element={<Navigate to="/home" />} />
-      </Routes>
-    </Router>
+        <Route path="/account" element={<Account />} >
+          <Route path="account-settings" element={<AccountSetting />} />
+        </Route>
+        <Route path="*" element={<Navigate to="/home" />} /> */}
+    </Routes>
   );
 }
 

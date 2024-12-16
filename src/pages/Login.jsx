@@ -6,6 +6,7 @@ import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
+import { useAuth } from '../JS/AuthContext';
 
 function Login() {
   const [username, setUsername] = useState('');
@@ -18,6 +19,8 @@ function Login() {
   }, []);
   
   const navigate = useNavigate();
+  const { login } = useAuth();
+
 
   const handleLogin = async () => {
     try {
@@ -27,13 +30,15 @@ function Login() {
         return;
       }
 
-      const response = await fetch('/api/User');
+      const response = await fetch("api/7284/User", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
       if (!response.ok) {
-        setError("User account not found");
-        alert(error)
-        return;
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
       const data = await response.json();
       console.log(data);
       // Assuming `data.password` contains the stored password
@@ -42,6 +47,7 @@ function Login() {
       if (user) {
         console.log('Password:', user.password);
         if (user.password === password) {
+          login();
           navigate('/home');
         } else {
           setError("Incorrect password");

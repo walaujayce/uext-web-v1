@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Outlet, Link, useLocation } from "react-router-dom";
+import { Outlet, Link, useLocation,useNavigate } from "react-router-dom";
 import "/src/CSS/index.css";
+import { useAuth } from "../JS/AuthContext";
 
 function Navbar() {
   {
@@ -20,6 +21,8 @@ function Navbar() {
   const handleMouseLeave = () => {
     setActiveAccount(false);
   };
+  const { logout } = useAuth();
+
 
   return (
     <header>
@@ -84,7 +87,7 @@ function Navbar() {
           </div>
         </div>
         <div className="notification">
-          <img src="/src/assets/notice-active.svg" alt="" className="notiBtn" />
+          <img src="/src/assets/notice.svg" alt="" className="notiBtn" />
           <div className="list">
             <div className="notice">
               <div className="title">Patient Exit Bed Notification</div>
@@ -153,7 +156,7 @@ function Navbar() {
               <img src="/src/assets/lock.svg" alt="" />
               <p>Change Password</p>
             </a>
-            <a href="#" className="option logout">
+            <a className="option logout" onClick={logout}>
               <img src="/src/assets/logout.svg" alt="" />
               <p>Logout</p>
             </a>

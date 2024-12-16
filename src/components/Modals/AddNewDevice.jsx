@@ -203,9 +203,7 @@ const AddNewDevice = ({ callback }) => {
 
     const requestBody = {
       devicetype,
-      deviceid : getRandomString(),
       macaddress,
-      ipaddress : getRandomIPAddress(),
       bed,
       floor,
       section,
@@ -221,9 +219,7 @@ const AddNewDevice = ({ callback }) => {
       });
 
       console.log("devicetype",devicetype);
-      console.log("deviceid",deviceid);
       console.log("macaddress",macaddress);
-      console.log("ipaddress",ipaddress);
       console.log("bed",bed);
       console.log("floor",floor);
       console.log("section",section);
