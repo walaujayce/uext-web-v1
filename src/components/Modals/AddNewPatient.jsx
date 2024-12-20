@@ -42,7 +42,7 @@ const AddNewPatient = ({ callback }) => {
 
   const handleSexItemClick = (sex) => {
     setPlaceholderSex(sex);
-    setSexActive(false);
+    handleSexDropdown;
   };
   {
     /* Handle Item Select */
@@ -210,7 +210,7 @@ const AddNewPatient = ({ callback }) => {
                 </div>
               </div>
               {/* Sex */}
-              <div className="input dropdown suffix g-c-3">
+              <div className="input dropdown suffix g-c-3" onClick={handleSexDropdown} ref={dropdownRef}>
                 <label for="sex" className="label-container">
                   <p>Sex</p>
                   <img
@@ -219,7 +219,7 @@ const AddNewPatient = ({ callback }) => {
                     alt="gray outline information icon"
                   />
                 </label>
-                <div className="input-gp" onClick={handleSexDropdown} ref={dropdownRef}>
+                <div className="input-gp">
                   <input
                     type="text"
                     className="placeholder"

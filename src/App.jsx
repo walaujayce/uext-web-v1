@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ReactDOM from "react-dom/client";
 import {
   BrowserRouter as Router,
   Route,
   Routes,
   Navigate,
+  useLocation,
 } from "react-router-dom";
 import "./App.css";
 import Login from "./pages/Login";
@@ -20,6 +21,19 @@ import AccountSetting from "./components/AccountSetting";
 import PrivateRoute from "./JS/PrivateRoute";
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    // Check if the user is navigating outside of `/patient` routes
+    if (!location.pathname.startsWith("/patient")) {
+      // Clear relevant sessionStorage keys
+      sessionStorage.removeItem("notificationToggleState");
+      sessionStorage.removeItem("alertRepeatToggleState");
+      sessionStorage.removeItem("selectedNotification");
+      sessionStorage.removeItem("debounceValue");
+    }
+  }, [location.pathname]);
+
   return (
     <Routes>
       <Route path="/" element={<Login />} />
@@ -51,9 +65,16 @@ function App() {
             <Device />
           </PrivateRoute>
         }
-      >
-        <Route path="device-settings" element={<DeviceSettings />} />
-      </Route>
+      />
+      <Route
+        path="/device/device-settings"
+        element={
+          <PrivateRoute>
+            <DeviceSettings />
+          </PrivateRoute>
+        }
+      />
+
       <Route
         path="/account"
         element={
@@ -61,9 +82,8 @@ function App() {
             <Account />
           </PrivateRoute>
         }
-      >
-        <Route path="account-settings" element={<AccountSetting />} />
-      </Route>
+      />
+        <Route path="/account/account-settings" element={<AccountSetting />} />
       <Route path="*" element={<Navigate to="/" />} />
       {/* <Route path="/home" element={<Home />} />
         <Route path="/patient" element={<Patient />} />

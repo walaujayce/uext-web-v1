@@ -12,13 +12,13 @@ import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 
 function PatientDetail(){
     const location = useLocation();
-
+    const searchParams = location.search;
     const navigate = useNavigate();
 
     const handleBackBtnClick = () => {
       navigate("/home");
     };
-  
+
 
     return(
         <>
@@ -27,12 +27,12 @@ function PatientDetail(){
                 <PatientProfile/>
                 <div className="main">
                     <div className="tab">
-                        <Link to='/patient/patient-detail/patient-monitor' state={{reload:true}}>
+                        <Link to={`/patient/patient-detail/patient-monitor${searchParams}`} state={{reload:true}}>
                             <span className={`opt opt-1 
                             ${location.pathname === "/patient/patient-detail/patient-monitor" ? "active" : ""
                             }`}>Monitor</span>
                         </Link>
-                        <Link to='/patient/patient-detail/patient-alerts'>
+                        <Link to={`/patient/patient-detail/patient-alerts${searchParams}`}>
                             <span className={`opt opt-2 
                             ${location.pathname === "/patient/patient-detail/patient-alerts" ? "active" : ""
                             }`}>Alerts</span>

@@ -10,10 +10,10 @@ import "/src/CSS/panel-list.css";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewDevice from "../components/Modals/AddNewDevice";
 
-const DeviceList = ( {handleHideDeviceList} ) => {
+const DeviceList = () => {
   const [devices, setDevices] = useState([]);
 
-  const [port, setPort] = useState("7285");
+  const [port, setPort] = useState("7284");
   const handleSelectPort = (port) => {
     console.log(port);
     setPort(port);
@@ -38,6 +38,14 @@ const DeviceList = ( {handleHideDeviceList} ) => {
         const data = await response.json();
         console.log(data);
         setDevices(data);
+      } else if (port === "8031") {
+        const response = await fetch("api/8031/devices");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(data);
+        setDevices(data.DATA);
       }
     } catch (error) {
       console.error("Error fetching device data:", error);
@@ -91,56 +99,22 @@ const DeviceList = ( {handleHideDeviceList} ) => {
             </div>
           </div>
           <div className="item-list">
-            <Link to={`/device/device-settings?macaddress=D83ADD586CCE`} onClick={handleHideDeviceList}>
-              <a  href="" className="item">
-                <h3 className="fg1">UEXT</h3>
-                <h3 className="fg2">RRD42687891</h3>
-                <h3 className="fg2">D83ADD586CCE</h3>
-                <h3 className="fg2">192.9.0.101</h3>
-                <h3 className="fg1">6101</h3>
-                <h3 className="fg1">Zone A</h3>
-                <h3 className="fg1">6F</h3>
-                <h3 className="fg1">2024-10-22</h3>
-                <div className="connection connected fg2">
-                  <img src="" alt="" />
-                  <h3>Connected</h3>
-                </div>
-              </a>
-            </Link>
-            {port === "7285" &&
-              devices.map((device) => (
-                <Link to={`/device/device-settings?macaddress=${device.Devicemac}`} key={device.Deviceid}  onClick={handleHideDeviceList}>
-                  <div className="item">
-                    <h3 className="fg1">
-                      {device.devicetype === 0
-                        ? "Not Specified"
-                        : device.devicetype === 1
-                        ? "UEXT"
-                        : "UMAP"}
-                    </h3>
-                    <h3 className="fg2">{device.Deviceid || "N/A"}</h3>
-                    <h3 className="fg2">{device.Devicemac || "N/A"}</h3>
-                    <h3 className="fg2">{device.Deviceip || "N/A"}</h3>
-                    <h3 className="fg1">{device.Bedno || "N/A"}</h3>
-                    <h3 className="fg1">{device.section || "N/A"}</h3>
-                    <h3 className="fg1">{device.Floorid || "N/A"}</h3>
-                    <h3 className="fg1">
-                      {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
-                    </h3>
-                    <div
-                      className={`connection ${
-                        device.Connect ? "connected" : "disconnected"
-                      } fg2`}
-                    >
-                      <img src="" alt="" />
-                      <h3>{device.Connect ? "Connected" : "Disconnected"}</h3>
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            {port === "7284" &&
-              devices.map((device) => (
-                <Link to={`/device/device-settings?macaddress=${device.macaddress}`} key={device.macaddress}  onClick={handleHideDeviceList}>
+          {port === "7284" &&
+              devices.slice()
+              .sort((a, b) => {
+                const macA = a.macaddress?.toUpperCase() || "";
+                const macB = b.macaddress?.toUpperCase() || "";
+                // Sort alphabetically first
+                if (macA < macB) return -1;
+                if (macA > macB) return 1;
+                // If alphabetical order is the same, sort numerically
+                const numA = parseInt(a.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
+                const numB = parseInt(b.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
+          
+                return numA - numB; // Numeric ascending order
+              })
+              .map((device) => (
+                <Link to={`/device/device-settings?macaddress=${device.macaddress}`} key={device.macaddress}>
                   <div className="item">
                     <h3 className="fg1">
                       {device.devicetype === 0
@@ -171,9 +145,9 @@ const DeviceList = ( {handleHideDeviceList} ) => {
                   </div>
                 </Link>
               ))}
-            {port === "8031" &&
+            {/* {port === "7285" &&
               devices.map((device) => (
-                <Link to={`/device/${device.deviceid}`} key={device.deviceid}>
+                <Link to={`/device/device-settings?macaddress=${device.Devicemac}`} key={device.Deviceid}>
                   <div className="item">
                     <h3 className="fg1">
                       {device.devicetype === 0
@@ -201,7 +175,39 @@ const DeviceList = ( {handleHideDeviceList} ) => {
                     </div>
                   </div>
                 </Link>
-              ))}
+              ))} */}
+            
+            {/* {port === "8031" &&
+              devices.map((device) => (
+                <Link to={`/device/device-settings?macaddress=${device.MAC}`} key={device.MAC}>
+                  <div className="item">
+                    <h3 className="fg1">
+                      {device.TYPE === 0
+                        ? "Not Specified"
+                        : device.TYPE === 1
+                        ? "UEXT"
+                        : "UMAP"}
+                    </h3>
+                    <h3 className="fg2">{device.MAC || "N/A"}</h3>
+                    <h3 className="fg2">{device.MAC || "N/A"}</h3>
+                    <h3 className="fg2">{device.IP || "N/A"}</h3>
+                    <h3 className="fg1">{device.Bedno || "N/A"}</h3>
+                    <h3 className="fg1">{device.section || "N/A"}</h3>
+                    <h3 className="fg1">{device.Floorid || "N/A"}</h3>
+                    <h3 className="fg1">
+                      {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
+                    </h3>
+                    <div
+                      className={`connection ${
+                        device.STAT ? "connected" : "disconnected"
+                      } fg2`}
+                    >
+                      <img src="" alt="" />
+                      <h3>{device.STAT ? "Connected" : "Disconnected"}</h3>
+                    </div>
+                  </div>
+                </Link>
+              ))} */}
           </div>
         </div>
       </div>

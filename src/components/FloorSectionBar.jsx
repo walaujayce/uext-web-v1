@@ -5,7 +5,7 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 
-  function FloorSectionBar( {selectPort} ) {
+function FloorSectionBar({ selectPort }) {
   {
     /* Fetch Floors API */
   }
@@ -32,7 +32,6 @@ import "/src/CSS/index.css";
   useEffect(() => {
     fetchFloorList();
   }, []);
- 
 
   {
     /* Floor Dropdown Menu Logic */
@@ -45,7 +44,7 @@ import "/src/CSS/index.css";
 
   const handleFloorItemClick = (floor) => {
     setPlaceholderFloor(floor);
-    setFloorActive(false);
+    handleFloorDropDownMenu;
   };
   {
     /* Fetch Section API */
@@ -81,26 +80,28 @@ import "/src/CSS/index.css";
 
   const handleSectionItemClick = (section) => {
     setPlaceholderSection(section);
-    setSectionActive(false);
+    handleSectionDropDownMenu;
   };
   {
     /* Port Dropdown Menu Logic */
   }
-  const ports = ["7284","7285","8031"]
+  const ports = ["7284", "7285", "8031"];
   const [isPortActive, setPortActive] = useState(false);
   const handlePortDropDownMenu = () => {
     setPortActive((prev) => !prev);
   };
 
-  const [placeholderPort, setPlaceholderPort] = useState("7285"); // Input placeholder
+  const [placeholderPort, setPlaceholderPort] = useState("7284"); // Input placeholder
 
   const handlePortItemClick = (port) => {
     setPlaceholderPort(port);
-    setPortActive(false);
+    setPortActive;
     selectPort(port);
   };
 
-    {/* useRef Logic */}
+  {
+    /* useRef Logic */
+  }
 
   const dropdownRefs = useRef([]);
 
@@ -113,9 +114,7 @@ import "/src/CSS/index.css";
   useEffect(() => {
     const handleOutsideClick = (event) => {
       if (
-        dropdownRefs.current.every(
-          (ref) => ref && !ref.contains(event.target)
-        )
+        dropdownRefs.current.every((ref) => ref && !ref.contains(event.target))
       ) {
         // Close all dropdowns or handle logic here
         setFloorActive(false);
@@ -130,10 +129,13 @@ import "/src/CSS/index.css";
     };
   }, []);
 
-
   return (
     <>
-      <div className="input dropdown floor suffix">
+      <div
+        className="input dropdown floor suffix"
+        onClick={handleFloorDropDownMenu}
+        ref={addDropdownRef}
+      >
         <label htmlFor="floor" className="label-container">
           <p>Floor</p>
           <img
@@ -142,11 +144,11 @@ import "/src/CSS/index.css";
             alt="gray outline information icon"
           />
         </label>
-        <div className="input-gp" onClick={handleFloorDropDownMenu} ref={addDropdownRef}>
+        <div className="input-gp">
           <input
             type="text"
             className="placeholder"
-            id="name"
+            id="floor"
             name="name"
             placeholder={placeholderFloor}
             readOnly
@@ -166,7 +168,11 @@ import "/src/CSS/index.css";
           ))}
         </div>
       </div>
-      <div className="input dropdown section suffix">
+      <div
+        className="input dropdown section suffix"
+        onClick={handleSectionDropDownMenu}
+        ref={addDropdownRef}
+      >
         <label htmlFor="section" className="label-container">
           <p>Section</p>
           <img
@@ -175,11 +181,11 @@ import "/src/CSS/index.css";
             alt="gray outline information icon"
           />
         </label>
-        <div className="input-gp" onClick={handleSectionDropDownMenu} ref={addDropdownRef}>
+        <div className="input-gp">
           <input
             type="text"
             className="placeholder"
-            id="name"
+            id="section"
             name="name"
             placeholder={placeholderSection}
             readOnly
@@ -199,7 +205,11 @@ import "/src/CSS/index.css";
           ))}
         </div>
       </div>
-      <div className="input dropdown port suffix">
+      {/* <div
+        className="input dropdown port suffix"
+        onClick={handlePortDropDownMenu}
+        ref={addDropdownRef}
+      >
         <label htmlFor="port" className="label-container">
           <p>Port</p>
           <img
@@ -208,11 +218,11 @@ import "/src/CSS/index.css";
             alt="gray outline information icon"
           />
         </label>
-        <div className="input-gp" onClick={handlePortDropDownMenu} ref={addDropdownRef}>
+        <div className="input-gp">
           <input
             type="text"
             className="placeholder"
-            id="name"
+            id="port"
             name="name"
             placeholder={placeholderPort}
             readOnly
@@ -231,7 +241,7 @@ import "/src/CSS/index.css";
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
       <div className="input search"></div>
     </>
   );

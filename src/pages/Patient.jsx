@@ -7,7 +7,7 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import "/src/CSS/panel-list.css";
-import Alert from "/src/components/Alert.jsx";
+import AlertList from "/src/components/AlertList.jsx";
 import Navbar from "../components/Navbar";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewPatient from "../components/Modals/AddNewPatient"
@@ -47,7 +47,7 @@ function Patient() {
     <>
     <Navbar/>
     <div className="wrap">
-      <Alert />
+      <AlertList />
       <div className="main">
         <div className="box">
           <h1>Patient List</h1>
@@ -101,7 +101,6 @@ function Patient() {
                 </a>
               </Link>
               {patients.map((patient) => (
-        <Link to={`/patient/${patient.patientid}`} key={patient.patientid}>
           <a className="item">
             <h3 className="fg2">{patient.patientid || "N/A"}</h3>
             <h3 className="fg2">{patient.patientname || "N/A"}</h3>
@@ -112,7 +111,7 @@ function Patient() {
             <h3 className="fg1">{patient.bed || "N/A"}</h3>
             <h3 className="fg1">{patient.section===""? "N/A" : "Zone " + patient.section}</h3>
             <h3 className="fg1">{patient.floor===""? "N/A" : patient.floor + "F"}</h3>
-            <h3 className="fg2">{patient.id || "N/A"}</h3>
+            <h3 className="fg2">{patient.deviceid || "N/A"}</h3>
             <div
               className={`connection ${
                 patient.devicestatus ? "connected" : "disconnected"
@@ -122,7 +121,6 @@ function Patient() {
               <h3>{patient.devicestatus ? "Connected" : "Disconnected"}</h3>
             </div>
           </a>
-        </Link>
       ))}
             </div>
           </div>

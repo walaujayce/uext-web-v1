@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
-import Alert from "../components/Alert";
+import AlertList from "../components/AlertList";
 import DeviceList from "../components/DeviceList";
 import { Outlet,useLocation } from "react-router-dom";
 import DeviceSettings from "../components/DeviceSetting";
@@ -22,13 +22,9 @@ function Device() {
     <>
       <Navbar />
       <div className="wrap">
-        <Alert />
+        <AlertList />
         <div className="main">
-          {showDeviceList && (
-            <DeviceList handleHideDeviceList={handleHideDeviceList} />
-          )}
-          <Outlet />
-          {/* <DeviceSettings/> */}
+            <DeviceList/>
         </div>
       </div>
     </>

@@ -100,6 +100,12 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
   };
 
   const print_img = (data) => {
+    if (!data || data.length === 0) {
+      const canvas = document.getElementById("tcanvas");
+      const ctx = canvas.getContext("2d");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      return;
+    }
     const mat24 = cv.matFromArray(
       canvasRef.current.height,
       canvasRef.current.width,
@@ -127,26 +133,6 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
         dst.ucharPtr(i, j)[3] = 0;
       }
     }
-
-    // // Here `show_num` would need to be a state or prop for conditional text rendering
-    // const show_num = true; // Assuming `show_num` is true for now
-    // if (show_num) {
-    //     for (let i = 0; i < vis.size().height; i++) {
-    //         for (let j = 0; j < vis.size().width; j++) {
-    //             if (vis.ucharPtr(i, j)[0] > 20) {
-    //                 cv.putText(
-    //                     dst,
-    //                     `${vis.ucharPtr(i, j)[0]}`,
-    //                     { x: (j + 0.3) * Math.pow(7, 1.002), y: (i + 0.5) * 7 },
-    //                     cv.FONT_HERSHEY_SIMPLEX,
-    //                     0.25,
-    //                     new cv.Scalar(255, 255, 255),
-    //                     1
-    //                 );
-    //             }
-    //         }
-    //     }
-    // }
 
     cv.imshow("tcanvas", dst);
 

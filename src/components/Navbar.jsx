@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Outlet, Link, useLocation,useNavigate } from "react-router-dom";
 import "/src/CSS/index.css";
 import { useAuth } from "../JS/AuthContext";
+import LogOut_Modal from "./Modals/LogOut";
 
 function Navbar() {
   {
@@ -21,8 +22,22 @@ function Navbar() {
   const handleMouseLeave = () => {
     setActiveAccount(false);
   };
+
+  {/* Handle LogOut Overlay Visible */}
+  const [isLogoutOverlayVisible, setLogOutOverlayVisible] = useState(false);
+
+  const handleLogOutVisibleClick = (e) => {
+      e.preventDefault();
+      setLogOutOverlayVisible(!isLogoutOverlayVisible);
+      setActiveAccount(false);
+
+  };
+
   const { logout } = useAuth();
 
+{
+    /* useRef Logic */
+  }
 
   return (
     <header>
@@ -36,7 +51,7 @@ function Navbar() {
         <Link
           to="/home"
           className={`nav-link ${
-            location.pathname === "/home" ? "active" : ""
+            location.pathname.includes("/home") ? "active" : ""
           }`}
         >
           Home
@@ -44,7 +59,7 @@ function Navbar() {
         <Link
           to="/patient"
           className={`nav-link ${
-            location.pathname === "/patient" ? "active" : ""
+            location.pathname.includes("/patient") ? "active" : ""
           }`}
         >
           Patient
@@ -53,7 +68,7 @@ function Navbar() {
           to="/device"
           state={{ reload: true }}
           className={`nav-link ${
-            location.pathname === "/device" ? "active" : ""
+            location.pathname.includes("/device") ? "active" : ""
           }`}
         >
           Device
@@ -61,7 +76,7 @@ function Navbar() {
         <Link
           to="/account"
           className={`nav-link ${
-            location.pathname === "/account" ? "active" : ""
+            location.pathname.includes("/account") ? "active" : ""
           }`}
         >
           Account
@@ -156,9 +171,10 @@ function Navbar() {
               <img src="/src/assets/lock.svg" alt="" />
               <p>Change Password</p>
             </a>
-            <a className="option logout" onClick={logout}>
+            <a className="option logout" onClick={handleLogOutVisibleClick}>
               <img src="/src/assets/logout.svg" alt="" />
               <p>Logout</p>
+              {isLogoutOverlayVisible && <LogOut_Modal callback={handleLogOutVisibleClick} logout_callback = {logout}/>}
             </a>
           </div>
         </div>

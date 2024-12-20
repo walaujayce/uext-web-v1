@@ -7,7 +7,7 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import Navbar from "/src/components/Navbar.jsx";
-import Alert from "/src/components/Alert.jsx";
+import AlertList from "/src/components/AlertList.jsx";
 import FloorSectionBar from "../components/FloorSectionBar";
 import {
   Bed_disconnect,
@@ -19,17 +19,33 @@ import {
 import Bed_Sort_by_Status from "../components/Bed_Sort_by_Status";
 
 function Home() {
+  const [port, setPort] = useState("8031");
+  const handleSelectPort = (port) => {
+    console.log(port);
+    setPort(port);
+  };
+
   const [devices, setDevices] = useState([]);
 
   const fetchDeviceList = async () => {
     try {
-      const response = await fetch("api/8031/devices");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (port === "8031") {
+        const response = await fetch("api/8031/devices");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(data.DATA);
+        setDevices(data.DATA || []);
+      } else if (port === "7284") {
+        const response = await fetch("api/7284/db/Device");
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log(data);
+        setDevices(data || []);
       }
-      const data = await response.json();
-      console.log(data.DATA);
-      setDevices(data.DATA || []);
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -38,10 +54,10 @@ function Home() {
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [port]);
 
   const renderDeviceComponent = (device) => {
-    const { STAT, POS, MAC, HOLD } = device;
+    const { STAT, POS, MAC, HOLD, Bed, Floor, Section, UserName } = device;
 
     if (STAT === 0) {
       return (
@@ -49,28 +65,68 @@ function Home() {
           key={MAC}
           macaddress={MAC}
           hold={formatSecondsToDHMS(HOLD)}
+          bed={Bed}
+          floor={Floor}
+          section={Section}
+          username={UserName}
         />
       );
     } else if (STAT === 1) {
-      return POS === 4 || POS === 5 ? (
-        <Bed_alert
-          key={MAC}
-          macaddress={MAC}
-          hold={formatSecondsToDHMS(HOLD)}
-        />
-      ) : POS === 3 ? (
-        <Bed_attention
-          key={MAC}
-          macaddress={MAC}
-          hold={formatSecondsToDHMS(HOLD)}
-        />
-      ) : (
-        <Bed_default
-          key={MAC}
-          macaddress={MAC}
-          hold={formatSecondsToDHMS(HOLD)}
-        />
-      );
+      if (UserName === null || UserName === "") {
+        return (
+          <Bed_vacant
+            key={MAC}
+            macaddress={MAC}
+            bed={Bed}
+            floor={Floor}
+            section={Section}
+          />
+        );
+      } else {
+        return POS === 4 || POS === 5 || POS === 0 ? (
+          <Bed_alert
+            key={MAC}
+            macaddress={MAC}
+            hold={formatSecondsToDHMS(HOLD)}
+            bed={Bed}
+            floor={Floor}
+            section={Section}
+            username={UserName}
+          />
+        ) : POS === 3 ? (
+          <Bed_attention
+            key={MAC}
+            macaddress={MAC}
+            hold={formatSecondsToDHMS(HOLD)}
+            bed={Bed}
+            floor={Floor}
+            section={Section}
+            username={UserName}
+          />
+        ) : (
+          <Bed_default
+            key={MAC}
+            macaddress={MAC}
+            hold={formatSecondsToDHMS(HOLD)}
+            bed={Bed}
+            floor={Floor}
+            section={Section}
+            username={UserName}
+          />
+        );
+      }
+    }
+
+    return null; // Handle any unexpected case if necessary
+  };
+
+  const renderDeviceComponent_7284 = (device) => {
+    const { connect, macaddress } = device;
+
+    if (connect === false) {
+      return <Bed_disconnect key={macaddress} macaddress={macaddress} />;
+    } else if (connect === true) {
+      return <Bed_default key={macaddress} macaddress={macaddress} />;
     }
 
     return null; // Handle any unexpected case if necessary
@@ -119,14 +175,14 @@ function Home() {
     <>
       <Navbar />
       <div className="wrap">
-        <Alert />
+        <AlertList />
         <div className="main">
           <div className="box">
             <h1>Monitors</h1>
           </div>
           <div className="monitors">
             <div className="top-bar">
-              <FloorSectionBar />
+              <FloorSectionBar selectPort={handleSelectPort} />
               <div className="sort">
                 <div className="label">Sort by</div>
                 <div className="opt-box">
@@ -148,132 +204,171 @@ function Home() {
             </div>
             {/* Bed Grid Sort by Bed */}
             <div className={`grid ${sort_by_bed ? "active" : ""}`}>
-              {devices.map((device) => (
-                <Link
-                  to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
-                  key={device.MAC}
-                >
-                  {renderDeviceComponent(device)}{" "}
-                </Link>
-              ))}
+              {port === "8031" &&
+                devices.map((device) => (
+                  <Link
+                    to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                    key={device.MAC}
+                  >
+                    {renderDeviceComponent(device)}{" "}
+                  </Link>
+                ))}
+              {port === "7284" &&
+                devices.map((device) => (
+                  <Link
+                    to={`/patient/patient-detail/patient-monitor?macaddress=${device.macaddress}`}
+                    key={device.macaddress}
+                  >
+                    {renderDeviceComponent_7284(device)}{" "}
+                  </Link>
+                ))}
             </div>
             {/* Bed Grid Sort by Status */}
             <div className={`by-status ${sort_by_status ? "active" : ""}`}>
               {/* Alert Status */}
-              <div className="status">
-                <div className="title">Alerts</div>
-                <div className="status-grid">
-                  <a href="patient-monitor.html" className="bed alert">
-                    <div className="b-num">1003</div>
-                    <div className="name">Chan Tai Ming</div>
-                    <div className="tag">
-                      <img src="" alt="" />
-                      <p className="timer">02:14:42</p>
-                    </div>
-                    <div className="dis-tag">
-                      <img src="/src/assets/link-off.svg" alt="" />
-                      <p>Disconnected</p>
-                    </div>
-                    <img
-                      className="add"
-                      src="/src/assets/add.svg"
-                      alt="add icon"
-                    />
-                  </a>
+              {devices.some(
+                (device) =>
+                  device.STAT === 1 &&
+                  !(device.UserName === null || device.UserName === "") &&
+                  (device.POS === 4 || device.POS === 5 ||device.POS === 0)
+              ) && (
+                <div className="status">
+                  <div className="title">Alerts</div>
+                  <div className="status-grid">
+                    {devices
+                      .filter(
+                        (device) =>
+                          device.STAT === 1 &&
+                        !(device.UserName === null || device.UserName === "") &&
+                        (device.POS === 4 || device.POS === 5 ||device.POS === 0)
+                      )
+                      .map((device) => (
+                        <Link
+                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                          key={device.MAC}
+                        >
+                          <Bed_alert
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                          />
+                        </Link>
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
               {/* Attention Status */}
-              <div className="status">
-                <div className="title">Attention</div>
-                <div className="status-grid">
-                  <a href="patient-monitor.html" className="bed attention">
-                    <div className="b-num">1004</div>
-                    <div className="name">Chan Tai Ming</div>
-                    <div className="tag">
-                      <img src="" alt="" />
-                      <p className="timer">02:14:42</p>
-                    </div>
-                    <div className="dis-tag">
-                      <img src="/src/assets/link-off.svg" alt="" />
-                      <p>Disconnected</p>
-                    </div>
-                    <img
-                      className="add"
-                      src="/src/assets/add.svg"
-                      alt="add icon"
-                    />
-                  </a>
+              {devices.some(
+                (device) =>
+                  device.STAT === 1 &&
+                  !(device.UserName === null || device.UserName === "") &&
+                  device.POS === 3
+              ) && (
+                <div className="status">
+                  <div className="title">Attention</div>
+                  <div className="status-grid">
+                    {devices
+                      .filter((device) => device.STAT === 1 &&
+                      !(device.UserName === null || device.UserName === "") &&
+                      device.POS === 3)
+                      .map((device) => (
+                        <Link
+                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                          key={device.MAC}
+                        >
+                          <Bed_attention
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                          />
+                        </Link>
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
               {/* Disconnected Status */}
-              <div className="status">
-                <div className="title">Disconnected</div>
-                <div className="status-grid">
-                  <a href="patient-monitor.html" className="bed disconnect">
-                    <div className="b-num">1011</div>
-                    <div className="name">Chan Tai Ming</div>
-                    <div className="tag">
-                      <img src="" alt="" />
-                      <p className="timer">02:14:42</p>
-                    </div>
-                    <div className="dis-tag">
-                      <img src="/src/assets/link-off.svg" alt="" />
-                      <p>Disconnected</p>
-                    </div>
-                    <img
-                      className="add"
-                      src="/src/assets/add.svg"
-                      alt="add icon"
-                    />
-                  </a>
+              {devices.some((device) => device.STAT === 0) && (
+                <div className="status">
+                  <div className="title">Disconnected</div>
+                  <div className="status-grid">
+                    {devices
+                      .filter((device) => device.STAT === 0)
+                      .map((device) => (
+                        <Link
+                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                          key={device.MAC}
+                        >
+                          <Bed_disconnect
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                          />
+                        </Link>
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
               {/* Default Status */}
-              <div className="status">
-                <div className="title">Normal</div>
-                <div className="status-grid">
-                  <a href="patient-monitor.html" className="bed">
-                    <div className="b-num">1001</div>
-                    <div className="name">Chan Tai Ming</div>
-                    <div className="tag">
-                      <img src="" alt="" />
-                      <p className="timer">02:14:42</p>
-                    </div>
-                    <div className="dis-tag">
-                      <img src="/src/assets/link-off.svg" alt="" />
-                      <p>Disconnected</p>
-                    </div>
-                    <img
-                      className="add"
-                      src="/src/assets/add.svg"
-                      alt="add icon"
-                    />
-                  </a>
+              {devices.some(
+                (device) =>
+                  device.STAT === 1 &&
+                  !(device.UserName === null || device.UserName === "") &&
+                  !(device.POS === 3 || device.POS === 4 || device.POS === 5 || device.POS === 0)
+              ) && (
+                <div className="status">
+                  <div className="title">Normal</div>
+                  <div className="status-grid">
+                    {devices
+                      .filter(
+                        (device) =>
+                          device.STAT === 1 &&
+                        !(device.UserName === null || device.UserName === "") &&
+                        !(device.POS === 3 || device.POS === 4 || device.POS === 5 || device.POS === 0)
+                      )
+                      .map((device) => (
+                        <Link
+                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                          key={device.MAC}
+                        >
+                          <Bed_default
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                          />
+                        </Link>
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
               {/* Vacant Status */}
-              <div className="status">
-                <div className="title">Vacant</div>
-                <div className="status-grid">
-                  <a href="patient-monitor.html" className="bed vacant">
-                    <div className="b-num">1028</div>
-                    <div className="name">Chan Tai Ming</div>
-                    <div className="tag">
-                      <img src="" alt="" />
-                      <p className="timer">02:14:42</p>
-                    </div>
-                    <div className="dis-tag">
-                      <img src="/src/assets/link-off.svg" alt="" />
-                      <p>Disconnected</p>
-                    </div>
-                    <img
-                      className="add"
-                      src="/src/assets/add.svg"
-                      alt="add icon"
-                    />
-                  </a>
+              {devices.some(
+                (device) =>
+                  device.STAT === 1 &&
+                  (device.UserName === null || device.UserName === "") 
+              ) && (
+                <div className="status">
+                  <div className="title">Vacant</div>
+                  <div className="status-grid">
+                    {devices.filter(
+                        (device) =>
+                          device.STAT === 1 &&
+                        (device.UserName === null || device.UserName === "") 
+                      )
+                      .map((device) => (
+                        <Link
+                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                          key={device.MAC}
+                        >
+                          <Bed_vacant
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                          />
+                        </Link>
+                      ))}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         </div>

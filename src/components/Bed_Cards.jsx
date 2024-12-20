@@ -4,11 +4,11 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 
-export function Bed_disconnect({hold, macaddress}){
+export function Bed_disconnect({hold, macaddress, username}){
     return(
         <a className="bed disconnect">
-            <div className="b-num">1001</div>
-            <div className="name">{macaddress}</div>
+            <div className="b-num">{macaddress}</div>
+            <div className="name">{username}</div>
             <div className="tag">
                 <img src="" alt="" />
                 <p className="timer">{hold}</p>
@@ -23,10 +23,10 @@ export function Bed_disconnect({hold, macaddress}){
 };
 
 
-export function Bed_vacant(){
+export function Bed_vacant({bed,macaddress}){
     return(
         <a className="bed vacant">
-            <div className="b-num">1002</div>
+            <div className="b-num">{macaddress || "--"}</div>
             <div className="name">Click to add patient</div>
             <div className="tag">
                 <img src="" alt="" />
@@ -42,11 +42,11 @@ export function Bed_vacant(){
 };
 
 
-export function Bed_default({hold, macaddress}){
+export function Bed_default({hold, macaddress, username}){
     return(
             <a className="bed default">
-                <div className="b-num">1003</div>
-                <div className="name">{macaddress}</div>
+                <div className="b-num">{macaddress}</div>
+                <div className="name">{username}</div>
                 <div className="tag">
                     <img src="" alt="" />
                     <p className="timer">{hold}</p>
@@ -60,11 +60,11 @@ export function Bed_default({hold, macaddress}){
         );
 };
 
-export function Bed_attention({hold, macaddress}){
+export function Bed_attention({hold, macaddress, username}){
     return(
         <a className="bed attention">
-            <div className="b-num">1004</div>
-            <div className="name">{macaddress}</div>
+            <div className="b-num">{macaddress}</div>
+            <div className="name">{username}</div>
             <div className="tag">
                 <img src="" alt="" />
                 <p className="timer">{hold}</p>
@@ -78,11 +78,11 @@ export function Bed_attention({hold, macaddress}){
     );
 };
 
-export function Bed_alert({hold, macaddress}){
+export function Bed_alert({hold, macaddress, username, bed}){
     return(
         <a className="bed alert">
-            <div className="b-num">1005</div>
-            <div className="name">{macaddress}</div>
+            <div className="b-num">{macaddress || "--"}</div>
+            <div className="name">{username}</div>
             <div className="tag">
                 <img src="" alt="" />
                 <p className="timer">{hold}</p>

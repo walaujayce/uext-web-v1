@@ -71,7 +71,7 @@ input, select{
 }
 
 select{
-    -webkit-appearance: none;
+    appearance: none;
 }
 /* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
@@ -82,7 +82,7 @@ input::-webkit-inner-spin-button {
 
 /* Firefox */
 input[type=number] {
-  -moz-appearance: textfield;
+  appearance: textfield;
 }
 
 input[type="date"]::-webkit-inner-spin-button,
@@ -388,7 +388,15 @@ header .list{
     flex-grow: 1;
 }
 
-
+/* Bed Animation */
+@keyframes blink_alertlist {
+    0%, 100% {
+        background-color: #FFF0F0;
+    }
+    50% {
+        background-color: #FFE5E5;
+    }
+}
 /* Alert List */
 .alerts{
     display: flex;
@@ -438,10 +446,10 @@ header .list{
     flex-direction: column;
     gap: 20px;
     padding: 20px;
-    background: #FFF0F0;
     border-bottom: 3px solid transparent;
     position: relative;
     order: 1;
+    animation: blink_alertlist 800ms ease-in-out infinite; /* 400ms for a full cycle (200ms up, 200ms down) */
 }
 
 .alert-list .container:hover{

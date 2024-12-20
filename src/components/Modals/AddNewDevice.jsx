@@ -48,7 +48,7 @@ const AddNewDevice = ({ callback }) => {
   ); // Input placeholder
   const handleDeviceTypeItemClick = (deviceType) => {
     setPlaceholderDeviceType(deviceType);
-    setDeviceTypeActive(false);
+    handleDeviceTypeDropdownMenu;
     if(deviceType==="UEXT"){
       setDeviceType_POST(1);
     }else if(deviceType==="UMAP"){
@@ -90,7 +90,7 @@ const AddNewDevice = ({ callback }) => {
 
   const handleFloorItemClick = (floor) => {
     setPlaceholderFloor(floor);
-    setFloorActive(false);
+    handleFloorDropDownMenu;
     setFloor_POST(floor);
   };
   {
@@ -127,7 +127,7 @@ const AddNewDevice = ({ callback }) => {
 
   const handleSectionItemClick = (section) => {
     setPlaceholderSection(section);
-    setSectionActive(false);
+    handleSectionDropDownMenu;
     setSection_POST(section);
   };
   {
@@ -279,8 +279,9 @@ const AddNewDevice = ({ callback }) => {
               style={{ display: isActive_Stage2 ? "none" : "" }}
             >
               {/* Device Type */}
-              <div className="input dropdown building suffix g-c-3">
-                <label for="devicetype" className="label-container">
+              <div className="input dropdown building suffix g-c-3" onClick={handleDeviceTypeDropdownMenu}
+                  ref={addDropdownRef}>
+                <label htmlFor="devicetype" className="label-container">
                   <p>Device Type</p>
                   <img
                     className="info"
@@ -290,8 +291,7 @@ const AddNewDevice = ({ callback }) => {
                 </label>
                 <div
                   className="input-gp"
-                  onClick={handleDeviceTypeDropdownMenu}
-                  ref={addDropdownRef}
+                  
                 >
                   <input
                     type="text"
@@ -318,7 +318,7 @@ const AddNewDevice = ({ callback }) => {
               </div>
               {/* MAC */}
               <div className="input g-c-3">
-                <label for="mac" className="label-container">
+                <label htmlFor="mac" className="label-container">
                   <p>MAC</p>
                   <img
                     className="info"
@@ -333,18 +333,19 @@ const AddNewDevice = ({ callback }) => {
                     id="mac"
                     placeholder="Enter here"
                     required
+                    maxLength={12}
                     value={macaddress}
                     onChange={(e) => setMacAddress_POST(e.target.value)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
                 <div className={`assistive-text ${macError ? "active" : ""} `}>
-                  Oops! Something went wrong.
+                  Invalid format.
                 </div>
               </div>
               {/* Bed */}
               <div className="input g-c-3">
-                <label for="bed" className="label-container">
+                <label htmlFor="bed" className="label-container">
                   <p>Bed</p>
                   <img
                     className="info"
@@ -370,8 +371,9 @@ const AddNewDevice = ({ callback }) => {
               </div>
 
               {/* Section */}
-              <div className="input dropdown section suffix g-c-3">
-                <label for="section" className="label-container">
+              <div className="input dropdown section suffix g-c-3" onClick={handleSectionDropDownMenu}
+                  ref={addDropdownRef}>
+                <label htmlFor="sectionInNewDevice" className="label-container">
                   <p>Section</p>
                   <img
                     className="info"
@@ -381,13 +383,12 @@ const AddNewDevice = ({ callback }) => {
                 </label>
                 <div
                   className="input-gp"
-                  onClick={handleSectionDropDownMenu}
-                  ref={addDropdownRef}
+                  
                 >
                   <input
                     type="text"
                     className="placeholder"
-                    id="section"
+                    id="sectionInNewDevice"
                     placeholder={placeholderSection}
                     readOnly
                   />
@@ -411,8 +412,9 @@ const AddNewDevice = ({ callback }) => {
                 </div>
               </div>
               {/* Floor */}
-              <div className="input dropdown floor suffix g-c-3">
-                <label for="floor" className="label-container">
+              <div className="input dropdown floor suffix g-c-3"  onClick={handleFloorDropDownMenu}
+                  ref={addDropdownRef}>
+                <label htmlFor="floorInNewDevice" className="label-container">
                   <p>Floor</p>
                   <img
                     className="info"
@@ -422,13 +424,12 @@ const AddNewDevice = ({ callback }) => {
                 </label>
                 <div
                   className="input-gp"
-                  onClick={handleFloorDropDownMenu}
-                  ref={addDropdownRef}
+                 
                 >
                   <input
                     type="text"
                     className="placeholder"
-                    id="floor"
+                    id="floorInNewDevice"
                     placeholder={placeholderFloor}
                     readOnly
                   />

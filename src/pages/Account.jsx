@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Outlet,useLocation } from "react-router-dom";
 import dayjs from "dayjs";
 import Navbar from "../components/Navbar";
-import Alert from "../components/Alert";
+import AlertList from "../components/AlertList";
 import AccountList from "../components/AccountList";
 
 function Account() {
@@ -25,12 +25,9 @@ function Account() {
     <>
       <Navbar />
       <div className="wrap">
-        <Alert />
+        <AlertList />
         <div className="main">
-        {showAccountList && (
-            <AccountList handleHideAccountList={handleHideAccountList} />
-          )}
-          <Outlet />
+            <AccountList />
         </div>
       </div>
     </>
