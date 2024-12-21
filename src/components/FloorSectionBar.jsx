@@ -5,7 +5,7 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 
-function FloorSectionBar({ selectPort }) {
+function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
   {
     /* Fetch Floors API */
   }
@@ -25,6 +25,10 @@ function FloorSectionBar({ selectPort }) {
       const data = await response.json();
       console.log(data);
       setFloors(data);
+      const floorToSet = data.find((floor) => floor.floorid === 0);
+      if (floorToSet) {
+        setPlaceholderFloor(floorToSet.description);
+      }
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -40,10 +44,11 @@ function FloorSectionBar({ selectPort }) {
   const handleFloorDropDownMenu = () => {
     setFloorActive((prev) => !prev);
   };
-  const [placeholderFloor, setPlaceholderFloor] = useState("9F"); // Input placeholder
+  const [placeholderFloor, setPlaceholderFloor] = useState(""); // Input placeholder
 
   const handleFloorItemClick = (floor) => {
     setPlaceholderFloor(floor);
+    selectFloor(floor); //call back to list filter
     handleFloorDropDownMenu;
   };
   {
@@ -60,6 +65,10 @@ function FloorSectionBar({ selectPort }) {
       const data = await response.json();
       console.log(data);
       setSections(data);
+      const sectionToSet = data.find((section) => section.sectionid === 0);
+      if (sectionToSet) {
+        setPlaceholderSection(sectionToSet.description);
+      }
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -76,10 +85,11 @@ function FloorSectionBar({ selectPort }) {
     setSectionActive((prev) => !prev);
   };
 
-  const [placeholderSection, setPlaceholderSection] = useState("Zone A"); // Input placeholder
+  const [placeholderSection, setPlaceholderSection] = useState(""); // Input placeholder
 
   const handleSectionItemClick = (section) => {
     setPlaceholderSection(section);
+    selectSection(section);
     handleSectionDropDownMenu;
   };
   {

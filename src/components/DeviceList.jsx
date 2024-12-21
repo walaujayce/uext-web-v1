@@ -18,7 +18,15 @@ const DeviceList = () => {
     console.log(port);
     setPort(port);
   };
-  
+
+  const [select_floor, setSelect_Floor] = useState('');
+  const handleSelectFloor = (floor) =>{
+    setSelect_Floor(floor);
+  };
+  const [select_section, setSelect_Section] = useState('');
+  const handleSelectSection = (section) =>{
+    setSelect_Section(section);
+  };
 
   const fetchDeviceList = async () => {
     try {
@@ -74,7 +82,7 @@ const DeviceList = () => {
       </div>
       <div className="container">
         <div className="top-bar">
-          <FloorSectionBar selectPort={handleSelectPort} />
+          <FloorSectionBar selectFloor={handleSelectFloor} selectSection={handleSelectSection} />
           <div className="btn" id="addDevice" onClick={handleAddDeviceClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">New Device</p>
@@ -101,6 +109,12 @@ const DeviceList = () => {
           <div className="item-list">
           {port === "7284" &&
               devices.slice()
+              .filter((device) => {
+                return select_floor === '' || select_floor === 'All' || device.floor === select_floor;
+              })
+              .filter((device) => {
+                return select_section === '' || select_section === 'All' || device.section === select_section;
+              })
               .sort((a, b) => {
                 const macA = a.macaddress?.toUpperCase() || "";
                 const macB = b.macaddress?.toUpperCase() || "";

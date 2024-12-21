@@ -111,7 +111,7 @@ const AddNewPatient = ({ callback }) => {
             >
               {/* ID */}
               <div className="input g-c-3">
-                <label for="id" className="label-container">
+                <label htmlFor="id" className="label-container">
                   <p>ID</p>
                   <img
                     className="info"
@@ -136,7 +136,7 @@ const AddNewPatient = ({ callback }) => {
               </div>
               {/* Name */}
               <div className="input g-c-3">
-                <label for="name" className="label-container">
+                <label htmlFor="name" className="label-container">
                   <p>Name</p>
                   <img
                     className="info"
@@ -161,7 +161,7 @@ const AddNewPatient = ({ callback }) => {
               </div>
               {/* Height */}
               <div className="input g-c-3">
-                <label for="height" className="label-container">
+                <label htmlFor="height" className="label-container">
                   <p>Height</p>
                   <img
                     className="info"
@@ -186,7 +186,7 @@ const AddNewPatient = ({ callback }) => {
               </div>
               {/* Weight */}
               <div className="input g-c-3">
-                <label for="weight" className="label-container">
+                <label htmlFor="weight" className="label-container">
                   <p>Weight</p>
                   <img
                     className="info"
@@ -211,7 +211,7 @@ const AddNewPatient = ({ callback }) => {
               </div>
               {/* Sex */}
               <div className="input dropdown suffix g-c-3" onClick={handleSexDropdown} ref={dropdownRef}>
-                <label for="sex" className="label-container">
+                <label htmlFor="sex" className="label-container">
                   <p>Sex</p>
                   <img
                     className="info"
@@ -235,7 +235,7 @@ const AddNewPatient = ({ callback }) => {
                 </div>
                 <div className={`list ${isSexActive ? "active" : ""}`}>
                    {sex.map((a)=>(
-                      <div className="item" onClick={() => handleSexItemClick(a)}>
+                      <div className="item" key={a} onClick={() => handleSexItemClick(a)}>
                         {a}
                       </div>
                    ))}
@@ -243,7 +243,7 @@ const AddNewPatient = ({ callback }) => {
               </div>
               {/* DOB */}
               <div className="input g-c-3">
-                <label for="dob" className="label-container">
+                <label htmlFor="dob" className="label-container">
                   <p>Date of Birth</p>
                   <img
                     className="info"
@@ -289,7 +289,7 @@ const AddNewPatient = ({ callback }) => {
             <div className="grid st2">
               {/* Building */}
               <div className="input dropdown building suffix g-c-3">
-                <label for="building" className="label-container">
+                <label htmlFor="building" className="label-container">
                   <p>Building</p>
                   <img
                     className="info"
@@ -320,7 +320,7 @@ const AddNewPatient = ({ callback }) => {
               </div>
               {/* Floor */}
               <div className="input dropdown floor suffix g-c-3">
-                <label for="floor" className="label-container">
+                <label htmlFor="floor" className="label-container">
                   <p>Floor</p>
                   <img
                     className="info"
@@ -353,7 +353,7 @@ const AddNewPatient = ({ callback }) => {
               </div>
               {/* Section */}
               <div className="input dropdown section suffix g-c-3">
-                <label for="section" className="label-container">
+                <label htmlFor="section" className="label-container">
                   <p>Section</p>
                   <img
                     className="info"
@@ -383,7 +383,7 @@ const AddNewPatient = ({ callback }) => {
               </div>
               {/* Bed */}
               <div className="input g-c-3">
-                <label for="bed" className="label-container">
+                <label htmlFor="bed" className="label-container">
                   <p>Bed</p>
                   <img
                     className="info"
@@ -435,7 +435,7 @@ const AddNewPatient = ({ callback }) => {
           <form action="">
             <div className="grid st4-1">
               <div className="input dropdown device suffix g-c-6">
-                <label for="building" className="label-container">
+                <label htmlFor="building" className="label-container">
                   <p>Device ID</p>
                   <img
                     className="info"
@@ -477,7 +477,7 @@ const AddNewPatient = ({ callback }) => {
             </div>
             <div className="grid st4-2">
               <div className="input g-c-3">
-                <label for="d-id" className="label-container">
+                <label htmlFor="d-id" className="label-container">
                   <p>Device ID</p>
                   <img
                     className="info"
@@ -499,7 +499,7 @@ const AddNewPatient = ({ callback }) => {
                 </div>
               </div>
               <div className="input g-c-3">
-                <label for="mac" className="label-container">
+                <label htmlFor="mac" className="label-container">
                   <p>MAC</p>
                   <img
                     className="info"
@@ -521,7 +521,7 @@ const AddNewPatient = ({ callback }) => {
                 </div>
               </div>
               <div className="input g-c-3">
-                <label for="d-ip" className="label-container">
+                <label htmlFor="d-ip" className="label-container">
                   <p>Device IP</p>
                   <img
                     className="info"

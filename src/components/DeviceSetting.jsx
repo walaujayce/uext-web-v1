@@ -4,9 +4,12 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { useDropdownLogic, fetchList } from "../JS/GetFloorSectionAPI";
 import Navbar from "./Navbar";
 import AlertList from "./AlertList";
+import SignalRService from "../JS/SignalR"
 
 function DeviceSettings() {
-  const [isDeleteBtnHovered, setIsDeleteBtnHovered] = useState(false);
+  const [searchParams] = useSearchParams();
+  const macaddress = searchParams.get("macaddress") || "";  
+
   {
     /* Handle Back Button */
   }
@@ -18,75 +21,18 @@ function DeviceSettings() {
   {
     /* Floor and Section Fetch API */
   }
-  const floors = ["1F", "2F", "3F", "4F", "5F", "6F", "7F", "8F", "9F", "All"];
-  const sections = ["Zone A", "Zone B", "Zone C", "Zone D", "Zone E", "All"];
-
-  {
-    /* JudgeMethod Dropdown Menu Logic */
-  }
-  const [isJudgeMethodActive, setJudgeMethodActive] = useState(false);
-  const handleJudgeMethodDropDownMenu = () => {
-    setJudgeMethodActive((prev) => !prev);
-  };
-
-  const [placeholderJudgeMethod, setPlaceholderJudgeMethod] =
-    useState("by size"); // Input placeholder
-
-  const handleJudgeMethodItemClick = (judgeMethod) => {
-    setPlaceholderJudgeMethod(judgeMethod);
-    setJudgeMethodActive;
-  };
-
-  const levelings = ["Lowest", "Low", "Medium", "High", "Highest"];
-
-  const getLevel = (level) => {
-    switch (true) {
-      case level === 90:
-        return levelings[4];
-      case level === 60:
-        return levelings[3];
-      case level === 40:
-        return levelings[2];
-      case level === 10:
-        return levelings[1];
-      case level === 0:
-        return levelings[0];
-      default:
-        return "Invalid level";
-    }
-  };
-  function useDropdown(initialPlaceholder) {
-    const [isActive, setIsActive] = useState(false);
-    const [placeholder, setPlaceholder] = useState(initialPlaceholder);
-
-    const toggleActive = () => setIsActive((prev) => !prev);
-    const selectItem = (value) => {
-      setPlaceholder(value);
-      toggleActive;
-    };
-    const setIsActiveFalse = () => {
-      setIsActive(false);
-    };
-
-    return {
-      isActive,
-      placeholder,
-      toggleActive,
-      selectItem,
-      setIsActiveFalse,
-    };
-  }
-  const edgeparDropdown = useDropdown("Medium");
-  const edgeboxDropdown = useDropdown("Medium");
-  const sitparDropdown = useDropdown("Medium");
-  const sitboxDropdown = useDropdown("Medium");
-  const floorDropdown = useDropdown(floors[0]);
-  const sectionDropdown = useDropdown(sections[0]);
+  const [floors, setFloor] = useState([]);
+  useEffect(() => {
+    fetchList("/api/7284/Floor", setFloor);
+  }, []);
+  const [sections, setSection] = useState([]);
+  useEffect(() => {
+    fetchList("/api/7284/Section", setSection);
+  }, []);
 
   {
     /* useRef Logic */
   }
-
   const dropdownRefs = useRef([]);
 
   const addDropdownRef = (el) => {
@@ -117,16 +63,10 @@ function DeviceSettings() {
     };
   }, []);
 
-  const [searchParams] = useSearchParams();
-  const macaddress = searchParams.get("macaddress") || "";
-
-  {
-    /* Fetch Get Device Information API */
-  }
+  /// useSetInfoToInput Function ///
 
   function useSetInfoToInput(initialPlaceHolder) {
     const [inputValue, setInputValue] = useState(initialPlaceHolder);
-    //const [inputPlaceHolder, setInputPlaceholder] = useState(initialPlaceHolder);
 
     const handleInputChange = (e) => {
       setInputValue(e.target.value);
@@ -138,13 +78,119 @@ function DeviceSettings() {
       setInputValue,
     };
   }
+  {
+    /* JudgeMethod Dropdown Menu Logic */
+  }
+  const [isJudgeMethodActive, setJudgeMethodActive] = useState(false);
+  const handleJudgeMethodDropDownMenu = () => {
+    setJudgeMethodActive((prev) => !prev);
+  };
 
+  const [placeholderJudgeMethod, setPlaceholderJudgeMethod] =
+    useState("by size"); // Input placeholder
+
+  const handleJudgeMethodItemClick = (judgeMethod) => {
+    setPlaceholderJudgeMethod(judgeMethod);
+    setJudgeMethodActive;
+  };
+  {
+    /* Leveling Dropdown Menu Logic */
+  }
+  const levelings = ["Lowest", "Low", "Medium", "High", "Highest"];
+
+  const getLevel_String = (level) => {
+    switch (true) {
+      case level === 90:
+        return levelings[4];
+      case level === 60:
+        return levelings[3];
+      case level === 40:
+        return levelings[2];
+      case level === 10:
+        return levelings[1];
+      case level === 0:
+        return levelings[0];
+      default:
+        return "Invalid level";
+    }
+  };
+  const getLevel_Int = (level) => {
+    switch (true) {
+      case level === levelings[4]:
+        return 90;
+      case level === levelings[3]:
+        return 60;
+      case level === levelings[2]:
+        return 40;
+      case level === levelings[1]:
+        return 10;
+      case level === levelings[0]:
+        return 0;
+      default:
+        return "Invalid Input Value";
+    }
+  };
+
+  /// useDropDown Function ///
+
+  function useDropdown(initialPlaceholder) {
+    const [isActive, setIsActive] = useState(false);
+    const [placeholder, setPlaceholder] = useState(initialPlaceholder);
+
+    const toggleActive = () => setIsActive((prev) => !prev);
+    const selectItem = (value) => {
+      setPlaceholder(value);
+      toggleActive;
+    };
+    const setIsActiveFalse = () => {
+      setIsActive(false);
+    };
+
+    return {
+      isActive,
+      placeholder,
+      toggleActive,
+      selectItem,
+      setIsActiveFalse,
+    };
+  }
+  {
+    /* Fetch Get Device Information API */
+  }
+  /// Device Information ///
   const deviceIDInput = useSetInfoToInput("Enter Device ID");
   const deviceMacInput = useSetInfoToInput("Enter MAC Address");
   const deviceIPInput = useSetInfoToInput("Enter Device IP");
-  const deviceBedInput = useSetInfoToInput("Enter Bed No.");
+  const deviceConnectStatus = useSetInfoToInput("");
+
+  /// Device Location ///
+  const deviceBedInput = useSetInfoToInput("");
+  const sectionDropdown = useDropdown("");
+  const floorDropdown = useDropdown("");
+
+  /// Device Configuration ///
+  const PmioInput = useSetInfoToInput("");
+  const VmaxInput = useSetInfoToInput("");
+  const VminInput = useSetInfoToInput("");
+  const DebTstInput = useSetInfoToInput("");
+  const DebFpsInput = useSetInfoToInput("");
+
+  // judgemethod already set up above
+  const edgeparDropdown = useDropdown(levelings[2]);
+  const edgeboxDropdown = useDropdown(levelings[2]);
+  const sitparDropdown = useDropdown(levelings[2]);
+  const sitboxDropdown = useDropdown(levelings[2]);
+
+  const HeightThInput = useSetInfoToInput("");
+  const BoxYStartInput = useSetInfoToInput("");
+  const ErmapInput = useSetInfoToInput("");
+  const EdgeSitPointInput = useSetInfoToInput("");
+  const EmasizeInput = useSetInfoToInput("");
+  const EmaThresInput = useSetInfoToInput("");
+  const NoiseThresInput = useSetInfoToInput("");
 
   const [deviceInfo, setDeviceInfo] = useState([]);
+
   const fetchDeviceInfo = async (macaddress) => {
     try {
       const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
@@ -160,25 +206,43 @@ function DeviceSettings() {
       }
 
       const data = await response.json();
+      console.log(data);
       setDeviceInfo(data);
 
       deviceIDInput.setInputValue(data.deviceid || "");
       deviceMacInput.setInputValue(data.macaddress || "");
       deviceIPInput.setInputValue(data.ipaddress || "");
-      deviceBedInput.setInputValue(data.bed || "");
+      deviceConnectStatus.setInputValue(
+        data.connect ? "Connected" : "Disconnect"
+      );
 
+      deviceBedInput.setInputValue(data.bed || "");
       floorDropdown.selectItem(data.floor);
       floorDropdown.setIsActiveFalse;
       sectionDropdown.selectItem(data.section);
       sectionDropdown.setIsActiveFalse;
 
-      setPlaceholderJudgeMethod(data.judgemethod ? "by size" : "by value");
-      edgeparDropdown.selectItem(getLevel(data.edgepar));
-      edgeboxDropdown.selectItem(getLevel(data.edgebox));
-      sitparDropdown.selectItem(getLevel(data.sitpar));
-      sitboxDropdown.selectItem(getLevel(data.sitbox));
+      PmioInput.setInputValue(data.pmio);
+      VmaxInput.setInputValue(data.vmax);
+      VminInput.setInputValue(data.vmin);
+      DebTstInput.setInputValue(data.debTst);
+      DebFpsInput.setInputValue(data.debFps);
 
-      console.log(data);
+      setPlaceholderJudgeMethod(
+        data.judgemethod === 1 ? "by size" : "by value"
+      );
+      edgeparDropdown.selectItem(getLevel_String(data.edgepar));
+      edgeboxDropdown.selectItem(getLevel_String(data.edgebox));
+      sitparDropdown.selectItem(getLevel_String(data.sitpar));
+      sitboxDropdown.selectItem(getLevel_String(data.sitbox));
+
+      HeightThInput.setInputValue(data.heightTh);
+      BoxYStartInput.setInputValue(data.boxYStart);
+      ErmapInput.setInputValue(data.erMap);
+      EdgeSitPointInput.setInputValue(data.edgeSitPoint);
+      EmasizeInput.setInputValue(data.emasize);
+      EmaThresInput.setInputValue(data.emathres);
+      NoiseThresInput.setInputValue(data.noisethres);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -190,6 +254,8 @@ function DeviceSettings() {
   {
     /* DELETE Device  API */
   }
+  const [isDeleteBtnHovered, setIsDeleteBtnHovered] = useState(false);
+
   const deleteDevice = async (deviceId) => {
     try {
       const response = await fetch(`/api/7284/db/Device/${deviceId}`, {
@@ -218,48 +284,46 @@ function DeviceSettings() {
   {
     /* PUT Device  API */
   }
-  const requestBody = {
-    devicetype: deviceInfo.devicetype,
-    macaddress: macaddress,
-    ipaddress: deviceInfo.ipaddress,
-    devicestatus: deviceInfo.devicestatus,
-    used: deviceInfo.used,
-    connect: deviceInfo.connect,
-    actionid: deviceInfo.actionid,
-    disconnectCnt: deviceInfo.disconnectCnt,
-    recordMode: deviceInfo.recordMode,
-    version: deviceInfo.version,
-    judgemethod: placeholderJudgeMethod === "by value" ? 0 : 1,
-    edgepar: deviceInfo.edgepar,
-    edgebox: deviceInfo.edgebox,
-    sitpar: deviceInfo.sitpar,
-    sitbox: deviceInfo.sitbox,
-    heightTh: deviceInfo.heightTh,
-    erMap: deviceInfo.erMap,
-    vmax: deviceInfo.vmax,
-    vmin: deviceInfo.vmin,
-    debTst: deviceInfo.debTst,
-    debFps: deviceInfo.debFps,
-    boxYStart: deviceInfo.boxYStart,
-    edgeSitPoint: deviceInfo.edgeSitPoint,
-    emasize: deviceInfo.emasize,
-    emathres: deviceInfo.emathres,
-    noisethres: deviceInfo.noisethres,
-    pmio: deviceInfo.pmio,
-    bed: deviceBedInput.inputValue,
-    floor: floorDropdown.placeholder,
+  const requestBody_DeviceLocation = {
+    bed:  deviceBedInput.inputValue,
     section: sectionDropdown.placeholder,
+    floor: floorDropdown.placeholder
   };
-  const handleSaveDeviceLocation = async (macaddress, requestBody) => {
+
+  const requestBody_DeviceLConfiguration = {
+    pmio: parseInt(PmioInput.inputValue, 10),
+    vmax: parseInt(VmaxInput.inputValue, 10),
+    vmin: parseInt(VminInput.inputValue, 10),
+    debTst: parseInt(DebTstInput.inputValue, 10),
+    debFps: parseInt(DebFpsInput.inputValue, 10),
+    judgemethod: parseInt(placeholderJudgeMethod === "by value" ? 0 : 1, 10),
+    edgepar: parseInt(getLevel_Int(edgeparDropdown.placeholder), 10),
+    edgebox: parseInt(getLevel_Int(edgeboxDropdown.placeholder), 10),
+    sitpar: parseInt(getLevel_Int(sitparDropdown.placeholder), 10),
+    sitbox: parseInt(getLevel_Int(sitboxDropdown.placeholder), 10),
+    heightTh: parseInt(HeightThInput.inputValue, 10),
+    boxYStart: parseInt(BoxYStartInput.inputValue, 10),
+    erMap: ErmapInput.inputValue,
+    edgeSitPoint: parseInt(EdgeSitPointInput.inputValue, 10),
+    emasize: parseInt(EmasizeInput.inputValue, 10),
+    emathres: parseInt(EmaThresInput.inputValue, 10),
+    noisethres: parseInt(NoiseThresInput.inputValue, 10)
+  };
+  const handlePUT_API = (print_inputvalue) => {
+    console.log("the input requestbody is ", print_inputvalue);
+    PUT_DeivceInfo(macaddress, print_inputvalue);
+  };
+
+  const PUT_DeivceInfo = async (macaddress, requestBody) => {
     try {
-      console.log(requestBody.judgemethod);
+      const updatedData = { ...deviceInfo, ...requestBody };
 
       const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(requestBody), // Convert the requestBody to JSON
+        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
       });
 
       if (!response.ok) {
@@ -268,21 +332,13 @@ function DeviceSettings() {
 
       const data = await response.json();
       console.log("Device updated successfully:", data);
+      alert("Update Successfully!");
       return data; // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
     }
-
-    // console.log(deviceInfo.devicetype);
-    // console.log(deviceIDInput.inputValue);
-    // console.log(deviceMacInput.inputValue);
-    // console.log(deviceIPInput.inputValue);
-    // console.log(deviceInfo);
-
-    // console.log(deviceBedInput.inputValue);
-    // console.log(floorDropdown.placeholder);
-    // console.log(sectionDropdown.placeholder);
   };
+
 
   return (
     <>
@@ -318,6 +374,7 @@ function DeviceSettings() {
                         id="d-id"
                         placeholder={deviceIDInput.inputValue}
                         value={deviceIDInput.inputValue}
+                        readOnly
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -366,6 +423,7 @@ function DeviceSettings() {
                         id="d-ip"
                         placeholder={deviceIPInput.inputValue}
                         value={deviceIPInput.inputValue}
+                        readOnly
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -388,7 +446,7 @@ function DeviceSettings() {
                         className="placeholder"
                         id="connection"
                         name="connection"
-                        value={deviceInfo.connect ? "Connected" : "Disconnect"}
+                        placeholder={deviceConnectStatus.inputValue}
                         readOnly
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
@@ -475,10 +533,12 @@ function DeviceSettings() {
                       {sections.map((section) => (
                         <div
                           className="item opt1"
-                          key={section}
-                          onClick={() => sectionDropdown.selectItem(section)}
+                          key={section.sectionid}
+                          onClick={() =>
+                            sectionDropdown.selectItem(section.description)
+                          }
                         >
-                          {section}
+                          {section.description}
                         </div>
                       ))}
                     </div>
@@ -500,7 +560,7 @@ function DeviceSettings() {
                       <input
                         type="text"
                         className="placeholder"
-                        id="name"
+                        id="floor"
                         placeholder={floorDropdown.placeholder}
                         readOnly
                       />
@@ -521,22 +581,19 @@ function DeviceSettings() {
                       {floors.map((floor) => (
                         <div
                           className="item opt1"
-                          key={floor}
-                          onClick={() => floorDropdown.selectItem(floor)}
+                          key={floor.floorid}
+                          onClick={() =>
+                            floorDropdown.selectItem(floor.description)
+                          }
                         >
-                          {floor}
+                          {floor.description}
                         </div>
                       ))}
                     </div>
                   </div>
                 </div>
-                <div
-                  className="btn-gp"
-                  onClick={() =>
-                    handleSaveDeviceLocation(macaddress, requestBody)
-                  }
-                >
-                  <div className="btn text-only">
+                <div className="btn-gp">
+                  <div className="btn text-only" onClick={()=>handlePUT_API(requestBody_DeviceLocation)}>
                     <img src="" alt="" className="prefix" />
                     <p className="btn-text">Save</p>
                   </div>
@@ -561,8 +618,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="pmio"
-                        placeholder={deviceInfo.pmio}
-                        readOnly
+                        placeholder={PmioInput.inputValue}
+                        value={PmioInput.inputValue}
+                        onChange={PmioInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -584,8 +642,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="vmax"
-                        placeholder={deviceInfo.vmax}
-                        readOnly
+                        placeholder={VmaxInput.inputValue}
+                        value={VmaxInput.inputValue}
+                        onChange={VmaxInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -607,8 +666,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="vmin"
-                        placeholder={deviceInfo.vmin}
-                        readOnly
+                        placeholder={VminInput.inputValue}
+                        value={VminInput.inputValue}
+                        onChange={VminInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -630,8 +690,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="Debounce_TST"
-                        placeholder={deviceInfo.debTst}
-                        readOnly
+                        placeholder={DebTstInput.inputValue}
+                        value={DebTstInput.inputValue}
+                        onChange={DebTstInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -653,8 +714,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="Debounce_FPS"
-                        placeholder={deviceInfo.debFps}
-                        readOnly
+                        placeholder={DebFpsInput.inputValue}
+                        value={DebFpsInput.inputValue}
+                        onChange={DebFpsInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -887,8 +949,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="HEIGHT_TH"
-                        placeholder={deviceInfo.heightTh}
-                        readOnly
+                        placeholder={HeightThInput.inputValue}
+                        value={HeightThInput.inputValue}
+                        onChange={HeightThInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -910,8 +973,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="BOX_Y_START"
-                        placeholder={deviceInfo.boxYStart}
-                        readOnly
+                        placeholder={BoxYStartInput.inputValue}
+                        value={BoxYStartInput.inputValue}
+                        onChange={BoxYStartInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -933,8 +997,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="ER_MAP"
-                        placeholder={deviceInfo.erMap}
-                        readOnly
+                        placeholder={ErmapInput.inputValue}
+                        value={ErmapInput.inputValue}
+                        onChange={ErmapInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -956,8 +1021,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="EDGE_SIT_POINT"
-                        placeholder={deviceInfo.edgeSitPoint}
-                        readOnly
+                        placeholder={EdgeSitPointInput.inputValue}
+                        value={EdgeSitPointInput.inputValue}
+                        onChange={EdgeSitPointInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -979,8 +1045,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="EMASIZE"
-                        placeholder={deviceInfo.emasize}
-                        readOnly
+                        placeholder={EmasizeInput.inputValue}
+                        value={EmasizeInput.inputValue}
+                        onChange={EmasizeInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -1002,8 +1069,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="EMATHRES"
-                        placeholder={deviceInfo.emathres}
-                        readOnly
+                        placeholder={EmaThresInput.inputValue}
+                        value={EmaThresInput.inputValue}
+                        onChange={EmaThresInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -1025,8 +1093,9 @@ function DeviceSettings() {
                         type="text"
                         className="placeholder"
                         id="NOISETHRES"
-                        placeholder={deviceInfo.noisethres}
-                        readOnly
+                        placeholder={NoiseThresInput.inputValue}
+                        value={NoiseThresInput.inputValue}
+                        onChange={NoiseThresInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -1036,7 +1105,7 @@ function DeviceSettings() {
                   </div>
                 </div>
                 <div className="btn-gp">
-                  <div className="btn text-only">
+                  <div className="btn text-only" onClick={()=>handlePUT_API(requestBody_DeviceLConfiguration)}>
                     <img src="" alt="" className="prefix" />
                     <p className="btn-text">Save</p>
                   </div>
@@ -1065,12 +1134,7 @@ function DeviceSettings() {
               <h2>Device Discharge</h2>
               <div className="opt-list">
                 <div className="ver-stat">Remove current device.</div>
-                <div
-                  className="btn-gp"
-                  onClick={() => {
-                    handleDeleteDevice(deviceInfo.deviceid);
-                  }}
-                >
+                <div className="btn-gp">
                   <div
                     className="btn text-only"
                     style={{
@@ -1081,6 +1145,7 @@ function DeviceSettings() {
                     }}
                     onMouseEnter={() => setIsDeleteBtnHovered(true)}
                     onMouseLeave={() => setIsDeleteBtnHovered(false)}
+                    onClick={()=>handleDeleteDevice(macaddress)}
                   >
                     <img src="" alt="" className="prefix" />
                     <p className="btn-text">Delete</p>

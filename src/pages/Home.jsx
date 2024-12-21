@@ -84,6 +84,10 @@ function Home() {
         );
       } else {
         return POS === 4 || POS === 5 || POS === 0 ? (
+          <Link
+          to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
+          key={MAC}
+        >
           <Bed_alert
             key={MAC}
             macaddress={MAC}
@@ -92,8 +96,12 @@ function Home() {
             floor={Floor}
             section={Section}
             username={UserName}
-          />
+          /></Link>
         ) : POS === 3 ? (
+          <Link
+          to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
+          key={MAC}
+        >
           <Bed_attention
             key={MAC}
             macaddress={MAC}
@@ -102,17 +110,22 @@ function Home() {
             floor={Floor}
             section={Section}
             username={UserName}
-          />
+          /></Link>
         ) : (
-          <Bed_default
+          <Link
+            to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
             key={MAC}
-            macaddress={MAC}
-            hold={formatSecondsToDHMS(HOLD)}
-            bed={Bed}
-            floor={Floor}
-            section={Section}
-            username={UserName}
-          />
+          >
+            <Bed_default
+              key={MAC}
+              macaddress={MAC}
+              hold={formatSecondsToDHMS(HOLD)}
+              bed={Bed}
+              floor={Floor}
+              section={Section}
+              username={UserName}
+            />
+          </Link>
         );
       }
     }
@@ -204,24 +217,7 @@ function Home() {
             </div>
             {/* Bed Grid Sort by Bed */}
             <div className={`grid ${sort_by_bed ? "active" : ""}`}>
-              {port === "8031" &&
-                devices.map((device) => (
-                  <Link
-                    to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
-                    key={device.MAC}
-                  >
-                    {renderDeviceComponent(device)}{" "}
-                  </Link>
-                ))}
-              {port === "7284" &&
-                devices.map((device) => (
-                  <Link
-                    to={`/patient/patient-detail/patient-monitor?macaddress=${device.macaddress}`}
-                    key={device.macaddress}
-                  >
-                    {renderDeviceComponent_7284(device)}{" "}
-                  </Link>
-                ))}
+              {devices.map((device) => renderDeviceComponent(device))}
             </div>
             {/* Bed Grid Sort by Status */}
             <div className={`by-status ${sort_by_status ? "active" : ""}`}>
@@ -230,7 +226,7 @@ function Home() {
                 (device) =>
                   device.STAT === 1 &&
                   !(device.UserName === null || device.UserName === "") &&
-                  (device.POS === 4 || device.POS === 5 ||device.POS === 0)
+                  (device.POS === 4 || device.POS === 5 || device.POS === 0)
               ) && (
                 <div className="status">
                   <div className="title">Alerts</div>
@@ -239,8 +235,12 @@ function Home() {
                       .filter(
                         (device) =>
                           device.STAT === 1 &&
-                        !(device.UserName === null || device.UserName === "") &&
-                        (device.POS === 4 || device.POS === 5 ||device.POS === 0)
+                          !(
+                            device.UserName === null || device.UserName === ""
+                          ) &&
+                          (device.POS === 4 ||
+                            device.POS === 5 ||
+                            device.POS === 0)
                       )
                       .map((device) => (
                         <Link
@@ -268,9 +268,14 @@ function Home() {
                   <div className="title">Attention</div>
                   <div className="status-grid">
                     {devices
-                      .filter((device) => device.STAT === 1 &&
-                      !(device.UserName === null || device.UserName === "") &&
-                      device.POS === 3)
+                      .filter(
+                        (device) =>
+                          device.STAT === 1 &&
+                          !(
+                            device.UserName === null || device.UserName === ""
+                          ) &&
+                          device.POS === 3
+                      )
                       .map((device) => (
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
@@ -313,7 +318,12 @@ function Home() {
                 (device) =>
                   device.STAT === 1 &&
                   !(device.UserName === null || device.UserName === "") &&
-                  !(device.POS === 3 || device.POS === 4 || device.POS === 5 || device.POS === 0)
+                  !(
+                    device.POS === 3 ||
+                    device.POS === 4 ||
+                    device.POS === 5 ||
+                    device.POS === 0
+                  )
               ) && (
                 <div className="status">
                   <div className="title">Normal</div>
@@ -322,8 +332,15 @@ function Home() {
                       .filter(
                         (device) =>
                           device.STAT === 1 &&
-                        !(device.UserName === null || device.UserName === "") &&
-                        !(device.POS === 3 || device.POS === 4 || device.POS === 5 || device.POS === 0)
+                          !(
+                            device.UserName === null || device.UserName === ""
+                          ) &&
+                          !(
+                            device.POS === 3 ||
+                            device.POS === 4 ||
+                            device.POS === 5 ||
+                            device.POS === 0
+                          )
                       )
                       .map((device) => (
                         <Link
@@ -344,15 +361,16 @@ function Home() {
               {devices.some(
                 (device) =>
                   device.STAT === 1 &&
-                  (device.UserName === null || device.UserName === "") 
+                  (device.UserName === null || device.UserName === "")
               ) && (
                 <div className="status">
                   <div className="title">Vacant</div>
                   <div className="status-grid">
-                    {devices.filter(
+                    {devices
+                      .filter(
                         (device) =>
                           device.STAT === 1 &&
-                        (device.UserName === null || device.UserName === "") 
+                          (device.UserName === null || device.UserName === "")
                       )
                       .map((device) => (
                         <Link

@@ -11,6 +11,35 @@ function PatientProfile() {
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
+  const SEX = ["Female","Male"];
+  /// useSetInfoToInput Function ///
+  const [isChanged, setIsChanged] = useState(false); // Track changes to enable SAVE button
+
+  function useSetInfoToInput(initialPlaceHolder) {
+    const [inputValue, setInputValue] = useState(initialPlaceHolder);
+
+    const handleInputChange = (e) => {
+      setInputValue(e.target.value);
+      setIsChanged(e.target.value !== initialPlaceHolder); 
+    };
+
+    return {
+      inputValue,
+      handleInputChange,
+      setInputValue,
+    };
+  }
+  {/* GET PATIENT INFO API */}
+  const patientIDInput = useSetInfoToInput("");
+  const patientNameInput = useSetInfoToInput("");
+  const patientSexInput = useSetInfoToInput("");
+  const patientDOBInput = useSetInfoToInput("");
+  const patientHeightInput = useSetInfoToInput("");
+  const patientWeightInput = useSetInfoToInput("");
+  const patientBedInput = useSetInfoToInput("");
+  const patientSectionInput = useSetInfoToInput("");
+  const patientFloorInput = useSetInfoToInput("");
+
   const [patient, setPatient] = useState([]);
   const fetchPatientProfile = async () => {
     try {
@@ -45,6 +74,17 @@ function PatientProfile() {
 
       setPatient(matchingPatient);
       console.log("patient detail is ", matchingPatient);
+
+      patientIDInput.setInputValue(matchingPatient.patientid);
+      patientNameInput.setInputValue(matchingPatient.patientname);
+      patientSexInput.setInputValue(matchingPatient.sex === "" || matchingPatient.sex === null ? "" :(matchingPatient.sex === SEX[0] ? SEX[0] : SEX[1]));
+      patientDOBInput.setInputValue(matchingPatient.birthday);
+      patientHeightInput.setInputValue(matchingPatient.height);
+      patientWeightInput.setInputValue(matchingPatient.weight);
+      patientBedInput.setInputValue(matchingPatient.bed);
+      patientSectionInput.setInputValue(matchingPatient.section);
+      patientFloorInput.setInputValue(matchingPatient.floor);
+
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -59,14 +99,52 @@ function PatientProfile() {
     }
     return birthday.split("T")[0];
   };
+  {/* PUT API */}
+  const requestBody = {
+    patientname: patientNameInput.inputValue,
+    sex: parseInt(patientWeightInput.inputValue,10),
+    birthday: patientDOBInput.inputValue,
+    height: parseInt(patientHeightInput.inputValue,10),
+    weight: parseInt(patientWeightInput.inputValue,10),
+    deviceid: macaddress
+  };
 
+  const handlePut_API = (print_inputvalue) => {
+    console.log("the input requestbody is ", print_inputvalue);
+    PUT_PatientInfo(patientIDInput.inputValue, print_inputvalue);
+  };
+
+  const PUT_PatientInfo = async (patientid, requestBody) => {
+    try {
+
+      const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody), // Convert the requestBody to JSON
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      console.log("Device updated successfully:", data);
+      alert("Update Successfully!");
+      setIsChanged(false);
+      return data; // Return the response data if needed
+    } catch (error) {
+      console.error("Error updating device:", error.message);
+    }
+  };
   return (
     <div className="pp">
       <h1>Patient Profile</h1>
       <div className="pfl">
         {/* Patient ID */}
         <div className="input g-c-6">
-          <label for="p-id" className="label-container">
+          <label htmlFor="p-id" className="label-container">
             <p>Patient ID</p>
             <img
               className="info"
@@ -80,8 +158,9 @@ function PatientProfile() {
               className="placeholder"
               id="p-id"
               name="p-id"
-              placeholder={patient.patientid || ""}
-              required
+              placeholder={patientIDInput.inputValue}
+              value={patientIDInput.inputValue}
+              readOnly
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -89,7 +168,7 @@ function PatientProfile() {
         </div>
         {/* Patient Name */}
         <div className="input g-c-6">
-          <label for="name" className="label-container">
+          <label htmlFor="name" className="label-container">
             <p>Name</p>
             <img
               className="info"
@@ -103,7 +182,9 @@ function PatientProfile() {
               className="placeholder"
               id="name"
               name="name"
-              placeholder={patient.patientname || ""}
+              placeholder={patientNameInput.inputValue}
+              value={patientNameInput.inputValue}
+              onChange={patientNameInput.handleInputChange}
               required
               autoComplete="off"
             />
@@ -114,7 +195,7 @@ function PatientProfile() {
 
         {/* Sex */}
         <div className="input g-c-3">
-          <label for="sex" className="label-container">
+          <label htmlFor="sex" className="label-container">
             <p>Sex</p>
             <img
               className="info"
@@ -128,7 +209,7 @@ function PatientProfile() {
               className="placeholder"
               id="sex"
               name="sex"
-              placeholder={patient.sex === 1 ? "Male" : "Female"}
+              placeholder={patientSexInput.inputValue}
               required
             />
             <img className="suffix" src="" alt="dropdown icon" />
@@ -137,7 +218,7 @@ function PatientProfile() {
         </div>
         {/* Birthday Date */}
         <div className="input g-c-3">
-          <label for="arrival" className="label-container">
+          <label htmlFor="arrival" className="label-container">
             <p>Birthday</p>
             <img
               className="info"
@@ -151,7 +232,7 @@ function PatientProfile() {
               className="placeholder"
               id="arrival"
               name="arrival"
-              placeholder={formatDOB(patient.birthday)}
+              placeholder={formatDOB(patientDOBInput.inputValue)}
               required
             />
             <img className="suffix" src="" alt="dropdown icon" />
@@ -160,8 +241,8 @@ function PatientProfile() {
         </div>
         {/* Height */}
         <div className="input g-c-3">
-          <label for="height" className="label-container">
-            <p>Height</p>
+          <label htmlFor="height" className="label-container">
+            <p>Height(cm)</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -174,8 +255,9 @@ function PatientProfile() {
               className="placeholder"
               id="height"
               name="height"
-              placeholder={patient.height ? patient.height + "cm" : ""}
-              required
+              placeholder={patientHeightInput.inputValue}
+              value={patientHeightInput.inputValue}
+              onChange={patientHeightInput.handleInputChange}
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -183,8 +265,8 @@ function PatientProfile() {
         </div>
         {/* Weight */}
         <div className="input g-c-3">
-          <label for="weight" className="label-container">
-            <p>Weight</p>
+          <label htmlFor="weight" className="label-container">
+            <p>Weight(kg)</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -197,8 +279,9 @@ function PatientProfile() {
               className="placeholder"
               id="weight"
               name="weight"
-              placeholder={patient.weight ? patient.weight + "kg" : ""}
-              required
+              placeholder={patientWeightInput.inputValue}
+              value={patientWeightInput.inputValue}
+              onChange={patientWeightInput.handleInputChange}
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -206,7 +289,7 @@ function PatientProfile() {
         </div>
         {/* Bed */}
         <div className="input g-c-2">
-          <label for="p-id" className="label-container">
+          <label htmlFor="p-id" className="label-container">
             <p>Bed</p>
             <img
               className="info"
@@ -220,8 +303,8 @@ function PatientProfile() {
               className="placeholder"
               id="p-id-bed"
               name="p-id"
-              placeholder={patient.bed || ""}
-              required
+              placeholder={patientBedInput.inputValue}
+              readOnly
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -229,7 +312,7 @@ function PatientProfile() {
         </div>
         {/* Section */}
         <div className="input g-c-2">
-          <label for="section" className="label-container">
+          <label htmlFor="section" className="label-container">
             <p>Section</p>
             <img
               className="info"
@@ -243,8 +326,8 @@ function PatientProfile() {
               className="placeholder"
               id="section"
               name="section"
-              placeholder={patient.section || ""}
-              required
+              placeholder={patientSectionInput.inputValue}
+              readOnly
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -252,7 +335,7 @@ function PatientProfile() {
         </div>
         {/* Floor */}
         <div className="input g-c-2">
-          <label for="floor" className="label-container">
+          <label htmlFor="floor" className="label-container">
             <p>Floor</p>
             <img
               className="info"
@@ -266,8 +349,8 @@ function PatientProfile() {
               className="placeholder"
               id="floor"
               name="floor"
-              placeholder={patient.floor || ""}
-              required
+              placeholder={patientFloorInput.inputValue}
+              readOnly
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -275,7 +358,7 @@ function PatientProfile() {
         </div>
         {/* Device ID */}
         <div className="input g-c-3">
-          <label for="d-id" className="label-container">
+          <label htmlFor="d-id" className="label-container">
             <p>Device ID</p>
             <img
               className="info"
@@ -290,7 +373,7 @@ function PatientProfile() {
               id="d-id"
               name="d-id"
               placeholder={macaddress}
-              required
+              value = {macaddress}
               readonly
             />
             <img className="suffix" src="" alt="dropdown icon" />
@@ -299,7 +382,7 @@ function PatientProfile() {
         </div>
         {/* Connection Status */}
         <div className="input g-c-3 suffix">
-          <label for="connection" className="label-container">
+          <label htmlFor="connection" className="label-container">
             <p>Connection Status</p>
             <img
               className="info"
@@ -322,7 +405,10 @@ function PatientProfile() {
         </div>
       </div>
       <div className="btn-gp">
-        <div className="btn text-only inactive">
+        <div className={`btn text-only ${isChanged ? "" : "inactive"}`} onClick={()=>{
+          if(isChanged){
+            handlePut_API(requestBody)
+          }}}>
           <img src="" alt="" className="prefix" />
           <p className="btn-text">Save</p>
         </div>

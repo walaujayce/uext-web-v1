@@ -198,6 +198,8 @@
 /* Bed Attention Status */
 .bed.attention{
     background: var(--P-100, #FFF3E5);
+    animation: blink 800ms ease-in-out infinite; /* 400ms for a full cycle (200ms up, 200ms down) */
+
 }
 .bed.attention:hover{
     border: 2px solid var(--900,#FF9D00);
