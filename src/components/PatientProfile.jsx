@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import "/src/CSS/patient.css";
+import DisChargePatient from "./Modals/DisChargePatient";
 
 function PatientProfile() {
+  const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
-  const SEX = ["Female","Male"];
+  const SEX = ["Female", "Male"];
   /// useSetInfoToInput Function ///
   const [isChanged, setIsChanged] = useState(false); // Track changes to enable SAVE button
 
@@ -20,7 +22,7 @@ function PatientProfile() {
 
     const handleInputChange = (e) => {
       setInputValue(e.target.value);
-      setIsChanged(e.target.value !== initialPlaceHolder); 
+      setIsChanged(e.target.value !== initialPlaceHolder);
     };
 
     return {
@@ -29,7 +31,9 @@ function PatientProfile() {
       setInputValue,
     };
   }
-  {/* GET PATIENT INFO API */}
+  {
+    /* GET PATIENT INFO API */
+  }
   const patientIDInput = useSetInfoToInput("");
   const patientNameInput = useSetInfoToInput("");
   const patientSexInput = useSetInfoToInput("");
@@ -77,14 +81,19 @@ function PatientProfile() {
 
       patientIDInput.setInputValue(matchingPatient.patientid);
       patientNameInput.setInputValue(matchingPatient.patientname);
-      patientSexInput.setInputValue(matchingPatient.sex === "" || matchingPatient.sex === null ? "" :(matchingPatient.sex === SEX[0] ? SEX[0] : SEX[1]));
+      patientSexInput.setInputValue(
+        matchingPatient.sex === "" || matchingPatient.sex === null
+          ? ""
+          : matchingPatient.sex === SEX[0]
+          ? SEX[0]
+          : SEX[1]
+      );
       patientDOBInput.setInputValue(matchingPatient.birthday);
       patientHeightInput.setInputValue(matchingPatient.height);
       patientWeightInput.setInputValue(matchingPatient.weight);
       patientBedInput.setInputValue(matchingPatient.bed);
       patientSectionInput.setInputValue(matchingPatient.section);
       patientFloorInput.setInputValue(matchingPatient.floor);
-
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -99,14 +108,16 @@ function PatientProfile() {
     }
     return birthday.split("T")[0];
   };
-  {/* PUT API */}
+  {
+    /* PUT API */
+  }
   const requestBody = {
     patientname: patientNameInput.inputValue,
-    sex: parseInt(patientWeightInput.inputValue,10),
+    sex: parseInt(patientWeightInput.inputValue, 10),
     birthday: patientDOBInput.inputValue,
-    height: parseInt(patientHeightInput.inputValue,10),
-    weight: parseInt(patientWeightInput.inputValue,10),
-    deviceid: macaddress
+    height: parseInt(patientHeightInput.inputValue, 10),
+    weight: parseInt(patientWeightInput.inputValue, 10),
+    deviceid: macaddress,
   };
 
   const handlePut_API = (print_inputvalue) => {
@@ -116,7 +127,6 @@ function PatientProfile() {
 
   const PUT_PatientInfo = async (patientid, requestBody) => {
     try {
-
       const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
         method: "PUT",
         headers: {
@@ -138,6 +148,43 @@ function PatientProfile() {
       console.error("Error updating device:", error.message);
     }
   };
+  {
+    /* Discharge Patient Button */
+  }
+  const [isDischargeOverlayVisible, setDischargeOverlayVisible] =
+    useState(false);
+  const handleDisChargeOverlay = () => {
+    setDischargeOverlayVisible(!isDischargeOverlayVisible);
+  };
+
+  const handleDischargePatient = (patientid) => {
+    patientid = patient.patientid;
+    console.log("delete patient ", patientid);
+    deletePatient_API(patientid)
+  };
+
+  const deletePatient_API = async (patientId) => {
+    try {
+      const response = await fetch(`/api/7284/db/Patient/${patientId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const contentType = response.headers.get("Content-Type");
+      if (!response.ok || !contentType?.includes("application/json")) {
+        throw new Error(`Expected JSON, got: ${contentType}`);
+      }
+      const data = await response.json();
+      console.log("Delete successfully!:", data);
+      alert("Delete successfully!");
+      navigate("/home");
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
+    }
+  };
+
   return (
     <div className="pp">
       <h1>Patient Profile</h1>
@@ -373,7 +420,7 @@ function PatientProfile() {
               id="d-id"
               name="d-id"
               placeholder={macaddress}
-              value = {macaddress}
+              value={macaddress}
               readonly
             />
             <img className="suffix" src="" alt="dropdown icon" />
@@ -405,16 +452,30 @@ function PatientProfile() {
         </div>
       </div>
       <div className="btn-gp">
-        <div className={`btn text-only ${isChanged ? "" : "inactive"}`} onClick={()=>{
-          if(isChanged){
-            handlePut_API(requestBody)
-          }}}>
+        <div
+          className={`btn text-only ${isChanged ? "" : "inactive"}`}
+          onClick={() => {
+            if (isChanged) {
+              handlePut_API(requestBody);
+            }
+          }}
+        >
           <img src="" alt="" className="prefix" />
           <p className="btn-text">Save</p>
         </div>
-        <div className="btn text-only outline" id="discharge">
+        <div
+          className="btn text-only outline"
+          id="discharge"
+          onClick={handleDisChargeOverlay}
+        >
           <img src="" alt="" className="prefix" />
           <p className="btn-text">Discharge</p>
+          {isDischargeOverlayVisible && (
+            <DisChargePatient
+              callback={handleDisChargeOverlay}
+              dischargebtn_click={handleDischargePatient}
+            />
+          )}
         </div>
       </div>
     </div>

@@ -64,7 +64,7 @@ const AddNewDevice = ({ callback }) => {
 
   const fetchFloorList = async () => {
     try {
-      const response = await fetch("api/7284/Floor");
+      const response = await fetch("/api/7284/Floor");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -100,7 +100,7 @@ const AddNewDevice = ({ callback }) => {
 
   const fetchSectionList = async () => {
     try {
-      const response = await fetch("api/7284/Section");
+      const response = await fetch("/api/7284/Section");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -210,7 +210,7 @@ const AddNewDevice = ({ callback }) => {
     };
 
     try {
-      const response = await fetch("api/7284/db/Device", {
+      const response = await fetch("/api/7284/db/Device", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

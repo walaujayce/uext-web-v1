@@ -13,7 +13,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
 
   const fetchFloorList = async () => {
     try {
-      const response = await fetch("api/7284/Floor", {
+      const response = await fetch("/api/7284/Floor", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -58,7 +58,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
 
   const fetchSectionList = async () => {
     try {
-      const response = await fetch("api/7284/Section");
+      const response = await fetch("/api/7284/Section");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

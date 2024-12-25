@@ -389,12 +389,20 @@ header .list{
 }
 
 /* Bed Animation */
-@keyframes blink_alertlist {
+@keyframes blink_alertlist-alert {
     0%, 100% {
         background-color: #FFF0F0;
     }
     50% {
         background-color: #FFE5E5;
+    }
+}
+@keyframes blink_alertlist-attention {
+    0%, 100% {
+        background-color: #FFF3E5;
+    }
+    50% {
+        background-color: #ffeac9;
     }
 }
 /* Alert List */
@@ -449,7 +457,7 @@ header .list{
     border-bottom: 3px solid transparent;
     position: relative;
     order: 1;
-    animation: blink_alertlist 800ms ease-in-out infinite; /* 400ms for a full cycle (200ms up, 200ms down) */
+    animation: blink_alertlist-alert 800ms ease-in-out infinite; /* 400ms for a full cycle (200ms up, 200ms down) */
 }
 
 .alert-list .container:hover{
@@ -513,26 +521,28 @@ header .list{
 .alert-list .container.in-progress{
     background: #FAFAFA;
     order: 2;
+    animation: blink_alertlist-attention 800ms ease-in-out infinite; /* 400ms for a full cycle (200ms up, 200ms down) */
+
 }
 
 .alert-list .in-progress .title{
-    color: var(--850, #262626);
+    color: var(--850, #FF9D00);
 }
 
 .alert-list .in-progress .info .item .caption{
-    color: var(--300, #B3B3B3);
+    color: var(--300, #FF9D00);
 }
 
 .alert-list .in-progress .info .item p{
-    color: var(--850, #262626);
+    color: var(--850, #FF9D00);
 }
 
 .alert-list .in-progress .time{
-    color: var(--500, #808080);
+    color: var(--500, #FF9D00);
 }
 
 .alert-list .container.in-progress:hover{
-    border-bottom: 3px solid #262626;
+    border-bottom: 3px solid #FF9D00;
     background-color: #F2F2F2;
 }
 
@@ -861,7 +871,7 @@ footer .time{
         border-bottom: 1.5px solid #FA3F2E;
     }
     .alert-list .container.in-progress:hover{
-        border-bottom: 1.5px solid #262626;
+        border-bottom: 1.5px solid #FF9D00;
     }
 
     /* ---Top Bar --- */

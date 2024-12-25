@@ -20,7 +20,13 @@ function Login() {
   
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { isAuthenticated } = useAuth();
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home"); 
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleLogin = async () => {
     try {
@@ -30,7 +36,7 @@ function Login() {
         return;
       }
 
-      const response = await fetch("api/7284/User", {
+      const response = await fetch("/api/7284/User", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

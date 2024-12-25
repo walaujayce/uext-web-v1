@@ -73,6 +73,7 @@
     .overlay .warn .title{
         font-size: 24px;
         margin-bottom: 4px;
+        border-bottom: none;
     }
     .overlay .warn .desc{
         font-size: 16px;

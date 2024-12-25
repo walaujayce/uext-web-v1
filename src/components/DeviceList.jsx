@@ -39,7 +39,7 @@ const DeviceList = () => {
         console.log(data);
         setDevices(data);
       } else if (port === "7284") {
-        const response = await fetch("api/7284/db/Device");
+        const response = await fetch("/api/7284/db/Device");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }

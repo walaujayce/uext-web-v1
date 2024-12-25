@@ -14,7 +14,7 @@ const AccountList = () => {
 
   const fetchAccountList = async () => {
     try {
-      const response = await fetch("api/7284/User");
+      const response = await fetch("/api/7284/User");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }

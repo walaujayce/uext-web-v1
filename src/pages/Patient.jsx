@@ -26,7 +26,7 @@ function Patient() {
 
   const fetchPatients = async () => {
     try {
-      const response = await fetch("api/7284/db/Patient");
+      const response = await fetch("/api/7284/db/Patient");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
@@ -68,7 +68,7 @@ function Patient() {
                 selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
               />
-              <div
+              {/* <div
                 className="btn"
                 id="addPatient"
                 onClick={handleAddPatientClick}
@@ -78,7 +78,7 @@ function Patient() {
                 {isOverlayVisible && (
                   <AddNewPatient callback={handleAddPatientClick} />
                 )}
-              </div>
+              </div> */}
             </div>
             {/* Patient List Main body */}
             <div className="pl">
@@ -101,26 +101,6 @@ function Patient() {
               </div>
               {/* Patient List */}
               <div className="item-list">
-                <Link
-                  to={`/patient/patient-detail/patient-monitor?macaddress=80C9553B5BA0`}
-                >
-                  <a href="" className="item">
-                    <h3 className="fg2">F000003078</h3>
-                    <h3 className="fg2">Chan</h3>
-                    <h3 className="fg1">Male</h3>
-                    {/* <h3 className="fg2">2024-11-26</h3>
-                  <h3 className="fg1">190</h3>
-                  <h3 className="fg1">90</h3> */}
-                    <h3 className="fg1">1004</h3>
-                    <h3 className="fg1">Zone A</h3>
-                    <h3 className="fg1">7F</h3>
-                    <h3 className="fg2">RRD42687891</h3>
-                    <div className="connection connected fg2">
-                      <img src="" alt="" />
-                      <h3>Connected</h3>
-                    </div>
-                  </a>
-                </Link>
                 {patients
                   .slice()
                   .filter((patient) => {
@@ -167,12 +147,10 @@ function Patient() {
             <h3 className="fg1">{patient.weight || "N/A"}</h3> */}
                       <h3 className="fg1">{patient.bed || "N/A"}</h3>
                       <h3 className="fg1">
-                        {patient.section === ""
-                          ? "N/A"
-                          : "Zone " + patient.section}
+                        {patient.section === "" ? "N/A" : patient.section}
                       </h3>
                       <h3 className="fg1">
-                        {patient.floor === "" ? "N/A" : patient.floor + "F"}
+                        {patient.floor === "" ? "N/A" : patient.floor}
                       </h3>
                       <h3 className="fg2">{patient.deviceid || "N/A"}</h3>
                       <div

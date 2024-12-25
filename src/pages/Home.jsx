@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
-import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import Navbar from "/src/components/Navbar.jsx";
 import AlertList from "/src/components/AlertList.jsx";
@@ -19,6 +18,10 @@ import {
 import Bed_Sort_by_Status from "../components/Bed_Sort_by_Status";
 
 function Home() {
+  const getServerIpAddress = () => {
+    return window.location.hostname;
+  };
+
   const [port, setPort] = useState("8031");
   const handleSelectPort = (port) => {
     console.log(port);
@@ -37,8 +40,9 @@ function Home() {
         const data = await response.json();
         console.log(data.DATA);
         setDevices(data.DATA || []);
+        //console.log("the current is ", getServerIpAddress());
       } else if (port === "7284") {
-        const response = await fetch("api/7284/db/Device");
+        const response = await fetch("/api/7284/db/Device");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
@@ -85,32 +89,34 @@ function Home() {
       } else {
         return POS === 4 || POS === 5 || POS === 0 ? (
           <Link
-          to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
-          key={MAC}
-        >
-          <Bed_alert
+            to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
             key={MAC}
-            macaddress={MAC}
-            hold={formatSecondsToDHMS(HOLD)}
-            bed={Bed}
-            floor={Floor}
-            section={Section}
-            username={UserName}
-          /></Link>
+          >
+            <Bed_alert
+              key={MAC}
+              macaddress={MAC}
+              hold={formatSecondsToDHMS(HOLD)}
+              bed={Bed}
+              floor={Floor}
+              section={Section}
+              username={UserName}
+            />
+          </Link>
         ) : POS === 3 ? (
           <Link
-          to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
-          key={MAC}
-        >
-          <Bed_attention
+            to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
             key={MAC}
-            macaddress={MAC}
-            hold={formatSecondsToDHMS(HOLD)}
-            bed={Bed}
-            floor={Floor}
-            section={Section}
-            username={UserName}
-          /></Link>
+          >
+            <Bed_attention
+              key={MAC}
+              macaddress={MAC}
+              hold={formatSecondsToDHMS(HOLD)}
+              bed={Bed}
+              floor={Floor}
+              section={Section}
+              username={UserName}
+            />
+          </Link>
         ) : (
           <Link
             to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
@@ -251,6 +257,10 @@ function Home() {
                             key={device.MAC}
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
                           />
                         </Link>
                       ))}
@@ -285,6 +295,10 @@ function Home() {
                             key={device.MAC}
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
                           />
                         </Link>
                       ))}
@@ -307,6 +321,10 @@ function Home() {
                             key={device.MAC}
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
                           />
                         </Link>
                       ))}
@@ -351,6 +369,10 @@ function Home() {
                             key={device.MAC}
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
                           />
                         </Link>
                       ))}
@@ -373,16 +395,13 @@ function Home() {
                           (device.UserName === null || device.UserName === "")
                       )
                       .map((device) => (
-                        <Link
-                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                        <Bed_vacant
                           key={device.MAC}
-                        >
-                          <Bed_vacant
-                            key={device.MAC}
-                            macaddress={device.MAC}
-                            hold={formatSecondsToDHMS(device.HOLD)}
-                          />
-                        </Link>
+                          macaddress={device.MAC}
+                          bed={device.Bed}
+                          floor={device.Floor}
+                          section={device.Section}
+                        />
                       ))}
                   </div>
                 </div>
