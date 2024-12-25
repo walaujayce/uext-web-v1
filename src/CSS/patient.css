@@ -589,10 +589,10 @@
 }
 /* Custom CSS for Respiration and Heart Beat */
 .alertOpt .opt-grid .opt .desc .desc-input.rpm.max::after{
-    content: "Hz(Max.)";
+    content: "Hz (Max.)";
 }
 .alertOpt .opt-grid .opt .desc .desc-input.rpm.min::after{
-    content: "Hz(Min.)";
+    content: "Hz (Min.)";
 }
 
 /* Custom CSS for Respiration and Heart Beat */

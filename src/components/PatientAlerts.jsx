@@ -115,7 +115,7 @@ function PatientAlerts() {
   const handleARTCheckBox = () => {
     setARTIsChecked((prev) => !prev);
   };
-  const [debounceInput, setDebounceInput] = useState("");
+  const [debounceInput, setDebounceInput] = useState("60");
   const handleDebounceInputChange = (e) => {
     setDebounceInput(e.target.value);
   };
@@ -128,7 +128,7 @@ function PatientAlerts() {
   const [selectedNotifications2, setSelectedNotifications2] = useState([]); // Track selected checkboxes
   const [inputValues, setInputValues] = useState(
     PositionStatus.reduce((acc, option) => {
-      acc[option.id] = ""; // Default value
+      acc[option.id] = "600"; // Default value
       return acc;
     }, {})
   );
@@ -153,11 +153,11 @@ function PatientAlerts() {
     setRnHBIsChecked1((prev) => !prev);
   };
 
-  const [respHighInput, setRespHighInput] = useState("");
+  const [respHighInput, setRespHighInput] = useState("20");
   const handleRespHighInputChange = (e) => {
     setRespHighInput(e.target.value);
   };
-  const [respLowInput, setRespLowInput] = useState("");
+  const [respLowInput, setRespLowInput] = useState("12");
   const handleRespLowInputChange = (e) => {
     setRespLowInput(e.target.value);
   };
@@ -167,11 +167,11 @@ function PatientAlerts() {
     setRnHBIsChecked2((prev) => !prev);
   };
 
-  const [hbHighInput, setHbHighInput] = useState("");
+  const [hbHighInput, setHbHighInput] = useState("100");
   const handleHbHighInputChange = (e) => {
     setHbHighInput(e.target.value);
   };
-  const [hbLowInput, setHbLowInput] = useState("");
+  const [hbLowInput, setHbLowInput] = useState("60");
   const handleHbLowInputChange = (e) => {
     setHbLowInput(e.target.value);
   };

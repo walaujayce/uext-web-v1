@@ -252,7 +252,7 @@ function DeviceSettings() {
   }, []);
 
   {
-    /* DELETE Device  API */
+    /* DELETE Device BUT USE PUT API */
   }
   const [isDeleteBtnHovered, setIsDeleteBtnHovered] = useState(false);
 
@@ -284,12 +284,13 @@ function DeviceSettings() {
   {
     /* PUT Device  API */
   }
+  // Update device location
   const requestBody_DeviceLocation = {
     bed:  deviceBedInput.inputValue,
     section: sectionDropdown.placeholder,
     floor: floorDropdown.placeholder
   };
-
+// update device configuration
   const requestBody_DeviceLConfiguration = {
     pmio: parseInt(PmioInput.inputValue, 10),
     vmax: parseInt(VmaxInput.inputValue, 10),
@@ -308,6 +309,10 @@ function DeviceSettings() {
     emasize: parseInt(EmasizeInput.inputValue, 10),
     emathres: parseInt(EmaThresInput.inputValue, 10),
     noisethres: parseInt(NoiseThresInput.inputValue, 10)
+  };
+  //set used to false to hide device from device list
+  const requestBody_delete = {
+    used: false,
   };
   const handlePUT_API = (print_inputvalue) => {
     console.log("the input requestbody is ", print_inputvalue);
@@ -1145,7 +1150,7 @@ function DeviceSettings() {
                     }}
                     onMouseEnter={() => setIsDeleteBtnHovered(true)}
                     onMouseLeave={() => setIsDeleteBtnHovered(false)}
-                    onClick={()=>handleDeleteDevice(macaddress)}
+                    onClick={()=>handlePUT_API(requestBody_delete)}
                   >
                     <img src="" alt="" className="prefix" />
                     <p className="btn-text">Delete</p>

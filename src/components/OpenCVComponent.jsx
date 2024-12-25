@@ -5,7 +5,7 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
   const sensor_height = 12;
 
   const [opencvLoaded, setOpencvLoaded] = useState(false);
-  console.log("rawdata is ", rawdata);
+  //console.log("rawdata is ", rawdata);
   useEffect(() => {
     const existingScript = document.querySelector(
       'script[src="https://docs.opencv.org/4.x/opencv.js"]'
@@ -45,12 +45,17 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
     if (parentBox) {
       // Set the canvas size to match the parent `.box` size
       canvasRef.current.height = parentBox.clientHeight * 0.9; // reduce a 10% percentage of output image size
-      const scaleAdjust_clientWidth =  Math.round((parentBox.clientWidth * 12)/20);
+      const scaleAdjust_clientWidth = Math.round(
+        (parentBox.clientWidth * 12) / 20
+      );
       canvasRef.current.width = scaleAdjust_clientWidth * 0.9; // reduce a 10% percentage of output image size
     }
     console.log("the cavas height ", parentBox.clientHeight);
     console.log("the cavas width ", parentBox.clientWidth);
-    console.log("the cavas width multiple ", Math.round((parentBox.clientWidth * 20)/12));
+    console.log(
+      "the cavas width multiple ",
+      Math.round((parentBox.clientWidth * 20) / 12)
+    );
     const message = `${canvasRef.current.width} + ${canvasRef.current.height}`;
     // alert(message);
   }, []);
@@ -167,6 +172,11 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
       const decimalValue = parseInt(hexPair, 16); // Convert to decimal
       decimalArray.push(decimalValue);
     }
+    const sum = decimalArray.reduce(
+      (accumulator, currentValue) => accumulator + currentValue,
+      0
+    );
+    console.log("the total of rawdata is ", sum);
     return decimalArray;
   };
 

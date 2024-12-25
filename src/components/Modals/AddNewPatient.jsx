@@ -95,7 +95,7 @@ const AddNewPatient = ({ mac, callback }) => {
   const [height, setHeight_POST] = useState("");
   const [weight, setWeight_POST] = useState("");
   const [sex, setSex_POST] = useState(0);
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date());
 
   const handleSubmit = async () => {
     const requestBody = {
@@ -146,7 +146,6 @@ const AddNewPatient = ({ mac, callback }) => {
   const patientHeightError = useErrorState(false);
   const patientWeightError = useErrorState(false);
   const patientDOBError = useErrorState(false);
-  
 
   return (
     <>
@@ -211,12 +210,15 @@ const AddNewPatient = ({ mac, callback }) => {
                     placeholder="Enter here"
                     value={patientid}
                     onChange={(e) => setPatientId_POST(e.target.value)}
-
                     required
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
-                <div className={`assistive-text ${patientIdError.isErrorActive ? "active": ""}`}>
+                <div
+                  className={`assistive-text ${
+                    patientIdError.isErrorActive ? "active" : ""
+                  }`}
+                >
                   Information Required!
                 </div>
               </div>
@@ -243,7 +245,13 @@ const AddNewPatient = ({ mac, callback }) => {
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
-                <div className={`assistive-text ${patientnameError.isErrorActive ? "active": ""}`}>Information Required!</div>
+                <div
+                  className={`assistive-text ${
+                    patientnameError.isErrorActive ? "active" : ""
+                  }`}
+                >
+                  Information Required!
+                </div>
               </div>
               {/* Height */}
               <div className="input g-c-3">
@@ -268,7 +276,13 @@ const AddNewPatient = ({ mac, callback }) => {
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
-                <div className={`assistive-text ${patientHeightError.isErrorActive ? "active": ""}`}>Information Required!</div>
+                <div
+                  className={`assistive-text ${
+                    patientHeightError.isErrorActive ? "active" : ""
+                  }`}
+                >
+                  Information Required!
+                </div>
               </div>
               {/* Weight */}
               <div className="input g-c-3">
@@ -293,7 +307,13 @@ const AddNewPatient = ({ mac, callback }) => {
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
-                <div className={`assistive-text ${patientWeightError.isErrorActive ? "active": ""}`}>Information Required!</div>
+                <div
+                  className={`assistive-text ${
+                    patientWeightError.isErrorActive ? "active" : ""
+                  }`}
+                >
+                  Information Required!
+                </div>
               </div>
               {/* Sex */}
               <div
@@ -345,17 +365,22 @@ const AddNewPatient = ({ mac, callback }) => {
                     alt="gray outline information icon"
                   />
                 </label>
-                <div className="input-gp">
-                  <DatePicker
-                    selected={selectedDate}
-                    onChange={(date) => setSelectedDate(date)}
-                    placeholderText="Select a date"
-                    dateFormat="yyyy-MM-dd"
-                    className="date-picker-input" // Optional custom styles
-                  />
-                  <img className="suffix" src="" alt="dropdown icon" />
-                </div>
-                <div className={`assistive-text ${patientDOBError.isErrorActive ? "active": ""}`}>Information Required!</div>
+                <DatePicker
+                  dateFormat="yyyy/MM/dd"
+                  selected={selectedDate}
+                  onChange={(date) => setSelectedDate(date)}
+                  peekNextMonth
+                  showMonthDropdown
+                  showYearDropdown
+                  dropdownMode="select"
+                />
+                {/* <div
+                  className={`assistive-text ${
+                    patientDOBError.isErrorActive ? "active" : ""
+                  }`}
+                >
+                  Information Required!
+                </div> */}
               </div>
             </div>
             <div
@@ -369,7 +394,10 @@ const AddNewPatient = ({ mac, callback }) => {
                 <img src="" alt="" className="prefix" />
                 <p className="btn-text pri-text">Continue</p>
               </div>
-              <div className="btn text-only outline sec" onClick={(e) => callback(e)}>
+              <div
+                className="btn text-only outline sec"
+                onClick={(e) => callback(e)}
+              >
                 <img src="" alt="" className="prefix" />
                 <p className="btn-text sec-text">Cancel</p>
               </div>

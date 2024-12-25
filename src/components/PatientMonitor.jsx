@@ -17,27 +17,22 @@ function PatientMonitor() {
 
   const postData = async () => {
     try {
-      const url = "/api/7285/rawdatum";
-      const body = {
-        MAC: macaddress,
-      };
-
-      const response = await fetch(url, {
-        method: "POST",
+      const response = await fetch(`/api/8031/rawdata/${macaddress}`, {
+        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(body),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      const contentType = response.headers.get("Content-Type");
+      if (!response.ok || !contentType?.includes("application/json")) {
+        throw new Error(`Expected JSON, got: ${contentType}`);
       }
 
       const data = await response.json();
 
-      setRawdatum(data.Data);
-      console.log("Rawdatum:", data.Data);
+      setRawdatum(data.IMAGE);
+      console.log("Rawdatum:", data.IMAGE);
       setPosition(data.POS);
       console.log("Position:", data.POS);
       setDuration(formatSecondsToDHMS(data.HOLD))
@@ -70,7 +65,7 @@ function PatientMonitor() {
       <div className="pressure">
         <div className="title">Pressure Map</div>
         <div className="box">
-          <OpenCVComponent deviceid="12345" rawdata={rawdatum} />
+          <OpenCVComponent deviceid={macaddress} rawdata={rawdatum}/>
           <div className="bt-box">
             {/* <div className="spec col">
               <p className="tag">Position</p>
@@ -98,16 +93,16 @@ function PatientMonitor() {
         </div>
       </div>
       <div className="h-rate">
-        <div className="title">Health Rate</div>
-        <img src="/src/assets/health-rate.png" alt="" />
+        <div className="title">Heart Rate</div>
+        <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
         <div className="spec">
           <div>--</div>
           <div className="tag">Hz</div>
         </div>
       </div>
       <div className="respiration">
-        <div className="title">Respiration</div>
-        <img src="/src/assets/health-rate.png" alt="" />
+        <div className="title">Respiration Rate</div>
+        <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
         <div className="spec">
           <div>--</div>
           <div className="tag">Hz</div>

@@ -136,6 +136,11 @@ function Patient() {
                     return numA - numB; // Numeric ascending order
                   })
                   .map((patient) => (
+                              <Link
+                                to={`/patient/patient-detail/patient-monitor?macaddress=${patient.deviceid}`}
+                                key={patient.deviceid}
+                                state={{ from: "/patient" }}
+                              >
                     <a className="item">
                       <h3 className="fg2">{patient.patientid || "N/A"}</h3>
                       <h3 className="fg2">{patient.patientname || "N/A"}</h3>
@@ -164,6 +169,7 @@ function Patient() {
                         </h3>
                       </div>
                     </a>
+                    </Link>
                   ))}
               </div>
             </div>

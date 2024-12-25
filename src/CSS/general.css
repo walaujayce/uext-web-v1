@@ -900,17 +900,18 @@ footer .time{
         width: 140px;
         height: 20px;
     }
-    .navbar{
-        display: none;
+    .navbar{ /* Jayce modified */
+        /* display: none; */ 
     }
     .other{
         column-gap: 12px;
     }
-    .setting{
-        display: none;
+    .setting{ /* Jayce code modified*/
+        /* display: none; */
     }
     .hamburger{
-        display: block;
+        /* display: block; */
+        display: none;
     }
     .lang .list{
         width: 200px;

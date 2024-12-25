@@ -16,7 +16,7 @@ function PatientDetail(){
     const navigate = useNavigate();
 
     const handleBackBtnClick = () => {
-      navigate("/home");
+      navigate(location.state?.from || "/home");
     };
 
 
@@ -37,8 +37,8 @@ function PatientDetail(){
                             ${location.pathname === "/patient/patient-detail/patient-alerts" ? "active" : ""
                             }`}>Alerts</span>
                         </Link>
-                        <a  className="opt opt-3">Analysis</a>
-                        <a  className="opt opt-4">Logs</a>
+                        {/* <a  className="opt opt-3">Analysis</a>
+                        <a  className="opt opt-4">Logs</a> */}
                         <a  className="btn frameless" onClick={handleBackBtnClick}>
                             <img src="" alt="" className="prefix"/>
                             <p className="btn-text">Back</p>

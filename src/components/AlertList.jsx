@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import SignalRService from "../JS/SignalR";
 import AlertConfirmOverlay from "./Modals/AlertConfirmOverlay";
+import dayjs from "dayjs";
 
 function AlertList() {
   const [expandAlertList, setExpandAlertList] = useState(false);
@@ -28,28 +29,63 @@ function AlertList() {
           setAlertsMap((prevAlertsMap) => {
             const newAlertsMap = new Map(prevAlertsMap);
             const mac = parsedMessage.MAC;
+            const existingAlertMessage = newAlertsMap.get(mac);
+            //console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
+            if (
+              existingAlertMessage &&
+              new Date(existingAlertMessage.alertTime) <
+                new Date(parsedMessage.AlertTime)
+            ) {
+              // console.log("existingAlert for MAC:", mac, existingAlertMessage);
+              // console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
+              // console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
+              // console.log("existingAlertMessage ID is ", existingAlertMessage.id);
+              setNotificationChecked_PUT(existingAlertMessage.id); // CHECK TRUE old message in database
+              //save new message to alert list
+              newAlertsMap.set(mac, {
+                id: parsedMessage.Id,
+                mac: mac,
+                userName: parsedMessage.UserName || "",
+                bedNo: parsedMessage.Bed || "",
+                floor: parsedMessage.Floor || "",
+                section: parsedMessage.Section || "",
 
-            // Update or add the latest message for this MAC
-            newAlertsMap.set(mac, {
-              topic,
-              id: parsedMessage.Id,
-              mac: mac,
-              userName: parsedMessage.UserName || "",
-              bedNo: parsedMessage.Bed || "",
-              floor: parsedMessage.Floor || "",
-              section: parsedMessage.Section || "",
+                alertTime:
+                  new Date(parsedMessage.AlertTime).toLocaleString([], {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false,
+                  }) || "",
+                status: parsedMessage.Status,
+                eventName: parsedMessage.EventName || "",
+              });
+            } else if (!existingAlertMessage) {
+              newAlertsMap.set(mac, {
+                id: parsedMessage.Id,
+                mac: mac,
+                userName: parsedMessage.UserName || "",
+                bedNo: parsedMessage.Bed || "",
+                floor: parsedMessage.Floor || "",
+                section: parsedMessage.Section || "",
 
-              alertTime:
-                new Date(parsedMessage.AlertTime).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  hour12: false,
-                }) || "",
-              status: parsedMessage.Status,
-              eventName: parsedMessage.EventName || "",
-            });
-            //saveToLocalStorage(newAlertsMap);
-
+                alertTime:
+                  new Date(parsedMessage.AlertTime).toLocaleString([], {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    second: "2-digit",
+                    hour12: false,
+                  }) || "",
+                status: parsedMessage.Status,
+                eventName: parsedMessage.EventName || "",
+              });
+            }
             return newAlertsMap;
           });
         }
@@ -86,7 +122,7 @@ function AlertList() {
       --YES: (a)set others to "CHECKED" (b)show the lastest one (c)check again if alertlist exists more latest notification , PROCEED TO STEP 2 AGAIN
       --NO : (a)show the lastest one (b)check again if alertlist exists more latest notification, PROCEED TO STEP 2 AGAIN
     -NO  : continue
-  2. POP up new notification , CHECK all notifications that has the same mac
+  2. POP up new notification , CHECK all notifications that has the same mac on alert list
     -YES: (a)set old notification to "CHECKED" (b)show the latest notification
     -NO : (b)show this notification
   3. CLICK SET notification "CHECKED"
@@ -146,25 +182,24 @@ function AlertList() {
           const parsedMessage = JSON.parse(
             uncheckedNotifications[0].notifyBody
           );
-          console.log(parsedMessage);
+          console.log(parsedMessage); 
 
           setAlertsMap((prevAlertsMap) => {
             const newAlertsMap = new Map(prevAlertsMap);
             const mac = parsedMessage.MAC;
-
-            // Check if the MAC already exists and if the new AlertTime is later
-            const existingAlert = newAlertsMap.get(mac);
-            const newAlertTime = new Date(parsedMessage.AlertTime);
-            console.log("new time is ",newAlertTime);
-            console.log("old time is ",existingAlert);
+            const existingAlertMessage = newAlertsMap.get(mac);
+            //console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
             if (
-              existingAlert &&
-              new Date(existingAlert.alertTime) < newAlertTime
+              existingAlertMessage &&
+              new Date(existingAlertMessage.alertTime) <
+                new Date(parsedMessage.AlertTime)
             ) {
-              // Call setNotificationChecked_PUT for the old message's Id
-              setNotificationChecked_PUT(existingAlert.id);
-
-              // Update with the latest message for this MAC
+              // console.log("existingAlert for MAC:", mac, existingAlertMessage);
+              // console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
+              // console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
+              // console.log("existingAlertMessage ID is ", existingAlertMessage.id);
+              setNotificationChecked_PUT(existingAlertMessage.id); // CHECK TRUE old message in database
+              //save new message to alert list
               newAlertsMap.set(mac, {
                 id: parsedMessage.Id,
                 mac: mac,
@@ -172,17 +207,21 @@ function AlertList() {
                 bedNo: parsedMessage.Bed || "",
                 floor: parsedMessage.Floor || "",
                 section: parsedMessage.Section || "",
+
                 alertTime:
-                  newAlertTime.toLocaleTimeString([], {
+                  new Date(parsedMessage.AlertTime).toLocaleString([], {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
                     hour: "2-digit",
                     minute: "2-digit",
+                    second: "2-digit",
                     hour12: false,
                   }) || "",
                 status: parsedMessage.Status,
                 eventName: parsedMessage.EventName || "",
               });
-            } else if (!existingAlert) {
-              // Add a new entry if it doesn't exist
+            } else if (!existingAlertMessage) {
               newAlertsMap.set(mac, {
                 id: parsedMessage.Id,
                 mac: mac,
@@ -190,17 +229,21 @@ function AlertList() {
                 bedNo: parsedMessage.Bed || "",
                 floor: parsedMessage.Floor || "",
                 section: parsedMessage.Section || "",
+
                 alertTime:
-                  newAlertTime.toLocaleTimeString([], {
+                  new Date(parsedMessage.AlertTime).toLocaleString([], {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
                     hour: "2-digit",
                     minute: "2-digit",
+                    second: "2-digit",
                     hour12: false,
                   }) || "",
                 status: parsedMessage.Status,
                 eventName: parsedMessage.EventName || "",
               });
             }
-
             return newAlertsMap;
           });
 
@@ -242,7 +285,6 @@ function AlertList() {
       const data = await response.json();
       if (data.code !== 0) {
         console.log(data.message);
-        alert(data.message);
         return;
       }
       console.log("Notification is set CHECKED successfully:", data);
@@ -338,7 +380,7 @@ function AlertList() {
                 <div className="caption">Name</div>
                 <p>{alert.userName}</p>
               </div>
-              <div className="time">{alert.alertTime}</div>
+              <div className="time">{dayjs(alert.alertTime).format("HH:mm")}</div>
             </div>
           </div>
         ))}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
@@ -6,14 +6,52 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import "/src/CSS/patient.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 import DisChargePatient from "./Modals/DisChargePatient";
+import { format } from "date-fns";
 
 function PatientProfile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
+  {
+    /* SEX  */
+  }
+  const [isSexActive, setSexActive] = useState(false);
+  const handleSexDropdown = () => {
+    setSexActive((prev) => !prev);
+  };
   const SEX = ["Female", "Male"];
+  const [placeholderSex, setPlaceholderSex] = useState(SEX[0]); // Input placeholder
+  const handleSexItemClick = (sex) => {
+    setPlaceholderSex(sex);
+    handleSexDropdown;
+    setIsChanged(true);
+  };
+  {
+    /* Handle Item Select */
+  }
+  const dropdownRef = useRef(null);
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setSexActive(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => {
+      document.removeEventListener("mousedown", handleOutsideClick);
+    };
+  }, []);
+
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const handleDateSelect = (date) => {
+    setSelectedDate(date);
+    setIsChanged(date?.toISOString() !== selectedDate?.toISOString());
+  };
   /// useSetInfoToInput Function ///
   const [isChanged, setIsChanged] = useState(false); // Track changes to enable SAVE button
 
@@ -36,8 +74,8 @@ function PatientProfile() {
   }
   const patientIDInput = useSetInfoToInput("");
   const patientNameInput = useSetInfoToInput("");
-  const patientSexInput = useSetInfoToInput("");
-  const patientDOBInput = useSetInfoToInput("");
+  // const patientSexInput = useSetInfoToInput("");
+  // const patientDOBInput = useSetInfoToInput("");
   const patientHeightInput = useSetInfoToInput("");
   const patientWeightInput = useSetInfoToInput("");
   const patientBedInput = useSetInfoToInput("");
@@ -81,14 +119,14 @@ function PatientProfile() {
 
       patientIDInput.setInputValue(matchingPatient.patientid);
       patientNameInput.setInputValue(matchingPatient.patientname);
-      patientSexInput.setInputValue(
+      setPlaceholderSex(
         matchingPatient.sex === "" || matchingPatient.sex === null
           ? ""
-          : matchingPatient.sex === SEX[0]
+          : matchingPatient.sex === 0
           ? SEX[0]
           : SEX[1]
       );
-      patientDOBInput.setInputValue(matchingPatient.birthday);
+      setSelectedDate(new Date(matchingPatient.birthday));
       patientHeightInput.setInputValue(matchingPatient.height);
       patientWeightInput.setInputValue(matchingPatient.weight);
       patientBedInput.setInputValue(matchingPatient.bed);
@@ -113,8 +151,8 @@ function PatientProfile() {
   }
   const requestBody = {
     patientname: patientNameInput.inputValue,
-    sex: parseInt(patientWeightInput.inputValue, 10),
-    birthday: patientDOBInput.inputValue,
+    sex: placeholderSex === SEX[0] ? 0 : 1,
+    birthday: format(selectedDate, "yyyy-MM-dd"),
     height: parseInt(patientHeightInput.inputValue, 10),
     weight: parseInt(patientWeightInput.inputValue, 10),
     deviceid: macaddress,
@@ -140,9 +178,15 @@ function PatientProfile() {
       }
 
       const data = await response.json();
-      console.log("Device updated successfully:", data);
-      alert("Update Successfully!");
-      setIsChanged(false);
+      if(data.code!==0){
+        console.log("Patient fail to update:", data);
+        alert("Patient fail to update!");
+        setIsChanged(false);
+      }else{
+        console.log("Device updated successfully:", data);
+        alert("Update Successfully!");
+        setIsChanged(false);
+      }
       return data; // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
@@ -160,7 +204,7 @@ function PatientProfile() {
   const handleDischargePatient = (patientid) => {
     patientid = patient.patientid;
     console.log("delete patient ", patientid);
-    deletePatient_API(patientid)
+    deletePatient_API(patientid);
   };
 
   const deletePatient_API = async (patientId) => {
@@ -241,7 +285,11 @@ function PatientProfile() {
         </div>
 
         {/* Sex */}
-        <div className="input g-c-3">
+        <div
+          className="input dropdown suffix g-c-3"
+          onClick={handleSexDropdown}
+          ref={dropdownRef}
+        >
           <label htmlFor="sex" className="label-container">
             <p>Sex</p>
             <img
@@ -256,12 +304,21 @@ function PatientProfile() {
               className="placeholder"
               id="sex"
               name="sex"
-              placeholder={patientSexInput.inputValue}
-              required
+              placeholder={placeholderSex}
+              readOnly
             />
-            <img className="suffix" src="" alt="dropdown icon" />
           </div>
-          <div className="assistive-text">Oops! Something went wrong.</div>
+          <div className={`list ${isSexActive ? "active" : ""}`}>
+            {SEX.map((a) => (
+              <div
+                className="item"
+                key={a}
+                onClick={() => handleSexItemClick(a)}
+              >
+                {a}
+              </div>
+            ))}
+          </div>
         </div>
         {/* Birthday Date */}
         <div className="input g-c-3">
@@ -274,22 +331,22 @@ function PatientProfile() {
             />
           </label>
           <div className="input-gp">
-            <input
-              type="text"
-              className="placeholder"
-              id="arrival"
-              name="arrival"
-              placeholder={formatDOB(patientDOBInput.inputValue)}
-              required
+            <DatePicker
+              dateFormat="yyyy/MM/dd"
+              selected={selectedDate}
+              onChange={handleDateSelect}
+              peekNextMonth
+              showMonthDropdown
+              showYearDropdown
+              dropdownMode="select"
             />
-            <img className="suffix" src="" alt="dropdown icon" />
           </div>
           <div className="assistive-text">Oops! Something went wrong.</div>
         </div>
         {/* Height */}
         <div className="input g-c-3">
           <label htmlFor="height" className="label-container">
-            <p>Height(cm)</p>
+            <p>Height (cm)</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -313,7 +370,7 @@ function PatientProfile() {
         {/* Weight */}
         <div className="input g-c-3">
           <label htmlFor="weight" className="label-container">
-            <p>Weight(kg)</p>
+            <p>Weight (kg)</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -459,6 +516,7 @@ function PatientProfile() {
               handlePut_API(requestBody);
             }
           }}
+          style={{ cursor: isChanged ? "pointer" : "default" }}
         >
           <img src="" alt="" className="prefix" />
           <p className="btn-text">Save</p>

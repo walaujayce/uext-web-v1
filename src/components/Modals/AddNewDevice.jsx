@@ -71,6 +71,9 @@ const AddNewDevice = ({ callback }) => {
       const data = await response.json();
       console.log(data);
       setFloors(data);
+      if (data.length > 0) {
+        setPlaceholderFloor(data[data.length - 1].description);
+      }
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -86,7 +89,7 @@ const AddNewDevice = ({ callback }) => {
   const handleFloorDropDownMenu = () => {
     setFloorActive((prev) => !prev);
   };
-  const [placeholderFloor, setPlaceholderFloor] = useState("9F"); // Input placeholder
+  const [placeholderFloor, setPlaceholderFloor] = useState(""); // Input placeholder
 
   const handleFloorItemClick = (floor) => {
     setPlaceholderFloor(floor);
@@ -105,7 +108,9 @@ const AddNewDevice = ({ callback }) => {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log(data);
+      if (data.length > 0) {
+        setPlaceholderSection(data[data.length - 1].description);
+      }
       setSections(data);
     } catch (error) {
       console.error("Error fetching device data:", error);
@@ -123,7 +128,7 @@ const AddNewDevice = ({ callback }) => {
     setSectionActive((prev) => !prev);
   };
 
-  const [placeholderSection, setPlaceholderSection] = useState("Zone A"); // Input placeholder
+  const [placeholderSection, setPlaceholderSection] = useState(""); // Input placeholder
 
   const handleSectionItemClick = (section) => {
     setPlaceholderSection(section);

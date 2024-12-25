@@ -13,6 +13,11 @@ function Login() {
   const [password, setPassword] = useState('');
   const [error, setError] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   useEffect(() => {
     setUsername('');
     setPassword('');
@@ -96,9 +101,9 @@ function Login() {
                       <img className="info" src="/src/assets/information-outline.svg" alt="gray outline information icon" />
                   </label>
                   <div className="input-gp">
-                      <input type="password" className="placeholder" name="pw" placeholder="Enter here" required 
+                      <input type={showPassword ? "text" : "password"} className="placeholder" name="pw" placeholder="Enter here" required 
                       value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete='off'/>
-                      <img className="suffix hide" src="/src/assets/eye-off.svg" alt="eye icon" />
+                      <img className="suffix hide" src={`${showPassword ? "/src/assets/eye.svg": "/src/assets/eye-off.svg"}`} alt="eye icon" onClick={togglePasswordVisibility}/>
                   </div>
                   <div className="assistive-text">Must include one upper and one lower case alphabet.</div>
               </div>

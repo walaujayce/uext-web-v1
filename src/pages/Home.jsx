@@ -28,6 +28,16 @@ function Home() {
     setPort(port);
   };
 
+  const [select_floor, setSelect_Floor] = useState("");
+  const handleSelectFloor = (floor) => {
+    setSelect_Floor(floor);
+  };
+  const [select_section, setSelect_Section] = useState("");
+  const handleSelectSection = (section) => {
+    console.log("section");
+    setSelect_Section(section);
+  };
+
   const [devices, setDevices] = useState([]);
 
   const fetchDeviceList = async () => {
@@ -91,6 +101,7 @@ function Home() {
           <Link
             to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
             key={MAC}
+            state={{ from: "/home" }}
           >
             <Bed_alert
               key={MAC}
@@ -106,6 +117,7 @@ function Home() {
           <Link
             to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
             key={MAC}
+            state={{ from: "/home" }}
           >
             <Bed_attention
               key={MAC}
@@ -121,6 +133,7 @@ function Home() {
           <Link
             to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
             key={MAC}
+            state={{ from: "/home" }}
           >
             <Bed_default
               key={MAC}
@@ -201,7 +214,10 @@ function Home() {
           </div>
           <div className="monitors">
             <div className="top-bar">
-              <FloorSectionBar selectPort={handleSelectPort} />
+              <FloorSectionBar
+                selectFloor={handleSelectFloor}
+                selectSection={handleSelectSection}
+              />
               <div className="sort">
                 <div className="label">Sort by</div>
                 <div className="opt-box">
@@ -223,21 +239,78 @@ function Home() {
             </div>
             {/* Bed Grid Sort by Bed */}
             <div className={`grid ${sort_by_bed ? "active" : ""}`}>
-              {devices.map((device) => renderDeviceComponent(device))}
+              {devices
+                .slice()
+                .filter((device) => {
+                  return (
+                    select_floor === "" ||
+                    select_floor === "All" ||
+                    device.Floor === select_floor
+                  );
+                })
+                .filter((device) => {
+                  return (
+                    select_section === "" ||
+                    select_section === "All" ||
+                    device.Section === select_section
+                  );
+                })
+                .sort((a, b) => {
+                  // Compare the number of digits in the bed number
+                  const aDigits = a.Bed?.toString().length;
+                  const bDigits = b.Bed?.toString().length;
+            
+                  if (aDigits !== bDigits) {
+                    return aDigits - bDigits; // Ascending order of digits count
+                  }
+            
+                  // If the digits count is the same, compare the bed numbers
+                  return a.Bed - b.Bed; // Ascending order of bed numbers
+                })
+                .map((device) => renderDeviceComponent(device))}
             </div>
             {/* Bed Grid Sort by Status */}
             <div className={`by-status ${sort_by_status ? "active" : ""}`}>
               {/* Alert Status */}
-              {devices.some(
-                (device) =>
-                  device.STAT === 1 &&
-                  !(device.UserName === null || device.UserName === "") &&
-                  (device.POS === 4 || device.POS === 5 || device.POS === 0)
-              ) && (
+              {devices
+                .filter((device) => {
+                  return (
+                    select_floor === "" ||
+                    select_floor === "All" ||
+                    device.Floor === select_floor
+                  );
+                })
+                .filter((device) => {
+                  return (
+                    select_section === "" ||
+                    select_section === "All" ||
+                    device.Section === select_section
+                  );
+                })
+                .some(
+                  (device) =>
+                    device.STAT === 1 &&
+                    !(device.UserName === null || device.UserName === "") &&
+                    (device.POS === 4 || device.POS === 5 || device.POS === 0)
+                ) && (
                 <div className="status">
                   <div className="title">Alerts</div>
                   <div className="status-grid">
                     {devices
+                      .filter((device) => {
+                        return (
+                          select_floor === "" ||
+                          select_floor === "All" ||
+                          device.Floor === select_floor
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_section === "" ||
+                          select_section === "All" ||
+                          device.Section === select_section
+                        );
+                      })
                       .filter(
                         (device) =>
                           device.STAT === 1 &&
@@ -252,6 +325,7 @@ function Home() {
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
                           key={device.MAC}
+                          state={{ from: "/home" }}
                         >
                           <Bed_alert
                             key={device.MAC}
@@ -268,16 +342,45 @@ function Home() {
                 </div>
               )}
               {/* Attention Status */}
-              {devices.some(
-                (device) =>
-                  device.STAT === 1 &&
-                  !(device.UserName === null || device.UserName === "") &&
-                  device.POS === 3
-              ) && (
+              {devices
+                .filter((device) => {
+                  return (
+                    select_floor === "" ||
+                    select_floor === "All" ||
+                    device.Floor === select_floor
+                  );
+                })
+                .filter((device) => {
+                  return (
+                    select_section === "" ||
+                    select_section === "All" ||
+                    device.Section === select_section
+                  );
+                })
+                .some(
+                  (device) =>
+                    device.STAT === 1 &&
+                    !(device.UserName === null || device.UserName === "") &&
+                    device.POS === 3
+                ) && (
                 <div className="status">
                   <div className="title">Attention</div>
                   <div className="status-grid">
                     {devices
+                      .filter((device) => {
+                        return (
+                          select_floor === "" ||
+                          select_floor === "All" ||
+                          device.Floor === select_floor
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_section === "" ||
+                          select_section === "All" ||
+                          device.Section === select_section
+                        );
+                      })
                       .filter(
                         (device) =>
                           device.STAT === 1 &&
@@ -290,6 +393,7 @@ function Home() {
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
                           key={device.MAC}
+                          state={{ from: "/home" }}
                         >
                           <Bed_attention
                             key={device.MAC}
@@ -306,16 +410,46 @@ function Home() {
                 </div>
               )}
               {/* Disconnected Status */}
-              {devices.some((device) => device.STAT === 0) && (
+              {devices
+                .filter((device) => {
+                  return (
+                    select_floor === "" ||
+                    select_floor === "All" ||
+                    device.Floor === select_floor
+                  );
+                })
+                .filter((device) => {
+                  return (
+                    select_section === "" ||
+                    select_section === "All" ||
+                    device.Section === select_section
+                  );
+                })
+                .some((device) => device.STAT === 0) && (
                 <div className="status">
                   <div className="title">Disconnected</div>
                   <div className="status-grid">
                     {devices
+                      .filter((device) => {
+                        return (
+                          select_floor === "" ||
+                          select_floor === "All" ||
+                          device.Floor === select_floor
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_section === "" ||
+                          select_section === "All" ||
+                          device.Section === select_section
+                        );
+                      })
                       .filter((device) => device.STAT === 0)
                       .map((device) => (
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
                           key={device.MAC}
+                          state={{ from: "/home" }}
                         >
                           <Bed_disconnect
                             key={device.MAC}
@@ -332,21 +466,50 @@ function Home() {
                 </div>
               )}
               {/* Default Status */}
-              {devices.some(
-                (device) =>
-                  device.STAT === 1 &&
-                  !(device.UserName === null || device.UserName === "") &&
-                  !(
-                    device.POS === 3 ||
-                    device.POS === 4 ||
-                    device.POS === 5 ||
-                    device.POS === 0
-                  )
-              ) && (
+              {devices
+                .filter((device) => {
+                  return (
+                    select_floor === "" ||
+                    select_floor === "All" ||
+                    device.Floor === select_floor
+                  );
+                })
+                .filter((device) => {
+                  return (
+                    select_section === "" ||
+                    select_section === "All" ||
+                    device.Section === select_section
+                  );
+                })
+                .some(
+                  (device) =>
+                    device.STAT === 1 &&
+                    !(device.UserName === null || device.UserName === "") &&
+                    !(
+                      device.POS === 3 ||
+                      device.POS === 4 ||
+                      device.POS === 5 ||
+                      device.POS === 0
+                    )
+                ) && (
                 <div className="status">
                   <div className="title">Normal</div>
                   <div className="status-grid">
                     {devices
+                      .filter((device) => {
+                        return (
+                          select_floor === "" ||
+                          select_floor === "All" ||
+                          device.Floor === select_floor
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_section === "" ||
+                          select_section === "All" ||
+                          device.Section === select_section
+                        );
+                      })
                       .filter(
                         (device) =>
                           device.STAT === 1 &&
@@ -364,6 +527,7 @@ function Home() {
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
                           key={device.MAC}
+                          state={{ from: "/home" }}
                         >
                           <Bed_default
                             key={device.MAC}
@@ -380,15 +544,44 @@ function Home() {
                 </div>
               )}
               {/* Vacant Status */}
-              {devices.some(
-                (device) =>
-                  device.STAT === 1 &&
-                  (device.UserName === null || device.UserName === "")
-              ) && (
+              {devices
+                .filter((device) => {
+                  return (
+                    select_floor === "" ||
+                    select_floor === "All" ||
+                    device.Floor === select_floor
+                  );
+                })
+                .filter((device) => {
+                  return (
+                    select_section === "" ||
+                    select_section === "All" ||
+                    device.Section === select_section
+                  );
+                })
+                .some(
+                  (device) =>
+                    device.STAT === 1 &&
+                    (device.UserName === null || device.UserName === "")
+                ) && (
                 <div className="status">
                   <div className="title">Vacant</div>
                   <div className="status-grid">
                     {devices
+                      .filter((device) => {
+                        return (
+                          select_floor === "" ||
+                          select_floor === "All" ||
+                          device.Floor === select_floor
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_section === "" ||
+                          select_section === "All" ||
+                          device.Section === select_section
+                        );
+                      })
                       .filter(
                         (device) =>
                           device.STAT === 1 &&
