@@ -77,7 +77,7 @@ function Login() {
       <img className="background" src="/src/assets/login-bg.svg" alt=""/>
       <div className="login">   
           <img className="uextLogo" src="/src/assets/uext.svg" alt=""/>
-          <div className="title">Exit Bed Alarm System</div>
+          <div className="title">Bed Exit Alarm System</div>
 
           <form className="st1 active">
               {/* login input box */}

@@ -7,6 +7,7 @@ import App from "./App.jsx";
 import Footer from "./components/Footer.jsx";
 import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./JS/AuthContext.jsx";
+import './i18n.js';
 
   createRoot(document.getElementById("root")).render(
     <>

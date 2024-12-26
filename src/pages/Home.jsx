@@ -15,8 +15,11 @@ import {
   Bed_vacant,
   Bed_default,
 } from "../components/Bed_Cards";
+import { useTranslation } from "react-i18next";
 
 function Home() {
+    const { t, i18n } = useTranslation();
+
   const getServerIpAddress = () => {
     return window.location.hostname;
   };
@@ -209,7 +212,7 @@ function Home() {
         <AlertList />
         <div className="main">
           <div className="box">
-            <h1>Monitors</h1>
+            <h1>{t('Home.Monitor')}</h1>
           </div>
           <div className="monitors">
             <div className="top-bar">

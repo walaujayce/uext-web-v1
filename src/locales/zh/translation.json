@@ -1,0 +1,15 @@
+{
+  "Navbar": {
+    "Home": "首頁",
+    "Patient": "病人",
+    "Device": "裝置",
+    "Account": "賬戶",
+    "AccountSettings": "賬戶設定",
+    "ChangePassword": "更改密碼",
+    "Logout": "登出"
+  },
+  "Home": {
+    "Monitor": "監控",
+    "Sortby": "排列方式"
+  }
+}

@@ -1,10 +1,25 @@
-import React, { useState } from "react";
-import { Outlet, Link, useLocation,useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import "/src/CSS/index.css";
 import { useAuth } from "../JS/AuthContext";
 import LogOut_Modal from "./Modals/LogOut";
-
+import { useTranslation } from "react-i18next";
 function Navbar() {
+  const { t, i18n } = useTranslation();
+
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng); // Change the active language
+    localStorage.setItem("i18nextLng", lng); // Persist the language to localStorage
+  };
+
+  const [currentLang, setCurrentLang] = useState("");
+
+  useEffect(() => {
+    const lang = localStorage.getItem("i18nextLng");
+    if (lang) {
+      setCurrentLang(lang);
+    }
+  }, [changeLanguage]);
   {
     /* nav link 字體反黑 */
   }
@@ -13,8 +28,15 @@ function Navbar() {
   {
     /* Account Setting Dropdown Menu Logic */
   }
+  const [isActiveLang, setLangAccount] = useState(false);
   const [isActiveAccount, setActiveAccount] = useState(false);
 
+  const handleMouseEnterLang = () => {
+    setLangAccount(true);
+  };
+  const handleMouseLeaveLang = () => {
+    setLangAccount(false);
+  };
   const handleMouseEnter = () => {
     setActiveAccount(true);
   };
@@ -23,19 +45,20 @@ function Navbar() {
     setActiveAccount(false);
   };
 
-  {/* Handle LogOut Overlay Visible */}
+  {
+    /* Handle LogOut Overlay Visible */
+  }
   const [isLogoutOverlayVisible, setLogOutOverlayVisible] = useState(false);
 
   const handleLogOutVisibleClick = (e) => {
-      e.preventDefault();
-      setLogOutOverlayVisible(!isLogoutOverlayVisible);
-      setActiveAccount(false);
-
+    e.preventDefault();
+    setLogOutOverlayVisible(!isLogoutOverlayVisible);
+    setActiveAccount(false);
   };
 
   const { logout } = useAuth();
 
-{
+  {
     /* useRef Logic */
   }
 
@@ -54,7 +77,7 @@ function Navbar() {
             location.pathname.includes("/home") ? "active" : ""
           }`}
         >
-          Home
+          {t("Navbar.Home")}
         </Link>
         <Link
           to="/patient"
@@ -62,7 +85,7 @@ function Navbar() {
             location.pathname.includes("/patient") ? "active" : ""
           }`}
         >
-          Patient
+          {t("Navbar.Patient")}
         </Link>
         <Link
           to="/device"
@@ -71,7 +94,7 @@ function Navbar() {
             location.pathname.includes("/device") ? "active" : ""
           }`}
         >
-          Device
+          {t("Navbar.Device")}
         </Link>
         <Link
           to="/account"
@@ -79,27 +102,41 @@ function Navbar() {
             location.pathname.includes("/account") ? "active" : ""
           }`}
         >
-          Account
+          {t("Navbar.Account")}
         </Link>
       </div>
 
       {/* Settings */}
       <div className="other">
-        <div className="lang">
+        <div
+          className={`lang ${isActiveLang ? "active" : ""}`}
+          onMouseEnter={handleMouseEnterLang}
+          onMouseLeave={handleMouseLeaveLang}
+        >
           <img
             src="/src/assets/lang.svg"
             alt="language button"
             className="langBtn"
           />
-          <div className="list">
-            <a href="#" className="option active">
-              <img src="/src/assets/check.svg" alt="" />
-              English (Current)
+          <div className={`list ${isActiveLang ? "active" : ""}`}>
+            <a href="#" className="option" onClick={() => changeLanguage("en")}>
+              <img
+                src="/src/assets/check.svg"
+                alt=""
+                style={{ display: currentLang === "zh" ? "none" : "" }}
+              />
+              English
             </a>
-            <a href="index-chi.html" className="option">
+            <a href="#" className="option" onClick={() => changeLanguage("zh")}>
+              <img
+                src="/src/assets/check.svg"
+                alt=""
+                style={{ display: currentLang === "en" ? "none" : "" }}
+              />{" "}
               繁體中文
             </a>
           </div>
+          `
         </div>
         <div className="notification">
           <img src="/src/assets/notice.svg" alt="" className="notiBtn" />
@@ -120,31 +157,6 @@ function Navbar() {
               <div className="time">Today 11:45</div>
               <img src="/src/assets/close.svg" alt="" className="close" />
             </div>
-            <div className="notice">
-              <div className="title">Patient Exit Bed Notification</div>
-              <div className="content">
-                Chan Tai Ming (7/F, Zone A, Bed 113) just exit his bed.
-              </div>
-              <div className="time">Today 11:45</div>
-              <img src="/src/assets/close.svg" alt="" className="close" />
-            </div>
-            <div className="notice">
-              <div className="title">Patient Exit Bed Notification</div>
-              <div className="content">
-                Chan Tai Ming (7/F, Zone A, Bed 113) just exit his bed.
-              </div>
-              <div className="time">Today 11:45</div>
-              <img src="/src/assets/close.svg" alt="" className="close" />
-            </div>
-            <div className="notice">
-              <div className="title">Patient Exit Bed Notification</div>
-              <div className="content">
-                Chan Tai Ming (7/F, Zone A, Bed 113) just exit his bed.
-              </div>
-              <div className="time">Today 11:45</div>
-              <img src="/src/assets/close.svg" alt="" className="close" />
-              <div className="all-clear active">No more new updates </div>
-            </div>
           </div>
         </div>
         {/* Account */}
@@ -161,20 +173,29 @@ function Navbar() {
           <div className={`list ${isActiveAccount ? "active" : ""}`}>
             <div className="profile">
               <img src="/src/assets/account-active.svg" alt="" />
-              <p>UEXT - Amy</p>
+              <p>Test 123</p>
             </div>
             <a href="#" className="option setting">
-              <img src="/src/assets/setting.svg" alt="" style={{width:"34px"}} />
-              <p>Account Settings</p>
+              <img
+                src="/src/assets/setting.svg"
+                alt=""
+                style={{ width: "34px" }}
+              />
+              <p>{t('Navbar.AccountSettings')}</p>
             </a>
             <a href="#" className="option pw" id="changePassword">
               <img src="/src/assets/lock.svg" alt="" />
-              <p>Change Password</p>
+              <p>{t('Navbar.ChangePassword')}</p>
             </a>
             <a className="option logout" onClick={handleLogOutVisibleClick}>
               <img src="/src/assets/logout.svg" alt="" />
-              <p>Logout</p>
-              {isLogoutOverlayVisible && <LogOut_Modal callback={handleLogOutVisibleClick} logout_callback = {logout}/>}
+              <p>{t('Navbar.Logout')}</p>
+              {isLogoutOverlayVisible && (
+                <LogOut_Modal
+                  callback={handleLogOutVisibleClick}
+                  logout_callback={logout}
+                />
+              )}
             </a>
           </div>
         </div>
