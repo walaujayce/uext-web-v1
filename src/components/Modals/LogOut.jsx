@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
-import "/src/CSS/overlay.css";
+import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 
 const LogOut_Modal = ({ callback, logout_callback }) => {

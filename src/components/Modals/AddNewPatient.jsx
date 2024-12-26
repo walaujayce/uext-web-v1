@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
-import "/src/CSS/overlay.css";
+import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -87,6 +87,31 @@ const AddNewPatient = ({ mac, callback }) => {
       document.removeEventListener("mousedown", handleOutsideClick);
     };
   }, []);
+
+  const useDynamicDropdownHeight = (ref, isActive) => {
+    useEffect(() => {
+      if (ref.current) {
+        if (isActive) {
+          // Calculate the total height of items
+          const items = ref.current.querySelectorAll(".item");
+          const totalHeight = Array.from(items).reduce(
+            (acc, item) => acc + item.offsetHeight,
+            0
+          );
+
+          // Set the height dynamically
+          ref.current.style.height = `${totalHeight}px`;
+        } else {
+          // Reset height when inactive
+          ref.current.style.height = "0px";
+        }
+      }
+    }, [ref, isActive]);
+  };
+
+  const dropdownSexStyleRef = useRef(null);
+  useDynamicDropdownHeight(dropdownSexStyleRef, isSexActive);
+
   {
     /* handle submit logic */
   }
@@ -188,8 +213,10 @@ const AddNewPatient = ({ mac, callback }) => {
           {/* Stage 1 */}
           <form action="POST">
             <div
-              className="grid st1"
-              style={{ display: isActive_Stage2 ? "none" : "grid" }}
+              className="grid st2 active"
+              style={{
+                display: isActive_Stage2 ? "none" : "",
+              }}
             >
               {/* ID */}
               <div className="input g-c-3">
@@ -343,7 +370,10 @@ const AddNewPatient = ({ mac, callback }) => {
                 <div className="assistive-text">
                   Oops! Something went wrong.
                 </div>
-                <div className={`list ${isSexActive ? "active" : ""}`}>
+                <div
+                  className={`list ${isSexActive ? "active" : ""}`}
+                  ref={dropdownSexStyleRef}
+                >
                   {sexes.map((a) => (
                     <div
                       className="item"
@@ -373,6 +403,7 @@ const AddNewPatient = ({ mac, callback }) => {
                   showMonthDropdown
                   showYearDropdown
                   dropdownMode="select"
+                  withPortal
                 />
                 {/* <div
                   className={`assistive-text ${
@@ -403,140 +434,8 @@ const AddNewPatient = ({ mac, callback }) => {
               </div>
             </div>
           </form>
+
           {/* Stage 2 */}
-          <form action="">
-            <div className="grid st2">
-              {/* Building */}
-              <div className="input dropdown building suffix g-c-3">
-                <label htmlFor="building" className="label-container">
-                  <p>Building</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="building"
-                    placeholder="Please Select"
-                    readOnly
-                  />
-                  <img className="suffix active" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-                <div className="list">
-                  <div className="item opt1">Building 1</div>
-                  <div className="item opt2">Building 2</div>
-                  <div className="item opt3">Building 3</div>
-                  <div className="item opt4">Building 4</div>
-                  <div className="item opt5">Building 5</div>
-                </div>
-              </div>
-              {/* Floor */}
-              <div className="input dropdown floor suffix g-c-3">
-                <label htmlFor="floor" className="label-container">
-                  <p>Floor</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="floor"
-                    placeholder="Please Select"
-                    readOnly
-                  />
-                  <img className="suffix active" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-                <div className="list">
-                  <div className="item opt1">1F</div>
-                  <div className="item opt2">2F</div>
-                  <div className="item opt3">3F</div>
-                  <div className="item opt4">4F</div>
-                  <div className="item opt5">5F</div>
-                  <div className="item opt6">6F</div>
-                  <div className="item opt7">7F</div>
-                </div>
-              </div>
-              {/* Section */}
-              <div className="input dropdown section suffix g-c-3">
-                <label htmlFor="section" className="label-container">
-                  <p>Section</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="section"
-                    placeholder="Please Select"
-                    readOnly
-                  />
-                  <img className="suffix active" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-                <div className="list">
-                  <div className="item opt1">Zone A</div>
-                  <div className="item opt2">Zone B</div>
-                  <div className="item opt3">Zone C</div>
-                  <div className="item opt4">Zone D</div>
-                </div>
-              </div>
-              {/* Bed */}
-              <div className="input g-c-3">
-                <label htmlFor="bed" className="label-container">
-                  <p>Bed</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="bed"
-                    placeholder="Enter here"
-                    required
-                  />
-                  <img className="suffix" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text">
-                  Oops! Something went wrong.
-                </div>
-              </div>
-            </div>
-            <div className="btn-gp st2">
-              <div className="btn text-only pri">
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text pri-text">Continue</p>
-              </div>
-              <div className="btn text-only outline sec">
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text sec-text">Back</p>
-              </div>
-            </div>
-          </form>
-          {/* Stage 3 */}
           <div
             className="btn-gp st3"
             style={{ display: isActive_Stage2 ? "flex" : "none" }}
@@ -549,141 +448,6 @@ const AddNewPatient = ({ mac, callback }) => {
               <img src="" alt="" className="prefix" />
               <p className="btn-text sec-text">Link a device</p>
             </div> */}
-          </div>
-          {/* Stage 4 */}
-          <form action="">
-            <div className="grid st4-1">
-              <div className="input dropdown device suffix g-c-6">
-                <label htmlFor="building" className="label-container">
-                  <p>Device ID</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="device"
-                    placeholder="Please Select"
-                    readOnly
-                  />
-                  <img className="suffix active" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-                <div className="list">
-                  <div className="item opt1">ADPS-003078-S</div>
-                  <div className="item opt2">ADPS-003079-S</div>
-                  <div className="item opt3">ADPS-003080-S</div>
-                  <div className="item opt4">ADPS-003081-S</div>
-                  <div className="item opt5">ADPS-003082-S</div>
-                </div>
-              </div>
-            </div>
-            <div className="btn-gp st4-1">
-              <div className="btn text-only pri">
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text pri-text">Confirm</p>
-              </div>
-              <div className="btn text-only outline sec">
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text sec-text">Link with new device</p>
-              </div>
-            </div>
-            <div className="grid st4-2">
-              <div className="input g-c-3">
-                <label htmlFor="d-id" className="label-container">
-                  <p>Device ID</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="d-id"
-                    placeholder="Please Enter"
-                  />
-                  <img className="suffix active" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-              </div>
-              <div className="input g-c-3">
-                <label htmlFor="mac" className="label-container">
-                  <p>MAC</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="mac"
-                    placeholder="Please Enter"
-                  />
-                  <img className="suffix active" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-              </div>
-              <div className="input g-c-3">
-                <label htmlFor="d-ip" className="label-container">
-                  <p>Device IP</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="d-ip"
-                    placeholder="Please Enter"
-                  />
-                  <img className="suffix active" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-              </div>
-            </div>
-            <div className="btn-gp st4-2">
-              <div className="btn text-only pri">
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text pri-text">Confirm</p>
-              </div>
-              <div className="btn text-only outline sec">
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text sec-text">Link with registered device</p>
-              </div>
-            </div>
-          </form>
-          {/* Stage 5 */}
-          <div className="connecting">
-            <img src="/src/assets/connecting.gif" alt="connecting" />
-            <p>Connecting...</p>
-          </div>
-          {/* Stage 6 */}
-          <div className="btn-gp st6">
-            <a href="patient-list.html" className="btn text-only pri">
-              <img src="" alt="" className="prefix" />
-              <p className="btn-text pri-text">Okay</p>
-            </a>
           </div>
         </div>
       </div>

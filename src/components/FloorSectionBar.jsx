@@ -139,6 +139,33 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
     };
   }, []);
 
+  const useDynamicDropdownHeight = (ref, isActive) => {
+    useEffect(() => {
+      if (ref.current) {
+        if (isActive) {
+          // Calculate the total height of items
+          const items = ref.current.querySelectorAll(".item");
+          const totalHeight = Array.from(items).reduce(
+            (acc, item) => acc + item.offsetHeight,
+            0
+          );
+  
+          // Set the height dynamically
+          ref.current.style.height = `${totalHeight}px`;
+        } else {
+          // Reset height when inactive
+          ref.current.style.height = "0px";
+        }
+      }
+    }, [ref, isActive]);
+  };
+  const dropdownFloorStyleRef = useRef(null);
+  const dropdownSectionStyleRef = useRef(null);
+
+  // Use the custom hook for both dropdowns
+  useDynamicDropdownHeight(dropdownFloorStyleRef, isFloorActive);
+  useDynamicDropdownHeight(dropdownSectionStyleRef, isSectionActive);
+
   return (
     <>
       <div
@@ -166,7 +193,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
           <img className="suffix active" src="" alt="dropdown icon" />
         </div>
         <div className="assistive-text">this is a line of assistive text</div>
-        <div className={`list ${isFloorActive ? "active" : ""}`}>
+        <div className={`list ${isFloorActive ? "active" : ""}`} ref={dropdownFloorStyleRef}>
           {floors.map((floor) => (
             <div
               className="item"
@@ -203,7 +230,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
           <img className="suffix active" src="" alt="dropdown icon" />
         </div>
         <div className="assistive-text">this is a line of assistive text</div>
-        <div className={`list ${isSectionActive ? "active" : ""}`}>
+        <div className={`list ${isSectionActive ? "active" : ""}`} ref={dropdownSectionStyleRef}>
           {sections.map((section) => (
             <div
               className="item"

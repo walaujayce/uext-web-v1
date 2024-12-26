@@ -2,9 +2,13 @@
     position: fixed;
     width: 100%;
     background-size:cover;
-
 }
-
+@media (max-width:1366px) {
+    .background{
+        content: url(/src/assets/background2x.png);
+        height:100%;
+    }
+}
 .login{
     display: flex;
     flex-direction: column;

@@ -111,13 +111,11 @@ function Login() {
               <div className="btn-gp">
                   {/* login button */}
                   <a className="btn text-only pri" onClick={handleLogin}>
-                      <img src="" alt="" className="prefix" />
                       <p className="btn-text pri-text">Login</p>
                   </a>
 
                   {/* forget password button */}
                   <div className="btn text-only outline sec" id="forget-pw">
-                      <img src="" alt="" className="prefix" />
                       <p className="btn-text sec-text">Forget Password</p>
                   </div>
               </div>

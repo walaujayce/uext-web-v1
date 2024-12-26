@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
-import "/src/CSS/overlay.css";
+import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 
 const AlertConfirmOverlay = ({
@@ -36,13 +36,14 @@ const AlertConfirmOverlay = ({
             alt="aler box in gray"
           />
           <h1 class="title">{`${
-            alertDetail.status === 3 ? "Attention Alert" : "Exit Bed Alert"
+            alertDetail.status === 3 ? "Attention Alert" : "Bed Exit Alert"
           }`}</h1>
           <p class="desc">
-            {`${alertDetail.userName || "Patient"}, Bed ${
-              alertDetail.bedNo || "--"
-            } left his/her bed, please follow up as
-            soon as possible.`}
+            {`Bed ${alertDetail.bedNo || "--"}, ${
+              alertDetail.userName || "Patient"
+            } ${
+              alertDetail.status === 3 ? "is too near on bed edge" : "has left bed"
+            }, please follow up as soon as possible.`}
           </p>
           <div class="btn-gp">
             <a class="btn text-only pri" onClick={confirmAlert_callback}>

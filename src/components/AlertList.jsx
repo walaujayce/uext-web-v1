@@ -364,7 +364,7 @@ function AlertList() {
                 alt="red rectangular alert icon"
               />
               <h2>{`${
-                alert.status === 3 ? "Attention Alert" : "Exit Bed Alert"
+                alert.status === 3 ? "Attention Alert" : "Bed Exit Alert"
               }`}</h2>
             </div>
             <div className="info">

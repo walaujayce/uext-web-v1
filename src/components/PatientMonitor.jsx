@@ -101,7 +101,7 @@ function PatientMonitor() {
         </div>
       </div>
       <div className="respiration">
-        <div className="title">Respiration Rate</div>
+        <div className="title">Respiratory Rate</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
         <div className="spec">
           <div>--</div>

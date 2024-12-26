@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
-import "/src/CSS/overlay.css";
+import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 
 const AddNewDevice = ({ callback }) => {
@@ -22,7 +22,7 @@ const AddNewDevice = ({ callback }) => {
     if (!bed || !mac) {
       setBedError(true); // Bed Input Required
       setMacError(true); // Mac Input Required
-      return; 
+      return;
     }
     if (!bed) {
       setBedError(true); // Bed Input Required
@@ -49,11 +49,11 @@ const AddNewDevice = ({ callback }) => {
   const handleDeviceTypeItemClick = (deviceType) => {
     setPlaceholderDeviceType(deviceType);
     handleDeviceTypeDropdownMenu;
-    if(deviceType==="UEXT"){
+    if (deviceType === "UEXT") {
       setDeviceType_POST(1);
-    }else if(deviceType==="UMAP"){
+    } else if (deviceType === "UMAP") {
       setDeviceType_POST(2);
-    }else{
+    } else {
       setDeviceType_POST(0);
     }
   };
@@ -164,6 +164,33 @@ const AddNewDevice = ({ callback }) => {
     };
   }, []);
 
+  const useDynamicDropdownHeight = (ref, isActive) => {
+    useEffect(() => {
+      if (ref.current) {
+        if (isActive) {
+          // Calculate the total height of items
+          const items = ref.current.querySelectorAll(".item");
+          const totalHeight = Array.from(items).reduce(
+            (acc, item) => acc + item.offsetHeight,
+            0
+          );
+
+          // Set the height dynamically
+          ref.current.style.height = `${totalHeight}px`;
+        } else {
+          // Reset height when inactive
+          ref.current.style.height = "0px";
+        }
+      }
+    }, [ref, isActive]);
+  };
+
+  const dropdownDeviceTypeStyleRef = useRef(null);
+  const dropdownFloorStyleRef = useRef(null);
+
+  useDynamicDropdownHeight(dropdownDeviceTypeStyleRef, isDeviceTypeActive);
+  useDynamicDropdownHeight(dropdownFloorStyleRef, isFloorActive);
+
   {
     /* handle input error logic */
   }
@@ -182,30 +209,29 @@ const AddNewDevice = ({ callback }) => {
   const [section, setSection_POST] = useState(placeholderSection);
 
   function getRandomString(length = 12) {
-    const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    
+    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+
     for (let i = 0; i < length; i++) {
       const randomIndex = Math.floor(Math.random() * characters.length);
       result += characters[randomIndex];
     }
-    
+
     return result;
   }
 
   function getRandomIPAddress() {
-    const octet1 = Math.floor(Math.random() * 256); 
+    const octet1 = Math.floor(Math.random() * 256);
     const octet2 = Math.floor(Math.random() * 256);
     const octet3 = Math.floor(Math.random() * 256);
     const octet4 = Math.floor(Math.random() * 256);
-  
+
     const ipAddress = `${octet1}.${octet2}.${octet3}.${octet4}`;
-  
+
     return ipAddress;
   }
 
   const handleSubmit = async () => {
-
     const requestBody = {
       devicetype,
       macaddress,
@@ -223,11 +249,11 @@ const AddNewDevice = ({ callback }) => {
         body: JSON.stringify(requestBody),
       });
 
-      console.log("devicetype",devicetype);
-      console.log("macaddress",macaddress);
-      console.log("bed",bed);
-      console.log("floor",floor);
-      console.log("section",section);
+      console.log("devicetype", devicetype);
+      console.log("macaddress", macaddress);
+      console.log("bed", bed);
+      console.log("floor", floor);
+      console.log("section", section);
 
       if (response.status === 200) {
         setActive_Stage2(true);
@@ -284,8 +310,11 @@ const AddNewDevice = ({ callback }) => {
               style={{ display: isActive_Stage2 ? "none" : "" }}
             >
               {/* Device Type */}
-              <div className="input dropdown building suffix g-c-3" onClick={handleDeviceTypeDropdownMenu}
-                  ref={addDropdownRef}>
+              <div
+                className="input dropdown building suffix g-c-3"
+                onClick={handleDeviceTypeDropdownMenu}
+                ref={addDropdownRef}
+              >
                 <label htmlFor="devicetype" className="label-container">
                   <p>Device Type</p>
                   <img
@@ -294,10 +323,7 @@ const AddNewDevice = ({ callback }) => {
                     alt="gray outline information icon"
                   />
                 </label>
-                <div
-                  className="input-gp"
-                  
-                >
+                <div className="input-gp" style={{minWidth:"150px"}}>
                   <input
                     type="text"
                     className="placeholder"
@@ -310,11 +336,12 @@ const AddNewDevice = ({ callback }) => {
                 <div className="assistive-text">
                   this is a line of assistive text
                 </div>
-                <div className={`list ${isDeviceTypeActive ? "active" : ""}`}>
+                <div className={`list ${isDeviceTypeActive ? "active" : ""}`} ref={dropdownDeviceTypeStyleRef}>
                   {deviceTypes.map((deviceType) => (
                     <div
                       className="item"
                       onClick={() => handleDeviceTypeItemClick(deviceType)}
+                      key={deviceType}
                     >
                       {deviceType}
                     </div>
@@ -376,8 +403,11 @@ const AddNewDevice = ({ callback }) => {
               </div>
 
               {/* Section */}
-              <div className="input dropdown section suffix g-c-3" onClick={handleSectionDropDownMenu}
-                  ref={addDropdownRef}>
+              <div
+                className="input dropdown section suffix g-c-3"
+                onClick={handleSectionDropDownMenu}
+                ref={addDropdownRef}
+              >
                 <label htmlFor="sectionInNewDevice" className="label-container">
                   <p>Section</p>
                   <img
@@ -386,10 +416,7 @@ const AddNewDevice = ({ callback }) => {
                     alt="gray outline information icon"
                   />
                 </label>
-                <div
-                  className="input-gp"
-                  
-                >
+                <div className="input-gp">
                   <input
                     type="text"
                     className="placeholder"
@@ -417,8 +444,11 @@ const AddNewDevice = ({ callback }) => {
                 </div>
               </div>
               {/* Floor */}
-              <div className="input dropdown floor suffix g-c-3"  onClick={handleFloorDropDownMenu}
-                  ref={addDropdownRef}>
+              <div
+                className="input dropdown floor suffix g-c-3"
+                onClick={handleFloorDropDownMenu}
+                ref={addDropdownRef}
+              >
                 <label htmlFor="floorInNewDevice" className="label-container">
                   <p>Floor</p>
                   <img
@@ -427,10 +457,7 @@ const AddNewDevice = ({ callback }) => {
                     alt="gray outline information icon"
                   />
                 </label>
-                <div
-                  className="input-gp"
-                 
-                >
+                <div className="input-gp">
                   <input
                     type="text"
                     className="placeholder"
@@ -443,7 +470,7 @@ const AddNewDevice = ({ callback }) => {
                 <div className="assistive-text">
                   this is a line of assistive text
                 </div>
-                <div className={`list ${isFloorActive ? "active" : ""}`}>
+                <div className={`list ${isFloorActive ? "active" : ""}`} ref={dropdownFloorStyleRef}>
                   {floors.map((floor) => (
                     <div
                       className="item"

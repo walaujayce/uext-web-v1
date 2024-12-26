@@ -15,7 +15,6 @@ import {
   Bed_vacant,
   Bed_default,
 } from "../components/Bed_Cards";
-import Bed_Sort_by_Status from "../components/Bed_Sort_by_Status";
 
 function Home() {
   const getServerIpAddress = () => {

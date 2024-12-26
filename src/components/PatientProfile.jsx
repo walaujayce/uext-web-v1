@@ -47,6 +47,34 @@ function PatientProfile() {
     };
   }, []);
 
+  const useDynamicDropdownHeight = (ref, isActive) => {
+    useEffect(() => {
+      if (ref.current) {
+        if (isActive) {
+          // Calculate the total height of items
+          const items = ref.current.querySelectorAll(".item");
+          const totalHeight = Array.from(items).reduce(
+            (acc, item) => acc + item.offsetHeight,
+            0
+          );
+
+          // Set the height dynamically
+          ref.current.style.height = `${totalHeight}px`;
+        } else {
+          // Reset height when inactive
+          ref.current.style.height = "0px";
+        }
+      }
+    }, [ref, isActive]);
+  };
+
+  const dropdownSexStyleRef = useRef(null);
+
+  useDynamicDropdownHeight(dropdownSexStyleRef, isSexActive);
+
+  {
+    /* Handle Calender Logic */
+  }
   const [selectedDate, setSelectedDate] = useState(new Date());
   const handleDateSelect = (date) => {
     setSelectedDate(date);
@@ -178,13 +206,14 @@ function PatientProfile() {
       }
 
       const data = await response.json();
-      if(data.code!==0){
+      if (data.code !== 0) {
         console.log("Patient fail to update:", data);
         alert("Patient fail to update!");
         setIsChanged(false);
-      }else{
+      } else {
         console.log("Device updated successfully:", data);
         alert("Update Successfully!");
+        window.location.reload();
         setIsChanged(false);
       }
       return data; // Return the response data if needed
@@ -308,7 +337,10 @@ function PatientProfile() {
               readOnly
             />
           </div>
-          <div className={`list ${isSexActive ? "active" : ""}`}>
+          <div
+            className={`list ${isSexActive ? "active" : ""}`}
+            ref={dropdownSexStyleRef}
+          >
             {SEX.map((a) => (
               <div
                 className="item"
@@ -478,7 +510,7 @@ function PatientProfile() {
               name="d-id"
               placeholder={macaddress}
               value={macaddress}
-              readonly
+              readOnly
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -501,7 +533,7 @@ function PatientProfile() {
               id="connection"
               name="connection"
               value={patient.devicestatus === 1 ? "Connected" : "Disconnect"}
-              readonly
+              readOnly
             />
             <img className="suffix active" src="" alt="dropdown icon" />
           </div>

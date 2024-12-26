@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
+import "../Modals/overlay.css";
+
 
 function DisChargePatient({callback, dischargebtn_click}) {
     {
@@ -20,7 +22,7 @@ function DisChargePatient({callback, dischargebtn_click}) {
           <img class="icon" src="/src/assets/alert-box.svg" alt="alert box" />
           <h1 class="title">Confirm to discharge the patient?</h1>
           <p class="desc">
-            you will need to reconnect to a bed to obtain live data.
+            {/* You will need to reconnect to a bed to obtain live data. */}
           </p>
           <div class="btn-gp">
             <a class="btn text-only pri" onClick={dischargebtn_click}>
