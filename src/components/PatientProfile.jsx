@@ -10,8 +10,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import DisChargePatient from "./Modals/DisChargePatient";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 function PatientProfile() {
+  const { t, i18n } = useTranslation();
+
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
@@ -260,12 +263,12 @@ function PatientProfile() {
 
   return (
     <div className="pp">
-      <h1>Patient Profile</h1>
+      <h1>{t('PatientProfile.PatientProfile')}</h1>
       <div className="pfl">
         {/* Patient ID */}
         <div className="input g-c-6">
           <label htmlFor="p-id" className="label-container">
-            <p>Patient ID</p>
+            <p>{t('PatientProfile.PatientID')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -289,7 +292,7 @@ function PatientProfile() {
         {/* Patient Name */}
         <div className="input g-c-6">
           <label htmlFor="name" className="label-container">
-            <p>Name</p>
+            <p>{t('PatientProfile.PatientName')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -320,7 +323,7 @@ function PatientProfile() {
           ref={dropdownRef}
         >
           <label htmlFor="sex" className="label-container">
-            <p>Sex</p>
+            <p>{t('PatientProfile.Sex')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -355,7 +358,7 @@ function PatientProfile() {
         {/* Birthday Date */}
         <div className="input g-c-3">
           <label htmlFor="arrival" className="label-container">
-            <p>Birthday</p>
+            <p>{t('PatientProfile.Birthday')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -378,7 +381,7 @@ function PatientProfile() {
         {/* Height */}
         <div className="input g-c-3">
           <label htmlFor="height" className="label-container">
-            <p>Height (cm)</p>
+            <p>{t('PatientProfile.Height')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -402,7 +405,7 @@ function PatientProfile() {
         {/* Weight */}
         <div className="input g-c-3">
           <label htmlFor="weight" className="label-container">
-            <p>Weight (kg)</p>
+            <p>{t('PatientProfile.Weight')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -426,7 +429,7 @@ function PatientProfile() {
         {/* Bed */}
         <div className="input g-c-2">
           <label htmlFor="p-id" className="label-container">
-            <p>Bed</p>
+            <p>{t('PatientProfile.Bed')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -449,7 +452,7 @@ function PatientProfile() {
         {/* Section */}
         <div className="input g-c-2">
           <label htmlFor="section" className="label-container">
-            <p>Section</p>
+            <p>{t('PatientProfile.Section')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -472,7 +475,7 @@ function PatientProfile() {
         {/* Floor */}
         <div className="input g-c-2">
           <label htmlFor="floor" className="label-container">
-            <p>Floor</p>
+            <p>{t('PatientProfile.Floor')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -495,7 +498,7 @@ function PatientProfile() {
         {/* Device ID */}
         <div className="input g-c-3">
           <label htmlFor="d-id" className="label-container">
-            <p>Device ID</p>
+            <p>{t('PatientProfile.DeviceID')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -519,7 +522,7 @@ function PatientProfile() {
         {/* Connection Status */}
         <div className="input g-c-3 suffix">
           <label htmlFor="connection" className="label-container">
-            <p>Connection Status</p>
+            <p>{t('PatientProfile.DeviceStatus')}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -551,7 +554,7 @@ function PatientProfile() {
           style={{ cursor: isChanged ? "pointer" : "default" }}
         >
           <img src="" alt="" className="prefix" />
-          <p className="btn-text">Save</p>
+          <p className="btn-text">{t('PatientProfile.Save')}</p>
         </div>
         <div
           className="btn text-only outline"
@@ -559,7 +562,7 @@ function PatientProfile() {
           onClick={handleDisChargeOverlay}
         >
           <img src="" alt="" className="prefix" />
-          <p className="btn-text">Discharge</p>
+          <p className="btn-text">{t('PatientProfile.Discharge')}</p>
           {isDischargeOverlayVisible && (
             <DisChargePatient
               callback={handleDisChargeOverlay}

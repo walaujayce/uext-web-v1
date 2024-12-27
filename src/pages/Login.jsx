@@ -1,16 +1,19 @@
 /* eslint-disable no-unused-vars */
-import React, {useEffect,  useState} from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import "/src/CSS/Login.css";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
-import { useAuth } from '../JS/AuthContext';
+import { useAuth } from "../JS/AuthContext";
+import { useTranslation } from "react-i18next";
 
 function Login() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const { t, i18n } = useTranslation();
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
   const [showPassword, setShowPassword] = useState(false);
@@ -19,17 +22,17 @@ function Login() {
   };
 
   useEffect(() => {
-    setUsername('');
-    setPassword('');
+    setUsername("");
+    setPassword("");
   }, []);
-  
+
   const navigate = useNavigate();
   const { login } = useAuth();
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/home"); 
+      navigate("/home");
     }
   }, [isAuthenticated, navigate]);
 
@@ -37,7 +40,7 @@ function Login() {
     try {
       if (!username || !password) {
         setError("User account and password are required");
-        alert(error)
+        alert(error);
         return;
       }
 
@@ -53,73 +56,114 @@ function Login() {
       const data = await response.json();
       console.log(data);
       // Assuming `data.password` contains the stored password
-      const user = data.find(user => user.userid === username);
+      const user = data.find((user) => user.userid === username);
 
       if (user) {
-        console.log('Password:', user.password);
+        console.log("Password:", user.password);
         if (user.password === password) {
           login();
-          navigate('/home');
+          navigate("/home");
         } else {
           setError("Incorrect password");
           alert("Invalid User account or Password!");
         }
       }
-      
-    } catch (error) {     
+    } catch (error) {
       setError("An error occurred while logging in");
       console.error(error);
     }
   };
 
-  return(
+  return (
     <>
-      <img className="background" src="/src/assets/login-bg.svg" alt=""/>
-      <div className="login">   
-          <img className="uextLogo" src="/src/assets/uext.svg" alt=""/>
-          <div className="title">Bed Exit Alarm System</div>
+      <img className="background" src="/src/assets/login-bg.svg" alt="" />
+      <div className="login">
+        <img className="uextLogo" src="/src/assets/uext.svg" alt="" />
+        <div className="title">{t('Login.title')}</div>
 
-          <form className="st1 active">
-              {/* login input box */}
-              <div className="input g-c-6">
-                  <label for="login" className="label-container">
-                      <p>Login</p>
-                      <img className="info" src="/src/assets/information-outline.svg" alt="gray outline information icon"/>
-                  </label>
-                  <div className="input-gp">
-                      <input type="email" pattern="" className="placeholder" name="login" placeholder="Enter here"
-                          required  value={username} onChange={(e=>setUsername(e.target.value))} autoComplete='off'/>
-                      <img className="suffix" src="/src/assets/eye-off.svg" alt="eye icon" />
-                  </div>
-                  <div className="assistive-text">Must include one upper and one lower case alphabet.</div>
-              </div>
+        <form className="st1 active">
+          {/* login input box */}
+          <div className="input g-c-6">
+            <label for="login" className="label-container">
+              <p>{t('Login.Username')}</p>
+              <img
+                className="info"
+                src="/src/assets/information-outline.svg"
+                alt="gray outline information icon"
+              />
+            </label>
+            <div className="input-gp">
+              <input
+                type="email"
+                pattern=""
+                className="placeholder"
+                name="login"
+                placeholder="Enter here"
+                required
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                autoComplete="off"
+              />
+              <img
+                className="suffix"
+                src="/src/assets/eye-off.svg"
+                alt="eye icon"
+              />
+            </div>
+            <div className="assistive-text">
+              Must include one upper and one lower case alphabet.
+            </div>
+          </div>
 
-              {/* password input box */}
-              <div className="input g-c-6 suffix">
-                  <label for="pw" className="label-container">
-                      <p>Password</p>
-                      <img className="info" src="/src/assets/information-outline.svg" alt="gray outline information icon" />
-                  </label>
-                  <div className="input-gp">
-                      <input type={showPassword ? "text" : "password"} className="placeholder" name="pw" placeholder="Enter here" required 
-                      value={password} onChange={(e)=>setPassword(e.target.value)} autoComplete='off'/>
-                      <img className="suffix hide" src={`${showPassword ? "/src/assets/eye.svg": "/src/assets/eye-off.svg"}`} alt="eye icon" onClick={togglePasswordVisibility}/>
-                  </div>
-                  <div className="assistive-text">Must include one upper and one lower case alphabet.</div>
-              </div>
+          {/* password input box */}
+          <div className="input g-c-6 suffix">
+            <label for="pw" className="label-container">
+              <p>{t('Login.Password')}</p>
+              <img
+                className="info"
+                src="/src/assets/information-outline.svg"
+                alt="gray outline information icon"
+              />
+            </label>
+            <div className="input-gp">
+              <input
+                type={showPassword ? "text" : "password"}
+                className="placeholder"
+                name="pw"
+                placeholder="Enter here"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="off"
+              />
+              <img
+                className="suffix hide"
+                src={`${
+                  showPassword
+                    ? "/src/assets/eye.svg"
+                    : "/src/assets/eye-off.svg"
+                }`}
+                alt="eye icon"
+                onClick={togglePasswordVisibility}
+              />
+            </div>
+            <div className="assistive-text">
+              Must include one upper and one lower case alphabet.
+            </div>
+          </div>
 
-              <div className="btn-gp">
-                  {/* login button */}
-                  <a className="btn text-only pri" onClick={handleLogin}>
-                      <p className="btn-text pri-text">Login</p>
-                  </a>
+          <div className="btn-gp">
+            {/* login button */}
+            <a className="btn text-only pri" onClick={handleLogin}>
+              <p className="btn-text pri-text">{t('Login.Login')}</p>
+            </a>
 
-                  {/* forget password button */}
-                  <div className="btn text-only outline sec" id="forget-pw">
-                      <p className="btn-text sec-text">Forget Password</p>
-                  </div>
-              </div>
-          </form>
+            {/* forget password button */}
+            <div className="btn text-only outline sec" id="forget-pw">
+              <p className="btn-text sec-text">{t('Login.ForgetPassword')}</p>
+            </div>
+          </div>
+        </form>
       </div>
     </>
   );

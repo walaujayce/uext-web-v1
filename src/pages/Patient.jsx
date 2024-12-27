@@ -11,8 +11,11 @@ import AlertList from "/src/components/AlertList.jsx";
 import Navbar from "../components/Navbar";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewPatient from "../components/Modals/AddNewPatient";
+import { useTranslation } from "react-i18next";
 
 function Patient() {
+      const { t, i18n } = useTranslation();
+  
   const [select_floor, setSelect_Floor] = useState("");
   const handleSelectFloor = (floor) => {
     setSelect_Floor(floor);
@@ -60,7 +63,7 @@ function Patient() {
         <AlertList />
         <div className="main">
           <div className="box">
-            <h1>Patient List</h1>
+            <h1>{t('PatientList.PatientList')}</h1>
           </div>
           <div className="container">
             <div className="top-bar">
@@ -84,19 +87,19 @@ function Patient() {
             <div className="pl">
               {/* Patient List Title */}
               <div className="head">
-                <h3 className="fg2">Patient ID</h3>
-                <h3 className="fg2">Patient Name</h3>
-                <h3 className="fg1">Sex</h3>
+                <h3 className="fg2">{t('PatientList.PatientID')}</h3>
+                <h3 className="fg2">{t('PatientList.PatientName')}</h3>
+                <h3 className="fg1">{t('PatientList.Sex')}</h3>
                 {/* <h3 className="fg2">Birthday</h3>
               <h3 className="fg1">Height</h3>
               <h3 className="fg1">Weight</h3> */}
-                <h3 className="fg1">Bed</h3>
-                <h3 className="fg1">Section</h3>
-                <h3 className="fg1">Floor</h3>
-                <h3 className="fg2">Device ID</h3>
+                <h3 className="fg1">{t('PatientList.Bed')}</h3>
+                <h3 className="fg1">{t('PatientList.Section')}</h3>
+                <h3 className="fg1">{t('PatientList.Floor')}</h3>
+                <h3 className="fg2">{t('PatientList.DeviceID')}</h3>
                 <div className="connection fg2">
                   <img src="" alt="" />
-                  <h3>Device Status</h3>
+                  <h3>{t('PatientList.DeviceStatus')}</h3>
                 </div>
               </div>
               {/* Patient List */}

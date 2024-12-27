@@ -6,8 +6,11 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/patient.css";
 import OpenCVComponent from "../components/OpenCVComponent";
+import { useTranslation } from "react-i18next";
 
 function PatientMonitor() {
+    const { t, i18n } = useTranslation();
+  
   const [rawdatum, setRawdatum] = useState([]);
   const [position, setPosition] = useState("");
   const [duration, setDuration] = useState("");
@@ -63,7 +66,7 @@ function PatientMonitor() {
   return (
     <div className="monitor">
       <div className="pressure">
-        <div className="title">Pressure Map</div>
+        <div className="title">{t('PatientMonitor.PressureMap')}</div>
         <div className="box">
           <OpenCVComponent deviceid={macaddress} rawdata={rawdatum}/>
           <div className="bt-box">
@@ -93,7 +96,7 @@ function PatientMonitor() {
         </div>
       </div>
       <div className="h-rate">
-        <div className="title">Heart Rate</div>
+        <div className="title">{t('PatientMonitor.HeartRate')}</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
         <div className="spec">
           <div>--</div>
@@ -101,7 +104,7 @@ function PatientMonitor() {
         </div>
       </div>
       <div className="respiration">
-        <div className="title">Respiratory Rate</div>
+        <div className="title">{t('PatientMonitor.RespiratoryRate')}</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
         <div className="spec">
           <div>--</div>

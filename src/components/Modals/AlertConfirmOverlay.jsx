@@ -4,12 +4,15 @@ import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "../Modals/overlay.css";
 import "/src/CSS/index.css";
+import { useTranslation } from "react-i18next";
 
 const AlertConfirmOverlay = ({
   callback,
   confirmAlert_callback,
   alertDetail,
 }) => {
+  const { t, i18n } = useTranslation();
+
   {
     /* Handle Overlay Logic */
   }
@@ -36,23 +39,22 @@ const AlertConfirmOverlay = ({
             alt="aler box in gray"
           />
           <h1 class="title">{`${
-            alertDetail.status === 3 ? "Attention Alert" : "Bed Exit Alert"
+            alertDetail.status === 3 ? t('ConfirmAlertModal.h1-attention') :t('ConfirmAlertModal.h1-alert')
           }`}</h1>
-          <p class="desc">
-            {`Bed ${alertDetail.bedNo || "--"}, ${
-              alertDetail.userName || "Patient"
-            } ${
-              alertDetail.status === 3 ? "is too near on bed edge" : "has left bed"
-            }, please follow up as soon as possible.`}
+          <p class="desc" style={{margin:"10px 0px 20px 0px"}}>
+          {`${
+            alertDetail.status === 3 ? t('ConfirmAlertModal.description-attention-p1',{PatientName: alertDetail.userName , BedNo: alertDetail.bedNo}) :t('ConfirmAlertModal.description-alert-p1',{PatientName: alertDetail.userName , BedNo: alertDetail.bedNo})
+          }`}
+            <br /> {t('ConfirmAlertModal.description-alert-p2')}
           </p>
           <div class="btn-gp">
             <a class="btn text-only pri" onClick={confirmAlert_callback}>
               <img src="" alt="" class="prefix" />
-              <p class="btn-text pri-text">Got it</p>
+              <p class="btn-text pri-text">{t('ConfirmAlertModal.GotIt')}</p>
             </a>
             <a className="btn text-only outline sec" onClick={callback}>
               <img src="" alt="" className="prefix" />
-              <p className="btn-text sec-text">Cancel</p>
+              <p className="btn-text sec-text">{t('ConfirmAlertModal.Cancel')}</p>
             </a>
           </div>
         </div>

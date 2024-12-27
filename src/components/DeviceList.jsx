@@ -9,8 +9,11 @@ import "/src/CSS/index.css";
 import "/src/CSS/panel-list.css";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewDevice from "../components/Modals/AddNewDevice";
+import { useTranslation } from "react-i18next";
 
 const DeviceList = () => {
+  const { t, i18n } = useTranslation();
+
   const [devices, setDevices] = useState([]);
 
   const [port, setPort] = useState("7284");
@@ -19,12 +22,12 @@ const DeviceList = () => {
     setPort(port);
   };
 
-  const [select_floor, setSelect_Floor] = useState('');
-  const handleSelectFloor = (floor) =>{
+  const [select_floor, setSelect_Floor] = useState("");
+  const handleSelectFloor = (floor) => {
     setSelect_Floor(floor);
   };
-  const [select_section, setSelect_Section] = useState('');
-  const handleSelectSection = (section) =>{
+  const [select_section, setSelect_Section] = useState("");
+  const handleSelectSection = (section) => {
     setSelect_Section(section);
   };
 
@@ -78,87 +81,108 @@ const DeviceList = () => {
   return (
     <>
       <div className="box">
-        <h1>Device List</h1>
+        <h1>{t('DeviceList.DeviceList')}</h1>
       </div>
       <div className="container">
         <div className="top-bar">
-          <FloorSectionBar selectFloor={handleSelectFloor} selectSection={handleSelectSection} />
+          <FloorSectionBar
+            selectFloor={handleSelectFloor}
+            selectSection={handleSelectSection}
+          />
           <div className="btn" id="addDevice" onClick={handleAddDeviceClick}>
             <img src="" alt="" className="prefix" />
-            <p className="btn-text">New Device</p>
-            {isOverlayVisible && (  
+            <p className="btn-text">{t('DeviceList.NewDevice')}</p>
+            {isOverlayVisible && (
               <AddNewDevice callback={handleAddDeviceClick} />
             )}
           </div>
         </div>
         <div className="pl">
           <div className="head">
-            <h3 className="fg1">Device Type</h3>
-            <h3 className="fg2">Device ID</h3>
-            <h3 className="fg2">MAC Address</h3>
-            <h3 className="fg2">IP Address</h3>
-            <h3 className="fg1">Bed</h3>
-            <h3 className="fg1">Section</h3>
-            <h3 className="fg1">Floor</h3>
-            <h3 className="fg1">Setting Date</h3>
+            <h3 className="fg1">{t('DeviceList.DeviceType')}</h3>
+            <h3 className="fg2">{t('DeviceList.DeviceID')}</h3>
+            <h3 className="fg2">{t('DeviceList.MACAddress')}</h3>
+            <h3 className="fg2">{t('DeviceList.IPAddress')}</h3>
+            <h3 className="fg1">{t('DeviceList.Bed')}</h3>
+            <h3 className="fg1">{t('DeviceList.Section')}</h3>
+            <h3 className="fg1">{t('DeviceList.Floor')}</h3>
+            <h3 className="fg1">{t('DeviceList.SettingDate')}</h3>
             <div className="connection fg2">
               <img src="" alt="" />
-              <h3>Device Status</h3>
+              <h3>{t('DeviceList.DeviceStatus')}</h3>
             </div>
           </div>
           <div className="item-list">
-          {port === "7284" &&
-              devices.slice()
-              .filter((device) => {
-                return select_floor === '' || select_floor === 'All' || device.floor === select_floor;
-              })
-              .filter((device) => {
-                return select_section === '' || select_section === 'All' || device.section === select_section;
-              })
-              .sort((a, b) => {
-                const macA = a.macaddress?.toUpperCase() || "";
-                const macB = b.macaddress?.toUpperCase() || "";
-                // Sort alphabetically first
-                if (macA < macB) return -1;
-                if (macA > macB) return 1;
-                // If alphabetical order is the same, sort numerically
-                const numA = parseInt(a.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
-                const numB = parseInt(b.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
-          
-                return numA - numB; // Numeric ascending order
-              })
-              .map((device) => (
-                <Link to={`/device/device-settings?macaddress=${device.macaddress}`} key={device.macaddress}>
-                  <div className="item">
-                    <h3 className="fg1">
-                      {device.devicetype === 0
-                        ? "Not Specified"
-                        : device.devicetype === 1
-                        ? "UEXT"
-                        : "UMAP"}
-                    </h3>
-                    <h3 className="fg2">{device.deviceid || "N/A"}</h3>
-                    <h3 className="fg2">{device.macaddress || "N/A"}</h3>
-                    <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
-                    <h3 className="fg1">{device.bed || "N/A"}</h3>
-                    <h3 className="fg1">{device.section || "N/A"}</h3>
-                    <h3 className="fg1">{device.floor || "N/A"}</h3>
-                    <h3 className="fg1">
-                      {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
-                    </h3>
-                    <div
-                      className={`connection ${
-                        device.devicestatus ? "connected" : "disconnected"
-                      } fg2`}
-                    >
-                      <img src="" alt="" />
-                      <h3>
-                        {device.devicestatus ? "Connected" : "Disconnected"}
+            {port === "7284" &&
+              devices
+                .slice()
+                .filter((device) => {
+                  return (
+                    select_floor === "" ||
+                    select_floor === "All" ||
+                    device.floor === select_floor
+                  );
+                })
+                .filter((device) => {
+                  return (
+                    select_section === "" ||
+                    select_section === "All" ||
+                    device.section === select_section
+                  );
+                })
+                .sort((a, b) => {
+                  const macA = a.macaddress?.toUpperCase() || "";
+                  const macB = b.macaddress?.toUpperCase() || "";
+                  // Sort alphabetically first
+                  if (macA < macB) return -1;
+                  if (macA > macB) return 1;
+                  // If alphabetical order is the same, sort numerically
+                  const numA = parseInt(
+                    a.macaddress?.replace(/[^0-9]/g, "") || "0",
+                    10
+                  );
+                  const numB = parseInt(
+                    b.macaddress?.replace(/[^0-9]/g, "") || "0",
+                    10
+                  );
+
+                  return numA - numB; // Numeric ascending order
+                })
+                .map((device) => (
+                  <Link
+                    to={`/device/device-settings?macaddress=${device.macaddress}`}
+                    key={device.macaddress}
+                  >
+                    <div className="item">
+                      <h3 className="fg1">
+                        {device.devicetype === 0
+                          ? "Not Specified"
+                          : device.devicetype === 1
+                          ? "UEXT"
+                          : "UMAP"}
                       </h3>
+                      <h3 className="fg2">{device.deviceid || "N/A"}</h3>
+                      <h3 className="fg2">{device.macaddress || "N/A"}</h3>
+                      <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
+                      <h3 className="fg1">{device.bed || "N/A"}</h3>
+                      <h3 className="fg1">{device.section || "N/A"}</h3>
+                      <h3 className="fg1">{device.floor || "N/A"}</h3>
+                      <h3 className="fg1">
+                        {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
+                      </h3>
+                      <div
+                        className={`connection ${
+                          device.devicestatus ? "connected" : "disconnected"
+                        } fg2`}
+                      >
+                        <img src="" alt="" />
+                        <h3>
+                          {device.devicestatus ? "Connected" : "Disconnected"}
+                        </h3>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))}
+                  </Link>
+                ))}
             {/* {port === "7285" &&
               devices.map((device) => (
                 <Link to={`/device/device-settings?macaddress=${device.Devicemac}`} key={device.Deviceid}>
@@ -190,7 +214,7 @@ const DeviceList = () => {
                   </div>
                 </Link>
               ))} */}
-            
+
             {/* {port === "8031" &&
               devices.map((device) => (
                 <Link to={`/device/device-settings?macaddress=${device.MAC}`} key={device.MAC}>
@@ -227,6 +251,6 @@ const DeviceList = () => {
       </div>
     </>
   );
-}
+};
 
 export default DeviceList;

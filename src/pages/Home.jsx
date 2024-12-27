@@ -17,8 +17,9 @@ import {
 } from "../components/Bed_Cards";
 import { useTranslation } from "react-i18next";
 
+
 function Home() {
-    const { t, i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
 
   const getServerIpAddress = () => {
     return window.location.hostname;
@@ -221,19 +222,19 @@ function Home() {
                 selectSection={handleSelectSection}
               />
               <div className="sort">
-                <div className="label">Sort by</div>
+                <div className="label">{t('Home.Sortby')}</div>
                 <div className="opt-box">
                   <div
                     className={`opt s1 ${sort_by_bed ? "active" : ""}`}
                     onClick={() => handleToggleSort("bed")}
                   >
-                    Bed
+                    {t('Home.Bed')}
                   </div>
                   <div
                     className={`opt s2 ${sort_by_status ? "active" : ""}`}
                     onClick={() => handleToggleSort("status")}
                   >
-                    Status
+                    {t('Home.Status')}
                   </div>
                   <div className={`bg-bk ${sort_by_bed ? "s1" : "s2"}`}></div>
                 </div>
@@ -296,7 +297,7 @@ function Home() {
                     (device.POS === 4 || device.POS === 5 || device.POS === 0)
                 ) && (
                 <div className="status">
-                  <div className="title">Alerts</div>
+                  <div className="title">{t('Home.Alerts')}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {
@@ -366,7 +367,7 @@ function Home() {
                     device.POS === 3
                 ) && (
                 <div className="status">
-                  <div className="title">Attention</div>
+                  <div className="title">{t('Home.Attention')}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {
@@ -429,7 +430,7 @@ function Home() {
                 })
                 .some((device) => device.STAT === 0) && (
                 <div className="status">
-                  <div className="title">Disconnected</div>
+                  <div className="title">{t('Home.Disconnected')}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {
@@ -495,7 +496,7 @@ function Home() {
                     )
                 ) && (
                 <div className="status">
-                  <div className="title">Normal</div>
+                  <div className="title">{t('Home.Normal')}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {
@@ -567,7 +568,7 @@ function Home() {
                     (device.UserName === null || device.UserName === "")
                 ) && (
                 <div className="status">
-                  <div className="title">Vacant</div>
+                  <div className="title">{t('Home.Vacant')}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {

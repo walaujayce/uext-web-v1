@@ -3,8 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import "/src/CSS/account.css";
 import AlertList from "./AlertList";
 import Navbar from "./Navbar";
+import { useTranslation } from "react-i18next";
 
 function AccountSetting() {
+  const { t, i18n } = useTranslation();
+
   const navigate = useNavigate();
 
   const handleBackBtnClick = () => {
@@ -19,20 +22,20 @@ function AccountSetting() {
         <AlertList />
         <div className="main">
           <div className="box">
-            <h1>Account Settings</h1>
+            <h1>{t('AccountSettings.AccountSettings')}</h1>
             <a className="btn frameless" onClick={handleBackBtnClick}>
               <img src="" alt="" className="prefix" />
-              <p className="btn-text">Back</p>
+              <p className="btn-text">{t('AccountSettings.Back')}</p>
             </a>
           </div>
           <div className="accSection">
             <div className="accSetting">
-              <h2>User Profile</h2>
+              <h2>{t('AccountSettings.UserProfile')}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-3">
                     <label for="d-id" className="label-container">
-                      <p>Name</p>
+                      <p>{t('AccountSettings.Name')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -54,7 +57,7 @@ function AccountSetting() {
                   </div>
                   <div className="input g-col-3">
                     <label for="phone" className="label-container">
-                      <p>Phone</p>
+                      <p>{t('AccountSettings.Phone')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -76,7 +79,7 @@ function AccountSetting() {
                   </div>
                   <div className="input g-col-3">
                     <label for="email" className="label-container">
-                      <p>Email</p>
+                      <p>{t('AccountSettings.Email')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -98,7 +101,7 @@ function AccountSetting() {
                   </div>
                   <div className="input g-col-3">
                     <label for="u-id" className="label-container">
-                      <p>User ID</p>
+                      <p>{t('AccountSettings.Id')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -123,22 +126,22 @@ function AccountSetting() {
                 <div className="btn-gp">
                   <div className="btn text-only">
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">Save</p>
+                    <p className="btn-text">{t('AccountSettings.Save')}</p>
                   </div>
                   <div className="btn text-only outline" id="deleteUser">
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">Delete User</p>
+                    <p className="btn-text">{t('AccountSettings.DeleteUser')}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="accSetting">
-              <h2>Role & Authority</h2>
+              <h2>{t('AccountSettings.RoleAndAuthority')}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input dropdown role g-col-3 suffix">
                     <label for="role" className="label-container">
-                      <p>Role</p>
+                      <p>{t('AccountSettings.Role')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -276,18 +279,18 @@ function AccountSetting() {
                 <div className="btn-gp">
                   <div className="btn text-only">
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">Save</p>
+                    <p className="btn-text">{t('AccountSettings.Save')}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="accSetting">
-              <h2>User Profile</h2>
+              <h2>{t('AccountSettings.UsernameAndPassword')}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-3">
                     <label for="login" className="label-container">
-                      <p>Login</p>
+                      <p>{t('AccountSettings.LoginUserName')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -310,7 +313,7 @@ function AccountSetting() {
                   </div>
                   <div className="input g-col-3">
                     <label for="pw" className="label-container">
-                      <p>Password</p>
+                      <p>{t('AccountSettings.Password')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -335,7 +338,7 @@ function AccountSetting() {
                 <div className="btn-gp">
                   <div className="btn text-only" id="changePassword-2">
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">Change Password</p>
+                    <p className="btn-text">{t('AccountSettings.ChangePassword')}</p>
                   </div>
                 </div>
               </div>

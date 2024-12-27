@@ -4,8 +4,11 @@ import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
+import { useTranslation } from "react-i18next";
 
 function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
+      const { t, i18n } = useTranslation();
+  
   {
     /* Fetch Floors API */
   }
@@ -174,7 +177,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
         ref={addDropdownRef}
       >
         <label htmlFor="floor" className="label-container">
-          <p>Floor</p>
+          <p>{t('FloorSection.Floor')}</p>
           <img
             className="info"
             src="/src/assets/information-outline.svg"
@@ -211,7 +214,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
         ref={addDropdownRef}
       >
         <label htmlFor="section" className="label-container">
-          <p>Section</p>
+          <p>{t('FloorSection.Section')}</p>
           <img
             className="info"
             src="/src/assets/information-outline.svg"

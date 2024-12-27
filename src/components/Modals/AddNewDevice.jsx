@@ -4,8 +4,11 @@ import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "../Modals/overlay.css";
 import "/src/CSS/index.css";
+import { useTranslation } from "react-i18next";
 
 const AddNewDevice = ({ callback }) => {
+  const { t, i18n } = useTranslation();
+
   {
     /* Handle Overlay Logic */
   }
@@ -292,14 +295,14 @@ const AddNewDevice = ({ callback }) => {
             style={{ display: isActive_Stage2 ? "block" : "none" }}
           />
           <div className="title">{`${
-            isActive_Stage2 ? "New Device Added" : "Add Device"
+            isActive_Stage2 ? "New Device Added" : t('AddDeviceModal.AddDevice')
           }`}</div>
           <div
             className="tab-list"
             style={{ display: isActive_Stage2 ? "none" : "" }}
           >
             <a href="#" className="tab active tab-1">
-              Device Profile
+            {t('AddDeviceModal.DeviceProfile')}
             </a>
             {/* <a href="#" className="tab tab-2">Device Connection</a> */}
           </div>
@@ -316,14 +319,14 @@ const AddNewDevice = ({ callback }) => {
                 ref={addDropdownRef}
               >
                 <label htmlFor="devicetype" className="label-container">
-                  <p>Device Type</p>
+                  <p>{t('AddDeviceModal.DeviceType')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
                     alt="gray outline information icon"
                   />
                 </label>
-                <div className="input-gp" style={{minWidth:"150px"}}>
+                <div className="input-gp" style={{ minWidth: "150px" }}>
                   <input
                     type="text"
                     className="placeholder"
@@ -336,7 +339,10 @@ const AddNewDevice = ({ callback }) => {
                 <div className="assistive-text">
                   this is a line of assistive text
                 </div>
-                <div className={`list ${isDeviceTypeActive ? "active" : ""}`} ref={dropdownDeviceTypeStyleRef}>
+                <div
+                  className={`list ${isDeviceTypeActive ? "active" : ""}`}
+                  ref={dropdownDeviceTypeStyleRef}
+                >
                   {deviceTypes.map((deviceType) => (
                     <div
                       className="item"
@@ -351,7 +357,7 @@ const AddNewDevice = ({ callback }) => {
               {/* MAC */}
               <div className="input g-c-3">
                 <label htmlFor="mac" className="label-container">
-                  <p>MAC</p>
+                  <p>{t('AddDeviceModal.MACAddress')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -378,7 +384,7 @@ const AddNewDevice = ({ callback }) => {
               {/* Bed */}
               <div className="input g-c-3">
                 <label htmlFor="bed" className="label-container">
-                  <p>Bed</p>
+                  <p>{t('AddDeviceModal.Bed')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -409,7 +415,7 @@ const AddNewDevice = ({ callback }) => {
                 ref={addDropdownRef}
               >
                 <label htmlFor="sectionInNewDevice" className="label-container">
-                  <p>Section</p>
+                  <p>{t('AddDeviceModal.Section')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -450,7 +456,7 @@ const AddNewDevice = ({ callback }) => {
                 ref={addDropdownRef}
               >
                 <label htmlFor="floorInNewDevice" className="label-container">
-                  <p>Floor</p>
+                  <p>{t('AddDeviceModal.Floor')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -470,7 +476,10 @@ const AddNewDevice = ({ callback }) => {
                 <div className="assistive-text">
                   this is a line of assistive text
                 </div>
-                <div className={`list ${isFloorActive ? "active" : ""}`} ref={dropdownFloorStyleRef}>
+                <div
+                  className={`list ${isFloorActive ? "active" : ""}`}
+                  ref={dropdownFloorStyleRef}
+                >
                   {floors.map((floor) => (
                     <div
                       className="item"
@@ -490,7 +499,7 @@ const AddNewDevice = ({ callback }) => {
             >
               <div className="btn text-only pri">
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text pri-text">Continue</p>
+                <p className="btn-text pri-text">{t('AddDeviceModal.Continue')}</p>
               </div>
             </div>
           </form>

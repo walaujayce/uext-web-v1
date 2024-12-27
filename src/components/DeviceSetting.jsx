@@ -5,8 +5,11 @@ import { useDropdownLogic, fetchList } from "../JS/GetFloorSectionAPI";
 import Navbar from "./Navbar";
 import AlertList from "./AlertList";
 import SignalRService from "../JS/SignalR";
+import { useTranslation } from "react-i18next";
 
 function DeviceSettings() {
+    const { t, i18n } = useTranslation();
+  
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
@@ -478,20 +481,20 @@ function DeviceSettings() {
         <AlertList />
         <div className="main">
           <div className="box">
-            <h1>Device Settings</h1>
+            <h1>{t('DeviceSettings.DeviceSettings')}</h1>
             <a className="btn frameless" href="" onClick={handleBackBtnClick}>
               <img src="" alt="" className="prefix" />
-              <p className="btn-text">Back</p>
+              <p className="btn-text">{t('DeviceSettings.Back')}</p>
             </a>
           </div>
           <div className="device">
             <div className="deviceSetting">
-              <h2>Device Information</h2>
+              <h2>{t('DeviceSettings.DeviceInformation')}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-3">
                     <label htmlFor="d-id" className="label-container">
-                      <p>Device ID</p>
+                      <p>{t('DeviceSettings.DeviceID')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -515,7 +518,7 @@ function DeviceSettings() {
                   </div>
                   <div className="input g-col-3">
                     <label htmlFor="mac" className="label-container">
-                      <p>MAC</p>
+                      <p>{t('DeviceSettings.MACAddress')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -540,7 +543,7 @@ function DeviceSettings() {
                   </div>
                   <div className="input g-col-3">
                     <label htmlFor="d-ip" className="label-container">
-                      <p>Device IP</p>
+                      <p>{t('DeviceSettings.IPAddress')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -564,7 +567,7 @@ function DeviceSettings() {
                   </div>
                   <div className="input connection g-col-3">
                     <label htmlFor="connection" className="label-container">
-                      <p>Connection Status</p>
+                      <p>{t('DeviceSettings.DeviceStatus')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -592,22 +595,22 @@ function DeviceSettings() {
                     }`}
                   >
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">Save</p>
+                    <p className="btn-text">{t('DeviceSettings.Save')}</p>
                   </div>
                   <div className="btn text-only outline inactive">
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">Reconnect</p>
+                    <p className="btn-text">{t('DeviceSettings.Reconnect')}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="deviceSetting">
-              <h2>Device Location</h2>
+              <h2>{t('DeviceSettings.DeviceLocation')}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-3">
                     <label htmlFor="bed" className="label-container">
-                      <p>Bed</p>
+                      <p>{t('DeviceSettings.Bed')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -636,7 +639,7 @@ function DeviceSettings() {
                     ref={addDropdownRef}
                   >
                     <label htmlFor="section" className="label-container">
-                      <p>Section</p>
+                      <p>{t('DeviceSettings.Section')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -691,7 +694,7 @@ function DeviceSettings() {
                     ref={addDropdownRef}
                   >
                     <label htmlFor="floor" className="label-container">
-                      <p>Floor</p>
+                      <p>{t('DeviceSettings.Floor')}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -748,13 +751,13 @@ function DeviceSettings() {
                     onClick={() => handlePUT_API(requestBody_DeviceLocation)}
                   >
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">Save</p>
+                    <p className="btn-text">{t('DeviceSettings.Save')}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="deviceSetting">
-              <h2>Device Configuration</h2>
+              <h2>{t('DeviceSettings.DeviceConfiguration')}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-2 ">
@@ -1287,35 +1290,35 @@ function DeviceSettings() {
                     }
                   >
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">Save</p>
+                    <p className="btn-text">{t('DeviceSettings.Save')}</p>
                   </div>
                   <div className="btn text-only outline" id="reset" onClick={() =>
                       handlePUT_API(requestBody_PUT_RESET)
                     }>
                     {/* <img src="" alt="" className="prefix" /> */}
-                    <p className="btn-text">Reset to Default</p>
+                    <p className="btn-text">{t('DeviceSettings.Reset')}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="deviceSetting">
-              <h2>Device Version</h2>
+              <h2>{t('DeviceSettings.DeviceVersion')}</h2>
               <div className="opt-list">
                 <div className="ver-stat">
-                  You are at the latest version! (v1.0.1)
+                {t('DeviceSettings.DeviceVersion-p')} (v1.0.1)
                 </div>
                 <div className="btn-gp">
                   <div className="btn text-only inactive">
                     {/* <img src="" alt="" className="prefix" /> */}
-                    <p className="btn-text">Update now</p>
+                    <p className="btn-text">{t('DeviceSettings.Update')}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="deviceSetting">
-              <h2>Device Remove</h2>
+              <h2>{t('DeviceSettings.DeviceRemove')}</h2>
               <div className="opt-list">
-                <div className="ver-stat">Remove device from monitor list.</div>
+                <div className="ver-stat">{t('DeviceSettings.DeviceRemove-p')}</div>
                 <div className="btn-gp">
                   <div
                     className="btn text-only"
@@ -1330,7 +1333,7 @@ function DeviceSettings() {
                     onClick={() => handlePUT_API(requestBody_delete)}
                   >
                     {/* <img src="" alt="" className="prefix" /> */}
-                    <p className="btn-text">Delete</p>
+                    <p className="btn-text">{t('DeviceSettings.Delete')}</p>
                   </div>
                 </div>
               </div>

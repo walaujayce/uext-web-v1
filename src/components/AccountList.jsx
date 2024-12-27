@@ -7,9 +7,12 @@ import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import "/src/CSS/panel-list.css";
 import { Link } from "react-router-dom";
-import SignalRService from "../JS/SignalR"
+import SignalRService from "../JS/SignalR";
+import { useTranslation } from "react-i18next";
 
 const AccountList = () => {
+  const { t, i18n } = useTranslation();
+
   const [accounts, setAccount] = useState([]);
 
   const fetchAccountList = async () => {
@@ -48,15 +51,15 @@ const AccountList = () => {
       console.error("Error sending message:", error);
     }
   };
-  const handleSendMessage = () =>{
+  const handleSendMessage = () => {
     sendMessage();
     console.log("click");
-  }
+  };
 
   return (
     <>
       <div className="box">
-        <h1>Account List</h1>
+        <h1>{t('AccountList.AccountList')}</h1>
       </div>
       <div className="container">
         <div className="top-bar">
@@ -66,19 +69,17 @@ const AccountList = () => {
           <div className="input search"></div>
           <div className="btn" id="addUser" onClick={handleSendMessage}>
             <img src="" alt="" className="prefix" />
-            <p className="btn-text" >
-              New User
-            </p>
+            <p className="btn-text">{t('AccountList.NewUser')}</p>
           </div>
         </div>
         <div className="pl">
           <div className="head">
-            <h3 className="fg1">ID</h3>
-            <h3 className="fg1">Name</h3>
-            <h3 className="fg1">Password</h3>
-            <h3 className="fg1">Role</h3>
-            <h3 className="fg1">Email</h3>
-            <h3 className="fg1">Last Login</h3>
+            <h3 className="fg1">{t('AccountList.UserID')}</h3>
+            <h3 className="fg1">{t('AccountList.UserName')}</h3>
+            <h3 className="fg1">{t('AccountList.UserPassword')}</h3>
+            <h3 className="fg1">{t('AccountList.UserRole')}</h3>
+            <h3 className="fg1">{t('AccountList.UserEmail')}</h3>
+            <h3 className="fg1">{t('AccountList.LastLogin')}</h3>
           </div>
           <div className="item-list">
             <Link to={`/account/account-settings?userid=NUR-088465`}>
@@ -86,7 +87,7 @@ const AccountList = () => {
                 <h3 className="fg1">NUR-088465</h3>
                 <h3 className="fg1">Chan Tai Ming</h3>
                 <h3 className="fg1">D**********</h3>
-                <h3 className="fg1">Management</h3>
+                <h3 className="fg1">Administrator</h3>
                 <h3 className="fg1">zoechan@gmail.com</h3>
                 <h3 className="fg1">2024-07-31</h3>
               </a>

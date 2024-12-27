@@ -7,8 +7,11 @@ import "/src/CSS/patient.css";
 import "/src/CSS/patient-custom.css";
 import { useSearchParams } from "react-router-dom";
 import useSessionStorageState from "../JS/PatientAlertSessionStorage";
+import { useTranslation } from "react-i18next";
 
 function PatientAlerts() {
+  const { t, i18n } = useTranslation();
+
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
@@ -50,17 +53,17 @@ function PatientAlerts() {
     { id: 2, label: "00 - 08" },
     { id: 3, label: "08 - 16" },
     { id: 4, label: "16 - 24" },
-    { id: 5, label: "Custom" },
+    { id: 5, label: t('PatientAlert.Custom') },
   ];
 
   const PositionStatus = [
-    { id: 1, label: "Resting on the bed" },
-    { id: 2, label: "Sitting on the bed" },
-    { id: 3, label: "Sitting on the bed edge" },
-    { id: 4, label: "Leaving out bed" },
-    { id: 5, label: "Unusual condition" },
-    { id: 6, label: "Lying/Curled up on left side" },
-    { id: 7, label: "Lying/Curled up on right side" },
+    { id: 1, label: t('PatientAlert.PostureAlerts-title1') },
+    { id: 2, label: t('PatientAlert.PostureAlerts-title2') },
+    { id: 3, label: t('PatientAlert.PostureAlerts-title3') },
+    { id: 4, label: t('PatientAlert.PostureAlerts-title4') },
+    { id: 5, label: t('PatientAlert.PostureAlerts-title5') },
+    { id: 6, label: t('PatientAlert.PostureAlerts-title6') },
+    { id: 7, label: t('PatientAlert.PostureAlerts-title7') },
   ];
   {
     /* HANDLE CHECK BOX */
@@ -234,8 +237,8 @@ function PatientAlerts() {
       setRnHBIsChecked1(() => false); // Resp. Max
       setRnHBIsChecked2(() => false); // Resp. Min
       setRnHBIsChecked3(() => false); // Heart beat Max
-      setRnHBIsChecked4(() => false); // Heart beat Min    
-    }else{
+      setRnHBIsChecked4(() => false); // Heart beat Min
+    } else {
       alert("At least one time interval for alerts has to be selected.");
     }
   };
@@ -569,11 +572,9 @@ function PatientAlerts() {
     if (isNewAlert) {
       console.log("the input requestbody is ", requestBody_POST);
       POST_PatientAlert();
-
     } else {
       console.log("the input requestbody is ", requestBody_PUT);
       PUT_PatientAlert();
-
     }
   };
   {
@@ -709,7 +710,7 @@ function PatientAlerts() {
       {/* Notification */}
       <div className="alertSetting">
         <div className="alertHead">
-          <h1>Notification</h1>
+          <h1>{t('PatientAlert.Notification')}</h1>
           <div
             className={`toggle ${notificationToggleState ? "active" : ""}`}
             onClick={handleNotificationToggle}
@@ -723,7 +724,7 @@ function PatientAlerts() {
           </div>
         </div>
         <div className="alertOpt">
-          <p className="alertDesc">Set the time intervals for alerts.</p>
+          <p className="alertDesc">{t('PatientAlert.NotificationDescription')}</p>
           <div className="opt-list">
             <div
               className={`opt-grid ${notificationToggleState ? "active" : ""}`}
@@ -754,7 +755,7 @@ function PatientAlerts() {
                               readOnly={selectedNotification !== option.id}
                             />
                           </div>
-                          <p>to</p>
+                          <p>{t('PatientAlert.To')}</p>
                           <div className="desc-input">
                             <input
                               type="number"
@@ -786,7 +787,7 @@ function PatientAlerts() {
       </div>
       <div className="alertSetting">
         <div className="alertHead">
-          <h1>Repeated Alerts</h1>
+          <h1>{t('PatientAlert.RepeatedAlert')}</h1>
           <div
             className={`toggle ${alertRepeatToggleState ? "active" : ""}`}
             onClick={handleAlertRepeatToggle}
@@ -801,7 +802,7 @@ function PatientAlerts() {
         </div>
         <div className="alertOpt">
           <p className="alertDesc">
-            Limit alerts to one per time period to avoid repetition.
+          {t('PatientAlert.RepeatedAlertDescription')}
           </p>
           <div className="opt-list">
             <div
@@ -815,9 +816,9 @@ function PatientAlerts() {
                 >
                   <img src="/src/assets/checkbox-blank-outline.svg" alt="" />
                   <div className="desc-box">
-                    <p>Limit repeated alerts</p>
+                    <p>{t('PatientAlert.Limitrepeatedalerts')}</p>
                     <div className="desc">
-                      <p>Alert only once within the specified interval.</p>
+                      <p>{t('PatientAlert.Limitrepeatedalerts-description')}</p>
                       <div className="desc-input">
                         <input
                           type="number"
@@ -847,7 +848,7 @@ function PatientAlerts() {
       </div>
       <div className="alertSetting">
         <div className="alertHead">
-          <h1>Bed Exit Alerts</h1>
+          <h1>{t('PatientAlert.BedExitAlert')}</h1>
           <div
             className={`toggle ${exitBedRateToggleState ? "active" : ""}`}
             onClick={handleExitBedRateToggle}
@@ -861,7 +862,7 @@ function PatientAlerts() {
           </div>
         </div>
         <div className="alertOpt">
-          <p className="alertDesc">Set the bed exit alert sensitivity level.</p>
+          <p className="alertDesc">{t('PatientAlert.BedExitAlertDescription')}</p>
           <div className="opt-list">
             <div
               className={`opt-grid ${exitBedRateToggleState ? "active" : ""}`}
@@ -877,11 +878,10 @@ function PatientAlerts() {
                     alt=""
                   />
                   <div className="desc-box">
-                    <p>Sensitivity</p>
+                    <p>{t('PatientAlert.BedExitAlert-title')}</p>
                     <div className="desc">
                       <p>
-                        Alert when exit is detected at the specified
-                        sensitivity.
+                      {t('PatientAlert.BedExitAlert-description')}
                       </p>
                       <div
                         className="input dropdown suffix"
@@ -948,7 +948,7 @@ function PatientAlerts() {
       </div>
       <div className="alertSetting">
         <div className="alertHead">
-          <h1>Posture Alerts</h1>
+          <h1>{t('PatientAlert.PostureAlerts')}</h1>
           <div
             className={`toggle ${positionToggleState ? "active" : ""}`}
             onClick={handlePositionToggle}
@@ -962,7 +962,7 @@ function PatientAlerts() {
           </div>
         </div>
         <div className="alertOpt">
-          <p className="alertDesc">Set alerts for different in-bed postures.</p>
+          <p className="alertDesc">{t('PatientAlert.PostureAlertsDescription')}</p>
           <div className="opt-list">
             <div className={`opt-grid ${positionToggleState ? "active" : ""}`}>
               {PositionStatus.map((option) => (
@@ -984,8 +984,7 @@ function PatientAlerts() {
                       <p>{option.label}</p>
                       <div className="desc">
                         <p>
-                          Alert when the posture is held for the specified
-                          duration.
+                        {t('PatientAlert.PostureAlerts-description1')}
                         </p>
                         <div className="desc-input">
                           <input
@@ -1032,7 +1031,7 @@ function PatientAlerts() {
         {" "}
         {/* customize css */}
         <div className="alertHead">
-          <h1>Physiological Alerts</h1>
+          <h1>{t('PatientAlert.PhysiologicalAlerts')}</h1>
           <div
             className={`toggle ${respHeartBeatToggleState ? "active" : ""}`}
             onClick={handleRespHeartBeatToggle}
@@ -1047,7 +1046,7 @@ function PatientAlerts() {
         </div>
         <div className="alertOpt">
           <p className="alertDesc">
-            Set alerts for abnormal respiratory rate and heart rate.
+          {t('PatientAlert.PhysiologicalAlertsDescription')}
           </p>
           <div className="opt-list">
             <div
@@ -1067,10 +1066,10 @@ function PatientAlerts() {
                     onClick={handleRnHBCheckBox1}
                   />
                   <div className="desc-box">
-                    <p>Respiratory rate</p>
+                    <p>{t('PatientAlert.PhysiologicalAlerts-title1')}</p>
                     <div className="desc">
                       <p>
-                        Alert when respiratory rate exceeds the specified range.
+                      {t('PatientAlert.PhysiologicalAlerts-description1')}
                       </p>
                       <div className="desc-input rpm max">
                         <input
@@ -1110,9 +1109,9 @@ function PatientAlerts() {
                     onClick={handleRnHBCheckBox2}
                   />
                   <div className="desc-box">
-                    <p>Heart Rate</p>
+                    <p>{t('PatientAlert.PhysiologicalAlerts-title2')}</p>
                     <div className="desc">
-                      <p>Alert when heart rate exceeds the specified range.</p>
+                      <p>{t('PatientAlert.PhysiologicalAlerts-description2')}.</p>
                       <div className="desc-input rpm max">
                         <input
                           type="number"
@@ -1151,7 +1150,7 @@ function PatientAlerts() {
                 onClick={handleUpdateAlertClicked}
               >
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text">Save</p>
+                <p className="btn-text">{t('PatientAlert.Save')}</p>
               </div>
               <div
                 className="btn text-only outline"
@@ -1159,7 +1158,7 @@ function PatientAlerts() {
                 onClick={handleResetAlertClicked}
               >
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text">Reset to Default</p>
+                <p className="btn-text">{t('PatientAlert.ResetToDefault')}</p>
               </div>
             </div>
           </div>

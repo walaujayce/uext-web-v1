@@ -2,8 +2,11 @@ import React, { useState, useEffect } from "react";
 import SignalRService from "../JS/SignalR";
 import AlertConfirmOverlay from "./Modals/AlertConfirmOverlay";
 import dayjs from "dayjs";
+import { useTranslation } from "react-i18next";
 
 function AlertList() {
+  const { t, i18n } = useTranslation();
+
   const [expandAlertList, setExpandAlertList] = useState(false);
 
   const handleAlertListExpandClick = () => {
@@ -182,7 +185,7 @@ function AlertList() {
           const parsedMessage = JSON.parse(
             uncheckedNotifications[0].notifyBody
           );
-          console.log(parsedMessage); 
+          console.log(parsedMessage);
 
           setAlertsMap((prevAlertsMap) => {
             const newAlertsMap = new Map(prevAlertsMap);
@@ -327,7 +330,7 @@ function AlertList() {
   return (
     <div className={`alerts ${expandAlertList ? "min" : ""}`}>
       <div className="box">
-        <h1>Alerts</h1>
+        <h1>{t("AlertList.Alerts")}</h1>
         <img
           id="expand"
           src="/src/assets/double-left.svg"
@@ -364,23 +367,27 @@ function AlertList() {
                 alt="red rectangular alert icon"
               />
               <h2>{`${
-                alert.status === 3 ? "Attention Alert" : "Bed Exit Alert"
+                alert.status === 3
+                  ? t("AlertList.AttentionAlert")
+                  : t("AlertList.BedExitAlert")
               }`}</h2>
             </div>
             <div className="info">
               <div className="item">
-                <div className="caption">Section</div>
+                <div className="caption">{t("AlertList.Section")}</div>
                 <p>{`${alert.floor}-${alert.section.split(" ").pop()}`}</p>
               </div>
               <div className="item">
-                <div className="caption">Bed</div>
+                <div className="caption">{t("AlertList.Bed")}</div>
                 <p>{alert.bedNo}</p>
               </div>
               <div className="item">
-                <div className="caption">Name</div>
+                <div className="caption">{t("AlertList.Name")}</div>
                 <p>{alert.userName}</p>
               </div>
-              <div className="time">{dayjs(alert.alertTime).format("HH:mm")}</div>
+              <div className="time">
+                {dayjs(alert.alertTime).format("HH:mm")}
+              </div>
             </div>
           </div>
         ))}
