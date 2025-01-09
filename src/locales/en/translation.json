@@ -62,6 +62,7 @@
   "PatientDetail":{
     "Monitor":"Monitor",
     "Alerts":"Alerts",
+    "Engineer":"Engineer",
     "Back":"Back"
   },
   "PatientProfile": {

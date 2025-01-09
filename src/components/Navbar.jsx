@@ -9,6 +9,8 @@ function Navbar() {
 
   const [currentLang, setCurrentLang] = useState("zh");
 
+  const [userName, setUserName] = useState("");
+
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng); // Change the active language
     localStorage.setItem("i18nextLng", lng); // Persist the language to localStorage
@@ -22,6 +24,7 @@ function Navbar() {
     } else {
       changeLanguage("zh");
     }
+    setUserName(JSON.parse(localStorage.getItem("username")));
   }, []);
   {
     /* nav link 字體反黑 */
@@ -59,7 +62,7 @@ function Navbar() {
     setActiveAccount(false);
   };
 
-  const { logout } = useAuth();
+  const { logout, role} = useAuth();
 
   {
     /* useRef Logic */
@@ -99,14 +102,14 @@ function Navbar() {
         >
           {t("Navbar.Device")}
         </Link>
-        <Link
+        {role==="administrator" && (<Link
           to="/account"
           className={`nav-link ${
             location.pathname.includes("/account") ? "active" : ""
           }`}
         >
           {t("Navbar.Account")}
-        </Link>
+        </Link>)}
       </div>
 
       {/* Settings */}
@@ -175,12 +178,13 @@ function Navbar() {
           <div className={`list ${isActiveAccount ? "active" : ""}`}>
             <div className="profile">
               <img src="/src/assets/account-active.svg" alt="" />
-              <p>Test 123</p>
+              <p>{userName}</p>
             </div>
             <a href="#" className="option setting">
               <img
                 src="/src/assets/setting.svg"
                 alt=""
+                className="setting-img"
                 style={{ width: "34px" }}
               />
               <p>{t("Navbar.AccountSettings")}</p>

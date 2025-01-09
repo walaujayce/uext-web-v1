@@ -16,6 +16,7 @@ import Device from "./pages/Device";
 import PatientDetail from "./pages/PatientDetail";
 import PatientMonitor from "./components/PatientMonitor";
 import PatientAlerts from "./components/PatientAlerts";
+import PatientEngineer from "./components/PatientEngineer";
 import DeviceSettings from "./components/DeviceSetting";
 import AccountSetting from "./components/AccountSetting";
 import PrivateRoute from "./JS/PrivateRoute";
@@ -40,7 +41,7 @@ function App() {
       <Route
         path="/home"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
             <Home />
           </PrivateRoute>
         }
@@ -48,20 +49,49 @@ function App() {
       <Route
         path="/patient"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
             <Patient />
           </PrivateRoute>
         }
       />
-      <Route path="/patient/patient-detail" element={<PatientDetail />}>
+      <Route
+        path="/patient/patient-detail"
+        element={
+          <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
+            <PatientDetail />
+          </PrivateRoute>
+        }
+      >
         <Route index element={<Navigate to="patient-monitor" replace />} />
-        <Route path="patient-monitor" element={<PatientMonitor />} />
-        <Route path="patient-alerts" element={<PatientAlerts />} />
+        <Route
+          path="patient-monitor"
+          element={
+            <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
+              <PatientMonitor />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="patient-alerts"
+          element={
+            <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
+              <PatientAlerts />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="patient-engineer"
+          element={
+            <PrivateRoute allowedRoles={[ "engineer", "administrator"]}>
+              <PatientEngineer />
+            </PrivateRoute>
+          }
+        />
       </Route>
       <Route
         path="/device"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={["user","engineer", "administrator"]}>
             <Device />
           </PrivateRoute>
         }
@@ -69,7 +99,7 @@ function App() {
       <Route
         path="/device/device-settings"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={["engineer", "administrator"]}>
             <DeviceSettings />
           </PrivateRoute>
         }
@@ -78,27 +108,20 @@ function App() {
       <Route
         path="/account"
         element={
-          <PrivateRoute>
+          <PrivateRoute allowedRoles={["administrator"]}>
             <Account />
           </PrivateRoute>
         }
       />
-        <Route path="/account/account-settings" element={<AccountSetting />} />
+      <Route
+        path="/account/account-settings"
+        element={
+          <PrivateRoute allowedRoles={["administrator"]}>
+            <AccountSetting />
+          </PrivateRoute>
+        }
+      />
       <Route path="*" element={<Navigate to="/" />} />
-      {/* <Route path="/home" element={<Home />} />
-        <Route path="/patient" element={<Patient />} />
-        <Route path="/patient/patient-detail" element={<PatientDetail />}>
-          <Route index element={<Navigate to="patient-monitor" replace />} />
-          <Route path="patient-monitor" element={<PatientMonitor />} />
-          <Route path="patient-alerts" element={<PatientAlerts />} />
-        </Route>
-        <Route path="/device" element={<Device />}>
-          <Route path="device-settings" element={<DeviceSettings />} />
-        </Route>
-        <Route path="/account" element={<Account />} >
-          <Route path="account-settings" element={<AccountSetting />} />
-        </Route>
-        <Route path="*" element={<Navigate to="/home" />} /> */}
     </Routes>
   );
 }

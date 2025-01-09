@@ -8,6 +8,8 @@ import { useTranslation } from "react-i18next";
 function AccountSetting() {
   const { t, i18n } = useTranslation();
 
+  const storedUserRole = localStorage.getItem("role");
+
   const navigate = useNavigate();
 
   const handleBackBtnClick = () => {
@@ -129,7 +131,13 @@ function AccountSetting() {
       PUT_UserInfo(userid, print_inputvalue);
     } else if (isRoleChanged && print_inputvalue === requestBody_PUT_Role) {
       console.log("the input requestbody is Role", print_inputvalue);
-      PUT_UserInfo(userid, print_inputvalue);
+      if (storedUserRole && JSON.parse(storedUserRole) === "administrator") {
+        alert("Cannot modify Administrator role!");
+        window.location.reload();
+        return;
+      } else {
+        PUT_UserInfo(userid, print_inputvalue);
+      }
     } else if (
       isPasswordChanged &&
       print_inputvalue === requestBody_PUT_Password
@@ -176,7 +184,12 @@ function AccountSetting() {
 
   const handleDeleteUser = (userid) => {
     console.log("delete userid is ", userid);
-    deleteUser_API(userid);
+    if (storedUserRole && JSON.parse(storedUserRole) === "administrator") {
+      alert("Cannot delete Administrator account!");
+      return;
+    } else {
+      deleteUser_API(userid);
+    }
   };
 
   const deleteUser_API = async (userid) => {

@@ -13,7 +13,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     proxy: { 
-      // Proxy for the first API
+      // Proxy for the first API 
       "/api/7284": {
         target: `http://${targetServer}:7284`,
         changeOrigin: true,

@@ -19,3 +19,6 @@ modify sort by STATUS cant show default
 
 #version 1.0.29
 modify DISCONNECT component navigate to device setting page
+
+#version 1.0.30
+add engineer mode, add different role access auth

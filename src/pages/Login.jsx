@@ -27,8 +27,7 @@ function Login() {
   }, []);
 
   const navigate = useNavigate();
-  const { login } = useAuth();
-  const { isAuthenticated } = useAuth();
+  const { login, isAuthenticated } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -61,7 +60,20 @@ function Login() {
       if (user) {
         console.log("Password:", user.password);
         if (user.password === password) {
-          login();
+
+          localStorage.setItem("username", JSON.stringify(user.username)); // Save user to localStorage
+
+          switch (user.role) {
+            case 0:
+              login("administrator");
+              break;
+            case 1:
+              login("engineer");
+              break;
+            case 2:
+              login("user");
+              break;
+          }
           navigate("/home");
         } else {
           setError("Incorrect password");
@@ -79,13 +91,13 @@ function Login() {
       <img className="background" src="/src/assets/login-bg.svg" alt="" />
       <div className="login">
         <img className="uextLogo" src="/src/assets/uext.svg" alt="" />
-        <div className="title">{t('Login.title')}</div>
+        <div className="title">{t("Login.title")}</div>
 
-        <form className="st1 active" >
+        <form className="st1 active">
           {/* login input box */}
           <div className="input g-c-6">
             <label for="login" className="label-container">
-              <p>{t('Login.Username')}</p>
+              <p>{t("Login.Username")}</p>
               <img
                 className="info"
                 src="/src/assets/information-outline.svg"
@@ -118,7 +130,7 @@ function Login() {
           {/* password input box */}
           <div className="input g-c-6 suffix">
             <label for="pw" className="label-container">
-              <p>{t('Login.Password')}</p>
+              <p>{t("Login.Password")}</p>
               <img
                 className="info"
                 src="/src/assets/information-outline.svg"
@@ -155,12 +167,12 @@ function Login() {
           <div className="btn-gp">
             {/* login button */}
             <a className="btn text-only pri" onClick={handleLogin}>
-              <p className="btn-text pri-text">{t('Login.Login')}</p>
+              <p className="btn-text pri-text">{t("Login.Login")}</p>
             </a>
 
             {/* forget password button */}
             <div className="btn text-only outline sec" id="forget-pw">
-              <p className="btn-text sec-text">{t('Login.ForgetPassword')}</p>
+              <p className="btn-text sec-text">{t("Login.ForgetPassword")}</p>
             </div>
           </div>
         </form>

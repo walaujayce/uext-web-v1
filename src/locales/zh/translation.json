@@ -62,6 +62,7 @@
   "PatientDetail": {
     "Monitor": "即時監控",
     "Alerts": "警示設定",
+    "Engineer":"工程模式",
     "Back": "返回列表"
   },
   "PatientProfile": {

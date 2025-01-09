@@ -10,9 +10,12 @@ import "/src/CSS/panel-list.css";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewDevice from "../components/Modals/AddNewDevice";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../JS/AuthContext";
 
 const DeviceList = () => {
   const { t, i18n } = useTranslation();
+
+  const { role } = useAuth();
 
   const [devices, setDevices] = useState([]);
 
@@ -74,8 +77,10 @@ const DeviceList = () => {
   const [isOverlayVisible, setOverlayVisible] = useState(false);
 
   const handleAddDeviceClick = (e) => {
-    e.preventDefault();
-    setOverlayVisible(!isOverlayVisible);
+    if(["administrator","engineer"].includes(role)){
+      e.preventDefault();
+      setOverlayVisible(!isOverlayVisible);
+    }
   };
 
   return (
@@ -148,7 +153,7 @@ const DeviceList = () => {
 
                   return numA - numB; // Numeric ascending order
                 })
-                .map((device) => (
+                .map((device) => (["administrator","engineer"].includes(role) ? (
                   <Link
                     to={`/device/device-settings?macaddress=${device.macaddress}`}
                     key={device.macaddress}
@@ -181,7 +186,34 @@ const DeviceList = () => {
                         </h3>
                       </div>
                     </div>
-                  </Link>
+                  </Link>):(<div className="item">
+                      <h3 className="fg1">
+                        {device.devicetype === 0
+                          ? "Not Specified"
+                          : device.devicetype === 1
+                          ? "UEXT"
+                          : "UMAP"}
+                      </h3>
+                      <h3 className="fg2">{device.deviceid || "N/A"}</h3>
+                      <h3 className="fg2">{device.macaddress || "N/A"}</h3>
+                      <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
+                      <h3 className="fg1">{device.bed || "N/A"}</h3>
+                      <h3 className="fg1">{device.section || "N/A"}</h3>
+                      <h3 className="fg1">{device.floor || "N/A"}</h3>
+                      <h3 className="fg1">
+                        {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
+                      </h3>
+                      <div
+                        className={`connection ${
+                          device.devicestatus ? "connected" : "disconnected"
+                        } fg2`}
+                      >
+                        <img src="" alt="" />
+                        <h3>
+                          {device.devicestatus ? "Connected" : "Disconnected"}
+                        </h3>
+                      </div>
+                    </div>)
                 ))}
             {/* {port === "7285" &&
               devices.map((device) => (
