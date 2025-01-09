@@ -9,6 +9,7 @@ import "/src/CSS/panel-list.css";
 import { Link } from "react-router-dom";
 import SignalRService from "../JS/SignalR";
 import { useTranslation } from "react-i18next";
+import AddNewUser from '../components/Modals/AddNewUser'
 
 const AccountList = () => {
   const { t, i18n } = useTranslation();
@@ -53,13 +54,21 @@ const AccountList = () => {
   };
   const handleSendMessage = () => {
     sendMessage();
-    console.log("click");
+  };
+  {
+    /* Handle Overlay Visible */
+  }
+  const [isOverlayVisible, setOverlayVisible] = useState(false);
+
+  const handleAddUserClick = (e) => {
+    e.preventDefault();
+    setOverlayVisible(!isOverlayVisible);
   };
 
   return (
     <>
       <div className="box">
-        <h1>{t('AccountList.AccountList')}</h1>
+        <h1>{t("AccountList.AccountList")}</h1>
       </div>
       <div className="container">
         <div className="top-bar">
@@ -67,51 +76,49 @@ const AccountList = () => {
           <div className="input dropdown floor suffix"></div>
           <div className="input dropdown section suffix"></div>
           <div className="input search"></div>
-          <div className="btn" id="addUser" onClick={handleSendMessage}>
+          <div className="btn" id="addUser" onClick={handleAddUserClick}>
             <img src="" alt="" className="prefix" />
-            <p className="btn-text">{t('AccountList.NewUser')}</p>
+            <p className="btn-text">{t("AccountList.NewUser")}</p>
+            {isOverlayVisible && (
+              <AddNewUser callback={handleAddUserClick} />
+            )}
           </div>
         </div>
         <div className="pl">
           <div className="head">
-            <h3 className="fg1">{t('AccountList.UserID')}</h3>
-            <h3 className="fg1">{t('AccountList.UserName')}</h3>
-            <h3 className="fg1">{t('AccountList.UserPassword')}</h3>
-            <h3 className="fg1">{t('AccountList.UserRole')}</h3>
-            <h3 className="fg1">{t('AccountList.UserEmail')}</h3>
-            <h3 className="fg1">{t('AccountList.LastLogin')}</h3>
+            <h3 className="fg1">{t("AccountList.UserID")}</h3>
+            <h3 className="fg1">{t("AccountList.UserName")}</h3>
+            <h3 className="fg1">{t("AccountList.UserPassword")}</h3>
+            <h3 className="fg1">{t("AccountList.UserRole")}</h3>
+            <h3 className="fg1">{t("AccountList.UserEmail")}</h3>
+            <h3 className="fg1">{t("AccountList.LastLogin")}</h3>
           </div>
           <div className="item-list">
-            <Link to={`/account/account-settings?userid=NUR-088465`}>
-              <a className="item">
-                <h3 className="fg1">NUR-088465</h3>
-                <h3 className="fg1">Chan Tai Ming</h3>
-                <h3 className="fg1">D**********</h3>
-                <h3 className="fg1">Administrator</h3>
-                <h3 className="fg1">zoechan@gmail.com</h3>
-                <h3 className="fg1">2024-07-31</h3>
-              </a>
-            </Link>
             {accounts.map((account) => (
-              <a className="item" key={account.userid}>
-                <h3 className="fg1">{account.userid}</h3>
-                <h3 className="fg1">{account.username}</h3>
-                <h3 className="fg1">
-                  {account.password[0] +
-                    "*".repeat(account.password.length - 1)}
-                </h3>
-                <h3 className="fg1">
-                  {account.role === 0
-                    ? "Administrator"
-                    : account.role === 1
-                    ? "Engineer"
-                    : "User"}
-                </h3>
-                <h3 className="fg1">{account.email}</h3>
-                <h3 className="fg1">
-                  {dayjs(account.lastlogin).format("YYYY-MM-DD")}
-                </h3>
-              </a>
+              <Link   
+                to={`/account/account-settings?userid=${account.userid}`}
+                key={account.userid}
+              >
+                <a className="item" key={account.userid}>
+                  <h3 className="fg1">{account.userid}</h3>
+                  <h3 className="fg1">{account.username}</h3>
+                  <h3 className="fg1">
+                    {account.password[0] +
+                      "*".repeat(account.password.length - 1)}
+                  </h3>
+                  <h3 className="fg1">
+                    {account.role === 0
+                      ? "Administrator"
+                      : account.role === 1
+                      ? "Engineer"
+                      : "User"}
+                  </h3>
+                  <h3 className="fg1">{account.email}</h3>
+                  <h3 className="fg1">
+                    {dayjs(account.lastlogin).format("YYYY-MM-DD")}
+                  </h3>
+                </a>
+              </Link>
             ))}
           </div>
         </div>

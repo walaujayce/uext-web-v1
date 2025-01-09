@@ -214,6 +214,9 @@ function PatientAlerts() {
       setExitBedRateToggleState((prev) => !prev);
       setEBRIsChecked(() => false);
       setSensitivityDropDown(() => false);
+      if(positionToggleState){
+        setPositionToggleState(false);
+      }
     } else {
       alert("At least one time interval for alerts has to be selected.");
     }
@@ -224,6 +227,9 @@ function PatientAlerts() {
     if (notificationToggleState) {
       setPositionToggleState((prev) => !prev);
       //setSelectedNotifications2((prev) => false);
+      if(exitBedRateToggleState){
+        setExitBedRateToggleState(false);
+      }
     } else {
       alert("At least one time interval for alerts has to be selected.");
     }
@@ -723,7 +729,7 @@ function PatientAlerts() {
             <img className="dot" src="/src/assets/toggle-dot.svg" alt="" />
           </div>
         </div>
-        <div className="alertOpt">
+        <div className="alertOpt" style={{ display: notificationToggleState ? "" : "none" }}>
           <p className="alertDesc">{t('PatientAlert.NotificationDescription')}</p>
           <div className="opt-list">
             <div
@@ -800,7 +806,7 @@ function PatientAlerts() {
             <img className="dot" src="/src/assets/toggle-dot.svg" alt="" />
           </div>
         </div>
-        <div className="alertOpt">
+        <div className="alertOpt" style={{ display: alertRepeatToggleState ? "" : "none" }}>
           <p className="alertDesc">
           {t('PatientAlert.RepeatedAlertDescription')}
           </p>
@@ -861,7 +867,8 @@ function PatientAlerts() {
             <img className="dot" src="/src/assets/toggle-dot.svg" alt="" />
           </div>
         </div>
-        <div className="alertOpt">
+        <div className="alertOpt" style={{ display: exitBedRateToggleState ? "" : "none" }}
+        >
           <p className="alertDesc">{t('PatientAlert.BedExitAlertDescription')}</p>
           <div className="opt-list">
             <div
@@ -961,7 +968,7 @@ function PatientAlerts() {
             <img className="dot" src="/src/assets/toggle-dot.svg" alt="" />
           </div>
         </div>
-        <div className="alertOpt">
+        <div className="alertOpt" style={{ display: positionToggleState ? "" : "none" }}>
           <p className="alertDesc">{t('PatientAlert.PostureAlertsDescription')}</p>
           <div className="opt-list">
             <div className={`opt-grid ${positionToggleState ? "active" : ""}`}>
@@ -1027,8 +1034,7 @@ function PatientAlerts() {
           </div>
         </div>
       </div>
-      <div className="alertSetting" style={{ borderBottom: "0px" }}>
-        {" "}
+      <div className="alertSetting" style={{ borderBottom: respHeartBeatToggleState ? "0px" : "" }}>
         {/* customize css */}
         <div className="alertHead">
           <h1>{t('PatientAlert.PhysiologicalAlerts')}</h1>
@@ -1044,7 +1050,7 @@ function PatientAlerts() {
             <img className="dot" src="/src/assets/toggle-dot.svg" alt="" />
           </div>
         </div>
-        <div className="alertOpt">
+        <div className="alertOpt" style={{ display: respHeartBeatToggleState ? "" : "none" }}>
           <p className="alertDesc">
           {t('PatientAlert.PhysiologicalAlertsDescription')}
           </p>
@@ -1144,7 +1150,16 @@ function PatientAlerts() {
                 <p className="btn-text">Save</p>
               </div>
             </div> */}
-            <div className="btn-gp">
+            
+          </div>
+        </div>
+      </div>
+      <div className="alertSetting">
+        
+        <div className="alertOpt">
+          <p className="alertDesc"></p>
+          <div className="opt-list">
+          <div className="btn-gp">
               <div
                 className={`btn text-only`}
                 onClick={handleUpdateAlertClicked}
@@ -1164,24 +1179,6 @@ function PatientAlerts() {
           </div>
         </div>
       </div>
-      {/* <div className="alertSetting">
-        <div className="alertHead"></div>
-        <div className="alertOpt">
-          <p className="alertDesc"></p>
-          <div className="opt-list">
-            <div className="btn-gp">
-              <div className={`btn text-only `}  onClick={handleUpdateAlertClicked}>
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text">Save</p>
-              </div>
-              <div className="btn text-only outline" id="reset">
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text">Reset to Default</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div> */}
     </div>
   );
 }

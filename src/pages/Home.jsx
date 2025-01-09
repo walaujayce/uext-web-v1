@@ -5,6 +5,7 @@ import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/index.css";
+import "../components/Modals/overlay.css";
 import Navbar from "/src/components/Navbar.jsx";
 import AlertList from "/src/components/AlertList.jsx";
 import FloorSectionBar from "../components/FloorSectionBar";
@@ -16,14 +17,10 @@ import {
   Bed_default,
 } from "../components/Bed_Cards";
 import { useTranslation } from "react-i18next";
-
+import { getServerIp } from "../JS/getServerIp";
 
 function Home() {
   const { t, i18n } = useTranslation();
-
-  const getServerIpAddress = () => {
-    return window.location.hostname;
-  };
 
   const [port, setPort] = useState("8031");
   const handleSelectPort = (port) => {
@@ -46,14 +43,14 @@ function Home() {
   const fetchDeviceList = async () => {
     try {
       if (port === "8031") {
-        const response = await fetch("api/8031/devices");
+        const response = await fetch("/api/8031/devices");
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
         console.log(data.DATA);
         setDevices(data.DATA || []);
-        //console.log("the current is ", getServerIpAddress());
+        console.log("the current is ", getServerIp());
       } else if (port === "7284") {
         const response = await fetch("/api/7284/db/Device");
         if (!response.ok) {
@@ -74,10 +71,15 @@ function Home() {
   }, [port]);
 
   const renderDeviceComponent = (device) => {
-    const { STAT, POS, MAC, HOLD, Bed, Floor, Section, UserName } = device;
+    const { STAT, POS, MAC, HOLD, Bed, Floor, Section, UserName, ER } = device;
 
     if (STAT === 0) {
       return (
+        <Link
+        to={`/device/device-settings?macaddress=${MAC}`}
+        key={MAC}
+        state={{ from: "/home" }}
+      >
         <Bed_disconnect
           key={MAC}
           macaddress={MAC}
@@ -86,7 +88,7 @@ function Home() {
           floor={Floor}
           section={Section}
           username={UserName}
-        />
+        /></Link>
       );
     } else if (STAT === 1) {
       if (UserName === null || UserName === "") {
@@ -116,7 +118,7 @@ function Home() {
               username={UserName}
             />
           </Link>
-        ) : POS === 3 ? (
+        ) : POS === 8 ? (
           <Link
             to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
             key={MAC}
@@ -194,17 +196,22 @@ function Home() {
   {
     /* Handle Sort by BED/STATUS */
   }
-  const [sort_by_bed, setSort_by_bed] = useState(true);
-  const [sort_by_status, setSort_by_status] = useState(false);
+  const [sortBy, setSortBy] = useState(
+    () => localStorage.getItem("sort_by") || "bed"
+  );
+
   const handleToggleSort = (type) => {
-    if (type === "bed") {
-      setSort_by_bed(true);
-      setSort_by_status(false);
-    } else {
-      setSort_by_bed(false);
-      setSort_by_status(true);
-    }
+    setSortBy(type);
+    localStorage.setItem("sort_by", type); // Persist the selected sort type
   };
+
+  // Sync with localStorage on mount
+  useEffect(() => {
+    const storedSort = localStorage.getItem("sort_by");
+    if (storedSort) {
+      setSortBy(storedSort);
+    }
+  }, []);
 
   return (
     <>
@@ -213,7 +220,7 @@ function Home() {
         <AlertList />
         <div className="main">
           <div className="box">
-            <h1>{t('Home.Monitor')}</h1>
+            <h1>{t("Home.Monitor")}</h1>
           </div>
           <div className="monitors">
             <div className="top-bar">
@@ -222,26 +229,28 @@ function Home() {
                 selectSection={handleSelectSection}
               />
               <div className="sort">
-                <div className="label">{t('Home.Sortby')}</div>
+                <div className="label">{t("Home.Sortby")}</div>
                 <div className="opt-box">
                   <div
-                    className={`opt s1 ${sort_by_bed ? "active" : ""}`}
+                    className={`opt s1 ${sortBy === "bed" ? "active" : ""}`}
                     onClick={() => handleToggleSort("bed")}
                   >
-                    {t('Home.Bed')}
+                    {t("Home.Bed")}
                   </div>
                   <div
-                    className={`opt s2 ${sort_by_status ? "active" : ""}`}
+                    className={`opt s2 ${sortBy === "bed" ? "" : "active"}`}
                     onClick={() => handleToggleSort("status")}
                   >
-                    {t('Home.Status')}
+                    {t("Home.Status")}
                   </div>
-                  <div className={`bg-bk ${sort_by_bed ? "s1" : "s2"}`}></div>
+                  <div
+                    className={`bg-bk ${sortBy === "bed" ? "s1" : "s2"}`}
+                  ></div>
                 </div>
               </div>
             </div>
             {/* Bed Grid Sort by Bed */}
-            <div className={`grid ${sort_by_bed ? "active" : ""}`}>
+            <div className={`grid ${sortBy === "bed" ? "active" : ""}`}>
               {devices
                 .slice()
                 .filter((device) => {
@@ -262,18 +271,18 @@ function Home() {
                   // Compare the number of digits in the bed number
                   const aDigits = a.Bed?.toString().length;
                   const bDigits = b.Bed?.toString().length;
-            
+
                   if (aDigits !== bDigits) {
                     return aDigits - bDigits; // Ascending order of digits count
                   }
-            
+
                   // If the digits count is the same, compare the bed numbers
                   return a.Bed - b.Bed; // Ascending order of bed numbers
                 })
                 .map((device) => renderDeviceComponent(device))}
             </div>
             {/* Bed Grid Sort by Status */}
-            <div className={`by-status ${sort_by_status ? "active" : ""}`}>
+            <div className={`by-status ${sortBy === "bed" ? "" : "active"}`}>
               {/* Alert Status */}
               {devices
                 .filter((device) => {
@@ -297,7 +306,7 @@ function Home() {
                     (device.POS === 4 || device.POS === 5 || device.POS === 0)
                 ) && (
                 <div className="status">
-                  <div className="title">{t('Home.Alerts')}</div>
+                  <div className="title">{t("Home.Alerts")}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {
@@ -364,10 +373,10 @@ function Home() {
                   (device) =>
                     device.STAT === 1 &&
                     !(device.UserName === null || device.UserName === "") &&
-                    device.POS === 3
+                    device.POS === 8
                 ) && (
                 <div className="status">
-                  <div className="title">{t('Home.Attention')}</div>
+                  <div className="title">{t("Home.Attention")}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {
@@ -390,7 +399,7 @@ function Home() {
                           !(
                             device.UserName === null || device.UserName === ""
                           ) &&
-                          device.POS === 3
+                          device.POS === 8
                       )
                       .map((device) => (
                         <Link
@@ -430,7 +439,7 @@ function Home() {
                 })
                 .some((device) => device.STAT === 0) && (
                 <div className="status">
-                  <div className="title">{t('Home.Disconnected')}</div>
+                  <div className="title">{t("Home.Disconnected")}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {
@@ -450,10 +459,10 @@ function Home() {
                       .filter((device) => device.STAT === 0)
                       .map((device) => (
                         <Link
-                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
-                          key={device.MAC}
-                          state={{ from: "/home" }}
-                        >
+                        to={`/device/device-settings?macaddress=${device.MAC}`}
+                        key={device.MAC}
+                        state={{ from: "/home" }}
+                      >
                           <Bed_disconnect
                             key={device.MAC}
                             macaddress={device.MAC}
@@ -489,14 +498,14 @@ function Home() {
                     device.STAT === 1 &&
                     !(device.UserName === null || device.UserName === "") &&
                     !(
-                      device.POS === 3 ||
                       device.POS === 4 ||
                       device.POS === 5 ||
+                      device.POS === 8 ||
                       device.POS === 0
                     )
                 ) && (
                 <div className="status">
-                  <div className="title">{t('Home.Normal')}</div>
+                  <div className="title">{t("Home.Normal")}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {
@@ -520,9 +529,9 @@ function Home() {
                             device.UserName === null || device.UserName === ""
                           ) &&
                           !(
-                            device.POS === 3 ||
                             device.POS === 4 ||
                             device.POS === 5 ||
+                            device.POS === 8 ||
                             device.POS === 0
                           )
                       )
@@ -568,7 +577,7 @@ function Home() {
                     (device.UserName === null || device.UserName === "")
                 ) && (
                 <div className="status">
-                  <div className="title">{t('Home.Vacant')}</div>
+                  <div className="title">{t("Home.Vacant")}</div>
                   <div className="status-grid">
                     {devices
                       .filter((device) => {

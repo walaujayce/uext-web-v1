@@ -4,6 +4,8 @@ import "/src/CSS/input.css";
 import "/src/CSS/index.css";
 import React, { useState } from "react";
 import AddNewPatient from "./Modals/AddNewPatient";
+import { useTranslation } from "react-i18next";
+
 
 export function Bed_disconnect({ hold, macaddress, username, bed }) {
   return (
@@ -24,6 +26,8 @@ export function Bed_disconnect({ hold, macaddress, username, bed }) {
 }
 
 export function Bed_vacant({ bed, macaddress }) {
+    const { t, i18n } = useTranslation();
+  
   const [isOverlayVisible, setOverlayVisible] = useState(false);
 
   const handleAddPatientClick = (e) => {
@@ -33,7 +37,7 @@ export function Bed_vacant({ bed, macaddress }) {
   return (
     <div className="bed vacant" onClick={handleAddPatientClick}>
       <div className="b-num">{bed}&nbsp;</div>
-      <div className="name">Click to add patient</div>
+      <div className="name">{t('AddPatientModal.ClickToAddPatient')}</div>
       <div className="tag">
         <img src="" alt="" />
         <p className="timer">02:14:42</p>

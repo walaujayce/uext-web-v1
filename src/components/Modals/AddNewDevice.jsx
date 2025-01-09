@@ -295,7 +295,7 @@ const AddNewDevice = ({ callback }) => {
             style={{ display: isActive_Stage2 ? "block" : "none" }}
           />
           <div className="title">{`${
-            isActive_Stage2 ? "New Device Added" : t('AddDeviceModal.AddDevice')
+            isActive_Stage2 ? t('AddDeviceModal.NewDeviceAdd') : t('AddDeviceModal.AddDevice')
           }`}</div>
           <div
             className="tab-list"

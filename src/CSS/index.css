@@ -198,7 +198,7 @@
 /* Bed Attention Status */
 .bed.attention{
     background: var(--P-100, #FFF3E5);
-    animation: blink 800ms ease-in-out infinite; /* 400ms for a full cycle (200ms up, 200ms down) */
+    /* animation: blink 800ms ease-in-out infinite; 400ms for a full cycle (200ms up, 200ms down) */
 
 }
 .bed.attention:hover{
@@ -222,7 +222,7 @@
 /* Bed Alert Status */
 .bed.alert{
     background: var(--P-100, #FFF0F0);
-    animation: blink 800ms ease-in-out infinite; /* 400ms for a full cycle (200ms up, 200ms down) */
+    /* animation: blink 800ms ease-in-out infinite; 400ms for a full cycle (200ms up, 200ms down) */
 
 }
 .bed.alert:hover{

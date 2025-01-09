@@ -133,7 +133,7 @@
     height: 160px;
 }
 
-.addPatient .title{
+.addPatient .title-add{
     color: var(--1000, #000);
     text-align: center;
     font-size: 48px;
@@ -434,7 +434,7 @@
         height: 80px;
     }
     
-    .addPatient .title,
+    .addPatient .title-add,
     .addDevice .title{
         font-size: 32px;
         margin-bottom: 24px;
@@ -503,7 +503,7 @@
     flex-direction: column;
     align-items: center;
     background: var(--0, #FFF);
-
+    cursor:default;
     position: fixed;
     left: 50%;
     top:50%;

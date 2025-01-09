@@ -1,22 +1,22 @@
 {
   "Login": {
     "title": "離床警示系統",
-    "Username": "使用者名稱",
+    "Username": "帳戶名稱",
     "Password": "密碼",
     "Login":"登入",
     "ForgetPassword": "忘記密碼"
   },
   "Navbar": {
     "Home": "首頁",
-    "Patient": "病人",
+    "Patient": "住民",
     "Device": "裝置",
-    "Account": "賬戶",
-    "AccountSettings": "賬戶設定",
+    "Account": "帳戶",
+    "AccountSettings": "帳戶設定",
     "ChangePassword": "更改密碼",
     "Logout": "登出"
   },
   "Home": {
-    "Monitor": "監控",
+    "Monitor": "監控列表",
     "Sortby": "排列方式",
     "Bed": "床號",
     "Status": "狀態",
@@ -31,7 +31,7 @@
     "Section": "區域"
   },
   "AlertList": {
-    "Alerts": "警示爛",
+    "Alerts": "警示列表",
     "BedExitAlert": "離床警示通知",
     "AttentionAlert": "注意警示通知",
     "Section": "位置",
@@ -49,8 +49,8 @@
     "Cancel": "取消"
   },
   "PatientList": {
-    "PatientList": "病人列表",
-    "PatientID": "病人編號",
+    "PatientList": "住民列表",
+    "PatientID": "住民編號",
     "PatientName": "姓名",
     "Sex": "性別",
     "Bed": "床號",
@@ -65,8 +65,8 @@
     "Back": "返回列表"
   },
   "PatientProfile": {
-    "PatientProfile": "病人資料",
-    "PatientID": "病人編號",
+    "PatientProfile": "住民資料",
+    "PatientID": "住民編號",
     "PatientName": "姓名",
     "Sex": "性別",
     "Birthday": "生日",
@@ -81,20 +81,21 @@
     "Discharge": "出院確認"
   },
   "AddPatientModal": {
-    "ClickToAddPatient": "新增病人",
-    "AddPatient-h1": "新增病人",
-    "AddPatient-h2": "病人資料",
-    "ID": "病人編號",
+    "ClickToAddPatient": "點擊以新增住民",
+    "AddNewPatient":"住民新增成功",
+    "AddPatient-h1": "新增住民",
+    "AddPatient-h2": "住民資料",
+    "ID": "住民編號",
     "Name": "姓名",
     "Height": "身高 (公分)",
     "Weight": "體重 (公斤)",
     "Sex": "性別",
     "DOB": "生日",
-    "COntinue": "繼續",
+    "Continue": "繼續",
     "Cancel": "取消"
   },
   "DischargeModal": {
-    "description": "確定病人出院？",
+    "description": "確定住民出院？",
     "Discharge": "出院確認",
     "Cancel": "取消"
   },
@@ -184,6 +185,7 @@
   },
   "AddDeviceModal": {
     "AddDevice": "新增裝置",
+    "NewDeviceAdd":"裝置新增成功",
     "DeviceProfile": "裝置資料",
     "DeviceType": "裝置種類",
     "MACAddress": "MAC",
@@ -193,18 +195,18 @@
     "Continue": "繼續"
   },
   "AccountList": {
-    "AccountList": "使用者列表",
-    "NewUser": "新增使用者",
+    "AccountList": "帳戶列表",
+    "NewUser": "新增帳戶",
     "UserID": "編號",
     "UserName": "名稱",
     "UserPassword": "密碼",
     "UserRole": "權限",
     "UserEmail": "電郵",
     "LastLogin": "最近登入",
-    "AddNewUser": "新增賬號"
+    "AddNewUser": "新增帳戶"
   },
   "AccountSettings": {
-    "AccountSettings":"賬號設定",
+    "AccountSettings":"帳戶設定",
     "UserProfile": "基本資料",
     "Name": "名稱",
     "Phone": "電話",
@@ -212,18 +214,32 @@
     "Id": "編號",
     "RoleAndAuthority": "權限設定",
     "Role": "權限",
-    "UsernameAndPassword": "登入與密碼",
-    "LoginUserName": "使用者名稱",
+    "UsernameAndPassword": "密碼變更",
+    "LoginUserName": "帳戶名稱",
     "Password": "密碼",
     "Save": "儲存",
     "ChangePassword": "更改密碼",
-    "DeleteUser": "刪除賬號",
+    "DeleteUser": "刪除帳戶",
     "Back": "返回列表"
   },
   "LogoutModal": {
     "LogoutTitle": "登出確認",
-    "Logout-p": "登出當前賬號嗎？",
+    "Logout-p": "登出當前帳戶嗎？",
     "Confirm": "確認",
     "Cancel": "取消"
+  },
+  "AddUserModal":{
+    "AddUserTitle":"新增帳戶",
+    "AddUser-p":"填寫帳戶資料",
+    "NewUserCreate":"帳戶已成功新增",
+    "Name":"姓名",
+    "Id":"編號",
+    "Email":"電郵",
+    "Role":"權限",
+    "Password":"密碼",
+    "ConfirmPassword":"確認密碼",
+    "Confirm":"確認",
+    "Cancel":"取消",
+    "Okay":"好的"
   }
 }

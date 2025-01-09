@@ -827,7 +827,7 @@ footer .time{
         width: 80px;
     }
     .alerts .box{
-        padding-bottom: 8px;
+        padding-bottom: 12px;
         border-bottom: 1.5px solid var(--850, #262626);
     }
     .alerts .box img{

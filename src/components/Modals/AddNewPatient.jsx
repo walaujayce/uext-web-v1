@@ -7,8 +7,11 @@ import "/src/CSS/index.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
+import { useTranslation } from "react-i18next";
 
 const AddNewPatient = ({ mac, callback }) => {
+    const { t, i18n } = useTranslation();
+  
   {
     /* Handle Overlay Logic */
   }
@@ -196,15 +199,15 @@ const AddNewPatient = ({ mac, callback }) => {
             className="icon"
             style={{ display: isActive_Stage2 ? "block" : "none" }}
           />
-          <div className="title">{`${
-            isActive_Stage2 ? "New Patient Added" : "Add Patient"
+          <div className="title-add">{`${
+            isActive_Stage2 ? t('AddPatientModal.AddNewPatient') : t('AddPatientModal.AddPatient-h1') 
           }`}</div>
           <div
             className="tab-list"
             style={{ display: isActive_Stage2 ? "none" : "" }}
           >
             <a href="#" className="tab active tab-1">
-              Patient Profile
+              {t('AddPatientModal.AddPatient-h2')}
             </a>
             {/* <a href="#" className="tab tab-2">
               Bed Location
@@ -221,7 +224,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* ID */}
               <div className="input g-c-3">
                 <label htmlFor="id" className="label-container">
-                  <p>ID</p>
+                  <p>{t('AddPatientModal.ID')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -252,7 +255,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* Name */}
               <div className="input g-c-3">
                 <label htmlFor="name" className="label-container">
-                  <p>Name</p>
+                  <p>{t('AddPatientModal.Name')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -283,7 +286,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* Height */}
               <div className="input g-c-3">
                 <label htmlFor="height" className="label-container">
-                  <p>Height</p>
+                  <p>{t('AddPatientModal.Height')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -314,7 +317,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* Weight */}
               <div className="input g-c-3">
                 <label htmlFor="weight" className="label-container">
-                  <p>Weight</p>
+                  <p>{t('AddPatientModal.Weight')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -349,7 +352,7 @@ const AddNewPatient = ({ mac, callback }) => {
                 ref={dropdownRef}
               >
                 <label htmlFor="sex" className="label-container">
-                  <p>Sex</p>
+                  <p>{t('AddPatientModal.Sex')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -388,7 +391,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* DOB */}
               <div className="input g-c-3">
                 <label htmlFor="dob" className="label-container">
-                  <p>Date of Birth</p>
+                  <p>{t('AddPatientModal.DOB')}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -423,14 +426,14 @@ const AddNewPatient = ({ mac, callback }) => {
                 onClick={handleConfirm_S1_Click}
               >
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text pri-text">Continue</p>
+                <p className="btn-text pri-text">{t('AddPatientModal.Continue')}</p>
               </div>
               <div
                 className="btn text-only outline sec"
                 onClick={(e) => callback(e)}
               >
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text sec-text">Cancel</p>
+                <p className="btn-text sec-text">{t('AddPatientModal.Cancel')}</p>
               </div>
             </div>
           </form>

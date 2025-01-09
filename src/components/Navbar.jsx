@@ -7,19 +7,22 @@ import { useTranslation } from "react-i18next";
 function Navbar() {
   const { t, i18n } = useTranslation();
 
+  const [currentLang, setCurrentLang] = useState("zh");
+
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng); // Change the active language
     localStorage.setItem("i18nextLng", lng); // Persist the language to localStorage
+    setCurrentLang(lng); // Update the current language state
   };
-
-  const [currentLang, setCurrentLang] = useState("");
 
   useEffect(() => {
     const lang = localStorage.getItem("i18nextLng");
     if (lang) {
-      setCurrentLang(lang);
+      changeLanguage(lang);
+    } else {
+      changeLanguage("zh");
     }
-  }, [changeLanguage]);
+  }, []);
   {
     /* nav link 字體反黑 */
   }
@@ -109,7 +112,7 @@ function Navbar() {
       {/* Settings */}
       <div className="other">
         <div
-          className={`lang ${isActiveLang ? "active" : ""}`}
+          className={`lang ${isActiveLang ? "" : ""}`}
           onMouseEnter={handleMouseEnterLang}
           onMouseLeave={handleMouseLeaveLang}
         >
@@ -123,7 +126,7 @@ function Navbar() {
               <img
                 src="/src/assets/check.svg"
                 alt=""
-                style={{ display: currentLang === "zh" ? "none" : "" }}
+                style={{ display: currentLang === "en" ? "flex" : "none" }}
               />
               English
             </a>
@@ -131,12 +134,11 @@ function Navbar() {
               <img
                 src="/src/assets/check.svg"
                 alt=""
-                style={{ display: currentLang === "en" ? "none" : "" }}
-              />{" "}
+                style={{ display: currentLang === "en" ? "none" : "flex" }}
+              />
               繁體中文
             </a>
           </div>
-          `
         </div>
         <div className="notification">
           <img src="/src/assets/notice.svg" alt="" className="notiBtn" />
@@ -161,7 +163,7 @@ function Navbar() {
         </div>
         {/* Account */}
         <div
-          className={`setting ${isActiveAccount ? "active" : ""}`}
+          className={`setting ${isActiveAccount ? "" : ""}`}
           onMouseEnter={handleMouseEnter}
           onMouseLeave={handleMouseLeave}
         >
@@ -181,15 +183,15 @@ function Navbar() {
                 alt=""
                 style={{ width: "34px" }}
               />
-              <p>{t('Navbar.AccountSettings')}</p>
+              <p>{t("Navbar.AccountSettings")}</p>
             </a>
             <a href="#" className="option pw" id="changePassword">
               <img src="/src/assets/lock.svg" alt="" />
-              <p>{t('Navbar.ChangePassword')}</p>
+              <p>{t("Navbar.ChangePassword")}</p>
             </a>
             <a className="option logout" onClick={handleLogOutVisibleClick}>
               <img src="/src/assets/logout.svg" alt="" />
-              <p>{t('Navbar.Logout')}</p>
+              <p>{t("Navbar.Logout")}</p>
               {isLogoutOverlayVisible && (
                 <LogOut_Modal
                   callback={handleLogOutVisibleClick}

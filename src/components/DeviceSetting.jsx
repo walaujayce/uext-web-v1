@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import "/src/CSS/device.css";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams,useLocation } from "react-router-dom";
 import { useDropdownLogic, fetchList } from "../JS/GetFloorSectionAPI";
 import Navbar from "./Navbar";
 import AlertList from "./AlertList";
@@ -17,8 +17,11 @@ function DeviceSettings() {
     /* Handle Back Button */
   }
   const navigate = useNavigate();
+  const location = useLocation();
+
   const handleBackBtnClick = () => {
-    navigate("/device");
+    navigate(location.state?.from || "/device"); 
+
   };
 
   {

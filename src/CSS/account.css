@@ -291,8 +291,7 @@
         gap: 40px;
     }
     .accSetting h2{
-        width: auto;
-        min-width: 100px;
+        width: 15%;
         font-size: 14px;
     }
     .opt-list .btn-gp {

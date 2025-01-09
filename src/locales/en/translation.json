@@ -8,7 +8,7 @@
   },
   "Navbar": {
     "Home": "Home",
-    "Patient": "Patient",
+    "Patient": "Residence",
     "Device": "Device",
     "Account": "Account",
     "AccountSettings": "Account Settings",
@@ -49,9 +49,9 @@
     "Cancel":"Cancel"
   },
   "PatientList": {
-    "PatientList": "Patient List",
-    "PatientID": "Patient ID",
-    "PatientName": "Patient Name",
+    "PatientList": "Residence List",
+    "PatientID": "Residence ID",
+    "PatientName": "Residence Name",
     "Sex": "Sex",
     "Bed": "Bed",
     "Section": "Section",
@@ -65,8 +65,8 @@
     "Back":"Back"
   },
   "PatientProfile": {
-    "PatientProfile": "Patient Profile",
-    "PatientID": "Patient ID",
+    "PatientProfile": "Residence Profile",
+    "PatientID": "Residence ID",
     "PatientName": "Name",
     "Sex": "Sex",
     "Birthday": "Birthday",
@@ -81,20 +81,21 @@
     "Discharge": "Discharge"
   },
   "AddPatientModal":{
-    "ClickToAddPatient":"Click To Add Patient",
-    "AddPatient-h1":"Add Patient",
-    "AddPatient-h2":"Patient Profile",
+    "ClickToAddPatient":"Click to add residence",
+    "AddNewPatient":"Residence Added Successfully",
+    "AddPatient-h1":"Add Residence",
+    "AddPatient-h2":"Residence Profile",
     "ID":"ID",
     "Name":"Name",
     "Height":"Height (cm)",
     "Weight":"Weight (kg)",
     "Sex":"Sex",
     "DOB":"DOB",
-    "COntinue":"COntinue",
+    "Continue":"Continue",
     "Cancel":"Cancel"
   },
   "DischargeModal":{
-    "description":"Confirm to discharge the patient?",
+    "description":"Confirm to discharge the residence?",
     "Discharge":"Discharge",
     "Cancel":"Cancel"
   },
@@ -183,6 +184,7 @@
   },
   "AddDeviceModal":{
     "AddDevice":"Add Device",
+    "NewDeviceAdd":"New Device Added",
     "DeviceProfile":"Device Profile",
     "DeviceType":"Device Type",
     "MACAddress":"MAC",
@@ -208,10 +210,10 @@
     "Name":"Name",
     "Phone":"Phone",
     "Email":"Email",
-    "Id":"User Id",
-    "RoleAndAuthority":"Role And Authority",
+    "Id":"Id",
+    "RoleAndAuthority":"Role Setting",
     "Role":"Role",
-    "UsernameAndPassword":"Username And Password",
+    "UsernameAndPassword":"Password Setting",
     "LoginUserName":"Login Username",
     "Password":"Password",
     "Save":"Save",
@@ -224,5 +226,19 @@
     "Logout-p":"Confirm to logout?",
     "Confirm":"Confirm",
     "Cancel":"Cancel"
+  },
+  "AddUserModal":{
+    "AddUserTitle":"Create a New User",
+    "AddUser-p":"Fill in profile information",
+    "NewUserCreate":"New User has been created",
+    "Name":"Name",
+    "Id":"ID",
+    "Email":"Email",
+    "Role":"Role",
+    "Password":"Password",
+    "ConfirmPassword":"Confirm Password",
+    "Confirm":"Confirm",
+    "Cancel":"Cancel",
+    "Okay":"Okay"
   }
 }

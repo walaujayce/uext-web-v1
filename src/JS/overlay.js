@@ -254,7 +254,7 @@ $(document).ready(function () {
         e.preventDefault();
         // Open Stage 3
         $(".addPatient .title").text("New Patient Added!");
-        $(".addPatient.chi .title").text("成功新增病人");
+        $(".addPatient.chi .title").text("成功新增住民");
         $(".btn-gp.st3").css("display","flex");
         $(".addPatient .icon").css("display", "block");
         $(".addPatient .icon").attr("src", "../element/check-active.svg");
@@ -279,7 +279,7 @@ $(document).ready(function () {
         $(".tab-2").removeClass("active");
         $(".st3").css("display","none");
         $(".addPatient .title").text("Add Patient");
-        $(".addPatient.chi .title").text("新增病人");
+        $(".addPatient.chi .title").text("新增住民");
     });
 
     $(".addPatient .st3 .sec").click(function (e) { 

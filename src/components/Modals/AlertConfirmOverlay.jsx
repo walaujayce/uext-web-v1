@@ -32,18 +32,18 @@ const AlertConfirmOverlay = ({
           <img
             class="icon"
             src={`${
-              alertDetail.status === 3
+              alertDetail.status === 8
                 ? "/src/assets/attention.svg"
                 : "/src/assets/alert.svg"
             }`}
             alt="aler box in gray"
           />
           <h1 class="title">{`${
-            alertDetail.status === 3 ? t('ConfirmAlertModal.h1-attention') :t('ConfirmAlertModal.h1-alert')
+            alertDetail.status === 8 ? t('ConfirmAlertModal.h1-attention') :t('ConfirmAlertModal.h1-alert')
           }`}</h1>
           <p class="desc" style={{margin:"10px 0px 20px 0px"}}>
           {`${
-            alertDetail.status === 3 ? t('ConfirmAlertModal.description-attention-p1',{PatientName: alertDetail.userName , BedNo: alertDetail.bedNo}) :t('ConfirmAlertModal.description-alert-p1',{PatientName: alertDetail.userName , BedNo: alertDetail.bedNo})
+            alertDetail.status === 8 ? t('ConfirmAlertModal.description-attention-p1',{PatientName: alertDetail.userName , BedNo: alertDetail.bedNo}) :t('ConfirmAlertModal.description-alert-p1',{PatientName: alertDetail.userName , BedNo: alertDetail.bedNo})
           }`}
             <br /> {t('ConfirmAlertModal.description-alert-p2')}
           </p>

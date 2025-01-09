@@ -97,7 +97,45 @@ label .info{
 .info.active{
     display: block;
 }
-
+.info-container {
+    position: relative;
+    display: inline-block;
+  }
+  
+  .tooltip {
+    visibility: hidden;
+    background-color: #555555;
+    color: #fff;
+    text-align: left;
+    border-radius: 4px;
+    padding: 8px;
+    width: 200px;
+    position: absolute;
+    z-index: 10;
+    bottom: 100%; /* Position above the icon */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.3s;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .tooltip::after {
+    content: "";
+    position: absolute;
+    top: 100%; /* Point the triangle downward */
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+  }
+  
+  .info-container:hover .tooltip {
+    visibility: visible;
+    opacity: 1;
+  }
+  
 /* Control for assistive text (Add Class "assist" to show)*/
 .assistive-text.active{
     display: block;

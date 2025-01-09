@@ -81,7 +81,7 @@ function Login() {
         <img className="uextLogo" src="/src/assets/uext.svg" alt="" />
         <div className="title">{t('Login.title')}</div>
 
-        <form className="st1 active">
+        <form className="st1 active" >
           {/* login input box */}
           <div className="input g-c-6">
             <label for="login" className="label-container">

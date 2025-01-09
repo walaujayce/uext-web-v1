@@ -7,11 +7,23 @@ import { useTranslation } from "react-i18next";
 function AlertList() {
   const { t, i18n } = useTranslation();
 
-  const [expandAlertList, setExpandAlertList] = useState(false);
+  const [expandAlertList, setExpandAlertList] = useState(
+    () => JSON.parse(localStorage.getItem("expandAlertList")) || false
+  );
 
   const handleAlertListExpandClick = () => {
-    setExpandAlertList((prev) => !prev);
+    setExpandAlertList((prev) => {
+      const newState = !prev;
+      localStorage.setItem("expandAlertList", JSON.stringify(newState)); // Persist the new state
+      return newState;
+    });
   };
+  useEffect(() => {
+    const storedState = localStorage.getItem("expandAlertList");
+    if (storedState !== null) {
+      setExpandAlertList(JSON.parse(storedState)); // Restore the state from localStorage
+    }
+  }, []);
   {
     /* Signal R Connection */
   }
@@ -339,58 +351,60 @@ function AlertList() {
         />
       </div>
       <div className="alert-list">
-        {alertsArray.map((alert, index) => (
-          <div
-            className={`container ${
-              alert.status === 3 ? "in-progress" : ""
-            } new ${expandAlertList ? "min" : ""}`}
-            key={index}
-            onClick={() => handleAlertVisibleClick(alert.mac)}
-          >
-            {activeAlert === alert.mac && (
-              <AlertConfirmOverlay
-                key={index}
-                callback={() => handleAlertVisibleClick(alert.mac)}
-                confirmAlert_callback={() =>
-                  handleConfirmAlertOverlay(alert.mac, alert.id)
-                }
-                alertDetail={alert}
-              />
-            )}
-            <div className="title">
-              <img
-                src={`${
-                  alert.status === 3
-                    ? "/src/assets/attention.svg"
-                    : "/src/assets/alert.svg"
-                }`}
-                alt="red rectangular alert icon"
-              />
-              <h2>{`${
-                alert.status === 3
-                  ? t("AlertList.AttentionAlert")
-                  : t("AlertList.BedExitAlert")
-              }`}</h2>
+        {alertsArray
+          .sort((a, b) => new Date(b.alertTime) - new Date(a.alertTime))
+          .map((alert, index) => (
+            <div
+              className={`container ${
+                alert.status === 3 || alert.status === 8 ? "in-progress" : ""
+              } new ${expandAlertList ? "min" : ""}`}
+              key={index}
+              onClick={() => handleAlertVisibleClick(alert.mac)}
+            >
+              {activeAlert === alert.mac && (
+                <AlertConfirmOverlay
+                  key={index}
+                  callback={() => handleAlertVisibleClick(alert.mac)}
+                  confirmAlert_callback={() =>
+                    handleConfirmAlertOverlay(alert.mac, alert.id)
+                  }
+                  alertDetail={alert}
+                />
+              )}
+              <div className="title">
+                <img
+                  src={`${
+                    alert.status === 3 || alert.status === 8
+                      ? "/src/assets/attention.svg"
+                      : "/src/assets/alert.svg"
+                  }`}
+                  alt="red rectangular alert icon"
+                />
+                <h2>{`${
+                  alert.status === 3 || alert.status === 8
+                    ? t("AlertList.AttentionAlert")
+                    : t("AlertList.BedExitAlert")
+                }`}</h2>
+              </div>
+              <div className="info">
+                <div className="item">
+                  <div className="caption">{t("AlertList.Section")}</div>
+                  <p>{`${alert.floor}-${alert.section.split(" ").pop()}`}</p>
+                </div>
+                <div className="item">
+                  <div className="caption">{t("AlertList.Bed")}</div>
+                  <p>{alert.bedNo}</p>
+                </div>
+                <div className="item">
+                  <div className="caption">{t("AlertList.Name")}</div>
+                  <p>{alert.userName}</p>
+                </div>
+                <div className="time">
+                  {dayjs(alert.alertTime).format("HH:mm")}
+                </div>
+              </div>
             </div>
-            <div className="info">
-              <div className="item">
-                <div className="caption">{t("AlertList.Section")}</div>
-                <p>{`${alert.floor}-${alert.section.split(" ").pop()}`}</p>
-              </div>
-              <div className="item">
-                <div className="caption">{t("AlertList.Bed")}</div>
-                <p>{alert.bedNo}</p>
-              </div>
-              <div className="item">
-                <div className="caption">{t("AlertList.Name")}</div>
-                <p>{alert.userName}</p>
-              </div>
-              <div className="time">
-                {dayjs(alert.alertTime).format("HH:mm")}
-              </div>
-            </div>
-          </div>
-        ))}
+          ))}
       </div>
     </div>
   );

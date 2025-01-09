@@ -214,7 +214,7 @@ function PatientProfile() {
         alert("Patient fail to update!");
         setIsChanged(false);
       } else {
-        console.log("Device updated successfully:", data);
+        console.log("Patient updated successfully:", data);
         alert("Update Successfully!");
         window.location.reload();
         setIsChanged(false);
@@ -263,12 +263,12 @@ function PatientProfile() {
 
   return (
     <div className="pp">
-      <h1>{t('PatientProfile.PatientProfile')}</h1>
+      <h1>{t("PatientProfile.PatientProfile")}</h1>
       <div className="pfl">
         {/* Patient ID */}
         <div className="input g-c-6">
           <label htmlFor="p-id" className="label-container">
-            <p>{t('PatientProfile.PatientID')}</p>
+            <p>{t("PatientProfile.PatientID")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -292,7 +292,7 @@ function PatientProfile() {
         {/* Patient Name */}
         <div className="input g-c-6">
           <label htmlFor="name" className="label-container">
-            <p>{t('PatientProfile.PatientName')}</p>
+            <p>{t("PatientProfile.PatientName")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -323,7 +323,7 @@ function PatientProfile() {
           ref={dropdownRef}
         >
           <label htmlFor="sex" className="label-container">
-            <p>{t('PatientProfile.Sex')}</p>
+            <p>{t("PatientProfile.Sex")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -358,7 +358,7 @@ function PatientProfile() {
         {/* Birthday Date */}
         <div className="input g-c-3">
           <label htmlFor="arrival" className="label-container">
-            <p>{t('PatientProfile.Birthday')}</p>
+            <p>{t("PatientProfile.Birthday")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -381,7 +381,7 @@ function PatientProfile() {
         {/* Height */}
         <div className="input g-c-3">
           <label htmlFor="height" className="label-container">
-            <p>{t('PatientProfile.Height')}</p>
+            <p>{t("PatientProfile.Height")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -405,7 +405,7 @@ function PatientProfile() {
         {/* Weight */}
         <div className="input g-c-3">
           <label htmlFor="weight" className="label-container">
-            <p>{t('PatientProfile.Weight')}</p>
+            <p>{t("PatientProfile.Weight")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -429,7 +429,7 @@ function PatientProfile() {
         {/* Bed */}
         <div className="input g-c-2">
           <label htmlFor="p-id" className="label-container">
-            <p>{t('PatientProfile.Bed')}</p>
+            <p>{t("PatientProfile.Bed")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -452,7 +452,7 @@ function PatientProfile() {
         {/* Section */}
         <div className="input g-c-2">
           <label htmlFor="section" className="label-container">
-            <p>{t('PatientProfile.Section')}</p>
+            <p>{t("PatientProfile.Section")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -475,7 +475,7 @@ function PatientProfile() {
         {/* Floor */}
         <div className="input g-c-2">
           <label htmlFor="floor" className="label-container">
-            <p>{t('PatientProfile.Floor')}</p>
+            <p>{t("PatientProfile.Floor")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -498,7 +498,7 @@ function PatientProfile() {
         {/* Device ID */}
         <div className="input g-c-3">
           <label htmlFor="d-id" className="label-container">
-            <p>{t('PatientProfile.DeviceID')}</p>
+            <p>{t("PatientProfile.DeviceID")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -522,7 +522,7 @@ function PatientProfile() {
         {/* Connection Status */}
         <div className="input g-c-3 suffix">
           <label htmlFor="connection" className="label-container">
-            <p>{t('PatientProfile.DeviceStatus')}</p>
+            <p>{t("PatientProfile.DeviceStatus")}</p>
             <img
               className="info"
               src="/src/assets/information-outline.svg"
@@ -554,7 +554,7 @@ function PatientProfile() {
           style={{ cursor: isChanged ? "pointer" : "default" }}
         >
           <img src="" alt="" className="prefix" />
-          <p className="btn-text">{t('PatientProfile.Save')}</p>
+          <p className="btn-text">{t("PatientProfile.Save")}</p>
         </div>
         <div
           className="btn text-only outline"
@@ -562,7 +562,7 @@ function PatientProfile() {
           onClick={handleDisChargeOverlay}
         >
           <img src="" alt="" className="prefix" />
-          <p className="btn-text">{t('PatientProfile.Discharge')}</p>
+          <p className="btn-text">{t("PatientProfile.Discharge")}</p>
           {isDischargeOverlayVisible && (
             <DisChargePatient
               callback={handleDisChargeOverlay}
