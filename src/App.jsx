@@ -41,7 +41,7 @@ function App() {
       <Route
         path="/home"
         element={
-          <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
+          <PrivateRoute allowedRoles={["all"]}>
             <Home />
           </PrivateRoute>
         }
@@ -49,7 +49,7 @@ function App() {
       <Route
         path="/patient"
         element={
-          <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
+          <PrivateRoute allowedRoles={["all"]}>
             <Patient />
           </PrivateRoute>
         }
@@ -57,7 +57,7 @@ function App() {
       <Route
         path="/patient/patient-detail"
         element={
-          <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
+          <PrivateRoute allowedRoles={["all"]}>
             <PatientDetail />
           </PrivateRoute>
         }
@@ -66,7 +66,7 @@ function App() {
         <Route
           path="patient-monitor"
           element={
-            <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
+            <PrivateRoute allowedRoles={["all"]}>
               <PatientMonitor />
             </PrivateRoute>
           }
@@ -74,7 +74,7 @@ function App() {
         <Route
           path="patient-alerts"
           element={
-            <PrivateRoute allowedRoles={["user", "engineer", "administrator"]}>
+            <PrivateRoute allowedRoles={["all"]}>
               <PatientAlerts />
             </PrivateRoute>
           }
@@ -91,7 +91,7 @@ function App() {
       <Route
         path="/device"
         element={
-          <PrivateRoute allowedRoles={["user","engineer", "administrator"]}>
+          <PrivateRoute allowedRoles={["all"]}>
             <Device />
           </PrivateRoute>
         }

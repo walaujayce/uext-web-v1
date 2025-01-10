@@ -7,11 +7,12 @@ const PrivateRoute = ({ children, allowedRoles }) => {
   
   if (isDevMode) {
     return children;
+  }
+  if(isAuthenticated){
+    return (allowedRoles.includes(role)|| allowedRoles.includes("all")? children : <Navigate to="/home" replace /> )
   }else{
-    console.log("authentication is ", isAuthenticated);
-    return isAuthenticated ? (allowedRoles.includes(role) ? children : <Navigate to="/home" replace /> ): <Navigate to="/" replace />;
-  };
-
+    return <Navigate to="/" replace />;
+  }
 };
 
 export default PrivateRoute;

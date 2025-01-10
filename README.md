@@ -22,3 +22,9 @@ modify DISCONNECT component navigate to device setting page
 
 #version 1.0.30
 add engineer mode, add different role access auth
+
+#version 1.0.31
+modify the private route to "all"
+
+#version 1.0.32
+modified the version of opencv

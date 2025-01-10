@@ -8,11 +8,11 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
   //console.log("rawdata is ", rawdata);
   useEffect(() => {
     const existingScript = document.querySelector(
-      'script[src="https://docs.opencv.org/4.x/opencv.js"]'
+      'script[src="https://docs.opencv.org/4.10.0/opencv.js"]'
     );
     if (!existingScript) {
       const script = document.createElement("script");
-      script.src = "https://docs.opencv.org/4.x/opencv.js";
+      script.src = "https://docs.opencv.org/4.10.0/opencv.js";
       script.async = true;
       script.onload = () => {
         // Wait until OpenCV.js is loaded
