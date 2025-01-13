@@ -4,9 +4,12 @@ import "/src/CSS/account.css";
 import AlertList from "./AlertList";
 import Navbar from "./Navbar";
 import { useTranslation } from "react-i18next";
+import SimpleBackdrop from "./LoadingOverlay";
 
 function AccountSetting() {
   const { t, i18n } = useTranslation();
+
+  const [loading, setLoading] = useState(false); //loading screen
 
   const storedUserRole = localStorage.getItem("role");
 
@@ -155,6 +158,8 @@ function AccountSetting() {
       const updatedData = { ...filteredUserInfo, ...requestBody };
       console.log("updated data is :", updatedData);
 
+      setLoading(true);
+
       const response = await fetch(`/api/7284/User/${userid}`, {
         method: "PUT",
         headers: {
@@ -179,12 +184,14 @@ function AccountSetting() {
       return data; // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleDeleteUser = (userid) => {
     console.log("delete userid is ", userid);
-    if (storedUserRole && JSON.parse(storedUserRole) === "administrator") {
+    if (userInfo.role===0) {
       alert("Cannot delete Administrator account!");
       return;
     } else {
@@ -194,6 +201,7 @@ function AccountSetting() {
 
   const deleteUser_API = async (userid) => {
     try {
+      setLoading(true);
       const response = await fetch(`/api/7284/User/${userid}`, {
         method: "DELETE",
         headers: {
@@ -211,11 +219,14 @@ function AccountSetting() {
       navigate("/account");
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
+      <SimpleBackdrop open={loading} />
       <Navbar />
       <div className="wrap">
         <AlertList />

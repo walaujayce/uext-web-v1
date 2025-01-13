@@ -8,10 +8,13 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
+import SimpleBackdrop from "../LoadingOverlay";
 
 const AddNewPatient = ({ mac, callback }) => {
-    const { t, i18n } = useTranslation();
-  
+  const { t, i18n } = useTranslation();
+
+  const [loading, setLoading] = useState(false); //loading screen
+
   {
     /* Handle Overlay Logic */
   }
@@ -136,6 +139,7 @@ const AddNewPatient = ({ mac, callback }) => {
       deviceid: mac,
     };
     try {
+      setLoading(true);
       const response = await fetch("/api/7284/db/Patient", {
         method: "POST",
         headers: {
@@ -153,6 +157,8 @@ const AddNewPatient = ({ mac, callback }) => {
     } catch (error) {
       console.error("Error while submitting data:", error);
       alert("Error: Unable to connect to the server.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -177,6 +183,8 @@ const AddNewPatient = ({ mac, callback }) => {
 
   return (
     <>
+      <SimpleBackdrop open={loading} />
+
       <div
         className="addPatient"
         style={{ display: "block" }}
@@ -200,14 +208,16 @@ const AddNewPatient = ({ mac, callback }) => {
             style={{ display: isActive_Stage2 ? "block" : "none" }}
           />
           <div className="title-add">{`${
-            isActive_Stage2 ? t('AddPatientModal.AddNewPatient') : t('AddPatientModal.AddPatient-h1') 
+            isActive_Stage2
+              ? t("AddPatientModal.AddNewPatient")
+              : t("AddPatientModal.AddPatient-h1")
           }`}</div>
           <div
             className="tab-list"
             style={{ display: isActive_Stage2 ? "none" : "" }}
           >
             <a href="#" className="tab active tab-1">
-              {t('AddPatientModal.AddPatient-h2')}
+              {t("AddPatientModal.AddPatient-h2")}
             </a>
             {/* <a href="#" className="tab tab-2">
               Bed Location
@@ -224,7 +234,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* ID */}
               <div className="input g-c-3">
                 <label htmlFor="id" className="label-container">
-                  <p>{t('AddPatientModal.ID')}</p>
+                  <p>{t("AddPatientModal.ID")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -255,7 +265,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* Name */}
               <div className="input g-c-3">
                 <label htmlFor="name" className="label-container">
-                  <p>{t('AddPatientModal.Name')}</p>
+                  <p>{t("AddPatientModal.Name")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -286,7 +296,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* Height */}
               <div className="input g-c-3">
                 <label htmlFor="height" className="label-container">
-                  <p>{t('AddPatientModal.Height')}</p>
+                  <p>{t("AddPatientModal.Height")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -317,7 +327,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* Weight */}
               <div className="input g-c-3">
                 <label htmlFor="weight" className="label-container">
-                  <p>{t('AddPatientModal.Weight')}</p>
+                  <p>{t("AddPatientModal.Weight")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -352,7 +362,7 @@ const AddNewPatient = ({ mac, callback }) => {
                 ref={dropdownRef}
               >
                 <label htmlFor="sex" className="label-container">
-                  <p>{t('AddPatientModal.Sex')}</p>
+                  <p>{t("AddPatientModal.Sex")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -391,7 +401,7 @@ const AddNewPatient = ({ mac, callback }) => {
               {/* DOB */}
               <div className="input g-c-3">
                 <label htmlFor="dob" className="label-container">
-                  <p>{t('AddPatientModal.DOB')}</p>
+                  <p>{t("AddPatientModal.DOB")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -426,14 +436,18 @@ const AddNewPatient = ({ mac, callback }) => {
                 onClick={handleConfirm_S1_Click}
               >
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text pri-text">{t('AddPatientModal.Continue')}</p>
+                <p className="btn-text pri-text">
+                  {t("AddPatientModal.Continue")}
+                </p>
               </div>
               <div
                 className="btn text-only outline sec"
                 onClick={(e) => callback(e)}
               >
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text sec-text">{t('AddPatientModal.Cancel')}</p>
+                <p className="btn-text sec-text">
+                  {t("AddPatientModal.Cancel")}
+                </p>
               </div>
             </div>
           </form>

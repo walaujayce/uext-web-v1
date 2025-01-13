@@ -11,9 +11,12 @@ import "react-datepicker/dist/react-datepicker.css";
 import DisChargePatient from "./Modals/DisChargePatient";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
+import SimpleBackdrop from "./LoadingOverlay";
 
 function PatientProfile() {
   const { t, i18n } = useTranslation();
+
+  const [loading, setLoading] = useState(false); //loading screen
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -196,6 +199,7 @@ function PatientProfile() {
 
   const PUT_PatientInfo = async (patientid, requestBody) => {
     try {
+      setLoading(true);
       const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
         method: "PUT",
         headers: {
@@ -222,6 +226,8 @@ function PatientProfile() {
       return data; // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
   {
@@ -241,6 +247,7 @@ function PatientProfile() {
 
   const deletePatient_API = async (patientId) => {
     try {
+      setLoading(true);
       const response = await fetch(`/api/7284/db/Patient/${patientId}`, {
         method: "DELETE",
         headers: {
@@ -258,6 +265,8 @@ function PatientProfile() {
       navigate("/home");
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -544,6 +553,7 @@ function PatientProfile() {
         </div>
       </div>
       <div className="btn-gp">
+        <SimpleBackdrop open={loading} />
         <div
           className={`btn text-only ${isChanged ? "" : "inactive"}`}
           onClick={() => {

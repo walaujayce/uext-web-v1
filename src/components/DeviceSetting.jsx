@@ -1,16 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
 import "/src/CSS/device.css";
-import { useNavigate, useSearchParams,useLocation } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useDropdownLogic, fetchList } from "../JS/GetFloorSectionAPI";
 import Navbar from "./Navbar";
 import AlertList from "./AlertList";
 import SignalRService from "../JS/SignalR";
 import { useTranslation } from "react-i18next";
+import SimpleBackdrop from "./LoadingOverlay";
 
 function DeviceSettings() {
-    const { t, i18n } = useTranslation();
-  
+  const { t, i18n } = useTranslation();
+
+  const [loading, setLoading] = useState(false); //loading screen
+
   const [searchParams] = useSearchParams();
+
   const macaddress = searchParams.get("macaddress") || "";
 
   {
@@ -20,8 +24,7 @@ function DeviceSettings() {
   const location = useLocation();
 
   const handleBackBtnClick = () => {
-    navigate(location.state?.from || "/device"); 
-
+    navigate(location.state?.from || "/device");
   };
 
   {
@@ -357,6 +360,7 @@ function DeviceSettings() {
 
   const deleteDevice = async (deviceId) => {
     try {
+      setLoading(true);
       const response = await fetch(`/api/7284/db/Device/${deviceId}`, {
         method: "DELETE",
         headers: {
@@ -371,6 +375,8 @@ function DeviceSettings() {
       console.log(response.message);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -422,10 +428,10 @@ function DeviceSettings() {
     edgebox: 40,
     sitpar: 90,
     sitbox: 40,
-    heightTh:12,
+    heightTh: 12,
     boxYStart: 7,
     erMap: "",
-    edgeSitPoint:3,
+    edgeSitPoint: 3,
     emasize: 1,
     emathres: 10,
     noisethres: 2,
@@ -435,18 +441,29 @@ function DeviceSettings() {
     used: false,
   };
   const handlePUT_API = (print_inputvalue) => {
-    if(isDeviceInfoChanged){
-
-    }else if (isDeviceLocationChanged && print_inputvalue === requestBody_DeviceLocation){
-      console.log("the input requestbody is device location ", print_inputvalue);
+    if (isDeviceInfoChanged) {
+    } else if (
+      isDeviceLocationChanged &&
+      print_inputvalue === requestBody_DeviceLocation
+    ) {
+      console.log(
+        "the input requestbody is device location ",
+        print_inputvalue
+      );
       PUT_DeivceInfo(macaddress, print_inputvalue);
-    }else if (isDeviceConfigChanged && print_inputvalue === requestBody_DeviceLConfiguration){
-      console.log("the input requestbody is device configuration", print_inputvalue);
+    } else if (
+      isDeviceConfigChanged &&
+      print_inputvalue === requestBody_DeviceLConfiguration
+    ) {
+      console.log(
+        "the input requestbody is device configuration",
+        print_inputvalue
+      );
       PUT_DeivceInfo(macaddress, print_inputvalue);
-    }else if(print_inputvalue===requestBody_PUT_RESET){
+    } else if (print_inputvalue === requestBody_PUT_RESET) {
       console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
       PUT_DeivceInfo(macaddress, print_inputvalue);
-    }else if(print_inputvalue===requestBody_delete){
+    } else if (print_inputvalue === requestBody_delete) {
       PUT_DeivceInfo(macaddress, print_inputvalue);
     }
   };
@@ -454,6 +471,8 @@ function DeviceSettings() {
   const PUT_DeivceInfo = async (macaddress, requestBody) => {
     try {
       const updatedData = { ...deviceInfo, ...requestBody };
+
+      setLoading(true);
 
       const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
         method: "PUT",
@@ -474,30 +493,33 @@ function DeviceSettings() {
       return data; // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
     }
   };
-  
+
   return (
     <>
+      <SimpleBackdrop open={loading} />
       <Navbar />
       <div className="wrap">
         <AlertList />
         <div className="main">
           <div className="box">
-            <h1>{t('DeviceSettings.DeviceSettings')}</h1>
+            <h1>{t("DeviceSettings.DeviceSettings")}</h1>
             <a className="btn frameless" href="" onClick={handleBackBtnClick}>
               <img src="" alt="" className="prefix" />
-              <p className="btn-text">{t('DeviceSettings.Back')}</p>
+              <p className="btn-text">{t("DeviceSettings.Back")}</p>
             </a>
           </div>
           <div className="device">
             <div className="deviceSetting">
-              <h2>{t('DeviceSettings.DeviceInformation')}</h2>
+              <h2>{t("DeviceSettings.DeviceInformation")}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-3">
                     <label htmlFor="d-id" className="label-container">
-                      <p>{t('DeviceSettings.DeviceID')}</p>
+                      <p>{t("DeviceSettings.DeviceID")}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -521,7 +543,7 @@ function DeviceSettings() {
                   </div>
                   <div className="input g-col-3">
                     <label htmlFor="mac" className="label-container">
-                      <p>{t('DeviceSettings.MACAddress')}</p>
+                      <p>{t("DeviceSettings.MACAddress")}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -546,7 +568,7 @@ function DeviceSettings() {
                   </div>
                   <div className="input g-col-3">
                     <label htmlFor="d-ip" className="label-container">
-                      <p>{t('DeviceSettings.IPAddress')}</p>
+                      <p>{t("DeviceSettings.IPAddress")}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -570,7 +592,7 @@ function DeviceSettings() {
                   </div>
                   <div className="input connection g-col-3">
                     <label htmlFor="connection" className="label-container">
-                      <p>{t('DeviceSettings.DeviceStatus')}</p>
+                      <p>{t("DeviceSettings.DeviceStatus")}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -598,22 +620,22 @@ function DeviceSettings() {
                     }`}
                   >
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">{t('DeviceSettings.Save')}</p>
+                    <p className="btn-text">{t("DeviceSettings.Save")}</p>
                   </div>
                   <div className="btn text-only outline inactive">
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">{t('DeviceSettings.Reconnect')}</p>
+                    <p className="btn-text">{t("DeviceSettings.Reconnect")}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="deviceSetting">
-              <h2>{t('DeviceSettings.DeviceLocation')}</h2>
+              <h2>{t("DeviceSettings.DeviceLocation")}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-3">
                     <label htmlFor="bed" className="label-container">
-                      <p>{t('DeviceSettings.Bed')}</p>
+                      <p>{t("DeviceSettings.Bed")}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -642,7 +664,7 @@ function DeviceSettings() {
                     ref={addDropdownRef}
                   >
                     <label htmlFor="section" className="label-container">
-                      <p>{t('DeviceSettings.Section')}</p>
+                      <p>{t("DeviceSettings.Section")}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -697,7 +719,7 @@ function DeviceSettings() {
                     ref={addDropdownRef}
                   >
                     <label htmlFor="floor" className="label-container">
-                      <p>{t('DeviceSettings.Floor')}</p>
+                      <p>{t("DeviceSettings.Floor")}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -754,13 +776,13 @@ function DeviceSettings() {
                     onClick={() => handlePUT_API(requestBody_DeviceLocation)}
                   >
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">{t('DeviceSettings.Save')}</p>
+                    <p className="btn-text">{t("DeviceSettings.Save")}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="deviceSetting">
-              <h2>{t('DeviceSettings.DeviceConfiguration')}</h2>
+              <h2>{t("DeviceSettings.DeviceConfiguration")}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-2 ">
@@ -1010,10 +1032,9 @@ function DeviceSettings() {
                           className="item opt1"
                           key={leveling}
                           onClick={() => {
-                            edgeboxDropdown.selectItem(leveling)
+                            edgeboxDropdown.selectItem(leveling);
                             setIsDeviceConfigChanged(true);
-                          }
-                        }
+                          }}
                         >
                           {leveling}
                         </div>
@@ -1057,10 +1078,9 @@ function DeviceSettings() {
                           className="item opt1"
                           key={leveling}
                           onClick={() => {
-                            sitparDropdown.selectItem(leveling)
+                            sitparDropdown.selectItem(leveling);
                             setIsDeviceConfigChanged(true);
-                          }
-                        }
+                          }}
                         >
                           {leveling}
                         </div>
@@ -1104,10 +1124,9 @@ function DeviceSettings() {
                           className="item opt1"
                           key={leveling}
                           onClick={() => {
-                            sitboxDropdown.selectItem(leveling)
+                            sitboxDropdown.selectItem(leveling);
                             setIsDeviceConfigChanged(true);
-                          }
-                        }
+                          }}
                         >
                           {leveling}
                         </div>
@@ -1293,35 +1312,39 @@ function DeviceSettings() {
                     }
                   >
                     <img src="" alt="" className="prefix" />
-                    <p className="btn-text">{t('DeviceSettings.Save')}</p>
+                    <p className="btn-text">{t("DeviceSettings.Save")}</p>
                   </div>
-                  <div className="btn text-only outline" id="reset" onClick={() =>
-                      handlePUT_API(requestBody_PUT_RESET)
-                    }>
+                  <div
+                    className="btn text-only outline"
+                    id="reset"
+                    onClick={() => handlePUT_API(requestBody_PUT_RESET)}
+                  >
                     {/* <img src="" alt="" className="prefix" /> */}
-                    <p className="btn-text">{t('DeviceSettings.Reset')}</p>
+                    <p className="btn-text">{t("DeviceSettings.Reset")}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="deviceSetting">
-              <h2>{t('DeviceSettings.DeviceVersion')}</h2>
+              <h2>{t("DeviceSettings.DeviceVersion")}</h2>
               <div className="opt-list">
                 <div className="ver-stat">
-                {t('DeviceSettings.DeviceVersion-p')} (v1.0.1)
+                  {t("DeviceSettings.DeviceVersion-p")} (v1.0.1)
                 </div>
                 <div className="btn-gp">
                   <div className="btn text-only inactive">
                     {/* <img src="" alt="" className="prefix" /> */}
-                    <p className="btn-text">{t('DeviceSettings.Update')}</p>
+                    <p className="btn-text">{t("DeviceSettings.Update")}</p>
                   </div>
                 </div>
               </div>
             </div>
             <div className="deviceSetting">
-              <h2>{t('DeviceSettings.DeviceRemove')}</h2>
+              <h2>{t("DeviceSettings.DeviceRemove")}</h2>
               <div className="opt-list">
-                <div className="ver-stat">{t('DeviceSettings.DeviceRemove-p')}</div>
+                <div className="ver-stat">
+                  {t("DeviceSettings.DeviceRemove-p")}
+                </div>
                 <div className="btn-gp">
                   <div
                     className="btn text-only"
@@ -1336,7 +1359,7 @@ function DeviceSettings() {
                     onClick={() => handlePUT_API(requestBody_delete)}
                   >
                     {/* <img src="" alt="" className="prefix" /> */}
-                    <p className="btn-text">{t('DeviceSettings.Delete')}</p>
+                    <p className="btn-text">{t("DeviceSettings.Delete")}</p>
                   </div>
                 </div>
               </div>

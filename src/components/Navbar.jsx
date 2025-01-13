@@ -4,8 +4,11 @@ import "/src/CSS/index.css";
 import { useAuth } from "../JS/AuthContext";
 import LogOut_Modal from "./Modals/LogOut";
 import { useTranslation } from "react-i18next";
+
 function Navbar() {
   const { t, i18n } = useTranslation();
+  
+  const { logout, role} = useAuth();
 
   const [currentLang, setCurrentLang] = useState("zh");
 
@@ -61,12 +64,6 @@ function Navbar() {
     setLogOutOverlayVisible(!isLogoutOverlayVisible);
     setActiveAccount(false);
   };
-
-  const { logout, role} = useAuth();
-
-  {
-    /* useRef Logic */
-  }
 
   return (
     <header>

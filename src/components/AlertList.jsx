@@ -150,6 +150,7 @@ function AlertList() {
   }
   const fetchNoticitionList = async () => {
     try {
+      
       const response = await fetch(`/api/7284/db/Notification`, {
         method: "GET",
         headers: {
@@ -352,6 +353,7 @@ function AlertList() {
       </div>
       <div className="alert-list">
         {alertsArray
+          .slice()
           .sort((a, b) => new Date(b.alertTime) - new Date(a.alertTime))
           .map((alert, index) => (
             <div

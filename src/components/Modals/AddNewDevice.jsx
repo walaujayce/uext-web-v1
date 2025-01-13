@@ -5,9 +5,12 @@ import "/src/CSS/input.css";
 import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
+import SimpleBackdrop from "../LoadingOverlay";
 
 const AddNewDevice = ({ callback }) => {
   const { t, i18n } = useTranslation();
+
+  const [loading, setLoading] = useState(false); //loading screen
 
   {
     /* Handle Overlay Logic */
@@ -244,6 +247,7 @@ const AddNewDevice = ({ callback }) => {
     };
 
     try {
+      setLoading(true);
       const response = await fetch("/api/7284/db/Device", {
         method: "POST",
         headers: {
@@ -267,11 +271,15 @@ const AddNewDevice = ({ callback }) => {
     } catch (error) {
       console.error("Error while submitting data:", error);
       alert("Error: Unable to connect to the server.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
+      <SimpleBackdrop open={loading} />
+
       <div
         className="addDevice"
         style={{ display: "block" }}
@@ -295,14 +303,16 @@ const AddNewDevice = ({ callback }) => {
             style={{ display: isActive_Stage2 ? "block" : "none" }}
           />
           <div className="title">{`${
-            isActive_Stage2 ? t('AddDeviceModal.NewDeviceAdd') : t('AddDeviceModal.AddDevice')
+            isActive_Stage2
+              ? t("AddDeviceModal.NewDeviceAdd")
+              : t("AddDeviceModal.AddDevice")
           }`}</div>
           <div
             className="tab-list"
             style={{ display: isActive_Stage2 ? "none" : "" }}
           >
             <a href="#" className="tab active tab-1">
-            {t('AddDeviceModal.DeviceProfile')}
+              {t("AddDeviceModal.DeviceProfile")}
             </a>
             {/* <a href="#" className="tab tab-2">Device Connection</a> */}
           </div>
@@ -319,7 +329,7 @@ const AddNewDevice = ({ callback }) => {
                 ref={addDropdownRef}
               >
                 <label htmlFor="devicetype" className="label-container">
-                  <p>{t('AddDeviceModal.DeviceType')}</p>
+                  <p>{t("AddDeviceModal.DeviceType")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -357,7 +367,7 @@ const AddNewDevice = ({ callback }) => {
               {/* MAC */}
               <div className="input g-c-3">
                 <label htmlFor="mac" className="label-container">
-                  <p>{t('AddDeviceModal.MACAddress')}</p>
+                  <p>{t("AddDeviceModal.MACAddress")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -384,7 +394,7 @@ const AddNewDevice = ({ callback }) => {
               {/* Bed */}
               <div className="input g-c-3">
                 <label htmlFor="bed" className="label-container">
-                  <p>{t('AddDeviceModal.Bed')}</p>
+                  <p>{t("AddDeviceModal.Bed")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -415,7 +425,7 @@ const AddNewDevice = ({ callback }) => {
                 ref={addDropdownRef}
               >
                 <label htmlFor="sectionInNewDevice" className="label-container">
-                  <p>{t('AddDeviceModal.Section')}</p>
+                  <p>{t("AddDeviceModal.Section")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -456,7 +466,7 @@ const AddNewDevice = ({ callback }) => {
                 ref={addDropdownRef}
               >
                 <label htmlFor="floorInNewDevice" className="label-container">
-                  <p>{t('AddDeviceModal.Floor')}</p>
+                  <p>{t("AddDeviceModal.Floor")}</p>
                   <img
                     className="info"
                     src="/src/assets/information-outline.svg"
@@ -499,7 +509,9 @@ const AddNewDevice = ({ callback }) => {
             >
               <div className="btn text-only pri">
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text pri-text">{t('AddDeviceModal.Continue')}</p>
+                <p className="btn-text pri-text">
+                  {t("AddDeviceModal.Continue")}
+                </p>
               </div>
             </div>
           </form>

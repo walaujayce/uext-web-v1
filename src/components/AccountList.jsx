@@ -9,7 +9,7 @@ import "/src/CSS/panel-list.css";
 import { Link } from "react-router-dom";
 import SignalRService from "../JS/SignalR";
 import { useTranslation } from "react-i18next";
-import AddNewUser from '../components/Modals/AddNewUser'
+import AddNewUser from "../components/Modals/AddNewUser";
 
 const AccountList = () => {
   const { t, i18n } = useTranslation();
@@ -79,9 +79,7 @@ const AccountList = () => {
           <div className="btn" id="addUser" onClick={handleAddUserClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">{t("AccountList.NewUser")}</p>
-            {isOverlayVisible && (
-              <AddNewUser callback={handleAddUserClick} />
-            )}
+            {isOverlayVisible && <AddNewUser callback={handleAddUserClick} />}
           </div>
         </div>
         <div className="pl">
@@ -95,7 +93,7 @@ const AccountList = () => {
           </div>
           <div className="item-list">
             {accounts.map((account) => (
-              <Link   
+              <Link
                 to={`/account/account-settings?userid=${account.userid}`}
                 key={account.userid}
               >

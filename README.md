@@ -28,3 +28,6 @@ modify the private route to "all"
 
 #version 1.0.32
 modified the version of opencv
+
+#version 1.0.33
+add loading screen , modify delete account role button (remove get role from localstorage)

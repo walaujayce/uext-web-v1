@@ -5,9 +5,12 @@ import "/src/CSS/input.css";
 import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
+import SimpleBackdrop from "../LoadingOverlay";
 
 const AddNewUser = ({ callback }) => {
   const { t, i18n } = useTranslation();
+
+  const [loading, setLoading] = useState(false); //loading screen
 
   {
     /* Handle Overlay Logic */
@@ -122,12 +125,14 @@ const AddNewUser = ({ callback }) => {
       alert(
         "Password must include at least one uppercase letter, one lowercase letter, one number, and be at least 6 characters long."
       );
+      return;
     }
     if (userConfirmPasswordInput.inputValue !== userPasswordInput.inputValue) {
       alert("Please ensure 'Password' and 'Confirm Password' are same!");
       return;
     }
     try {
+      setLoading(true);
       const response = await fetch("/api/7284/User", {
         method: "POST",
         headers: {
@@ -145,11 +150,15 @@ const AddNewUser = ({ callback }) => {
     } catch (error) {
       console.error("Error while submitting data:", error);
       alert("Error: Unable to connect to the server.");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <>
+      <SimpleBackdrop open={loading} />
+
       <div
         className="addDevice"
         style={{ display: "block" }}
