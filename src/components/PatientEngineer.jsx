@@ -18,6 +18,8 @@ function PatientEngineer() {
   const [rawdatum, setRawdatum] = useState([]);
   const [position, setPosition] = useState("");
   const [duration, setDuration] = useState("");
+  const [width,setWidth] = useState(null);
+  const [height,setHeight] = useState(null);
 
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
@@ -45,6 +47,15 @@ function PatientEngineer() {
       console.log("Position:", data.POS);
       setDuration(formatSecondsToDHMS(data.HOLD));
       console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+      if (data.WIDTH * data.HEIGHT > 240) {
+        // UMAP solution
+        setWidth(data.HEIGHT);
+        setHeight(data.WIDTH);
+      } else {
+        // UEXT solution
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+      }
     } catch (error) {
       console.error("Error making POST request:", error);
     }
@@ -408,7 +419,8 @@ function PatientEngineer() {
       <div className="pressure">
         <div className="title">{t("PatientMonitor.PressureMap")}</div>
         <div className="box">
-          <OpenCVComponent deviceid={macaddress} rawdata={rawdatum} />
+        {(width && height )&& (<OpenCVComponent deviceid={macaddress} rawdata={rawdatum} width={width} height={height}/>)}
+
           <div className="bt-box">
             {/* <div className="spec col">
               <p className="tag">Position</p>

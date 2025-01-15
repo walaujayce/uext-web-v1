@@ -51,7 +51,7 @@
   "PatientList": {
     "PatientList": "住民列表",
     "PatientID": "住民編號",
-    "PatientName": "姓名",
+    "PatientName": "住民姓名",
     "Sex": "性別",
     "Bed": "床號",
     "Section": "區域",

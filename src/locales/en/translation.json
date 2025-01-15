@@ -16,7 +16,7 @@
     "Logout": "Logout"
   },
   "Home": {
-    "Monitor": "Monitors",
+    "Monitor": "Monitors List",
     "Sortby": "Sort by",
     "Bed": "Bed",
     "Status": "Status",
@@ -31,7 +31,7 @@
     "Section": "Section"
   },
   "AlertList": {
-    "Alerts": "Alerts",
+    "Alerts": "Alerts List",
     "BedExitAlert":"Bed Exit Alert",
     "AttentionAlert": "Attention Alert",
     "Section":"Section",
@@ -82,7 +82,7 @@
     "Discharge": "Discharge"
   },
   "AddPatientModal":{
-    "ClickToAddPatient":"Click to add Resident",
+    "ClickToAddPatient":"Click to add resident",
     "AddNewPatient":"Resident Added Successfully",
     "AddPatient-h1":"Add Resident",
     "AddPatient-h2":"Resident Profile",
@@ -96,7 +96,7 @@
     "Cancel":"Cancel"
   },
   "DischargeModal":{
-    "description":"Confirm to discharge the Resident?",
+    "description":"Confirm to discharge the resident?",
     "Discharge":"Discharge",
     "Cancel":"Cancel"
   },
@@ -185,7 +185,7 @@
   },
   "AddDeviceModal":{
     "AddDevice":"Add Device",
-    "NewDeviceAdd":"New Device Added",
+    "NewDeviceAdd":"New device has been added.",
     "DeviceProfile":"Device Profile",
     "DeviceType":"Device Type",
     "MACAddress":"MAC",
@@ -231,7 +231,7 @@
   "AddUserModal":{
     "AddUserTitle":"Create a New User",
     "AddUser-p":"Fill in profile information",
-    "NewUserCreate":"New User has been created",
+    "NewUserCreate":"New user has been created.",
     "Name":"Name",
     "Id":"ID",
     "Email":"Email",

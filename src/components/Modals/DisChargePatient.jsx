@@ -20,21 +20,21 @@ function DisChargePatient({callback, dischargebtn_click}) {
     
   return (
     <>
-      <div class="overlay discharge active" onClick={handleWindowClick}>
-        <div class="warn">
-          <img class="icon" src="/src/assets/alert-box.svg" alt="alert box" />
-          <h1 class="title">{t('DischargeModal.description')}</h1>
-          <p class="desc">
+      <div className="overlay discharge active" onClick={handleWindowClick}>
+        <div className="warn">
+          <img className="icon" src="/src/assets/alert-box.svg" alt="alert box" />
+          <h1 className="title">{t('DischargeModal.description')}</h1>
+          <p className="desc">
             {/* You will need to reconnect to a bed to obtain live data. */}
           </p>
-          <div class="btn-gp">
-            <a class="btn text-only pri" onClick={dischargebtn_click}>
-              <img src="" alt="" class="prefix" />
-              <p class="btn-text pri-text" style={{ color: "white" }}>{t('DischargeModal.Discharge')}</p>
+          <div className="btn-gp">
+            <a className="btn text-only pri" onClick={dischargebtn_click}>
+              <img src="" alt="" className="prefix" />
+              <p className="btn-text pri-text" style={{ color: "white" }}>{t('DischargeModal.Discharge')}</p>
             </a>
-            <a class="btn text-only outline sec" onClick={callback}>
-              <img src="" alt="" class="prefix" />
-              <p class="btn-text sec-text">{t('DischargeModal.Cancel')}</p>
+            <a className="btn text-only outline sec" onClick={callback}>
+              <img src="" alt="" className="prefix" />
+              <p className="btn-text sec-text">{t('DischargeModal.Cancel')}</p>
             </a>
           </div>
         </div>

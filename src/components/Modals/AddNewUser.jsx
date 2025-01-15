@@ -141,7 +141,7 @@ const AddNewUser = ({ callback }) => {
         body: JSON.stringify(requestBody_POST),
       });
 
-      if (response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         setIsActive_Stage2(true);
       } else {
         const errorData = await response.json();

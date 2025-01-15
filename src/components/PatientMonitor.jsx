@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation,useSearchParams } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
@@ -9,12 +9,13 @@ import OpenCVComponent from "../components/OpenCVComponent";
 import { useTranslation } from "react-i18next";
 
 function PatientMonitor() {
-    const { t, i18n } = useTranslation();
-  
+  const { t, i18n } = useTranslation();
+
   const [rawdatum, setRawdatum] = useState([]);
   const [position, setPosition] = useState("");
   const [duration, setDuration] = useState("");
-
+  const [width, setWidth] = useState(null);
+  const [height, setHeight] = useState(null);
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
@@ -38,8 +39,18 @@ function PatientMonitor() {
       console.log("Rawdatum:", data.IMAGE);
       setPosition(data.POS);
       console.log("Position:", data.POS);
-      setDuration(formatSecondsToDHMS(data.HOLD))
+      setDuration(formatSecondsToDHMS(data.HOLD));
       console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+
+      if (data.WIDTH * data.HEIGHT > 240) {
+        // UMAP solution
+        setWidth(data.HEIGHT);
+        setHeight(data.WIDTH);
+      } else {
+        // UEXT solution
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+      }
     } catch (error) {
       console.error("Error making POST request:", error);
     }
@@ -58,17 +69,36 @@ function PatientMonitor() {
     seconds %= 3600;
     const minutes = Math.floor(seconds / 60);
     seconds %= 60;
-    const dateTime = days > 0 ?  `${String(days).padStart(2, '0')}:${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`: `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    const dateTime =
+      days > 0
+        ? `${String(days).padStart(2, "0")}:${String(hours).padStart(
+            2,
+            "0"
+          )}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+            2,
+            "0"
+          )}`
+        : `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
+            2,
+            "0"
+          )}:${String(seconds).padStart(2, "0")}`;
 
     return dateTime;
-};
+  };
 
   return (
     <div className="monitor">
       <div className="pressure">
-        <div className="title">{t('PatientMonitor.PressureMap')}</div>
+        <div className="title">{t("PatientMonitor.PressureMap")}</div>
         <div className="box">
-          <OpenCVComponent deviceid={macaddress} rawdata={rawdatum}/>
+          {width && height && (
+            <OpenCVComponent
+              deviceid={macaddress}
+              rawdata={rawdatum}
+              width={width}
+              height={height}
+            />
+          )}
           <div className="bt-box">
             {/* <div className="spec col">
               <p className="tag">Position</p>
@@ -96,7 +126,7 @@ function PatientMonitor() {
         </div>
       </div>
       <div className="h-rate">
-        <div className="title">{t('PatientMonitor.HeartRate')}</div>
+        <div className="title">{t("PatientMonitor.HeartRate")}</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
         <div className="spec">
           <div>--</div>
@@ -104,7 +134,7 @@ function PatientMonitor() {
         </div>
       </div>
       <div className="respiration">
-        <div className="title">{t('PatientMonitor.RespiratoryRate')}</div>
+        <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
         <div className="spec">
           <div>--</div>

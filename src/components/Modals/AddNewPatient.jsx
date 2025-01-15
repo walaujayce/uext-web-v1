@@ -33,8 +33,7 @@ const AddNewPatient = ({ mac, callback }) => {
   }
   const [isActive_Stage2, setActive_Stage2] = useState(false);
 
-  const handleConfirm_S1_Click = (e) => {
-    e.preventDefault();
+  const handleConfirm_S1_Click = () => {
     if (!patientid) {
       patientIdError.setErrorActive(true);
       return;
@@ -194,7 +193,7 @@ const AddNewPatient = ({ mac, callback }) => {
           className="window"
           style={{ justifyContent: isActive_Stage2 ? "center" : "flex" }}
         >
-          <a onClick={(e) => callback(e)}>
+          <a onClick={callback}>
             <img
               src="/src/assets/close.svg"
               alt="close icon"
@@ -442,7 +441,7 @@ const AddNewPatient = ({ mac, callback }) => {
               </div>
               <div
                 className="btn text-only outline sec"
-                onClick={(e) => callback(e)}
+                onClick={callback}
               >
                 <img src="" alt="" className="prefix" />
                 <p className="btn-text sec-text">
@@ -457,7 +456,7 @@ const AddNewPatient = ({ mac, callback }) => {
             className="btn-gp st3"
             style={{ display: isActive_Stage2 ? "flex" : "none" }}
           >
-            <div className="btn text-only pri" onClick={(e) => callback(e)}>
+            <div className="btn text-only pri">
               <img src="" alt="" className="prefix" />
               <p className="btn-text pri-text">Okay</p>
             </div>

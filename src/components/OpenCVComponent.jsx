@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useRef } from "react";
 
-const OpenCVComponent = ({ deviceid, rawdata }) => {
-  const sensor_width = 20;
-  const sensor_height = 12;
+const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
+  const sensor_height = height;
+  const sensor_width = width;
 
   const [opencvLoaded, setOpencvLoaded] = useState(false);
   //console.log("rawdata is ", rawdata);
@@ -46,18 +46,20 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
       // Set the canvas size to match the parent `.box` size
       canvasRef.current.height = parentBox.clientHeight * 0.9; // reduce a 10% percentage of output image size
       const scaleAdjust_clientWidth = Math.round(
-        (parentBox.clientWidth * 12) / 20
+        (parentBox.clientWidth * sensor_width) / sensor_height
       );
       canvasRef.current.width = scaleAdjust_clientWidth * 0.9; // reduce a 10% percentage of output image size
     }
     console.log("the cavas height ", parentBox.clientHeight);
     console.log("the cavas width ", parentBox.clientWidth);
+    console.log("the sensorrrrrrrr height ", height);
+    console.log("the sensorrrrrrrr width ", width);
     console.log(
       "the cavas width multiple ",
-      Math.round((parentBox.clientWidth * 20) / 12)
+      Math.round((parentBox.clientWidth * sensor_height) / sensor_width)
     );
     const message = `${canvasRef.current.width} + ${canvasRef.current.height}`;
-    // alert(message);
+    //alert(message);
   }, []);
 
   const getColor = (div) => {
@@ -105,7 +107,10 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
   };
 
   const print_img = (data) => {
-    if (!data || data.length === 0) {
+    if(!sensor_height || !sensor_width){
+      return;
+    }
+    if (!data.length>=sensor_height*sensor_width) {
       const canvas = document.getElementById("tcanvas");
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -117,7 +122,7 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
       cv.CV_8UC1,
       Array(canvasRef.current.width * canvasRef.current.height).fill(24)
     );
-    const vis = cv.matFromArray(sensor_width, sensor_height, cv.CV_8UC1, data);
+    const vis = cv.matFromArray(sensor_height, sensor_width, cv.CV_8UC1, data);
 
     const dim = new cv.Size(canvasRef.current.width, canvasRef.current.height);
     const vis2 = new cv.Mat();
@@ -186,9 +191,15 @@ const OpenCVComponent = ({ deviceid, rawdata }) => {
   }, [rawdata]);
 
   useEffect(() => {
-    if (opencvLoaded) {
-      print_img(decimalArray);
+    try {
+      if (opencvLoaded) {
+        print_img(decimalArray);
+      }
+    } catch (error) {
+      console.error("Error making in print_img request:", error);
+      console.log("the aaaaaaaa is ",decimalArray);
     }
+
   }, [opencvLoaded, decimalArray]);
 
   return <canvas id="tcanvas" ref={canvasRef}></canvas>;
