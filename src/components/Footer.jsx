@@ -19,8 +19,8 @@ function Footer(){
     }, [currentDate]);
 
     //time
-    const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString());
     const formattedTime = { hour: '2-digit', minute: '2-digit', hour12: false };
+    const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString(undefined,formattedTime));
 
     useEffect(() => {
     const timer = setInterval(() => {

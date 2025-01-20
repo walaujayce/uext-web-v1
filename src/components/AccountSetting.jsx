@@ -22,6 +22,8 @@ function AccountSetting() {
 
   const userid = searchParams.get("userid") || "";
 
+  const passwordValidationRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;
+
   const [isUserProfileChanged, setUserProfileIsChanged] = useState(false); // Track changes to enable SAVE button
   const [isRoleChanged, setRoleIsChanged] = useState(false); // Track changes to enable SAVE button
   const [isPasswordChanged, setPasswordIsChanged] = useState(false); // Track changes to enable SAVE button
@@ -134,7 +136,7 @@ function AccountSetting() {
       PUT_UserInfo(userid, print_inputvalue);
     } else if (isRoleChanged && print_inputvalue === requestBody_PUT_Role) {
       console.log("the input requestbody is Role", print_inputvalue);
-      if (storedUserRole && JSON.parse(storedUserRole) === "administrator") {
+      if (userInfo.role===0) {
         alert("Cannot modify Administrator role!");
         window.location.reload();
         return;
@@ -145,6 +147,16 @@ function AccountSetting() {
       isPasswordChanged &&
       print_inputvalue === requestBody_PUT_Password
     ) {
+      if (passwordValue === "") {
+        alert("Please fill in a valid Password!");
+        return;
+      }
+      if (!passwordValidationRegex.test(passwordValue)) {
+        alert(
+          "Password must include at least one uppercase letter, one lowercase letter, one number, and be at least 6 characters long."
+        );
+        return;
+      }
       console.log("the input requestbody is Password", print_inputvalue);
       PUT_UserInfo(userid, print_inputvalue);
     }

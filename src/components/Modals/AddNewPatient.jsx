@@ -456,10 +456,10 @@ const AddNewPatient = ({ mac, callback }) => {
             className="btn-gp st3"
             style={{ display: isActive_Stage2 ? "flex" : "none" }}
           >
-            <div className="btn text-only pri">
+            {/* <div className="btn text-only pri" onClick={callback}>
               <img src="" alt="" className="prefix" />
               <p className="btn-text pri-text">Okay</p>
-            </div>
+            </div> */}
             {/* <div className="btn text-only outline sec" >
               <img src="" alt="" className="prefix" />
               <p className="btn-text sec-text">Link a device</p>

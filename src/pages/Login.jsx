@@ -21,10 +21,11 @@ function Login() {
     setShowPassword(!showPassword);
   };
 
-  useEffect(() => {
-    setUsername("");
-    setPassword("");
-  }, []);
+  const handleKeyPress = (event) => {
+    if (event.key === "Enter") {
+      handleLogin();
+    }
+  };
 
   const navigate = useNavigate();
   const { login, isAuthenticated } = useAuth();
@@ -60,7 +61,6 @@ function Login() {
       if (user) {
         console.log("Password:", user.password);
         if (user.password === password) {
-
           localStorage.setItem("username", JSON.stringify(user.username)); // Save user to localStorage
 
           switch (user.role) {
@@ -85,6 +85,13 @@ function Login() {
       console.error(error);
     }
   };
+  
+  {
+    /* Navigate to forget password Page */
+  }
+  const handleForgetPassword = () => {
+    navigate("/forget-password");
+  };
 
   return (
     <>
@@ -92,11 +99,11 @@ function Login() {
       <div className="login">
         <img className="uextLogo" src="/src/assets/uext.svg" alt="" />
         <div className="title">{t("Login.title")}</div>
-
-        <form className="st1 active">
+        {/* Login Page */}
+        <form className="st2 active">
           {/* login input box */}
           <div className="input g-c-6">
-            <label for="login" className="label-container">
+            <label htmlFor="login" className="label-container">
               <p>{t("Login.Username")}</p>
               <img
                 className="info"
@@ -129,7 +136,7 @@ function Login() {
 
           {/* password input box */}
           <div className="input g-c-6 suffix">
-            <label for="pw" className="label-container">
+            <label htmlFor="pw" className="label-container">
               <p>{t("Login.Password")}</p>
               <img
                 className="info"
@@ -163,7 +170,6 @@ function Login() {
               Must include one upper and one lower case alphabet.
             </div>
           </div>
-
           <div className="btn-gp">
             {/* login button */}
             <a className="btn text-only pri" onClick={handleLogin}>
@@ -171,7 +177,11 @@ function Login() {
             </a>
 
             {/* forget password button */}
-            <div className="btn text-only outline sec" id="forget-pw">
+            <div
+              className="btn text-only outline sec"
+              id="forget-pw"
+              onClick={handleForgetPassword}
+            >
               <p className="btn-text sec-text">{t("Login.ForgetPassword")}</p>
             </div>
           </div>

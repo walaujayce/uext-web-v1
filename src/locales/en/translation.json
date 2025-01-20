@@ -4,7 +4,16 @@
     "Username":"Username",
     "Password":"Password",
     "Login":"Login",
-    "ForgetPassword":"Forget Password"
+    "ForgetPassword":"Forget Password",
+    "forgetpassword-inputbox-title":"Enter registered email:",
+    "send-me-reset-link":"Send reset link",
+    "reset-link-send":"A reset link has been sent to the registered email ",
+    "back-to-login":"Back to login",
+    "ResetPassword":"Reset Password",
+    "NewPassword":"New Password:",
+    "ConfirmYourNewPassword":"Confirm New Password:",
+    "ConfirmChangePassword":"Confirm renew password"
+
   },
   "Navbar": {
     "Home": "Home",

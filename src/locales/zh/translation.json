@@ -3,8 +3,16 @@
     "title": "離床警示系統",
     "Username": "帳戶名稱",
     "Password": "密碼",
-    "Login":"登入",
-    "ForgetPassword": "忘記密碼"
+    "Login": "登入",
+    "ForgetPassword": "忘記密碼",
+    "forgetpassword-inputbox-title": "輸入注冊時使用的電郵：",
+    "send-me-reset-link": "發送重置密碼鏈接",
+    "reset-link-send": "密碼重置鏈接已發送至該電郵 ",
+    "back-to-login": "返回登入",
+    "ResetPassword":"重置密碼",
+    "NewPassword":"新密碼：",
+    "ConfirmYourNewPassword":"確認新密碼：",
+    "ConfirmChangePassword":"確認更新密碼"
   },
   "Navbar": {
     "Home": "首頁",
@@ -39,12 +47,12 @@
     "Name": "姓名"
   },
   "ConfirmAlertModal": {
-    "h1-alert":"離床警示通知",
-    "h1-attention":"注意警示通知",
-    "description-alert-p1":"{{PatientName}} (床號{{BedNo}}) 已離開床位。",
-    "description-alert-p2":"請儘快確認。",
-    "description-attention-p1":"{{PatientName}} (床號{{BedNo}}) 正在嘗試離開床位。",
-    "description-attention-p2":"請儘快確認。",
+    "h1-alert": "離床警示通知",
+    "h1-attention": "注意警示通知",
+    "description-alert-p1": "{{PatientName}} (床號{{BedNo}}) 已離開床位。",
+    "description-alert-p2": "請儘快確認。",
+    "description-attention-p1": "{{PatientName}} (床號{{BedNo}}) 正在嘗試離開床位。",
+    "description-attention-p2": "請儘快確認。",
     "GotIt": "好的",
     "Cancel": "取消"
   },
@@ -62,7 +70,7 @@
   "PatientDetail": {
     "Monitor": "即時監控",
     "Alerts": "警示設定",
-    "Engineer":"工程模式",
+    "Engineer": "工程模式",
     "Back": "返回列表"
   },
   "PatientProfile": {
@@ -83,7 +91,7 @@
   },
   "AddPatientModal": {
     "ClickToAddPatient": "點擊以新增住民",
-    "AddNewPatient":"住民新增成功",
+    "AddNewPatient": "住民新增成功",
     "AddPatient-h1": "新增住民",
     "AddPatient-h2": "住民資料",
     "ID": "住民編號",
@@ -186,7 +194,7 @@
   },
   "AddDeviceModal": {
     "AddDevice": "新增裝置",
-    "NewDeviceAdd":"裝置新增成功",
+    "NewDeviceAdd": "裝置新增成功",
     "DeviceProfile": "裝置資料",
     "DeviceType": "裝置種類",
     "MACAddress": "MAC",
@@ -207,7 +215,7 @@
     "AddNewUser": "新增帳戶"
   },
   "AccountSettings": {
-    "AccountSettings":"帳戶設定",
+    "AccountSettings": "帳戶設定",
     "UserProfile": "基本資料",
     "Name": "名稱",
     "Phone": "電話",
@@ -229,18 +237,18 @@
     "Confirm": "確認",
     "Cancel": "取消"
   },
-  "AddUserModal":{
-    "AddUserTitle":"新增帳戶",
-    "AddUser-p":"填寫帳戶資料",
-    "NewUserCreate":"帳戶已成功新增",
-    "Name":"姓名",
-    "Id":"編號",
-    "Email":"電郵",
-    "Role":"權限",
-    "Password":"密碼",
-    "ConfirmPassword":"確認密碼",
-    "Confirm":"確認",
-    "Cancel":"取消",
-    "Okay":"好的"
+  "AddUserModal": {
+    "AddUserTitle": "新增帳戶",
+    "AddUser-p": "填寫帳戶資料",
+    "NewUserCreate": "帳戶已成功新增",
+    "Name": "姓名",
+    "Id": "編號",
+    "Email": "電郵",
+    "Role": "權限",
+    "Password": "密碼",
+    "ConfirmPassword": "確認密碼",
+    "Confirm": "確認",
+    "Cancel": "取消",
+    "Okay": "好的"
   }
 }

@@ -20,6 +20,8 @@ import PatientEngineer from "./components/PatientEngineer";
 import DeviceSettings from "./components/DeviceSetting";
 import AccountSetting from "./components/AccountSetting";
 import PrivateRoute from "./JS/PrivateRoute";
+import ForgetPassword from "./components/ForgetPassword"
+import ResetPassword from "./components/ResetPassword";
 
 function App() {
   const location = useLocation();
@@ -38,6 +40,8 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/forget-password" element={<ForgetPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route
         path="/home"
         element={
