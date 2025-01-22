@@ -481,39 +481,39 @@ function PatientAlerts() {
       // }
 
       {/* change receive alert start and end time from UTC to local format */}
-      var Local_startTime = alertList.alertstarttime + 8;
+      var Local_startTime = alertList.alertstarttime === 0 ? alertList.alertstarttime : alertList.alertstarttime + 8;
       Local_startTime = Local_startTime >= 24 ? Local_startTime - 24 : Local_startTime;
-      var Local_endTime = alertList.alertstoptime + 8;
+      var Local_endTime = alertList.alertstoptime === 24 ? alertList.alertstoptime : alertList.alertstoptime + 8;
       Local_endTime = Local_endTime > 24 ? Local_endTime - 24 : Local_endTime;
       // Alert Controller
       updateToggleStatesFromAlertController(alertList.alertcontroller);
       // Alert Start and End Time
-      if (Local_startTime === 0 && Local_endTime === 24) {
+      if (alertList.alertstarttime === 0 && alertList.alertstoptime === 24) {
         setSelectedNotification(1);
       } else if (
-        Local_startTime === 0 &&
-        Local_endTime === 8
+        alertList.alertstarttime === 0 &&
+        alertList.alertstoptime === 8
       ) {
         setSelectedNotification(2);
       } else if (
-        Local_startTime === 8 &&
-        Local_endTime === 16
+        alertList.alertstarttime === 8 &&
+        alertList.alertstoptime === 16
       ) {
         setSelectedNotification(3);
       } else if (
-        Local_startTime === 16 &&
-        Local_endTime === 24
+        alertList.alertstarttime === 16 &&
+        alertList.alertstoptime === 24
       ) {
         setSelectedNotification(4);
       } else if (
-        Local_startTime === 0 &&
-        Local_endTime === 0
+        alertList.alertstarttime === 0 &&
+        alertList.alertstoptime === 0
       ) {
         setNotificationToggleState(false);
       } else {
         setSelectedNotification(5);
-        setCustomStartTime(Local_startTime);
-        setCustomEndTime(Local_endTime);
+        setCustomStartTime(alertList.alertstarttime);
+        setCustomEndTime(alertList.alertstoptime);
       }
       // Alert Repeat Time
       if (alertList.debounce !== 0) {
@@ -544,16 +544,16 @@ function PatientAlerts() {
   }, [alertList]);
 
   const formatAlertStartTimeToUTC = () => {
-    var StartTime_Local =
+    var StartTime_Local = startTime === endTime ?  0 :
       (selectedNotification === 5
         ? parseInt(customStartTime, 10)
-        : startTime) || 0;
+        : startTime);
     var StartTime_UTC = StartTime_Local - 8;
     return StartTime_UTC < 0 ? StartTime_UTC + 24 : StartTime_UTC;
   };
 
   const formatAlertEndTimeToUTC = () => {
-    var EndTime_Local =
+    var EndTime_Local = startTime === endTime ?  24 :
       (selectedNotification === 5 ? parseInt(customEndTime, 10) : endTime) ||
       24;
     var EndTime_UTC = EndTime_Local - 8;
@@ -565,8 +565,8 @@ function PatientAlerts() {
   }
   const requestBody_PUT = {
     alertcontroller: generateAlertControllerFromToggleStates(),
-    alertstarttime: formatAlertStartTimeToUTC(),
-    alertstoptime: formatAlertEndTimeToUTC(),
+    alertstarttime: startTime,
+    alertstoptime: endTime,
     debounce: alertRepeatToggleState ? parseInt(debounceInput, 10) : 0,
     exitalert: placeholder === "High" ? 60 : placeholder === "Medium" ? 70 : 80,
     posturealert1: parseInt(inputValues[1], 10),
@@ -584,8 +584,8 @@ function PatientAlerts() {
 
   const requestBody_POST = {
     alertcontroller: generateAlertControllerFromToggleStates() || 3,
-    alertstarttime: formatAlertStartTimeToUTC(),
-    alertstoptime: formatAlertEndTimeToUTC(),
+    alertstarttime: startTime,
+    alertstoptime: endTime,
     debounce: (alertRepeatToggleState ? parseInt(debounceInput, 10) : 0) || 0,
     exitalert:
       (placeholder === "High" ? 60 : placeholder === "Medium" ? 70 : 80) || 70,

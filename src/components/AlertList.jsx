@@ -109,8 +109,20 @@ function AlertList() {
         }
         if (topic === "web/notify/update/notification") {
           const parsedMessage = JSON.parse(message);
-          console.log("renew alertlist");
-          fetchNoticitionList();
+          const idToDelete = parsedMessage.Id; // Extract the ID from the parsed message
+          const macaddress = parsedMessage.Macaddress;
+          setAlertsMap((prevAlertsMap) => {
+            const newAlertsMap = new Map(prevAlertsMap);
+            // Find and delete the entry with the matching ID
+            for (const [mac, alert] of newAlertsMap.entries()) {
+              if (alert.id === idToDelete && mac === macaddress) {
+                newAlertsMap.delete(macaddress);
+                break; // Exit the loop once the entry is found and deleted
+              }
+            }
+
+            return newAlertsMap;
+          });
         }
       });
     };
@@ -212,7 +224,7 @@ function AlertList() {
             const newAlertsMap = new Map(prevAlertsMap);
             const mac = parsedMessage.MAC;
             const existingAlertMessage = newAlertsMap.get(mac);
-            //console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
+            // console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
             if (
               existingAlertMessage &&
               new Date(existingAlertMessage.alertTime) <
@@ -282,7 +294,7 @@ function AlertList() {
       }
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -314,7 +326,7 @@ function AlertList() {
         return;
       }
       console.log("Notification is set CHECKED successfully:", data);
-      console.log(data); // Return the response data if needed
+      // console.log(data); // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
     }

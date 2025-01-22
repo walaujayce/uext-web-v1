@@ -44,10 +44,10 @@ function LoginPassword() {
   {
     /* handle send reset link */
   }
-
+  const send_message_email = `Click link below to reset password.\r\n http://${import.meta.env.VITE_API_URL}:8005/reset-password`;
   const requestBody_POST = {
     email: emailInput,
-    message: "test123",
+    message: send_message_email,
   };
   const handleSendResetLink = async (requestBody_POST) => {
     // console.log(requestBody_POST);

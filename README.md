@@ -44,3 +44,6 @@ vite_api_url default change to 190.9.120.29
 
 #version 1.0.36
 modify home.jsx with device type and bedcolor in bed-status render
+
+#version 1.0.37
+modify 

@@ -369,10 +369,13 @@ function DeviceSettings() {
       });
 
       const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
+
+      if (response.status === 200) {
+        alert("Device delete successfully!");
+        navigate("/device");
+      } else {
+        alert("Something went wrong, please discharge patient before delete device.");
       }
-      console.log(response.message);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     } finally {
@@ -382,8 +385,6 @@ function DeviceSettings() {
 
   const handleDeleteDevice = () => {
     deleteDevice(macaddress);
-    alert("Delete successfully!");
-    navigate("/device");
   };
 
   {
