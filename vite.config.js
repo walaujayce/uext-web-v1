@@ -6,7 +6,7 @@ const targetServer =
     ? process.env.VITE_API_URL === "localhost"
       ? window.location.hostname
       : process.env.VITE_API_URL
-    : "192.9.120.70";
+    : "192.9.120.29";
 
 // https://vite.dev/config/
 export default defineConfig({

@@ -156,8 +156,8 @@ function ResetPassword() {
           transform: "translateY(55%)",
         }}
       >
-        <img className="uextLogo" src="/src/assets/uext.svg" alt="" />
-        <div className="title">{t("Login.ResetPassword")}</div>
+        <img className="uextLogo" src="/src/assets/uneo-logo.svg" alt="" />
+        {/* <div className="title">{t("Login.ResetPassword")}</div> */}
         {/* Login Page */}
         {/* Reset Password */}
         <form className="st4 active">

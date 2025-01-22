@@ -69,7 +69,7 @@ function Navbar() {
     <header>
       {/* UEXT LOGO */}
       <Link to="/home" className="nav-link">
-        <img src="/src/assets/logo.svg" alt="UEXT Logo" className="logo" />
+        <img src="/src/assets/uneo-logo.svg" alt="UEXT Logo" className="logo" />
       </Link>
 
       {/* sub-pages */}

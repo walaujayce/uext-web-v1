@@ -84,6 +84,7 @@ function Login() {
       setError("An error occurred while logging in");
       console.error(error);
     }
+
   };
   
   {
@@ -97,8 +98,8 @@ function Login() {
     <>
       <img className="background" src="/src/assets/login-bg.svg" alt="" />
       <div className="login">
-        <img className="uextLogo" src="/src/assets/uext.svg" alt="" />
-        <div className="title">{t("Login.title")}</div>
+        <img className="uextLogo" src="/src/assets/uneo-logo.svg" alt="" />
+        {/* <div className="title">{t("Login.title")}</div> */}
         {/* Login Page */}
         <form className="st2 active">
           {/* login input box */}
@@ -117,7 +118,7 @@ function Login() {
                 pattern=""
                 className="placeholder"
                 name="login"
-                placeholder="Enter here"
+                placeholder={t('Login.InputboxPlaceholder')}
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -149,7 +150,7 @@ function Login() {
                 type={showPassword ? "text" : "password"}
                 className="placeholder"
                 name="pw"
-                placeholder="Enter here"
+                placeholder={t('Login.InputboxPlaceholder')}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

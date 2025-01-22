@@ -3,9 +3,12 @@ import SignalRService from "../JS/SignalR";
 import AlertConfirmOverlay from "./Modals/AlertConfirmOverlay";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
+import SimpleBackdrop from "./LoadingOverlay";
 
 function AlertList() {
   const { t, i18n } = useTranslation();
+
+  const [loading, setLoading] = useState(false); //loading screen
 
   const [expandAlertList, setExpandAlertList] = useState(
     () => JSON.parse(localStorage.getItem("expandAlertList")) || false
@@ -104,6 +107,11 @@ function AlertList() {
             return newAlertsMap;
           });
         }
+        if (topic === "web/notify/update/notification") {
+          const parsedMessage = JSON.parse(message);
+          console.log("renew alertlist");
+          fetchNoticitionList();
+        }
       });
     };
     initializeSignalR();
@@ -150,7 +158,6 @@ function AlertList() {
   }
   const fetchNoticitionList = async () => {
     try {
-      
       const response = await fetch(`/api/7284/db/Notification`, {
         method: "GET",
         headers: {
@@ -183,6 +190,7 @@ function AlertList() {
         );
 
         if (uncheckedNotifications.length > 0) {
+          setLoading(true);
           // Sort unchecked notifications by punchTime in descending order
           uncheckedNotifications.sort(
             (a, b) => new Date(b.punchTime) - new Date(a.punchTime)
@@ -214,7 +222,7 @@ function AlertList() {
               // console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
               // console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
               // console.log("existingAlertMessage ID is ", existingAlertMessage.id);
-              setNotificationChecked_PUT(existingAlertMessage.id); // CHECK TRUE old message in database
+              //setNotificationChecked_PUT(existingAlertMessage.id); // CHECK TRUE old message in database
               //save new message to alert list
               newAlertsMap.set(mac, {
                 id: parsedMessage.Id,
@@ -274,6 +282,8 @@ function AlertList() {
       }
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
+    }finally{
+      setLoading(false);
     }
   };
   {
@@ -341,74 +351,77 @@ function AlertList() {
     deleteAlert(mac, notificationId);
   };
   return (
-    <div className={`alerts ${expandAlertList ? "min" : ""}`}>
-      <div className="box">
-        <h1>{t("AlertList.Alerts")}</h1>
-        <img
-          id="expand"
-          src="/src/assets/double-left.svg"
-          alt="double chervon left arrow"
-          onClick={handleAlertListExpandClick}
-        />
-      </div>
-      <div className="alert-list">
-        {alertsArray
-          .slice()
-          .sort((a, b) => new Date(b.alertTime) - new Date(a.alertTime))
-          .map((alert, index) => (
-            <div
-              className={`container ${
-                alert.status === 3 || alert.status === 8 ? "in-progress" : ""
-              } new ${expandAlertList ? "min" : ""}`}
-              key={index}
-              onClick={() => handleAlertVisibleClick(alert.mac)}
-            >
-              {activeAlert === alert.mac && (
-                <AlertConfirmOverlay
-                  key={index}
-                  callback={() => handleAlertVisibleClick(alert.mac)}
-                  confirmAlert_callback={() =>
-                    handleConfirmAlertOverlay(alert.mac, alert.id)
-                  }
-                  alertDetail={alert}
-                />
-              )}
-              <div className="title">
-                <img
-                  src={`${
+    <>
+      <SimpleBackdrop open={loading} />
+      <div className={`alerts ${expandAlertList ? "min" : ""}`}>
+        <div className="box">
+          <h1>{t("AlertList.Alerts")}</h1>
+          <img
+            id="expand"
+            src="/src/assets/double-left.svg"
+            alt="double chervon left arrow"
+            onClick={handleAlertListExpandClick}
+          />
+        </div>
+        <div className="alert-list">
+          {alertsArray
+            .slice()
+            .sort((a, b) => new Date(b.alertTime) - new Date(a.alertTime))
+            .map((alert, index) => (
+              <div
+                className={`container ${
+                  alert.status === 3 || alert.status === 8 ? "in-progress" : ""
+                } new ${expandAlertList ? "min" : ""}`}
+                key={index}
+                onClick={() => handleAlertVisibleClick(alert.mac)}
+              >
+                {activeAlert === alert.mac && (
+                  <AlertConfirmOverlay
+                    key={index}
+                    callback={() => handleAlertVisibleClick(alert.mac)}
+                    confirmAlert_callback={() =>
+                      handleConfirmAlertOverlay(alert.mac, alert.id)
+                    }
+                    alertDetail={alert}
+                  />
+                )}
+                <div className="title">
+                  <img
+                    src={`${
+                      alert.status === 3 || alert.status === 8
+                        ? "/src/assets/attention.svg"
+                        : "/src/assets/alert.svg"
+                    }`}
+                    alt="red rectangular alert icon"
+                  />
+                  <h2>{`${
                     alert.status === 3 || alert.status === 8
-                      ? "/src/assets/attention.svg"
-                      : "/src/assets/alert.svg"
-                  }`}
-                  alt="red rectangular alert icon"
-                />
-                <h2>{`${
-                  alert.status === 3 || alert.status === 8
-                    ? t("AlertList.AttentionAlert")
-                    : t("AlertList.BedExitAlert")
-                }`}</h2>
-              </div>
-              <div className="info">
-                <div className="item">
-                  <div className="caption">{t("AlertList.Section")}</div>
-                  <p>{`${alert.floor}-${alert.section.split(" ").pop()}`}</p>
+                      ? t("AlertList.AttentionAlert")
+                      : t("AlertList.BedExitAlert")
+                  }`}</h2>
                 </div>
-                <div className="item">
-                  <div className="caption">{t("AlertList.Bed")}</div>
-                  <p>{alert.bedNo}</p>
-                </div>
-                <div className="item">
-                  <div className="caption">{t("AlertList.Name")}</div>
-                  <p>{alert.userName}</p>
-                </div>
-                <div className="time">
-                  {dayjs(alert.alertTime).format("HH:mm")}
+                <div className="info">
+                  <div className="item">
+                    <div className="caption">{t("AlertList.Section")}</div>
+                    <p>{`${alert.floor}-${alert.section.split(" ").pop()}`}</p>
+                  </div>
+                  <div className="item">
+                    <div className="caption">{t("AlertList.Bed")}</div>
+                    <p>{alert.bedNo}</p>
+                  </div>
+                  <div className="item">
+                    <div className="caption">{t("AlertList.Name")}</div>
+                    <p>{alert.userName}</p>
+                  </div>
+                  <div className="time">
+                    {dayjs(alert.alertTime).format("HH:mm")}
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+        </div>
       </div>
-    </div>
+    </>
   );
 }
 

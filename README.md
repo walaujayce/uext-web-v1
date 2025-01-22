@@ -35,3 +35,12 @@ add loading screen , modify delete account role button (remove get role from loc
 #version 1.0.34
 add try-catch on opencv
 add height-width switch logic when connect UMAP to opencv 
+
+#version 1.0.35
+modify logo, footer
+modify home.jsx with device type and bedcolor
+modify delete device api
+vite_api_url default change to 190.9.120.29
+
+#version 1.0.36
+modify home.jsx with device type and bedcolor in bed-status render

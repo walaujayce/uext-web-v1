@@ -1,8 +1,8 @@
 {
   "Login":{
     "title":"Bed Exit Alarm System",
-    "Username":"Username",
-    "Password":"Password",
+    "Username":"Username:",
+    "Password":"Password:",
     "Login":"Login",
     "ForgetPassword":"Forget Password",
     "forgetpassword-inputbox-title":"Enter registered email:",
@@ -12,7 +12,8 @@
     "ResetPassword":"Reset Password",
     "NewPassword":"New Password:",
     "ConfirmYourNewPassword":"Confirm New Password:",
-    "ConfirmChangePassword":"Confirm renew password"
+    "ConfirmChangePassword":"Confirm renew password",
+    "InputboxPlaceholder":"Enter here"
 
   },
   "Navbar": {

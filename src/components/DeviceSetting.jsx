@@ -380,8 +380,8 @@ function DeviceSettings() {
     }
   };
 
-  const handleDeleteDevice = (deviceId) => {
-    deleteDevice(deviceId);
+  const handleDeleteDevice = () => {
+    deleteDevice(macaddress);
     alert("Delete successfully!");
     navigate("/device");
   };
@@ -1356,7 +1356,8 @@ function DeviceSettings() {
                     }}
                     onMouseEnter={() => setIsDeleteBtnHovered(true)}
                     onMouseLeave={() => setIsDeleteBtnHovered(false)}
-                    onClick={() => handlePUT_API(requestBody_delete)}
+                    // onClick={() => handlePUT_API(requestBody_delete)}
+                    onClick={() => handleDeleteDevice()}
                   >
                     {/* <img src="" alt="" className="prefix" /> */}
                     <p className="btn-text">{t("DeviceSettings.Delete")}</p>

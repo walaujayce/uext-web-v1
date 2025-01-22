@@ -85,16 +85,16 @@ function LoginPassword() {
       <div
         className="login"
         style={{
-          transform: isActive_Stage2 ? "translateY(101%)" : "translateY(85%)",
+          transform: isActive_Stage2 ? "translateY(101%)" : "translateY(105%)",
         }}
       >
-        <img className="uextLogo" src="/src/assets/uext.svg" alt="" />
-        <div className="title">{t("Login.ForgetPassword")}</div>
+        <img className="uextLogo" src="/src/assets/uneo-logo.svg" alt="" />
+        {/* <div className="title">{t("Login.ForgetPassword")}</div> */}
         {/* Login Page */}
         {/* Forget Password */}
         <form className={`st2 ${isActive_Stage2 ? "" : "active"}`}>
           {/* Forget Password */}
-          <div className="input g-c-6">
+          <div className="input g-c-6" >
             <label htmlFor="reset" className="label-container">
               <p>{t("Login.forgetpassword-inputbox-title")}</p>
               <img

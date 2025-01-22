@@ -164,7 +164,9 @@ const DeviceList = () => {
                           ? "Not Specified"
                           : device.devicetype === 1
                           ? "UEXT"
-                          : "UMAP"}
+                          : device.devicetype === 2
+                          ? "UMAP"
+                          : "UNC"}
                       </h3>
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
                       <h3 className="fg2">{device.macaddress || "N/A"}</h3>
@@ -188,11 +190,13 @@ const DeviceList = () => {
                     </div>
                   </Link>):(<div className="item">
                       <h3 className="fg1">
-                        {device.devicetype === 0
+                      {device.devicetype === 0
                           ? "Not Specified"
                           : device.devicetype === 1
                           ? "UEXT"
-                          : "UMAP"}
+                          : device.devicetype === 2
+                          ? "UMAP"
+                          : "UNC"}
                       </h3>
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
                       <h3 className="fg2">{device.macaddress || "N/A"}</h3>

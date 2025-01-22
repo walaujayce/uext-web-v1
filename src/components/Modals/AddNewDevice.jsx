@@ -43,7 +43,7 @@ const AddNewDevice = ({ callback }) => {
   {
     /* Handle Device Type Dropdown Menu */
   }
-  const deviceTypes = ["Not specified", "UEXT", "UMAP"];
+  const deviceTypes = ["Not specified", "UEXT", "UMAP", "UNC"];
   const [isDeviceTypeActive, setDeviceTypeActive] = useState(false);
   const handleDeviceTypeDropdownMenu = () => {
     setDeviceTypeActive((prev) => !prev);
@@ -59,6 +59,8 @@ const AddNewDevice = ({ callback }) => {
       setDeviceType_POST(1);
     } else if (deviceType === "UMAP") {
       setDeviceType_POST(2);
+    } else if (deviceType === "UNC") {
+      setDeviceType_POST(3);
     } else {
       setDeviceType_POST(0);
     }
@@ -244,6 +246,7 @@ const AddNewDevice = ({ callback }) => {
       bed,
       floor,
       section,
+      used:true
     };
 
     try {

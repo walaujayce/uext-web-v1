@@ -449,35 +449,71 @@ function PatientAlerts() {
 
   useEffect(() => {
     if (alertList) {
+      // // Alert Controller
+      // updateToggleStatesFromAlertController(alertList.alertcontroller);
+      // // Alert Start and End Time
+      // if (alertList.alertstarttime === 0 && alertList.alertstoptime === 24) {
+      //   setSelectedNotification(1);
+      // } else if (
+      //   alertList.alertstarttime === 0 &&
+      //   alertList.alertstoptime === 8
+      // ) {
+      //   setSelectedNotification(2);
+      // } else if (
+      //   alertList.alertstarttime === 8 &&
+      //   alertList.alertstoptime === 16
+      // ) {
+      //   setSelectedNotification(3);
+      // } else if (
+      //   alertList.alertstarttime === 16 &&
+      //   alertList.alertstoptime === 24
+      // ) {
+      //   setSelectedNotification(4);
+      // } else if (
+      //   alertList.alertstarttime === 0 &&
+      //   alertList.alertstoptime === 0
+      // ) {
+      //   setNotificationToggleState(false);
+      // } else {
+      //   setSelectedNotification(5);
+      //   setCustomStartTime(alertList.alertstarttime);
+      //   setCustomEndTime(alertList.alertstoptime);
+      // }
+
+      {/* change receive alert start and end time from UTC to local format */}
+      var Local_startTime = alertList.alertstarttime + 8;
+      Local_startTime = Local_startTime >= 24 ? Local_startTime - 24 : Local_startTime;
+      var Local_endTime = alertList.alertstoptime + 8;
+      Local_endTime = Local_endTime > 24 ? Local_endTime - 24 : Local_endTime;
       // Alert Controller
       updateToggleStatesFromAlertController(alertList.alertcontroller);
       // Alert Start and End Time
-      if (alertList.alertstarttime === 0 && alertList.alertstoptime === 24) {
+      if (Local_startTime === 0 && Local_endTime === 24) {
         setSelectedNotification(1);
       } else if (
-        alertList.alertstarttime === 0 &&
-        alertList.alertstoptime === 8
+        Local_startTime === 0 &&
+        Local_endTime === 8
       ) {
         setSelectedNotification(2);
       } else if (
-        alertList.alertstarttime === 8 &&
-        alertList.alertstoptime === 16
+        Local_startTime === 8 &&
+        Local_endTime === 16
       ) {
         setSelectedNotification(3);
       } else if (
-        alertList.alertstarttime === 16 &&
-        alertList.alertstoptime === 24
+        Local_startTime === 16 &&
+        Local_endTime === 24
       ) {
         setSelectedNotification(4);
       } else if (
-        alertList.alertstarttime === 0 &&
-        alertList.alertstoptime === 0
+        Local_startTime === 0 &&
+        Local_endTime === 0
       ) {
         setNotificationToggleState(false);
       } else {
         setSelectedNotification(5);
-        setCustomStartTime(alertList.alertstarttime);
-        setCustomEndTime(alertList.alertstoptime);
+        setCustomStartTime(Local_startTime);
+        setCustomEndTime(Local_endTime);
       }
       // Alert Repeat Time
       if (alertList.debounce !== 0) {
@@ -507,17 +543,30 @@ function PatientAlerts() {
     }
   }, [alertList]);
 
+  const formatAlertStartTimeToUTC = () => {
+    var StartTime_Local =
+      (selectedNotification === 5
+        ? parseInt(customStartTime, 10)
+        : startTime) || 0;
+    var StartTime_UTC = StartTime_Local - 8;
+    return StartTime_UTC < 0 ? StartTime_UTC + 24 : StartTime_UTC;
+  };
+
+  const formatAlertEndTimeToUTC = () => {
+    var EndTime_Local =
+      (selectedNotification === 5 ? parseInt(customEndTime, 10) : endTime) ||
+      24;
+    var EndTime_UTC = EndTime_Local - 8;
+    return EndTime_UTC < 0 ? EndTime_UTC + 24 : EndTime_UTC;
+  };
+
   {
     /* Requestbody */
   }
   const requestBody_PUT = {
     alertcontroller: generateAlertControllerFromToggleStates(),
-    alertstarttime:
-      (selectedNotification === 5
-        ? parseInt(customStartTime, 10)
-        : startTime) || 0,
-    alertstoptime:
-      (selectedNotification === 5 ? parseInt(customEndTime, 10) : endTime) || 0,
+    alertstarttime: formatAlertStartTimeToUTC(),
+    alertstoptime: formatAlertEndTimeToUTC(),
     debounce: alertRepeatToggleState ? parseInt(debounceInput, 10) : 0,
     exitalert: placeholder === "High" ? 60 : placeholder === "Medium" ? 70 : 80,
     posturealert1: parseInt(inputValues[1], 10),
@@ -535,13 +584,8 @@ function PatientAlerts() {
 
   const requestBody_POST = {
     alertcontroller: generateAlertControllerFromToggleStates() || 3,
-    alertstarttime:
-      (selectedNotification === 5
-        ? parseInt(customStartTime, 10)
-        : startTime) || 0,
-    alertstoptime:
-      (selectedNotification === 5 ? parseInt(customEndTime, 10) : endTime) ||
-      24,
+    alertstarttime: formatAlertStartTimeToUTC(),
+    alertstoptime: formatAlertEndTimeToUTC(),
     debounce: (alertRepeatToggleState ? parseInt(debounceInput, 10) : 0) || 0,
     exitalert:
       (placeholder === "High" ? 60 : placeholder === "Medium" ? 70 : 80) || 70,
@@ -592,7 +636,6 @@ function PatientAlerts() {
   }
   const POST_PatientAlert = async () => {
     try {
-
       setLoading(true);
 
       const response = await fetch(`/api/7284/db/Alert`, {
@@ -619,7 +662,7 @@ function PatientAlerts() {
       console.log(data); // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
-    }finally{
+    } finally {
       setLoading(false);
     }
   };
@@ -634,9 +677,12 @@ function PatientAlerts() {
 
       // Combine the filtered alert list with the new request body
       const updatedData = { ...filteredAlertList, ...requestBody_PUT };
-
+      console.log("alert start time ",startTime);
+      console.log("alert end time ",endTime);
+      console.log("alert start time UTC ",formatAlertStartTimeToUTC());
+      console.log("alert end time UTC ",formatAlertEndTimeToUTC());
       setLoading(true);
-      
+
       const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
         method: "PUT",
         headers: {
@@ -692,7 +738,7 @@ function PatientAlerts() {
 
       // Combine the filtered alert list with the new request body
       const updatedData = { ...filteredAlertList, ...requestBody_PUT_RESET };
-    
+
       setLoading(true);
 
       const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
@@ -718,7 +764,7 @@ function PatientAlerts() {
       window.location.reload();
     } catch (error) {
       console.error("Error updating device:", error.message);
-    }finally{
+    } finally {
       setLoading(false);
     }
   };

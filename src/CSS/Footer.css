@@ -9,6 +9,7 @@
     padding: 0px 24px;
     gap: 24px;
     background: #F3F3F3;
+    justify-content: space-between;
 
     }   
         .Footer-img{
@@ -16,22 +17,28 @@
             width: 120px;
             height: auto;
         }
+        .Footer-version{
+            font-family: 'Noto Sans TC';
+            font-style: normal;
+            font-weight: 400;
+            font-size: 14px;
+            color: #9B9B9B;
+            min-width: 120px;
+
+        }
         .Footer-copyright{
             font-family: 'Noto Sans TC';
             font-style: normal;
             font-weight: 400;
             font-size: 14px;
             color: #9B9B9B;
-            order: 1;
+
         }
         .Footer-datetime-container{
             flex-direction: row;
-            display: flex;
-            position: fixed;
-            order: 2;       
-            right: 0;
             gap: 24px;
             margin: 0px 0px;
+            display: flex;
         }
             .Footer-date{
             font-family: 'Noto Sans TC';
@@ -40,15 +47,12 @@
             font-size: 14px;
             text-align: center;
             color: #9B9B9B;
-
-
             }
             .Footer-time{
                 font-family: 'Noto Sans TC';
                 font-style: normal;
                 font-weight: 400;
                 font-size: 14px;
-                padding-right: 24px;
                 text-align: center;
                 color: #9B9B9B;
             }
