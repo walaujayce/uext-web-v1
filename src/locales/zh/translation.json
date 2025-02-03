@@ -71,7 +71,7 @@
   "PatientDetail": {
     "Monitor": "即時監控",
     "Alerts": "警示設定",
-    "Engineer": "工程模式",
+    "Debug": "除錯模式",
     "Back": "返回列表"
   },
   "PatientProfile": {
@@ -185,13 +185,20 @@
     "DeviceVersion": "裝置版本",
     "DeviceVersion-p": "目前版本 - ",
     "DeviceRemove": "裝置移除",
-    "DeviceRemove-p": "將裝置從監控列表中移除",
+    "DeviceRemove-p": "將裝置從監控列表中移除",    
+    "RawData": "原始數據",
+    "RawData-p": "下載原始數據至本地端",
+    "RecordData": "裝置數據",
+    "RecordData-p": "下載裝置數據至本地端",
+    "ErrorLog": "裝置狀態記錄",
+    "ErrorLog-p": "下載裝置狀態記錄至本地端",
     "Save": "儲存",
     "Reconnect": "重新連線",
     "Reset": "重置設定",
     "Update": "更新",
     "Delete": "移除",
-    "Back": "返回列表"
+    "Back": "返回列表",
+    "Download":"下載"
   },
   "AddDeviceModal": {
     "AddDevice": "新增裝置",
@@ -251,5 +258,17 @@
     "Confirm": "確認",
     "Cancel": "取消",
     "Okay": "好的"
+  },
+  "ChangePassword":{
+    "EnterHere" : "輸入欄位",
+    "CurrentPw" : "目前密碼",
+    "NewPw" : "新密碼",
+    "ConfirmNewPw" : "再次確認新密碼",
+    "Confirm" : "確認",
+    "Back" : "返回",
+    "Okay" : "好的",
+    "OkayMessageTitle":"新密碼已更新",
+    "OkayMessageH1" : "下次登入請記得使用新密碼。"
+
   }
 }

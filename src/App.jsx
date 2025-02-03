@@ -86,7 +86,7 @@ function App() {
         <Route
           path="patient-engineer"
           element={
-            <PrivateRoute allowedRoles={[ "engineer", "administrator"]}>
+            <PrivateRoute allowedRoles={["administrator"]}>
               <PatientEngineer />
             </PrivateRoute>
           }
@@ -120,7 +120,7 @@ function App() {
       <Route
         path="/account/account-settings"
         element={
-          <PrivateRoute allowedRoles={["administrator"]}>
+          <PrivateRoute allowedRoles={["all"]}>
             <AccountSetting />
           </PrivateRoute>
         }

@@ -72,7 +72,7 @@
   "PatientDetail":{
     "Monitor":"Monitor",
     "Alerts":"Alerts",
-    "Engineer":"Engineer",
+    "Debug":"Debug",
     "Back":"Back"
   },
   "PatientProfile": {
@@ -184,6 +184,12 @@
     "DeviceConfiguration": "Device Configuration",
     "DeviceVersion": "Device Version",
     "DeviceVersion-p": "Current version - ",
+    "RawData": "Raw Data",
+    "RawData-p": "Download raw data to local storage.",
+    "RecordData": "Record Data",
+    "RecordData-p": "Download record data to local storage.",
+    "ErrorLog": "Error Log",
+    "ErrorLog-p": "Download error log to local storage.",
     "DeviceRemove": "Device Remove",
     "DeviceRemove-p": "Remove device from monitor list.",
     "Save": "Save",
@@ -191,7 +197,8 @@
     "Reset": "Reset To Default",
     "Update": "Update",
     "Delete": "Delete",
-    "Back":"Back"
+    "Back":"Back",
+    "Download":"Download"
   },
   "AddDeviceModal":{
     "AddDevice":"Add Device",
@@ -251,5 +258,16 @@
     "Confirm":"Confirm",
     "Cancel":"Cancel",
     "Okay":"Okay"
+  },
+  "ChangePassword":{
+    "EnterHere" : "Enter Here",
+    "CurrentPw" : "Current password",
+    "NewPw" : "New password",
+    "ConfirmNewPw" : "Confirm new password",
+    "Confirm" : "Confirm",
+    "Back" : "Back",
+    "Okay" : "Okay",
+    "OkayMessageTitle":"New password has been updated",
+    "OkayMessageH1" : "Remember to use the new password when you login next time."
   }
 }

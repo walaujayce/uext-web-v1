@@ -130,10 +130,10 @@ function ResetPassword() {
 
       const data = await response.json();
       if (data.code !== 0) {
-        console.log("User fail to update:", data);
-        alert("User fail to update!");
+        console.log("Password fail to update:", data);
+        alert("Password fail to update!");
       } else {
-        console.log("User updated successfully:", data);
+        console.log("Password updated successfully:", data);
         alert("Update Successfully!");
         navigate("/");
       }

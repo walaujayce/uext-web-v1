@@ -11,7 +11,9 @@ function AccountSetting() {
 
   const [loading, setLoading] = useState(false); //loading screen
 
-  const storedUserRole = localStorage.getItem("role");
+  const storedUserRole = JSON.parse(localStorage.getItem("role"));
+
+  const [isAble, setAbleToDeleteAccount] = useState(false);
 
   const navigate = useNavigate();
 
@@ -58,7 +60,9 @@ function AccountSetting() {
   }
   const [isRoleActive, setRoleActive] = useState(false);
   const handleRoleDropdown = () => {
-    setRoleActive((prev) => !prev);
+    if(storedUserRole==="administrator"){
+      setRoleActive((prev) => !prev);
+    }
   };
   const ROLE = ["Administrator", "Engineer", "User"];
   const [placeholderRole, setPlaceholderRole] = useState(ROLE[0]); // Input placeholder
@@ -118,6 +122,9 @@ function AccountSetting() {
   };
   useEffect(() => {
     fetchUserInfo(userid);
+    if(storedUserRole && storedUserRole==="administrator"){
+      setAbleToDeleteAccount(true);
+    }
   }, []);
 
   const requestBody_PUT_Profile = {
@@ -203,6 +210,9 @@ function AccountSetting() {
 
   const handleDeleteUser = (userid) => {
     console.log("delete userid is ", userid);
+    if(storedUserRole!=="administrator"){
+      return;
+    }
     if (userInfo.role===0) {
       alert("Cannot delete Administrator account!");
       return;
@@ -340,7 +350,7 @@ function AccountSetting() {
                     <p className="btn-text">{t("AccountSettings.Save")}</p>
                   </div>
                   <div
-                    className="btn text-only outline"
+                    className={`btn text-only outline ${isAble ? "" : "inactive"}`}
                     id="deleteUser"
                     onClick={() => handleDeleteUser(userid)}
                   >

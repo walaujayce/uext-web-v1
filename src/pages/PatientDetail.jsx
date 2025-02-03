@@ -59,7 +59,7 @@ function PatientDetail() {
                 {t("PatientDetail.Alerts")}
               </span>
             </Link>
-            {["administrator", "engineer"].includes(role) && (
+            {["administrator"].includes(role) && (
               <Link
                 to={`/patient/patient-detail/patient-engineer${searchParams}`}
               >
@@ -72,7 +72,7 @@ function PatientDetail() {
                                 : ""
                             }`}
                 >
-                  {t("PatientDetail.Engineer")}
+                  {t("PatientDetail.Debug")}
                 </span>
               </Link>
             )}

@@ -374,7 +374,9 @@ function DeviceSettings() {
         alert("Device delete successfully!");
         navigate("/device");
       } else {
-        alert("Something went wrong, please discharge patient before delete device.");
+        alert(
+          "Something went wrong, please discharge patient before delete device."
+        );
       }
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
@@ -494,6 +496,49 @@ function DeviceSettings() {
       return data; // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  {
+    /* handle download device rawdata/recorddata/errorlog */
+  }
+  const filterRequest = {
+    Deviceid: "80C9553B5F70",
+    StartTime: "2025-02-02T00:00:00",
+    EndTime: "2025-02-03T00:00:00",
+  };
+
+  const handleDownload = async (downloadtype) => {
+    try {
+      setLoading(true);
+      const response = await fetch(`/api/7284/db/${downloadtype}/filter`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(filterRequest),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Error: ${response.statusText}`);
+      }
+
+      // Get file data
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+
+      // Set download attributes
+      a.href = url;
+      a.download = `${filterRequest.Deviceid}_${downloadtype}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Download failed:", error);
+      alert("Error downloading file");
     } finally {
       setLoading(false);
     }
@@ -1336,6 +1381,50 @@ function DeviceSettings() {
                   <div className="btn text-only inactive">
                     {/* <img src="" alt="" className="prefix" /> */}
                     <p className="btn-text">{t("DeviceSettings.Update")}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="deviceSetting">
+              <h2>{t("DeviceSettings.RawData")}</h2>
+              <div className="opt-list">
+                <div className="ver-stat">{t("DeviceSettings.RawData-p")}</div>
+                <div className="btn-gp">
+                  <div
+                    className="btn text-only"
+                    onClick={() => handleDownload("Rawdatum")}
+                  >
+                    <p className="btn-text">{t("DeviceSettings.Download")}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="deviceSetting">
+              <h2>{t("DeviceSettings.RecordData")}</h2>
+              <div className="opt-list">
+                <div className="ver-stat">
+                  {t("DeviceSettings.RecordData-p")}
+                </div>
+                <div className="btn-gp">
+                  <div
+                    className="btn text-only"
+                    onClick={() => handleDownload("RecordData")}
+                  >
+                    <p className="btn-text">{t("DeviceSettings.Download")}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="deviceSetting">
+              <h2>{t("DeviceSettings.ErrorLog")}</h2>
+              <div className="opt-list">
+                <div className="ver-stat">{t("DeviceSettings.ErrorLog-p")}</div>
+                <div className="btn-gp">
+                  <div
+                    className="btn text-only"
+                    onClick={() => handleDownload("Errorlog")}
+                  >
+                    <p className="btn-text">{t("DeviceSettings.Download")}</p>
                   </div>
                 </div>
               </div>

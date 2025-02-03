@@ -47,3 +47,12 @@ modify home.jsx with device type and bedcolor in bed-status render
 
 #version 1.0.37
 modify 
+
+#version 1.0.38
+modify 
+
+#version 1.0.39
+move navbar overlay div to independently to prevent active list 
+add change password function in navbar
+add account settings webpage in navbar
+add rawdata/recorddata/errorlog download
