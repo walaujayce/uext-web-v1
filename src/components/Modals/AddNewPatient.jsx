@@ -398,7 +398,7 @@ const AddNewPatient = ({ mac, callback }) => {
                 </div>
               </div>
               {/* DOB */}
-              <div className="input g-c-3">
+              <div className="g-c-3">
                 <label htmlFor="dob" className="label-container">
                   <p>{t("AddPatientModal.DOB")}</p>
                   <img
@@ -407,16 +407,18 @@ const AddNewPatient = ({ mac, callback }) => {
                     alt="gray outline information icon"
                   />
                 </label>
-                <DatePicker
-                  dateFormat="yyyy/MM/dd"
-                  selected={selectedDate}
-                  onChange={(date) => setSelectedDate(date)}
-                  peekNextMonth
-                  showMonthDropdown
-                  showYearDropdown
-                  dropdownMode="select"
-                  withPortal
-                />
+                <div>
+                  <DatePicker
+                    dateFormat="yyyy/MM/dd"
+                    selected={selectedDate}
+                    onChange={(date) => setSelectedDate(date)}
+                    peekNextMonth
+                    showMonthDropdown
+                    showYearDropdown
+                    dropdownMode="select"
+                    // className="react-date-picker"
+                  />
+                </div>
                 {/* <div
                   className={`assistive-text ${
                     patientDOBError.isErrorActive ? "active" : ""
@@ -439,10 +441,7 @@ const AddNewPatient = ({ mac, callback }) => {
                   {t("AddPatientModal.Continue")}
                 </p>
               </div>
-              <div
-                className="btn text-only outline sec"
-                onClick={callback}
-              >
+              <div className="btn text-only outline sec" onClick={callback}>
                 <img src="" alt="" className="prefix" />
                 <p className="btn-text sec-text">
                   {t("AddPatientModal.Cancel")}

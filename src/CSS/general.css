@@ -726,7 +726,7 @@ footer .time{
         height: 32px;
     }
     header .list{
-        top: 48px;
+        top: 36px; /*jayce modified*/
         box-shadow: 0px 2px 10px 0px rgba(0, 0, 0, 0.15);
     }
     .option{
@@ -923,7 +923,7 @@ footer .time{
         padding: 12px;
     }
     header .list{
-        top: 48px;
+        top: 36px; /*jayce modified*/
         box-shadow: 0px 2px 10px 0px rgba(0, 0, 0, 0.15);
     }
     .option{

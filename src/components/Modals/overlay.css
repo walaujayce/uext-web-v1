@@ -196,6 +196,11 @@
     grid-column: span 3;
 }
 
+.react-date-picker{
+    background-color: red !important;
+    color: white; /* Ensure text is readable */
+    width: 50px;
+}
 .addPatient .btn-gp{
     display: flex;
     gap: 24px;

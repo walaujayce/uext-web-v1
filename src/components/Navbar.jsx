@@ -5,6 +5,7 @@ import { useAuth } from "../JS/AuthContext";
 import LogOut_Modal from "./Modals/LogOut";
 import { useTranslation } from "react-i18next";
 import ChangePasswordModal from "./Modals/ChangePassword";
+import dayjs from "dayjs";
 
 function Navbar() {
   const { t, i18n } = useTranslation();
@@ -39,6 +40,7 @@ function Navbar() {
     /* Account Setting Dropdown Menu Logic */
   }
   const [isActiveLang, setLangAccount] = useState(false);
+  const [isActiveNotification, setActiveNotification] = useState(false);
   const [isActiveAccount, setActiveAccount] = useState(false);
 
   const handleMouseEnterLang = () => {
@@ -47,10 +49,15 @@ function Navbar() {
   const handleMouseLeaveLang = () => {
     setLangAccount(false);
   };
+  const handleMouseEnterNotification = () => {
+    setActiveNotification(true);
+  };
+  const handleMouseLeaveNotification = () => {
+    setActiveNotification(false);
+  };
   const handleMouseEnter = () => {
     setActiveAccount(true);
   };
-
   const handleMouseLeave = () => {
     setActiveAccount(false);
   };
@@ -77,7 +84,7 @@ function Navbar() {
     setActiveAccount(false);
   };
   {
-    /* Get User ID */
+    /* Get User ID for account setting */
   }
   const [selected_user_id, setSelectedUserId] = useState("");
   useEffect(() => {
@@ -105,6 +112,127 @@ function Navbar() {
     }
     fetchData();
   }, []);
+
+  {
+    /* Notification */
+  }
+  const [errorlogs, setErrorlogs] = useState([]);
+
+  // extract log content
+  function extractContent(log) {
+    const match = log.match(/(?:\s|^)([A-F0-9]{12})\s([^,]*)/);
+    return match ? match[2].trim() : null;
+  }
+  //format logtime format
+  function formatLogTime(logtime) {
+    const date = new Date(logtime); // Parse the UTC time
+    const utc8Date = new Date(date.getTime() + 8 * 60 * 60 * 1000); // Convert to UTC+8
+
+    // Get local date in UTC+8 format
+    const localDate = new Date();
+    const localUtc8Date = new Date(localDate.getTime() + 8 * 60 * 60 * 1000);
+
+    // Extract date parts
+    const logYear = utc8Date.getFullYear();
+    const logMonth = String(utc8Date.getMonth() + 1).padStart(2, "0");
+    const logDay = String(utc8Date.getDate()).padStart(2, "0");
+
+    const localYear = localUtc8Date.getFullYear();
+    const localMonth = String(localUtc8Date.getMonth() + 1).padStart(2, "0");
+    const localDay = String(localUtc8Date.getDate()).padStart(2, "0");
+
+    // Extract time part
+    const formattedTime = utc8Date.toLocaleTimeString("zh-CN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false, // Ensure 24-hour format
+    });
+
+    // Compare the dates
+    if (
+      logYear === localYear &&
+      logMonth === localMonth &&
+      logDay === localDay
+    ) {
+      return `${t("Navbar.Notification-date-today")} ${formattedTime}`;
+    } else {
+      return `${logYear}-${logMonth}-${logDay} ${formattedTime}`;
+    }
+  }
+
+  // get device type
+  const getDeviceType = (devicetype) => {
+    switch (devicetype) {
+      case 0:
+        return "UNDEFINED";
+      case 1:
+        return "UEXT";
+      case 2:
+        return "UMAP";
+      case 3:
+        return "UNC";
+      default:
+        return "UNDEFINED";
+    }
+  };
+  useEffect(() => {
+    async function fetchErrorlog() {
+      try {
+        // Get userid based on username in local storage
+        const response = await fetch("/api/7284/db/Errorlog", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const data = await response.json();
+        console.log("error log: ", data);
+        setErrorlogs(data);
+      } catch (error) {
+        console.error("Error :", error.message);
+      }
+    }
+    fetchErrorlog();
+  }, []);
+
+  {
+    /* PUT API set Checkstatus */
+  }
+  const requestbody_PUT = {
+    checkStatus: true,
+  };
+  const setNotificationChecked_PUT = async (notification_Id) => {
+    try {
+      const response = await fetch(`/api/7284/db/Errorlog/${notification_Id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestbody_PUT), // Convert the requestBody to JSON
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      const data = await response.json();
+      if (data.code !== 0) {
+        console.log(data.message);
+        return;
+      }
+      console.log("Notification is set CHECKED successfully:", data);
+
+      // Remove the dismissed notification from state
+      setErrorlogs((prevLogs) =>
+        prevLogs.filter((errorlog) => errorlog.guid !== notification_Id)
+      );
+    } catch (error) {
+      console.error("Error updating device:", error.message);
+    }
+  };
 
   return (
     <>
@@ -196,25 +324,36 @@ function Navbar() {
               </a>
             </div>
           </div>
-          <div className="notification">
+          <div
+            className="notification"
+            onMouseEnter={handleMouseEnterNotification}
+            onMouseLeave={handleMouseLeaveNotification}
+          >
             <img src="/src/assets/notice.svg" alt="" className="notiBtn" />
-            <div className="list">
-              <div className="notice">
-                <div className="title">Patient Exit Bed Notification</div>
-                <div className="content">
-                  Chan Tai Ming (7/F, Zone A, Bed 113) just exit his bed.
-                </div>
-                <div className="time">Today 11:45</div>
-                <img src="/src/assets/close.svg" alt="" className="close" />
-              </div>
-              <div className="notice">
-                <div className="title">Patient Exit Bed Notification</div>
-                <div className="content">
-                  Chan Tai Ming (7/F, Zone A, Bed 113) just exit his bed.
-                </div>
-                <div className="time">Today 11:45</div>
-                <img src="/src/assets/close.svg" alt="" className="close" />
-              </div>
+            <div className={`list ${isActiveNotification ? "active" : ""}`}>
+              {errorlogs
+                .filter((errorlog) => /connected|offline/i.test(errorlog.log))
+                .filter((errorlog) => errorlog.checkStatus === false)
+                .map((errorlog) => (
+                  <div className="notice" key={errorlog.guid}>
+                    <div className="title">
+                      {getDeviceType(errorlog.deviceType)} {errorlog.deviceid}
+                    </div>
+                    <div className="content">
+                      {extractContent(errorlog.log)}
+                    </div>
+                    <div className="time">
+                      {formatLogTime(errorlog.logtime)}
+                    </div>
+                    <img
+                      src="/src/assets/close.svg"
+                      alt=""
+                      className="close"
+                      onClick={() => setNotificationChecked_PUT(errorlog.guid)}
+                    />
+                  </div>
+                ))}
+              <div className="all-clear active">No more new updates </div>
             </div>
           </div>
           {/* Account */}
@@ -253,13 +392,21 @@ function Navbar() {
                 id="changePassword"
                 onClick={handleChangePasswordVisibleClick}
               >
-                <img src="/src/assets/lock.svg"  className="setting-img"
-                    style={{ width: "34px" }} alt="" />
+                <img
+                  src="/src/assets/lock.svg"
+                  className="setting-img"
+                  style={{ width: "34px" }}
+                  alt=""
+                />
                 <p>{t("Navbar.ChangePassword")}</p>
               </a>
               <a className="option logout" onClick={handleLogOutVisibleClick}>
-                <img src="/src/assets/logout.svg" alt=""  className="setting-img"
-                    style={{ width: "34px" }}/>
+                <img
+                  src="/src/assets/logout.svg"
+                  alt=""
+                  className="setting-img"
+                  style={{ width: "34px" }}
+                />
                 <p>{t("Navbar.Logout")}</p>
               </a>
             </div>

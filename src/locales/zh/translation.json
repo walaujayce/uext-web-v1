@@ -22,7 +22,8 @@
     "Account": "帳戶",
     "AccountSettings": "帳戶設定",
     "ChangePassword": "更改密碼",
-    "Logout": "登出"
+    "Logout": "登出",
+    "Notification-date-today":"今日"
   },
   "Home": {
     "Monitor": "監控列表",
@@ -190,8 +191,10 @@
     "RawData-p": "下載原始數據至本地端",
     "RecordData": "裝置數據",
     "RecordData-p": "下載裝置數據至本地端",
-    "ErrorLog": "裝置狀態記錄",
+    "ErrorLog": "狀態記錄",
     "ErrorLog-p": "下載裝置狀態記錄至本地端",
+    "StartTime": "起始時間",
+    "EndTime": "結束時間",
     "Save": "儲存",
     "Reconnect": "重新連線",
     "Reset": "重置設定",

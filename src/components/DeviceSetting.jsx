@@ -7,6 +7,9 @@ import AlertList from "./AlertList";
 import SignalRService from "../JS/SignalR";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import dayjs from "dayjs";
 
 function DeviceSettings() {
   const { t, i18n } = useTranslation();
@@ -500,18 +503,60 @@ function DeviceSettings() {
       setLoading(false);
     }
   };
+
+  {
+    /* Handle Calender Logic */
+  }
+  function useSelectDate() {
+    const [selectedStartDate, setSelectedStartDate] = useState(new Date());
+    const handleStartDateSelect = (date) => {
+      setSelectedStartDate(date);
+    };
+    const [selectedEndDate, setSelectedEndDate] = useState(new Date());
+    const handleEndDateSelect = (date) => {
+      if (date > selectedStartDate) {
+        setSelectedEndDate(date);
+      } else {
+        alert("End date must be greater than start date");
+      }
+    };
+    return {
+      selectedStartDate,
+      selectedEndDate,
+      handleStartDateSelect,
+      handleEndDateSelect,
+    };
+  }
+
+  const rawdataDate = useSelectDate();
+  const recordData = useSelectDate();
+  const errorLog = useSelectDate();
+
   {
     /* handle download device rawdata/recorddata/errorlog */
   }
-  const filterRequest = {
-    Deviceid: "80C9553B5F70",
-    StartTime: "2025-02-02T00:00:00",
-    EndTime: "2025-02-03T00:00:00",
-  };
+  function convertToUTC(date) {
+    const utcDate = new Date(date.getTime() - 8 * 60 * 60 * 1000); // Convert to UTC
+  
+    // Format as "YYYY-MM-DDTHH:mm:ss"
+    return utcDate.toISOString().split(".")[0]; // Removes milliseconds
+  }
 
-  const handleDownload = async (downloadtype) => {
+  const handleDownload = async (downloadtype,startTime,endTime) => {
     try {
+
+      if (endTime < startTime) {
+        alert("End date must be greater than start date");
+        return;
+      } 
       setLoading(true);
+
+      const filterRequest = {
+        Deviceid: deviceMacInput.inputValue,
+        StartTime: convertToUTC(startTime),
+        EndTime: convertToUTC(endTime),
+      };
+
       const response = await fetch(`/api/7284/db/${downloadtype}/filter`, {
         method: "POST",
         headers: {
@@ -531,7 +576,7 @@ function DeviceSettings() {
 
       // Set download attributes
       a.href = url;
-      a.download = `${filterRequest.Deviceid}_${downloadtype}.csv`;
+      a.download = `${filterRequest.Deviceid}_${downloadtype}_${dayjs(startTime).format("YYYYMMDDHHmmss")}_to_${dayjs(endTime).format("YYYYMMDDHHmmss")}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -1388,11 +1433,72 @@ function DeviceSettings() {
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.RawData")}</h2>
               <div className="opt-list">
-                <div className="ver-stat">{t("DeviceSettings.RawData-p")}</div>
+                {/* raw data title */}
+                {/* <div className="download-stat">
+                  {t("DeviceSettings.RawData-p")}
+                </div> */}
+                {/* Select date range */}
+                <div className="opt-grid">
+                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                    <label htmlFor="d-id" className="label-container">
+                      <p>{t("DeviceSettings.StartTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={rawdataDate.selectedStartDate}
+                        onChange={rawdataDate.handleStartDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                    <label htmlFor="mac" className="label-container">
+                      <p>{t("DeviceSettings.EndTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={rawdataDate.selectedEndDate}
+                        onChange={rawdataDate.handleEndDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                </div>
+                {/* download button */}
                 <div className="btn-gp">
                   <div
                     className="btn text-only"
-                    onClick={() => handleDownload("Rawdatum")}
+                    onClick={() => handleDownload("Rawdatum",rawdataDate.selectedStartDate,rawdataDate.selectedEndDate)}
                   >
                     <p className="btn-text">{t("DeviceSettings.Download")}</p>
                   </div>
@@ -1402,13 +1508,69 @@ function DeviceSettings() {
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.RecordData")}</h2>
               <div className="opt-list">
-                <div className="ver-stat">
+                {/* <div className="download-stat">
                   {t("DeviceSettings.RecordData-p")}
+                </div> */}
+                <div className="opt-grid">
+                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                    <label htmlFor="d-id" className="label-container">
+                      <p>{t("DeviceSettings.StartTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={recordData.selectedStartDate}
+                        onChange={recordData.handleStartDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                    <label htmlFor="mac" className="label-container">
+                      <p>{t("DeviceSettings.EndTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={recordData.selectedEndDate}
+                        onChange={recordData.handleEndDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
                 </div>
                 <div className="btn-gp">
                   <div
                     className="btn text-only"
-                    onClick={() => handleDownload("RecordData")}
+                    onClick={() => handleDownload("RecordData",recordData.selectedStartDate,recordData.selectedEndDate)}
                   >
                     <p className="btn-text">{t("DeviceSettings.Download")}</p>
                   </div>
@@ -1418,11 +1580,69 @@ function DeviceSettings() {
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.ErrorLog")}</h2>
               <div className="opt-list">
-                <div className="ver-stat">{t("DeviceSettings.ErrorLog-p")}</div>
+                {/* <div className="download-stat">
+                  {t("DeviceSettings.ErrorLog-p")}
+                </div> */}
+                <div className="opt-grid">
+                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                    <label htmlFor="d-id" className="label-container">
+                      <p>{t("DeviceSettings.StartTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={errorLog.selectedStartDate}
+                        onChange={errorLog.handleStartDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                    <label htmlFor="mac" className="label-container">
+                      <p>{t("DeviceSettings.EndTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={errorLog.selectedEndDate}
+                        onChange={errorLog.handleEndDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                </div>
                 <div className="btn-gp">
                   <div
                     className="btn text-only"
-                    onClick={() => handleDownload("Errorlog")}
+                    onClick={() => handleDownload("Errorlog",errorLog.selectedStartDate,errorLog.selectedEndDate)}
                   >
                     <p className="btn-text">{t("DeviceSettings.Download")}</p>
                   </div>

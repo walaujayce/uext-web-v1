@@ -63,6 +63,10 @@
     flex-direction: column;
 }
 
+.opt-grid .input.g-col-1{ /* jayce code */
+    grid-column: span 1;
+
+}
 .opt-grid .input.g-col-2{
     grid-column: span 2;
 }
@@ -81,6 +85,13 @@
 }
 
 .ver-stat{
+    color: rgba(0, 0, 0, 0.50);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+.download-stat{ /* jayce code */
     color: rgba(0, 0, 0, 0.50);
     font-size: 24px;
     font-style: normal;
@@ -158,6 +169,9 @@
     .ver-stat{
         font-size: 16px;
     }
+    .download-stat{ /* jayce code */ 
+        font-size: 20px;
+    }
 }
 
 @media (max-width:1366px) {
@@ -203,5 +217,8 @@
     }
     .ver-stat{
         font-size: 14px;
+    }
+    .download-stat{ /* jayce code */
+        font-size: 18px;
     }
 }

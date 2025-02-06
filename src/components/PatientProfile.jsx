@@ -272,7 +272,7 @@ function PatientProfile() {
 
   return (
     <div className="pp">
-      <h1>{t("PatientProfile.PatientProfile")}</h1>
+      <h1  style={{zIndex:"1"}}>{t("PatientProfile.PatientProfile")}</h1>
       <div className="pfl">
         {/* Patient ID */}
         <div className="input g-c-6">
@@ -365,7 +365,7 @@ function PatientProfile() {
           </div>
         </div>
         {/* Birthday Date */}
-        <div className="input g-c-3">
+        <div className="g-c-3">
           <label htmlFor="arrival" className="label-container">
             <p>{t("PatientProfile.Birthday")}</p>
             <img
@@ -374,7 +374,7 @@ function PatientProfile() {
               alt="gray outline information icon"
             />
           </label>
-          <div className="input-gp">
+          <div className="">
             <DatePicker
               dateFormat="yyyy/MM/dd"
               selected={selectedDate}

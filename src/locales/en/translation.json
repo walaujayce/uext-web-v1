@@ -1,20 +1,19 @@
 {
-  "Login":{
-    "title":"Bed Exit Alarm System",
-    "Username":"Username:",
-    "Password":"Password:",
-    "Login":"Login",
-    "ForgetPassword":"Forget Password",
-    "forgetpassword-inputbox-title":"Enter registered email:",
-    "send-me-reset-link":"Send reset link",
-    "reset-link-send":"A reset link has been sent to the registered email ",
-    "back-to-login":"Back to login",
-    "ResetPassword":"Reset Password",
-    "NewPassword":"New Password:",
-    "ConfirmYourNewPassword":"Confirm New Password:",
-    "ConfirmChangePassword":"Confirm renew password",
-    "InputboxPlaceholder":"Enter here"
-
+  "Login": {
+    "title": "Bed Exit Alarm System",
+    "Username": "Username:",
+    "Password": "Password:",
+    "Login": "Login",
+    "ForgetPassword": "Forget Password",
+    "forgetpassword-inputbox-title": "Enter registered email:",
+    "send-me-reset-link": "Send reset link",
+    "reset-link-send": "A reset link has been sent to the registered email ",
+    "back-to-login": "Back to login",
+    "ResetPassword": "Reset Password",
+    "NewPassword": "New Password:",
+    "ConfirmYourNewPassword": "Confirm New Password:",
+    "ConfirmChangePassword": "Confirm renew password",
+    "InputboxPlaceholder": "Enter here"
   },
   "Navbar": {
     "Home": "Home",
@@ -23,7 +22,8 @@
     "Account": "Account",
     "AccountSettings": "Account Settings",
     "ChangePassword": "Change Password",
-    "Logout": "Logout"
+    "Logout": "Logout",
+    "Notification-date-today":"Today"
   },
   "Home": {
     "Monitor": "Monitors List",
@@ -42,21 +42,21 @@
   },
   "AlertList": {
     "Alerts": "Alerts List",
-    "BedExitAlert":"Bed Exit Alert",
+    "BedExitAlert": "Bed Exit Alert",
     "AttentionAlert": "Attention Alert",
-    "Section":"Section",
-    "Bed":"Bed",
-    "Name":"Name"
+    "Section": "Section",
+    "Bed": "Bed",
+    "Name": "Name"
   },
-  "ConfirmAlertModal":{
-    "h1-alert":"Bed Exit Alert",
-    "h1-attention":"Attention Alert",
-    "description-alert-p1":"{{PatientName}} (Bed {{BedNo}}) has left the bed.",
-    "description-alert-p2":"Please follow up immediately.",
-    "description-attention-p1":"{{PatientName}} (Bed {{BedNo}}) is attempting to left the bed.",
-    "description-attention-p2":"Please follow up immediately.",
-    "GotIt":"Got it",
-    "Cancel":"Cancel"
+  "ConfirmAlertModal": {
+    "h1-alert": "Bed Exit Alert",
+    "h1-attention": "Attention Alert",
+    "description-alert-p1": "{{PatientName}} (Bed {{BedNo}}) has left the bed.",
+    "description-alert-p2": "Please follow up immediately.",
+    "description-attention-p1": "{{PatientName}} (Bed {{BedNo}}) is attempting to left the bed.",
+    "description-attention-p2": "Please follow up immediately.",
+    "GotIt": "Got it",
+    "Cancel": "Cancel"
   },
   "PatientList": {
     "PatientList": "Resident List",
@@ -69,11 +69,11 @@
     "DeviceID": "Device ID",
     "DeviceStatus": "Device Status"
   },
-  "PatientDetail":{
-    "Monitor":"Monitor",
-    "Alerts":"Alerts",
-    "Debug":"Debug",
-    "Back":"Back"
+  "PatientDetail": {
+    "Monitor": "Monitor",
+    "Alerts": "Alerts",
+    "Debug": "Debug",
+    "Back": "Back"
   },
   "PatientProfile": {
     "PatientProfile": "Resident Profile",
@@ -91,24 +91,24 @@
     "Save": "Save",
     "Discharge": "Discharge"
   },
-  "AddPatientModal":{
-    "ClickToAddPatient":"Click to add resident",
-    "AddNewPatient":"Resident Added Successfully",
-    "AddPatient-h1":"Add Resident",
-    "AddPatient-h2":"Resident Profile",
-    "ID":"ID",
-    "Name":"Name",
-    "Height":"Height (cm)",
-    "Weight":"Weight (kg)",
-    "Sex":"Sex",
-    "DOB":"DOB",
-    "Continue":"Continue",
-    "Cancel":"Cancel"
+  "AddPatientModal": {
+    "ClickToAddPatient": "Click to add resident",
+    "AddNewPatient": "Resident Added Successfully",
+    "AddPatient-h1": "Add Resident",
+    "AddPatient-h2": "Resident Profile",
+    "ID": "ID",
+    "Name": "Name",
+    "Height": "Height (cm)",
+    "Weight": "Weight (kg)",
+    "Sex": "Sex",
+    "DOB": "DOB",
+    "Continue": "Continue",
+    "Cancel": "Cancel"
   },
-  "DischargeModal":{
-    "description":"Confirm to discharge the resident?",
-    "Discharge":"Discharge",
-    "Cancel":"Cancel"
+  "DischargeModal": {
+    "description": "Confirm to discharge the resident?",
+    "Discharge": "Discharge",
+    "Cancel": "Cancel"
   },
   "PatientMonitor": {
     "PressureMap": "Pressure Map",
@@ -153,9 +153,9 @@
     "PhysiologicalAlerts-description2": "Alert when heart rate exceeds the specified range.",
     "Save": "Save",
     "ResetToDefault": "Reset To Default",
-    "Sec":"sec",
-    "HzMax":"Hz (Max.)",
-    "HzMin":"Hz (Min.)"
+    "Sec": "sec",
+    "HzMax": "Hz (Max.)",
+    "HzMin": "Hz (Min.)"
   },
   "DeviceList": {
     "NewDevice": "New Device",
@@ -190,6 +190,8 @@
     "RecordData-p": "Download record data to local storage.",
     "ErrorLog": "Error Log",
     "ErrorLog-p": "Download error log to local storage.",
+    "StartTime": "Start Time",
+    "EndTime": "End Time",
     "DeviceRemove": "Device Remove",
     "DeviceRemove-p": "Remove device from monitor list.",
     "Save": "Save",
@@ -197,77 +199,77 @@
     "Reset": "Reset To Default",
     "Update": "Update",
     "Delete": "Delete",
-    "Back":"Back",
-    "Download":"Download"
+    "Back": "Back",
+    "Download": "Download"
   },
-  "AddDeviceModal":{
-    "AddDevice":"Add Device",
-    "NewDeviceAdd":"New device has been added.",
-    "DeviceProfile":"Device Profile",
-    "DeviceType":"Device Type",
-    "MACAddress":"MAC",
-    "Bed":"Bed",
-    "Section":"Section",
-    "Floor":"Floor",
-    "Continue":"Continue"
+  "AddDeviceModal": {
+    "AddDevice": "Add Device",
+    "NewDeviceAdd": "New device has been added.",
+    "DeviceProfile": "Device Profile",
+    "DeviceType": "Device Type",
+    "MACAddress": "MAC",
+    "Bed": "Bed",
+    "Section": "Section",
+    "Floor": "Floor",
+    "Continue": "Continue"
   },
-  "AccountList":{
+  "AccountList": {
     "AccountList": "Account List",
-    "NewUser":"New User",
-    "UserID":"ID",
-    "UserName":"Name",
-    "UserPassword":"Password",
-    "UserRole":"Role",
-    "UserEmail":"Email",
-    "LastLogin":"Last Login",
-    "AddNewUser":""
+    "NewUser": "New User",
+    "UserID": "ID",
+    "UserName": "Name",
+    "UserPassword": "Password",
+    "UserRole": "Role",
+    "UserEmail": "Email",
+    "LastLogin": "Last Login",
+    "AddNewUser": ""
   },
-  "AccountSettings":{
-    "AccountSettings":"Account Settings",
-    "UserProfile":"User Profile",
-    "Name":"Name",
-    "Phone":"Phone",
-    "Email":"Email",
-    "Id":"Id",
-    "RoleAndAuthority":"Role Setting",
-    "Role":"Role",
-    "UsernameAndPassword":"Password Setting",
-    "LoginUserName":"Login Username",
-    "Password":"Password",
-    "Save":"Save",
-    "ChangePassword":"Change Password",
-    "DeleteUser":"Delete User",
-    "Back":"Back"
+  "AccountSettings": {
+    "AccountSettings": "Account Settings",
+    "UserProfile": "User Profile",
+    "Name": "Name",
+    "Phone": "Phone",
+    "Email": "Email",
+    "Id": "Id",
+    "RoleAndAuthority": "Role Setting",
+    "Role": "Role",
+    "UsernameAndPassword": "Password Setting",
+    "LoginUserName": "Login Username",
+    "Password": "Password",
+    "Save": "Save",
+    "ChangePassword": "Change Password",
+    "DeleteUser": "Delete User",
+    "Back": "Back"
   },
-  "LogoutModal":{
-    "LogoutTitle":"Logout",
-    "Logout-p":"Confirm to logout?",
-    "Confirm":"Confirm",
-    "Cancel":"Cancel"
+  "LogoutModal": {
+    "LogoutTitle": "Logout",
+    "Logout-p": "Confirm to logout?",
+    "Confirm": "Confirm",
+    "Cancel": "Cancel"
   },
-  "AddUserModal":{
-    "AddUserTitle":"Create a New User",
-    "AddUser-p":"Fill in profile information",
-    "NewUserCreate":"New user has been created.",
-    "Name":"Name",
-    "Id":"ID",
-    "Email":"Email",
-    "Role":"Role",
-    "Password":"Password",
-    "ConfirmPassword":"Confirm Password",
-    "Confirm":"Confirm",
-    "Cancel":"Cancel",
-    "Okay":"Okay"
+  "AddUserModal": {
+    "AddUserTitle": "Create a New User",
+    "AddUser-p": "Fill in profile information",
+    "NewUserCreate": "New user has been created.",
+    "Name": "Name",
+    "Id": "ID",
+    "Email": "Email",
+    "Role": "Role",
+    "Password": "Password",
+    "ConfirmPassword": "Confirm Password",
+    "Confirm": "Confirm",
+    "Cancel": "Cancel",
+    "Okay": "Okay"
   },
-  "ChangePassword":{
-    "EnterHere" : "Enter Here",
-    "CurrentPw" : "Current password",
-    "NewPw" : "New password",
-    "ConfirmNewPw" : "Confirm new password",
-    "Confirm" : "Confirm",
-    "Back" : "Back",
-    "Okay" : "Okay",
-    "OkayMessageTitle":"New password has been updated",
-    "OkayMessageH1" : "Remember to use the new password when you login next time."
+  "ChangePassword": {
+    "EnterHere": "Enter Here",
+    "CurrentPw": "Current password",
+    "NewPw": "New password",
+    "ConfirmNewPw": "Confirm new password",
+    "Confirm": "Confirm",
+    "Back": "Back",
+    "Okay": "Okay",
+    "OkayMessageTitle": "New password has been updated",
+    "OkayMessageH1": "Remember to use the new password when you login next time."
   }
 }
