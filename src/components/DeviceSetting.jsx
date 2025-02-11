@@ -537,18 +537,17 @@ function DeviceSettings() {
   }
   function convertToUTC(date) {
     const utcDate = new Date(date.getTime() - 8 * 60 * 60 * 1000); // Convert to UTC
-  
+
     // Format as "YYYY-MM-DDTHH:mm:ss"
     return utcDate.toISOString().split(".")[0]; // Removes milliseconds
   }
 
-  const handleDownload = async (downloadtype,startTime,endTime) => {
+  const handleDownload = async (downloadtype, startTime, endTime) => {
     try {
-
       if (endTime < startTime) {
         alert("End date must be greater than start date");
         return;
-      } 
+      }
       setLoading(true);
 
       const filterRequest = {
@@ -565,10 +564,14 @@ function DeviceSettings() {
         body: JSON.stringify(filterRequest),
       });
 
-      if (!response.ok) {
-        throw new Error(`Error: ${response.statusText}`);
+      const contentType = response.headers.get("Content-Type");
+      if (contentType && contentType.includes("application/json")) {
+        const jsonData = await response.json();
+        if (jsonData.code === -1) {
+          alert(jsonData.messages || "Error: No raw data found");
+          return;
+        }
       }
-
       // Get file data
       const blob = await response.blob();
       const url = window.URL.createObjectURL(blob);
@@ -576,7 +579,11 @@ function DeviceSettings() {
 
       // Set download attributes
       a.href = url;
-      a.download = `${filterRequest.Deviceid}_${downloadtype}_${dayjs(startTime).format("YYYYMMDDHHmmss")}_to_${dayjs(endTime).format("YYYYMMDDHHmmss")}.csv`;
+      a.download = `${filterRequest.Deviceid}_${downloadtype}_${dayjs(
+        startTime
+      ).format("YYYYMMDDHHmmss")}_to_${dayjs(endTime).format(
+        "YYYYMMDDHHmmss"
+      )}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -625,6 +632,7 @@ function DeviceSettings() {
                         placeholder={deviceIDInput.inputValue}
                         value={deviceIDInput.inputValue}
                         readOnly
+                        disabled
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -674,6 +682,8 @@ function DeviceSettings() {
                         placeholder={deviceIPInput.inputValue}
                         value={deviceIPInput.inputValue}
                         readOnly
+                        style={{ cursor: "default" }}
+                        onFocus={(e) => e.target.blur()} // Forces blur when focused
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -698,6 +708,8 @@ function DeviceSettings() {
                         name="connection"
                         placeholder={deviceConnectStatus.inputValue}
                         readOnly
+                        style={{ cursor: "default" }}
+                        onFocus={(e) => e.target.blur()} // Forces blur when focused
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -1439,7 +1451,7 @@ function DeviceSettings() {
                 </div> */}
                 {/* Select date range */}
                 <div className="opt-grid">
-                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
                     <label htmlFor="d-id" className="label-container">
                       <p>{t("DeviceSettings.StartTime")}</p>
                       <img
@@ -1466,7 +1478,7 @@ function DeviceSettings() {
                       this is a line of assistive text
                     </div>
                   </div>
-                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
                     <label htmlFor="mac" className="label-container">
                       <p>{t("DeviceSettings.EndTime")}</p>
                       <img
@@ -1498,7 +1510,13 @@ function DeviceSettings() {
                 <div className="btn-gp">
                   <div
                     className="btn text-only"
-                    onClick={() => handleDownload("Rawdatum",rawdataDate.selectedStartDate,rawdataDate.selectedEndDate)}
+                    onClick={() =>
+                      handleDownload(
+                        "Rawdatum",
+                        rawdataDate.selectedStartDate,
+                        rawdataDate.selectedEndDate
+                      )
+                    }
                   >
                     <p className="btn-text">{t("DeviceSettings.Download")}</p>
                   </div>
@@ -1512,7 +1530,7 @@ function DeviceSettings() {
                   {t("DeviceSettings.RecordData-p")}
                 </div> */}
                 <div className="opt-grid">
-                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
                     <label htmlFor="d-id" className="label-container">
                       <p>{t("DeviceSettings.StartTime")}</p>
                       <img
@@ -1539,7 +1557,7 @@ function DeviceSettings() {
                       this is a line of assistive text
                     </div>
                   </div>
-                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
                     <label htmlFor="mac" className="label-container">
                       <p>{t("DeviceSettings.EndTime")}</p>
                       <img
@@ -1570,7 +1588,13 @@ function DeviceSettings() {
                 <div className="btn-gp">
                   <div
                     className="btn text-only"
-                    onClick={() => handleDownload("RecordData",recordData.selectedStartDate,recordData.selectedEndDate)}
+                    onClick={() =>
+                      handleDownload(
+                        "RecordData",
+                        recordData.selectedStartDate,
+                        recordData.selectedEndDate
+                      )
+                    }
                   >
                     <p className="btn-text">{t("DeviceSettings.Download")}</p>
                   </div>
@@ -1584,7 +1608,7 @@ function DeviceSettings() {
                   {t("DeviceSettings.ErrorLog-p")}
                 </div> */}
                 <div className="opt-grid">
-                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
                     <label htmlFor="d-id" className="label-container">
                       <p>{t("DeviceSettings.StartTime")}</p>
                       <img
@@ -1611,7 +1635,7 @@ function DeviceSettings() {
                       this is a line of assistive text
                     </div>
                   </div>
-                  <div className="g-col-1" style={{minWidth:"max-content"}}>
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
                     <label htmlFor="mac" className="label-container">
                       <p>{t("DeviceSettings.EndTime")}</p>
                       <img
@@ -1642,7 +1666,13 @@ function DeviceSettings() {
                 <div className="btn-gp">
                   <div
                     className="btn text-only"
-                    onClick={() => handleDownload("Errorlog",errorLog.selectedStartDate,errorLog.selectedEndDate)}
+                    onClick={() =>
+                      handleDownload(
+                        "Errorlog",
+                        errorLog.selectedStartDate,
+                        errorLog.selectedEndDate
+                      )
+                    }
                   >
                     <p className="btn-text">{t("DeviceSettings.Download")}</p>
                   </div>

@@ -56,3 +56,6 @@ move navbar overlay div to independently to prevent active list
 add change password function in navbar
 add account settings webpage in navbar
 add rawdata/recorddata/errorlog download
+
+#version 1.0.40
+modify and add env parameters of webapi and socketserver

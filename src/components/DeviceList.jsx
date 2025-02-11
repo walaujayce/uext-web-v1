@@ -123,6 +123,11 @@ const DeviceList = () => {
                 .slice()
                 .filter((device) => {
                   return (
+                    device.used === true
+                  );
+                })
+                .filter((device) => {
+                  return (
                     select_floor === "" ||
                     select_floor === "All" ||
                     device.floor === select_floor

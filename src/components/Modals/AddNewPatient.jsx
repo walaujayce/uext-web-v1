@@ -384,7 +384,7 @@ const AddNewPatient = ({ mac, callback }) => {
                 </div>
                 <div
                   className={`list ${isSexActive ? "active" : ""}`}
-                  ref={dropdownSexStyleRef}
+                  ref={dropdownSexStyleRef} 
                 >
                   {sexes.map((a) => (
                     <div
@@ -398,6 +398,7 @@ const AddNewPatient = ({ mac, callback }) => {
                 </div>
               </div>
               {/* DOB */}
+
               <div className="g-c-3">
                 <label htmlFor="dob" className="label-container">
                   <p>{t("AddPatientModal.DOB")}</p>

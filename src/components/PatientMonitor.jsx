@@ -91,14 +91,22 @@ function PatientMonitor() {
       <div className="pressure">
         <div className="title">{t("PatientMonitor.PressureMap")}</div>
         <div className="box">
-          {width && height && (
-            <OpenCVComponent
-              deviceid={macaddress}
-              rawdata={rawdatum}
-              width={width}
-              height={height}
-            />
-          )}
+          {width &&
+            height &&
+            (rawdatum ? (
+              <OpenCVComponent
+                deviceid={macaddress}
+                rawdata={rawdatum}
+                width={width}
+                height={height}
+              />
+            ) : (
+              <img
+                className="disconnect"
+                src="/src/assets/disconnect.png"
+                alt=""
+              ></img>
+            ))}
           <div className="bt-box">
             {/* <div className="spec col">
               <p className="tag">Position</p>

@@ -130,7 +130,7 @@ function Navbar() {
 
     // Get local date in UTC+8 format
     const localDate = new Date();
-    const localUtc8Date = new Date(localDate.getTime() + 8 * 60 * 60 * 1000);
+    const localUtc8Date = new Date(localDate.getTime() + 0 * 60 * 60 * 1000);
 
     // Extract date parts
     const logYear = utc8Date.getFullYear();

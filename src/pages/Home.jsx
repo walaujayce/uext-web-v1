@@ -194,18 +194,6 @@ function Home() {
     return null; // Handle any unexpected case if necessary
   };
 
-  const renderDeviceComponent_7284 = (device) => {
-    const { connect, macaddress } = device;
-
-    if (connect === false) {
-      return <Bed_disconnect key={macaddress} macaddress={macaddress} />;
-    } else if (connect === true) {
-      return <Bed_default key={macaddress} macaddress={macaddress} />;
-    }
-
-    return null; // Handle any unexpected case if necessary
-  };
-
   const formatSecondsToDHMS = (seconds) => {
     const days = Math.floor(seconds / (24 * 3600));
     seconds %= 24 * 3600;
@@ -228,6 +216,25 @@ function Home() {
           )}:${String(seconds).padStart(2, "0")}`;
 
     return dateTime;
+  };
+
+  const sortAlphabet = (a, b) => {
+    const aDigits = a.Bed?.toUpperCase() || "";
+    const bDigits = b.Bed?.toUpperCase() || "";
+    // Sort alphabetically first
+    if (aDigits < bDigits) return -1;
+    if (aDigits > bDigits) return 1;
+    // If alphabetical order is the same, sort numerically
+    const numA = parseInt(
+      a.Bed?.replace(/[^0-9]/g, "") || "0",
+      10
+    );
+    const numB = parseInt(
+      b.Bed?.replace(/[^0-9]/g, "") || "0",
+      10
+    );
+
+    return numA - numB; // Numeric ascending order
   };
 
   {
@@ -304,18 +311,7 @@ function Home() {
                     device.Section === select_section
                   );
                 })
-                .sort((a, b) => {
-                  // Compare the number of digits in the bed number
-                  const aDigits = a.Bed?.toString().length;
-                  const bDigits = b.Bed?.toString().length;
-
-                  if (aDigits !== bDigits) {
-                    return aDigits - bDigits; // Ascending order of digits count
-                  }
-
-                  // If the digits count is the same, compare the bed numbers
-                  return a.Bed - b.Bed; // Ascending order of bed numbers
-                })
+                .sort(sortAlphabet)
                 .map((device) => renderDeviceComponent(device))}
             </div>
             {/* Bed Grid Sort by Status */}
@@ -372,6 +368,7 @@ function Home() {
                           // (device.POS === 4 || device.POS === 5 || device.POS === 0)
                           (device.BedColor === 1)
                       )
+                      .sort(sortAlphabet)
                       .map((device) => (
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
@@ -444,6 +441,7 @@ function Home() {
                           // device.POS === 8
                           device.BedColor === 2
                       )
+                      .sort(sortAlphabet)
                       .map((device) => (
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
@@ -451,70 +449,6 @@ function Home() {
                           state={{ from: "/home" }}
                         >
                           <Bed_attention
-                            key={device.MAC}
-                            macaddress={device.MAC}
-                            hold={formatSecondsToDHMS(device.HOLD)}
-                            bed={device.Bed}
-                            floor={device.Floor}
-                            section={device.Section}
-                            username={device.UserName}
-                          />
-                        </Link>
-                      ))}
-                  </div>
-                </div>
-              )}
-              {/* Disconnected Status */}
-              {devices
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.Floor === select_floor
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.Section === select_section
-                  );
-                })
-                .some(
-                  (device) =>
-                    (device.TYPE === 1 && device.STAT === 0) ||
-                    (device.TYPE === 2 && device.STAT === 0)
-                ) && (
-                <div className="status">
-                  <div className="title">{t("Home.Disconnected")}</div>
-                  <div className="status-grid">
-                    {devices
-                      .filter((device) => {
-                        return (
-                          select_floor === "" ||
-                          select_floor === "All" ||
-                          device.Floor === select_floor
-                        );
-                      })
-                      .filter((device) => {
-                        return (
-                          select_section === "" ||
-                          select_section === "All" ||
-                          device.Section === select_section
-                        );
-                      })
-                      .filter(
-                        (device) =>
-                          (device.TYPE === 1 && device.STAT === 0) ||
-                          (device.TYPE === 2 && device.STAT === 0)
-                      )
-                      .map((device) => (
-                        <Link
-                          to={`/device/device-settings?macaddress=${device.MAC}`}
-                          key={device.MAC}
-                          state={{ from: "/home" }}
-                        >
-                          <Bed_disconnect
                             key={device.MAC}
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
@@ -598,6 +532,7 @@ function Home() {
                               device.UserName === null || device.UserName === ""
                             ))
                       )
+                      .sort(sortAlphabet)
                       .map((device) => (
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
@@ -672,6 +607,7 @@ function Home() {
                             (device.UserName === null ||
                               device.UserName === ""))
                       )
+                      .sort(sortAlphabet)
                       .map((device) => (
                         <Bed_vacant
                           key={device.MAC}
@@ -680,6 +616,71 @@ function Home() {
                           floor={device.Floor}
                           section={device.Section}
                         />
+                      ))}
+                  </div>
+                </div>
+              )}
+              {/* Disconnected Status */}
+              {devices
+                .filter((device) => {
+                  return (
+                    select_floor === "" ||
+                    select_floor === "All" ||
+                    device.Floor === select_floor
+                  );
+                })
+                .filter((device) => {
+                  return (
+                    select_section === "" ||
+                    select_section === "All" ||
+                    device.Section === select_section
+                  );
+                })
+                .some(
+                  (device) =>
+                    (device.TYPE === 1 && device.STAT === 0) ||
+                    (device.TYPE === 2 && device.STAT === 0)
+                ) && (
+                <div className="status">
+                  <div className="title">{t("Home.Disconnected")}</div>
+                  <div className="status-grid">
+                    {devices
+                      .filter((device) => {
+                        return (
+                          select_floor === "" ||
+                          select_floor === "All" ||
+                          device.Floor === select_floor
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_section === "" ||
+                          select_section === "All" ||
+                          device.Section === select_section
+                        );
+                      })
+                      .filter(
+                        (device) =>
+                          (device.TYPE === 1 && device.STAT === 0) ||
+                          (device.TYPE === 2 && device.STAT === 0)
+                      )
+                      .sort(sortAlphabet)
+                      .map((device) => (
+                        <Link
+                          to={`/device/device-settings?macaddress=${device.MAC}`}
+                          key={device.MAC}
+                          state={{ from: "/home" }}
+                        >
+                          <Bed_disconnect
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
+                          />
+                        </Link>
                       ))}
                   </div>
                 </div>

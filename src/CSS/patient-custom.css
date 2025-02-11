@@ -3,6 +3,8 @@
     flex-direction: column;
     gap: 24px;
     width: 600px;
+    padding-bottom: 20px; /*jayce code */
+
 }
 
 .pp h1{
@@ -195,6 +197,12 @@
 
 .monitor .pressure img{
     height: 900px;
+    object-fit: contain;
+}
+/* jayce code */
+.monitor .pressure .box .disconnect{
+    height: auto;
+    max-width: 30%;
     object-fit: contain;
 }
 

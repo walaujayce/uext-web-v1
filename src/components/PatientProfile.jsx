@@ -453,6 +453,9 @@ function PatientProfile() {
               name="p-id"
               placeholder={patientBedInput.inputValue}
               readOnly
+              style={{cursor:"default"}}
+              tabIndex="-1"
+              onFocus={(e) => e.target.blur()}
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -476,6 +479,9 @@ function PatientProfile() {
               name="section"
               placeholder={patientSectionInput.inputValue}
               readOnly
+              style={{cursor:"default"}}
+              tabIndex="-1"
+              onFocus={(e) => e.target.blur()}
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -499,6 +505,9 @@ function PatientProfile() {
               name="floor"
               placeholder={patientFloorInput.inputValue}
               readOnly
+              style={{cursor:"default"}}
+              tabIndex="-1"
+              onFocus={(e) => e.target.blur()}
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -523,6 +532,8 @@ function PatientProfile() {
               placeholder={macaddress}
               value={macaddress}
               readOnly
+              style={{cursor:"default"}}
+              disabled
             />
             <img className="suffix" src="" alt="dropdown icon" />
           </div>
@@ -546,6 +557,8 @@ function PatientProfile() {
               name="connection"
               value={patient.devicestatus === 1 ? "Connected" : "Disconnect"}
               readOnly
+              style={{cursor:"default"}}
+              disabled
             />
             <img className="suffix active" src="" alt="dropdown icon" />
           </div>

@@ -65,6 +65,25 @@ const AccountList = () => {
     setOverlayVisible(!isOverlayVisible);
   };
 
+  const sortAlphabet = (a, b) => {
+    const aDigits = a.userid?.toUpperCase() || "";
+    const bDigits = b.userid?.toUpperCase() || "";
+    // Sort alphabetically first
+    if (aDigits < bDigits) return -1;
+    if (aDigits > bDigits) return 1;
+    // If alphabetical order is the same, sort numerically
+    const numA = parseInt(
+      a.userid?.replace(/[^0-9]/g, "") || "0",
+      10
+    );
+    const numB = parseInt(
+      b.userid?.replace(/[^0-9]/g, "") || "0",
+      10
+    );
+
+    return numA - numB; // Numeric ascending order
+  };
+
   return (
     <>
       <div className="box">
@@ -92,7 +111,9 @@ const AccountList = () => {
             <h3 className="fg1">{t("AccountList.LastLogin")}</h3>
           </div>
           <div className="item-list">
-            {accounts.map((account) => (
+            {accounts
+            .sort(sortAlphabet)
+            .map((account) => (
               <Link
                 to={`/account/account-settings?userid=${account.userid}`}
                 key={account.userid}

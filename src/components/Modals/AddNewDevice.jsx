@@ -246,7 +246,7 @@ const AddNewDevice = ({ callback }) => {
       bed,
       floor,
       section,
-      used:true
+      used: true,
     };
 
     try {
@@ -327,7 +327,7 @@ const AddNewDevice = ({ callback }) => {
             >
               {/* Device Type */}
               <div
-                className="input dropdown building suffix g-c-3"
+                className="input suffix g-c-3"
                 onClick={handleDeviceTypeDropdownMenu}
                 ref={addDropdownRef}
               >
@@ -339,7 +339,7 @@ const AddNewDevice = ({ callback }) => {
                     alt="gray outline information icon"
                   />
                 </label>
-                <div className="input-gp" style={{ minWidth: "150px" }}>
+                <div className="input-gp">
                   <input
                     type="text"
                     className="placeholder"
@@ -347,7 +347,11 @@ const AddNewDevice = ({ callback }) => {
                     placeholder={placeholderDeviceType}
                     readOnly
                   />
-                  <img className="suffix active" src="" alt="dropdown icon" />
+                  <img
+                    className="suffix active"
+                    src="/src/assets/menu-down.svg"
+                    alt="dropdown icon"
+                  />
                 </div>
                 <div className="assistive-text">
                   this is a line of assistive text
@@ -423,7 +427,7 @@ const AddNewDevice = ({ callback }) => {
 
               {/* Section */}
               <div
-                className="input dropdown section suffix g-c-3"
+                className="input suffix g-c-3"
                 onClick={handleSectionDropDownMenu}
                 ref={addDropdownRef}
               >
@@ -443,7 +447,7 @@ const AddNewDevice = ({ callback }) => {
                     placeholder={placeholderSection}
                     readOnly
                   />
-                  <img className="suffix active" src="" alt="dropdown icon" />
+                  <img className="suffix active" src="/src/assets/menu-down.svg" alt="dropdown icon" />
                 </div>
                 <div className="assistive-text">
                   this is a line of assistive text
@@ -464,7 +468,7 @@ const AddNewDevice = ({ callback }) => {
               </div>
               {/* Floor */}
               <div
-                className="input dropdown floor suffix g-c-3"
+                className="input suffix g-c-3"
                 onClick={handleFloorDropDownMenu}
                 ref={addDropdownRef}
               >
@@ -484,7 +488,7 @@ const AddNewDevice = ({ callback }) => {
                     placeholder={placeholderFloor}
                     readOnly
                   />
-                  <img className="suffix active" src="" alt="dropdown icon" />
+                  <img className="suffix active" src="/src/assets/menu-down.svg" alt="dropdown icon" />
                 </div>
                 <div className="assistive-text">
                   this is a line of assistive text
