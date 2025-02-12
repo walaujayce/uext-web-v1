@@ -42,12 +42,37 @@ function LoginPassword() {
   };
 
   {
+    /* Generate Email Token */
+  }
+  const handleGenerateEmailToken = async (requestBody_POST) => {
+    // console.log(requestBody_POST);
+    try {
+      const response = await fetch("/api/7284/SendEmail/generate-email-token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody_POST),
+      });
+      const data = await response.json();
+      if (response.status === 200) {
+        return data.token;
+      } else {
+        const errorData = await response.json();
+        alert(`Error: ${errorData.message || "Something went wrong"}`);
+      }
+    } catch (error) {
+      console.error("Error while submitting data:", error);
+      alert("Error: Unable to connect to the server.");
+    }
+  };
+  {
     /* handle send reset link */
   }
-  const send_message_email = `Click link below to reset password.\r\n http://${import.meta.env.VITE_API_URL}:8005/reset-password`;
+  const send_message_email = `Click link below to reset password`;
   const requestBody_POST = {
     email: emailInput,
-    message: send_message_email,
+    message: "",
   };
   const handleSendResetLink = async (requestBody_POST) => {
     // console.log(requestBody_POST);
@@ -57,7 +82,13 @@ function LoginPassword() {
     }
     try {
       setLoading(true);
-      const response = await fetch("/api/7284/SendEmail/forget-password", {
+      const token = await handleGenerateEmailToken(requestBody_POST);
+      const url = `http://${
+        import.meta.env.VITE_WEBAPI_URL
+      }:8005/reset-password`;
+      requestBody_POST.message = `${send_message_email}\r\n${url}?email=${emailInput}&token=${token}`;
+      console.log("message is ", requestBody_POST.message);
+      const response = await fetch("/api/7284/SendEmail/send-email", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -94,7 +125,7 @@ function LoginPassword() {
         {/* Forget Password */}
         <form className={`st2 ${isActive_Stage2 ? "" : "active"}`}>
           {/* Forget Password */}
-          <div className="input g-c-6" >
+          <div className="input g-c-6">
             <label htmlFor="reset" className="label-container">
               <p>{t("Login.forgetpassword-inputbox-title")}</p>
               <img

@@ -8,6 +8,7 @@ import "/src/CSS/input.css";
 import { useAuth } from "../JS/AuthContext";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import { ConsoleLogger } from "@microsoft/signalr/dist/esm/Utils";
 
 function ResetPassword() {
   const { t, i18n } = useTranslation();
@@ -19,6 +20,10 @@ function ResetPassword() {
   const [searchParams] = useSearchParams();
 
   const userid = searchParams.get("userid") || "User123";
+
+  const token = searchParams.get("token");
+
+  const [tokenValidity, setTokenValidity] = useState(false);
 
   const [passwordInput, setPasswordInput] = useState("");
   const handlePasswordInputChange = (e) => {
@@ -44,8 +49,42 @@ function ResetPassword() {
     if (isAuthenticated) {
       navigate("/home");
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate]); 
 
+  {/* check validate email token */} 
+  const handleValidateEmailToken = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `/api/7284/SendEmail/validate-email-token?token=${token}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      const data = await response.json();
+      if (response.status === 200) {
+        if(data.valid){
+          return true;
+        }else{
+          alert("This link is expired. Please resend forget password request!");
+          navigate("/");
+        }
+      } else {
+        const errorData = data.message;
+        alert(`Error: ${errorData || "Something went wrong"}`);
+        navigate("/");
+      }
+    } catch (error) {
+      console.error("Error while submitting data:", error);
+      alert("Error: Unable to connect to the server.");
+      navigate("/");
+    }finally{
+      setLoading(false);
+    }
+  };
   {
     /* handle renew password */
   }
@@ -73,7 +112,10 @@ function ResetPassword() {
     }
   };
   useEffect(() => {
-    fetchUserInfo(userid);
+    if(handleValidateEmailToken()){
+      setTokenValidity(true);
+      fetchUserInfo(userid);
+    }
   }, []);
 
   const passwordValidationRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{6,}$/;

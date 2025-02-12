@@ -59,3 +59,6 @@ add rawdata/recorddata/errorlog download
 
 #version 1.0.40
 modify and add env parameters of webapi and socketserver
+
+#version 1.0.41
+add send email link with token
