@@ -41,16 +41,8 @@ function PatientMonitor() {
       console.log("Position:", data.POS);
       setDuration(formatSecondsToDHMS(data.HOLD));
       console.log("Duration:", formatSecondsToDHMS(data.HOLD));
-
-      if (data.WIDTH * data.HEIGHT > 240) {
-        // UMAP solution
-        setWidth(data.HEIGHT);
-        setHeight(data.WIDTH);
-      } else {
-        // UEXT solution
-        setWidth(data.WIDTH);
-        setHeight(data.HEIGHT);
-      }
+      setWidth(data.WIDTH);
+      setHeight(data.HEIGHT);
     } catch (error) {
       console.error("Error making POST request:", error);
     }
