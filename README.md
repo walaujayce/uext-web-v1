@@ -62,3 +62,9 @@ modify and add env parameters of webapi and socketserver
 
 #version 1.0.41
 add send email link with token
+
+#version 1.0.42
+modified the time input format in device setting download errorlog
+
+#version 1.0.43
+rotate 180 degree on UMAP image 

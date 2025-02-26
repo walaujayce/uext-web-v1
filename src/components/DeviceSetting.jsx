@@ -536,7 +536,7 @@ function DeviceSettings() {
     /* handle download device rawdata/recorddata/errorlog */
   }
   function convertToUTC(date) {
-    const utcDate = new Date(date.getTime() - 8 * 60 * 60 * 1000); // Convert to UTC
+    const utcDate = new Date(date.getTime() - 0 * 60 * 60 * 1000); // Convert to UTC
 
     // Format as "YYYY-MM-DDTHH:mm:ss"
     return utcDate.toISOString().split(".")[0]; // Removes milliseconds
@@ -555,6 +555,9 @@ function DeviceSettings() {
         StartTime: convertToUTC(startTime),
         EndTime: convertToUTC(endTime),
       };
+
+      console.log("the filter requestbody  ", startTime);
+      console.log("the filter requestbody  ", endTime);
 
       const response = await fetch(`/api/7284/db/${downloadtype}/filter`, {
         method: "POST",

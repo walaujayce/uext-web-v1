@@ -116,6 +116,10 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
+    // if UMAP rotate 180 
+    if(sensor_height * sensor_width > 240){
+      data = data.reverse();
+    }
     const mat24 = cv.matFromArray(
       canvasRef.current.height,
       canvasRef.current.width,
