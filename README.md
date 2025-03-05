@@ -1,70 +1,60 @@
-#UEXT WEBSITE
+Bed Exit Alert System
+===
+#Aims
+  -Monitors elderly bed posture and issue bed exit alerts to reduce the frequency of nursing staff room checks.
+  -Tracks the condition of paralyzed patients in bed to prevent pressure ulcers and remind caregivers to reposition the patient in a timely manner.
 
-#version 1.0.23
+#Skills
+  -Framework: React
+  -Languages: Javascript, HTML, CSS
+  -Libraries: OpenCV, SignalR, SMTP, i18next, react-router-dom, Redux
 
-#version 1.0.24
-connot use
+#About the project
+##Home Page
+###Description: 
+-Monitors users’ bed posture and detect movement patterns in real-time.
+-Triggers Bed Exit Alerts based on algorithms, using different colors and display states to indicate posture.
+-Broadcast alert on alert list to indicate which bed or patient need to be checked. 
+![HomePage](https://github.com/user-attachments/assets/90c772cf-5ad1-4770-be08-9e991db63117)
 
-#version 1.0.25
-add env vite#api#url 
+##Patient List
+###Description: 
+-Show all patients' details on patient list.
+-Able to filter patient list based on required floor or section.
+![PatientList](https://github.com/user-attachments/assets/e2276ed1-f04c-40ed-90af-d1d17ebcc985)
 
-#version 1.0.26
-modify env vite#api#url to can type localhost
+##Patient's physiological information
+###Description: 
+-Displays real-time pressure distribution maps, real-time heart rate and respiratory rate graph for user monitoring.
+-Modify patient information.
+![PatientMonitor](https://github.com/user-attachments/assets/41551ba2-5ad1-47cc-900c-25ca36326378)
 
-#version 1.0.27
-modify stat = 8 to show yellow color
+##Patient's alert settings
+###Description: Set up alert trigger parameters to alert nurses to check on patient's condition.
+![PatientAlert](https://github.com/user-attachments/assets/0c5c3bff-2400-4562-a602-7998b90fe3ea)
 
-#version 1.0.28
-modify sort by STATUS cant show default
+##Patient's physiological history
+###Description: Review patient's physiological history.
+![PatientHistory](https://github.com/user-attachments/assets/d6f3d2bc-cea0-488d-9f03-711d502f2900)
 
-#version 1.0.29
-modify DISCONNECT component navigate to device setting page
+##Device List
+###Description: 
+-Show all devices' details on device list.
+-Able to filter device list based on required floor or section.
+![DeviceList](https://github.com/user-attachments/assets/161f81ec-b76b-4c26-a81f-57feb0489744)
 
-#version 1.0.30
-add engineer mode, add different role access auth
+##Device Settings
+###Description: Set up device's settings and parameters.
+![DeviceSettings](https://github.com/user-attachments/assets/8c7bb0c8-7968-45ea-8a63-431585e89122)
 
-#version 1.0.31
-modify the private route to "all"
+##Account List
+###Description: Show all accounts' details on account list.
+![AccountList](https://github.com/user-attachments/assets/77345592-5091-4ede-bbfd-4181978a4c26)
 
-#version 1.0.32
-modified the version of opencv
+##Account Settings
+###Description: Modify account's settings include name, ID and password.
+![AccountSetting](https://github.com/user-attachments/assets/eb07e961-bb4e-430e-9ef9-1ec2f3ada492)
 
-#version 1.0.33
-add loading screen , modify delete account role button (remove get role from localstorage)
-
-#version 1.0.34
-add try-catch on opencv
-add height-width switch logic when connect UMAP to opencv 
-
-#version 1.0.35
-modify logo, footer
-modify home.jsx with device type and bedcolor
-modify delete device api
-vite_api_url default change to 190.9.120.29
-
-#version 1.0.36
-modify home.jsx with device type and bedcolor in bed-status render
-
-#version 1.0.37
-modify 
-
-#version 1.0.38
-modify 
-
-#version 1.0.39
-move navbar overlay div to independently to prevent active list 
-add change password function in navbar
-add account settings webpage in navbar
-add rawdata/recorddata/errorlog download
-
-#version 1.0.40
-modify and add env parameters of webapi and socketserver
-
-#version 1.0.41
-add send email link with token
-
-#version 1.0.42
-modified the time input format in device setting download errorlog
-
-#version 1.0.43
-rotate 180 degree on UMAP image 
+##Send forget password links
+###Description: Send forget password link to mail in order to let users reset their password.
+![ForgetPAssword](https://github.com/user-attachments/assets/131094d6-6212-4c4b-8cb1-e9d66e1a2b61)
