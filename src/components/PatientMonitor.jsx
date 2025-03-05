@@ -36,7 +36,7 @@ function PatientMonitor() {
       const data = await response.json();
 
       setRawdatum(data.IMAGE);
-      console.log("Rawdatum:", data.IMAGE);
+      //console.log("Rawdatum:", data.IMAGE);
       setPosition(data.POS);
       console.log("Position:", data.POS);
       setDuration(formatSecondsToDHMS(data.HOLD));
@@ -50,7 +50,7 @@ function PatientMonitor() {
 
   useEffect(() => {
     postData();
-    const interval = setInterval(postData, 1000);
+    const interval = setInterval(postData, 900);
     return () => clearInterval(interval);
   }, []);
 

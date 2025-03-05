@@ -36,6 +36,10 @@ function Login() {
     }
   }, [isAuthenticated, navigate]);
 
+  const loginRequest = {
+    userid: username,
+    password: password
+  };
   const handleLogin = async () => {
     try {
       if (!username || !password) {
@@ -43,6 +47,18 @@ function Login() {
         alert(error);
         return;
       }
+      const user_login = await fetch("/api/7284/User/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(loginRequest)
+      });
+      if (!user_login.ok) {
+        throw new Error(`HTTP error! status: ${user_login.status}`);
+      }
+      const result = await user_login.json();
+      console.log(result);
 
       const response = await fetch("/api/7284/User", {
         method: "GET",
@@ -54,13 +70,13 @@ function Login() {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       const data = await response.json();
-      console.log(data);
+      //console.log(data);
       // Assuming `data.password` contains the stored password
       const user = data.find((user) => user.userid === username);
 
       if (user) {
-        console.log("Password:", user.password);
-        if (user.password === password) {
+        //console.log("Password:", user.password);
+        if (result.code===0) {
           localStorage.setItem("username", JSON.stringify(user.username)); // Save user to localStorage
 
           switch (user.role) {
