@@ -7,6 +7,9 @@ import "/src/CSS/overlay.css";
 import "/src/CSS/patient.css";
 import OpenCVComponent from "../components/OpenCVComponent";
 import { useTranslation } from "react-i18next";
+import Example from "./HeartRateGraph";
+import HeartBeatGraph from "./HeartRateGraph";
+import RespirationChart from "./RespiratoryGraph";
 
 function PatientMonitor() {
   const { t, i18n } = useTranslation();
@@ -128,6 +131,7 @@ function PatientMonitor() {
       <div className="h-rate">
         <div className="title">{t("PatientMonitor.HeartRate")}</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
+        {/* <HeartBeatGraph/> */}
         <div className="spec">
           <div>--</div>
           <div className="tag">Hz</div>
@@ -136,6 +140,7 @@ function PatientMonitor() {
       <div className="respiration">
         <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
+        {/* <RespirationChart/> */}
         <div className="spec">
           <div>--</div>
           <div className="tag">Hz</div>

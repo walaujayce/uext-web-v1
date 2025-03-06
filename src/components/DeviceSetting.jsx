@@ -10,6 +10,7 @@ import SimpleBackdrop from "./LoadingOverlay";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
+import PatientMonitor from "./PatientMonitor";
 
 function DeviceSettings() {
   const { t, i18n } = useTranslation();
@@ -1706,6 +1707,7 @@ function DeviceSettings() {
                     <p className="btn-text">{t("DeviceSettings.Delete")}</p>
                   </div>
                 </div>
+            {/* <PatientMonitor/> */}
               </div>
             </div>
           </div>
