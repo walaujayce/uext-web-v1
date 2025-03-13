@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import SignalRService from "../JS/SignalR";
 import AlertConfirmOverlay from "./Modals/AlertConfirmOverlay";
 import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import { useAuth } from "../JS/AuthContext";
 
 function AlertList() {
   const { t, i18n } = useTranslation();
@@ -13,6 +14,9 @@ function AlertList() {
   const [expandAlertList, setExpandAlertList] = useState(
     () => JSON.parse(localStorage.getItem("expandAlertList")) || false
   );
+
+  const { isPlaying, playSound, stopSound, isUserInteracted } = useAuth(); // Access sound management
+
 
   const handleAlertListExpandClick = () => {
     setExpandAlertList((prev) => {
@@ -42,6 +46,10 @@ function AlertList() {
       await SignalRService.startConnection();
       SignalRService.onReceiveMessage((topic, message) => {
         if (topic === "uneo/notify/all") {
+          if (isUserInteracted  && !isPlaying) {
+            console.log("FAKEKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK");
+            playSound(); 
+          }
           const parsedMessage = JSON.parse(message);
 
           setAlertsMap((prevAlertsMap) => {
@@ -108,6 +116,7 @@ function AlertList() {
           });
         }
         if (topic === "web/notify/update/notification") {
+
           const parsedMessage = JSON.parse(message);
           const idToDelete = parsedMessage.Id; // Extract the ID from the parsed message
           const macaddress = parsedMessage.Macaddress;
@@ -134,7 +143,7 @@ function AlertList() {
         SignalRService.connection.stop();
       }
     };
-  }, []);
+  }, [isPlaying, playSound, isUserInteracted ]);
 
   // useEffect(() => {
   //   const storedAlerts = localStorage.getItem("alerts");
@@ -344,6 +353,7 @@ function AlertList() {
       //saveToLocalStorage(newAlertsMap);
       // PUT API to database
       setNotificationChecked_PUT(notificationId);
+      stopSound();
       console.log(notificationId);
       return newAlertsMap;
     });
