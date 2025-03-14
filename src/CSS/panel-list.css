@@ -60,6 +60,12 @@
 .pl .fg2{
     flex: 3 1 0;
 }
+.pl .fg3{
+    flex: 1 1 0;
+}
+.pl .fg2{
+    flex: 2.5 1 0;
+}
 .pl .connection{
     display: flex;
     gap: 12px;

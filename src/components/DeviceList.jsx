@@ -33,7 +33,6 @@ const DeviceList = () => {
   const handleSelectSection = (section) => {
     setSelect_Section(section);
   };
-
   const fetchDeviceList = async () => {
     try {
       if (port === "7285") {
@@ -70,6 +69,21 @@ const DeviceList = () => {
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
   }, [port]);
+
+  const filteredDevices = devices
+  .filter((device) => device.used === true) // Only used devices
+  .filter((device) => select_floor === "" || select_floor === "All" || device.floor === select_floor) // Filter by floor
+  .filter((device) => select_section === "" || select_section === "All" || device.section === select_section) // Filter by section
+  .sort((a, b) => {
+    const macA = a.macaddress?.toUpperCase() || "";
+    const macB = b.macaddress?.toUpperCase() || "";
+    if (macA < macB) return -1;
+    if (macA > macB) return 1;
+    const numA = parseInt(a.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
+    const numB = parseInt(b.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
+    return numA - numB;
+  });
+  const connectedDevicesCount = filteredDevices.filter((device) => device.devicestatus).length;
 
   {
     /* Handle Overlay Visible */
@@ -108,56 +122,17 @@ const DeviceList = () => {
             <h3 className="fg2">{t('DeviceList.DeviceID')}</h3>
             <h3 className="fg2">{t('DeviceList.MACAddress')}</h3>
             <h3 className="fg2">{t('DeviceList.IPAddress')}</h3>
-            <h3 className="fg1">{t('DeviceList.Bed')}</h3>
-            <h3 className="fg1">{t('DeviceList.Section')}</h3>
-            <h3 className="fg1">{t('DeviceList.Floor')}</h3>
+            <h3 className="fg3">{t('DeviceList.Bed')}</h3>
+            <h3 className="fg3">{t('DeviceList.Section')}</h3>
+            <h3 className="fg3">{t('DeviceList.Floor')}</h3>
             <h3 className="fg1">{t('DeviceList.SettingDate')}</h3>
             <div className="connection fg2">
-              <img src="" alt="" />
-              <h3>{t('DeviceList.DeviceStatus')}</h3>
+              <h3>{t('DeviceList.DeviceStatus')}{`(${connectedDevicesCount})`}</h3>
             </div>
           </div>
           <div className="item-list">
             {port === "7284" &&
-              devices
-                .slice()
-                .filter((device) => {
-                  return (
-                    device.used === true
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.floor === select_floor
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.section === select_section
-                  );
-                })
-                .sort((a, b) => {
-                  const macA = a.macaddress?.toUpperCase() || "";
-                  const macB = b.macaddress?.toUpperCase() || "";
-                  // Sort alphabetically first
-                  if (macA < macB) return -1;
-                  if (macA > macB) return 1;
-                  // If alphabetical order is the same, sort numerically
-                  const numA = parseInt(
-                    a.macaddress?.replace(/[^0-9]/g, "") || "0",
-                    10
-                  );
-                  const numB = parseInt(
-                    b.macaddress?.replace(/[^0-9]/g, "") || "0",
-                    10
-                  );
-
-                  return numA - numB; // Numeric ascending order
-                })
+              filteredDevices
                 .map((device) => (["administrator","engineer"].includes(role) ? (
                   <Link
                     to={`/device/device-settings?macaddress=${device.macaddress}`}
@@ -176,9 +151,9 @@ const DeviceList = () => {
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
                       <h3 className="fg2">{device.macaddress || "N/A"}</h3>
                       <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
-                      <h3 className="fg1">{device.bed || "N/A"}</h3>
-                      <h3 className="fg1">{device.section || "N/A"}</h3>
-                      <h3 className="fg1">{device.floor || "N/A"}</h3>
+                      <h3 className="fg3">{device.bed || "N/A"}</h3>
+                      <h3 className="fg3">{device.section || "N/A"}</h3>
+                      <h3 className="fg3">{device.floor || "N/A"}</h3>
                       <h3 className="fg1">
                         {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                       </h3>
@@ -206,9 +181,9 @@ const DeviceList = () => {
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
                       <h3 className="fg2">{device.macaddress || "N/A"}</h3>
                       <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
-                      <h3 className="fg1">{device.bed || "N/A"}</h3>
-                      <h3 className="fg1">{device.section || "N/A"}</h3>
-                      <h3 className="fg1">{device.floor || "N/A"}</h3>
+                      <h3 className="fg3">{device.bed || "N/A"}</h3>
+                      <h3 className="fg3">{device.section || "N/A"}</h3>
+                      <h3 className="fg3">{device.floor || "N/A"}</h3>
                       <h3 className="fg1">
                         {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                       </h3>

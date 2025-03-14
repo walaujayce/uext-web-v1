@@ -45,7 +45,41 @@ function Patient() {
     const interval = setInterval(fetchPatients, 1000);
     return () => clearInterval(interval);
   }, []);
+  const filteredDevices = patients
+  .slice()
+  .filter((patient) => {
+    return (
+      select_floor === "" ||
+      select_floor === "All" ||
+      patient.floor === select_floor
+    );
+  })
+  .filter((patient) => {
+    return (
+      select_section === "" ||
+      select_section === "All" ||
+      patient.section === select_section
+    );
+  })
+  .sort((a, b) => {
+    const p_idA = a.patientid?.toUpperCase() || "";
+    const p_idB = b.patientid?.toUpperCase() || "";
+    // Sort alphabetically first
+    if (p_idA < p_idB) return -1;
+    if (p_idA > p_idB) return 1;
+    // If alphabetical order is the same, sort numerically
+    const numA = parseInt(
+      a.patientid?.replace(/[^0-9]/g, "") || "0",
+      10
+    );
+    const numB = parseInt(
+      b.patientid?.replace(/[^0-9]/g, "") || "0",
+      10
+    );
 
+    return numA - numB; // Numeric ascending order
+  });
+  const connectedDevicesCount = filteredDevices.filter((device) => device.devicestatus).length;
   {
     /* Handle Overlay Visible */
   }
@@ -98,46 +132,12 @@ function Patient() {
                 <h3 className="fg1">{t('PatientList.Floor')}</h3>
                 <h3 className="fg2">{t('PatientList.DeviceID')}</h3>
                 <div className="connection fg2">
-                  <img src="" alt="" />
-                  <h3>{t('PatientList.DeviceStatus')}</h3>
+                  <h3>{t('PatientList.DeviceStatus')}{`(${connectedDevicesCount})`}</h3>
                 </div>
               </div>
               {/* Patient List */}
               <div className="item-list">
-                {patients
-                  .slice()
-                  .filter((patient) => {
-                    return (
-                      select_floor === "" ||
-                      select_floor === "All" ||
-                      patient.floor === select_floor
-                    );
-                  })
-                  .filter((patient) => {
-                    return (
-                      select_section === "" ||
-                      select_section === "All" ||
-                      patient.section === select_section
-                    );
-                  })
-                  .sort((a, b) => {
-                    const p_idA = a.patientid?.toUpperCase() || "";
-                    const p_idB = b.patientid?.toUpperCase() || "";
-                    // Sort alphabetically first
-                    if (p_idA < p_idB) return -1;
-                    if (p_idA > p_idB) return 1;
-                    // If alphabetical order is the same, sort numerically
-                    const numA = parseInt(
-                      a.patientid?.replace(/[^0-9]/g, "") || "0",
-                      10
-                    );
-                    const numB = parseInt(
-                      b.patientid?.replace(/[^0-9]/g, "") || "0",
-                      10
-                    );
-
-                    return numA - numB; // Numeric ascending order
-                  })
+                {filteredDevices
                   .map((patient) => (
                               <Link
                                 to={`/patient/patient-detail/patient-monitor?macaddress=${patient.deviceid}`}
