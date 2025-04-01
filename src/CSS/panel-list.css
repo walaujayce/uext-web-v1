@@ -58,13 +58,13 @@
     flex: 2 1 0;
 }
 .pl .fg2{
-    flex: 3 1 0;
+    flex: 2.5 1 0;
 }
 .pl .fg3{
     flex: 1 1 0;
 }
-.pl .fg2{
-    flex: 2.5 1 0;
+.pl .fg4{
+    flex: 1.5 1 0;
 }
 .pl .connection{
     display: flex;
@@ -151,6 +151,7 @@
     .pl .connection img{
         width: 12px;
         height: 12px;
+        margin-left: 10px;
     }
     .pl .item-list{
         max-height: calc(100vh - 20vh - 240px);
@@ -192,9 +193,7 @@
     .pl .head .connection{
         flex: 1 1 0;
     }
-    .pl .head .connection h3{
-        display: none;
-    }
+
     .pl .item .connection{
         justify-content: center;
         flex: 1 1 0;
@@ -205,5 +204,14 @@
     .pl .connection img{
         width: 8px;
         height: 8px;
+        margin-left: 16px;
+
     }
+}
+
+@media (max-width:1536px) {
+
+    .pl .fg3{
+        flex: 2 1 0;
+    } 
 }

@@ -160,15 +160,15 @@
   "DeviceList": {
     "NewDevice": "New Device",
     "DeviceList": "Device List",
-    "DeviceType": "Device Type",
+    "DeviceType": "Type",
     "DeviceID": "Device ID",
     "MACAddress": "MAC Address",
     "IPAddress": "IP Address",
     "Bed": "Bed",
     "Section": "Section",
     "Floor": "Floor",
-    "SettingDate": "Setting Date",
-    "DeviceStatus": "Device Status"
+    "SettingDate": "Update",
+    "DeviceStatus": "Status"
   },
   "DeviceSettings": {
     "DeviceSettings": "Device Settings",

@@ -168,8 +168,8 @@
     "Bed": "床號",
     "Section": "區域",
     "Floor": "樓層",
-    "SettingDate": "設定時間",
-    "DeviceStatus": "連線狀態"
+    "SettingDate": "更新",
+    "DeviceStatus": "狀態"
   },
   "DeviceSettings": {
     "DeviceSettings": "裝置設定",

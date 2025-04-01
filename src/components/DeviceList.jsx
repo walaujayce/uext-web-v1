@@ -126,6 +126,8 @@ const DeviceList = () => {
             <h3 className="fg3">{t('DeviceList.Section')}</h3>
             <h3 className="fg3">{t('DeviceList.Floor')}</h3>
             <h3 className="fg1">{t('DeviceList.SettingDate')}</h3>
+            <h3 className="fg3">PING(ms)</h3>
+            <h3 className="fg3">RSSI(db)</h3>
             <div className="connection fg2">
               <h3>{t('DeviceList.DeviceStatus')}{`(${connectedDevicesCount})`}</h3>
             </div>
@@ -157,15 +159,17 @@ const DeviceList = () => {
                       <h3 className="fg1">
                         {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                       </h3>
+                      <h3 className="fg3">----</h3>
+                      <h3 className="fg3">----</h3>
                       <div
                         className={`connection ${
                           device.devicestatus ? "connected" : "disconnected"
                         } fg2`}
                       >
                         <img src="" alt="" />
-                        <h3>
+                        {/* <h3>
                           {device.devicestatus ? "Connected" : "Disconnected"}
-                        </h3>
+                        </h3> */}
                       </div>
                     </div>
                   </Link>):(<div className="item">
@@ -187,15 +191,17 @@ const DeviceList = () => {
                       <h3 className="fg1">
                         {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                       </h3>
+                      <h3 className="fg3">----</h3>
+                      <h3 className="fg3">----</h3>
                       <div
                         className={`connection ${
                           device.devicestatus ? "connected" : "disconnected"
                         } fg2`}
                       >
                         <img src="" alt="" />
-                        <h3>
+                        {/* <h3>
                           {device.devicestatus ? "Connected" : "Disconnected"}
-                        </h3>
+                        </h3> */}
                       </div>
                     </div>)
                 ))}
