@@ -90,6 +90,7 @@
     max-height: calc(100vh - 35vh);
     overflow: hidden;
     overflow-y: scroll;
+    padding-bottom: 50px;
 }
 
 .monitors .grid.active{
@@ -296,6 +297,7 @@
     max-height: calc(100vh - 22vh - 200px);
     overflow: hidden;
     overflow-y: scroll;
+    padding-bottom: 20px;
 }
 
 .by-status.active{

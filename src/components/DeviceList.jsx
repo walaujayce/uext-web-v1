@@ -127,7 +127,7 @@ const DeviceList = () => {
             <h3 className="fg3">{t('DeviceList.Floor')}</h3>
             <h3 className="fg1">{t('DeviceList.SettingDate')}</h3>
             <h3 className="fg3">PING(ms)</h3>
-            <h3 className="fg3">RSSI(db)</h3>
+            <h3 className="fg3">RSSI(dBm)</h3>
             <div className="connection fg2">
               <h3>{t('DeviceList.DeviceStatus')}{`(${connectedDevicesCount})`}</h3>
             </div>
