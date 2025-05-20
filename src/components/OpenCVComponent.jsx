@@ -111,10 +111,9 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
     if (div > 150) return [37, 58, 235];
     div = Math.floor(div / 16);
 
-
     switch (div) {
       case 0:
-        return [104, 4, 1];
+        return [104, 4, 1]; //dark red
       case 1:
         return [158, 8, 2];
       case 2:
@@ -124,19 +123,19 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
       case 4:
         return [245, 141, 63];
       case 5:
-        return [249, 185, 84];
+        return [249, 185, 84]; 
       case 6:
-        return [250, 225, 104];
+        return [250, 225, 104]; // yellow
       case 7:
-        return [160, 226, 110];
+        return [160, 226, 110]; // light green
       case 8:
         return [62, 210, 97];
       case 9:
         return [70, 227, 166];
       case 10:
-        return [75, 234, 211];
+        return [75, 234, 211]; // green
       case 11:
-        return [79, 240, 251];
+        return [79, 240, 251]; // light blue
       case 12:
         return [84, 203, 246];
       case 13:
@@ -144,7 +143,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
       case 14:
         return [48, 119, 234];
       case 15:
-        return [37, 58, 235];
+        return [37, 58, 235]; // blue
       default:
         return [0, 0, 0];
     }
@@ -168,7 +167,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
         data
       );
 
-      let m = 2.5; // Scaling factor
+      let m = 3; // Scaling factor
 
       // Resize step 1
       let resizedMat1 = new cv.Mat();
@@ -181,10 +180,21 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
         cv.INTER_LINEAR_EXACT
       );
 
+      // Apply Gaussian blur
+      let result = new cv.Mat();
+      let kernelSize = new cv.Size(9, 9); // Equivalent kernel size (not 25x25, as OpenCV.js uses width/height separately)
+      cv.GaussianBlur(
+        resizedMat1,
+        result,
+        kernelSize,
+        3.0,
+        3.0,
+        cv.BORDER_DEFAULT
+      );
       // Resize step 2
       let resizedMat2 = new cv.Mat();
       cv.resize(
-        resizedMat1,
+        result,
         resizedMat2,
         new cv.Size(sensor_width * m * m, sensor_height * m * m),
         0,
@@ -200,24 +210,14 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
         new cv.Size(sensor_width * m * m * m, sensor_height * m * m * m),
         0,
         0,
-        cv.INTER_CUBIC
+        cv.INTER_LINEAR_EXACT
       );
 
-      // Apply Gaussian blur
-      let result = new cv.Mat();
-      let kernelSize = new cv.Size(5, 5); // Equivalent kernel size (not 25x25, as OpenCV.js uses width/height separately)
-      cv.GaussianBlur(
-        resizedMat3,
-        result,
-        kernelSize,
-        3.0,
-        3.0,
-        cv.BORDER_DEFAULT
-      );
+
 
       // Convert grayscale to RGB
       let dst = new cv.Mat();
-      cv.cvtColor(result, dst, cv.COLOR_GRAY2RGB, 0);
+      cv.cvtColor(resizedMat3, dst, cv.COLOR_GRAY2RGB, 0);
 
       // Apply custom color mapping using `getColor()`
       for (let i = 0; i < dst.rows; i++) {
@@ -240,7 +240,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
         new cv.Size(canvasWidth, canvasHeight),
         0,
         0,
-        cv.INTER_LINEAR
+        cv.INTER_LINEAR_EXACT
       );
 
       // Display image on canvas
@@ -346,7 +346,22 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
     if (sensor_height * sensor_width > 240) {
       result = result.reverse()
     }
-    setDecimalArray(result); // Store the result in state
+    console.log("ori: ",result)
+    // normalized value between 80 to 0
+    let scaleData = [];
+    for (let i = 0; i < result.length; i++) {
+      if (result[i] < 1) {
+          scaleData.push(0);
+      } else if (result[i] > 80) {
+          scaleData.push(255);
+      } else {
+          let normalizeValue = (result[i] - 0) / (80 - 0);
+          scaleData.push(Math.round(normalizeValue * 255));
+      }
+    } 
+    console.log("cal: ",scaleData)
+
+    setDecimalArray(scaleData); // Store the result in state
   }, [rawdata]);
 
   useEffect(() => {

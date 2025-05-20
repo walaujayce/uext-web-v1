@@ -41,9 +41,9 @@ function PatientMonitor() {
       setRawdatum(data.IMAGE);
       //console.log("Rawdatum:", data.IMAGE);
       setPosition(data.POS);
-      console.log("Position:", data.POS);
+      //console.log("Position:", data.POS);
       setDuration(formatSecondsToDHMS(data.HOLD));
-      console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+      //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
       setWidth(data.WIDTH);
       setHeight(data.HEIGHT);
     } catch (error) {

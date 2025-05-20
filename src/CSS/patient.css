@@ -253,13 +253,13 @@
     object-fit: cover;
 }
 .monitor .bt-box .spec .mr.high{
-    width: 12%;
+    width: 33%;
 }
 .monitor .bt-box .spec .mr.mid{
-    width: 28%;
+    width: 33%;
 }
 .monitor .bt-box .spec .mr.low{
-    width: 60%;
+    width: 33%;
 }
 
 
