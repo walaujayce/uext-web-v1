@@ -515,11 +515,13 @@ function DeviceSettings() {
     };
     const [selectedEndDate, setSelectedEndDate] = useState(new Date());
     const handleEndDateSelect = (date) => {
-      if (date > selectedStartDate) {
         setSelectedEndDate(date);
-      } else {
-        alert("End date must be greater than start date");
-      }
+
+      // if (date > selectedStartDate) {
+      //   setSelectedEndDate(date);
+      // } else {
+      //   alert("End date must be greater than start date");
+      // }
     };
     return {
       selectedStartDate,
@@ -536,8 +538,8 @@ function DeviceSettings() {
   {
     /* handle download device rawdata/recorddata/errorlog */
   }
-  function convertToUTC(date) {
-    const utcDate = new Date(date.getTime() - 0 * 60 * 60 * 1000); // Convert to UTC
+  function convertToLocal(date) {
+    const utcDate = new Date(date.getTime() + 60 * 60 * 8000); // Convert to UTC
 
     // Format as "YYYY-MM-DDTHH:mm:ss"
     return utcDate.toISOString().split(".")[0]; // Removes milliseconds
@@ -553,14 +555,18 @@ function DeviceSettings() {
 
       const filterRequest = {
         Deviceid: deviceMacInput.inputValue,
-        StartTime: convertToUTC(startTime),
-        EndTime: convertToUTC(endTime),
+        StartTime: convertToLocal(startTime),
+        EndTime: convertToLocal(endTime),
+        // StartTime: startTime.toISOString().split(".")[0],
+        // EndTime: endTime.toISOString().split(".")[0],
       };
 
-      console.log("the filter requestbody  ", startTime);
-      console.log("the filter requestbody  ", endTime);
+      console.log("the filter requestbody startTime", startTime.toISOString().split(".")[0]);
+      console.log("the filter requestbody endTime ", endTime.toISOString().split(".")[0]);
+      console.log("the filter requestbody", JSON.stringify(filterRequest));
 
-      const response = await fetch(`/api/7284/db/${downloadtype}/filter`, {
+      // const response = await fetch(`/api/7284/db/${downloadtype}/filter`, {
+      const response = await fetch(`/api/7284/db/${downloadtype}/filter?timezone=Asia_Taipei`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
