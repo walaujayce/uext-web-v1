@@ -25,33 +25,45 @@ const AddNewDevice = ({ callback }) => {
   }
   const [isActive_Stage2, setActive_Stage2] = useState(false);
   const handleConfirm_S1_Click = () => {
-    if (!bed || !mac) {
-      setBedError(true); // Bed Input Required
-      setMacError(true); // Mac Input Required
-      return;
+    if (isHaLowRSelected) {
+      if (!macaddress) {
+        setMacError(true); // Mac Input Required
+        return;
+      }
+      if (!dhcp && !ipaddress) {
+        setIpError(true);
+        return;
+      }
+      handleSubmit(); //Submit POST Request
+    } else {
+      if (!bed || !macaddress) {
+        setBedError(true); // Bed Input Required
+        setMacError(true); // Mac Input Required
+        return;
+      }
+      if (!bed) {
+        setBedError(true); // Bed Input Required
+        return;
+      }
+      if (!macaddress) {
+        setMacError(true); // Mac Input Required
+        return;
+      }
+      handleSubmit(); //Submit POST Request
     }
-    if (!bed) {
-      setBedError(true); // Bed Input Required
-      return;
-    }
-    if (!mac) {
-      setMacError(true); // Mac Input Required
-      return;
-    }
-    handleSubmit(); //Submit POST Request
   };
   {
     /* Handle Device Type Dropdown Menu */
   }
-  const deviceTypes = ["Not specified", "UEXT", "UMAP", "UNC"];
+  const deviceTypes = ["Not specified", "UEXT", "UMAP", "UNC", "HaLow-R"];
   const [isDeviceTypeActive, setDeviceTypeActive] = useState(false);
   const handleDeviceTypeDropdownMenu = () => {
     setDeviceTypeActive((prev) => !prev);
   };
-
   const [placeholderDeviceType, setPlaceholderDeviceType] = useState(
     deviceTypes[0]
   ); // Input placeholder
+  const isHaLowRSelected = placeholderDeviceType === "HaLow-R";
   const handleDeviceTypeItemClick = (deviceType) => {
     setPlaceholderDeviceType(deviceType);
     handleDeviceTypeDropdownMenu;
@@ -61,6 +73,8 @@ const AddNewDevice = ({ callback }) => {
       setDeviceType_POST(2);
     } else if (deviceType === "UNC") {
       setDeviceType_POST(3);
+    } else if (deviceType === "HaLow-R") {
+      setDeviceType_POST(201);
     } else {
       setDeviceType_POST(0);
     }
@@ -144,6 +158,28 @@ const AddNewDevice = ({ callback }) => {
     setSection_POST(section);
   };
   {
+    /* DHCP Dropdown Menu Logic */
+  }
+  const [isDhcpActive, setDhcpActive] = useState(false);
+  const handleDhcpDropDownMenu = () => {
+    setDhcpActive((prev) => !prev);
+  };
+
+  const [placeholderDhcp, setPlaceholderDhcp] = useState("DHCP"); // Input placeholder
+
+  const handleDhcpItemClick = (dhcp) => {
+    setPlaceholderDhcp(dhcp);
+    handleDhcpDropDownMenu;
+    if(dhcp === "DHCP"){
+      setIpAddressInputBoxDisabled(true);
+      setIpAddress_POST("");
+      setDhcp_POST(true);
+    }else{
+      setIpAddressInputBoxDisabled(false);
+      setDhcp_POST(false);
+    }
+  };
+  {
     /* useRef Logic */
   }
 
@@ -163,6 +199,7 @@ const AddNewDevice = ({ callback }) => {
         setFloorActive(false);
         setSectionActive(false);
         setDeviceTypeActive(false);
+        setDhcpActive(false);
       }
     };
 
@@ -195,16 +232,23 @@ const AddNewDevice = ({ callback }) => {
 
   const dropdownDeviceTypeStyleRef = useRef(null);
   const dropdownFloorStyleRef = useRef(null);
+  const dropdownDhcpStyleRef = useRef(null);
 
   useDynamicDropdownHeight(dropdownDeviceTypeStyleRef, isDeviceTypeActive);
   useDynamicDropdownHeight(dropdownFloorStyleRef, isFloorActive);
+  useDynamicDropdownHeight(dropdownDhcpStyleRef, isDhcpActive);
 
   {
     /* handle input error logic */
   }
   const [bedError, setBedError] = useState(false);
   const [macError, setMacError] = useState(false);
-
+  const [ipError, setIpError] = useState(false);
+  {
+    /* handle input box disable */
+  }
+  const [isIpAddressInputBoxDisabled, setIpAddressInputBoxDisabled] =
+    useState(true);
   {
     /* handle submit logic */
   }
@@ -212,37 +256,17 @@ const AddNewDevice = ({ callback }) => {
   const [deviceid, setDeviceId_POST] = useState("");
   const [macaddress, setMacAddress_POST] = useState("");
   const [ipaddress, setIpAddress_POST] = useState("");
+  const [dhcp, setDhcp_POST] = useState(true);
   const [bed, setBed_POST] = useState("");
   const [floor, setFloor_POST] = useState(placeholderFloor);
   const [section, setSection_POST] = useState(placeholderSection);
-
-  function getRandomString(length = 12) {
-    const characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-
-    for (let i = 0; i < length; i++) {
-      const randomIndex = Math.floor(Math.random() * characters.length);
-      result += characters[randomIndex];
-    }
-
-    return result;
-  }
-
-  function getRandomIPAddress() {
-    const octet1 = Math.floor(Math.random() * 256);
-    const octet2 = Math.floor(Math.random() * 256);
-    const octet3 = Math.floor(Math.random() * 256);
-    const octet4 = Math.floor(Math.random() * 256);
-
-    const ipAddress = `${octet1}.${octet2}.${octet3}.${octet4}`;
-
-    return ipAddress;
-  }
 
   const handleSubmit = async () => {
     const requestBody = {
       devicetype,
       macaddress,
+      dhcp,
+      ipaddress,
       bed,
       floor,
       section,
@@ -261,6 +285,8 @@ const AddNewDevice = ({ callback }) => {
 
       console.log("devicetype", devicetype);
       console.log("macaddress", macaddress);
+      console.log("dhcp", dhcp);
+      console.log("ipaddress", ipaddress);
       console.log("bed", bed);
       console.log("floor", floor);
       console.log("section", section);
@@ -373,7 +399,7 @@ const AddNewDevice = ({ callback }) => {
               </div>
               {/* MAC */}
               <div className="input g-c-3">
-                <label htmlFor="mac" className="label-container">
+                <label htmlFor="macaddress" className="label-container">
                   <p>{t("AddDeviceModal.MACAddress")}</p>
                   <img
                     className="info"
@@ -385,7 +411,7 @@ const AddNewDevice = ({ callback }) => {
                   <input
                     type="text"
                     className="placeholder"
-                    id="mac"
+                    id="macaddress"
                     placeholder="Enter here"
                     required
                     maxLength={12}
@@ -394,36 +420,114 @@ const AddNewDevice = ({ callback }) => {
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
-                <div className={`assistive-text ${macError ? "active" : ""} `}>
+                <div className={`assistive-text ${ipError ? "active" : ""} `}>
                   Invalid format.
                 </div>
               </div>
+              {isHaLowRSelected && (
+                <div
+                  className="input suffix g-c-3"
+                  onClick={handleDhcpDropDownMenu}
+                  ref={addDropdownRef}
+                >
+                  <label htmlFor="dhcp" className="label-container">
+                    <p>{t("AddDeviceModal.DHCP")}</p>
+                    <img
+                      className="info"
+                      src="/src/assets/information-outline.svg"
+                      alt="gray outline information icon"
+                    />
+                  </label>
+                  <div className="input-gp">
+                    <input
+                      type="text"
+                      className="placeholder"
+                      id="dhcp"
+                      placeholder={placeholderDhcp}
+                      readOnly
+                    />
+                    <img
+                      className="suffix active"
+                      src="/src/assets/menu-down.svg"
+                      alt="dropdown icon"
+                    />
+                  </div>
+                  <div className="assistive-text">
+                    this is a line of assistive text
+                  </div>
+                  <div
+                    className={`list ${isDhcpActive ? "active" : ""}`}
+                    ref={dropdownDhcpStyleRef}
+                  >
+                    {["DHCP", "Static IP"].map((dhcp) => (
+                      <div
+                        className="item"
+                        key={dhcp}
+                        onClick={() => handleDhcpItemClick(dhcp)}
+                      >
+                        {dhcp}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
               {/* Bed */}
-              <div className="input g-c-3">
-                <label htmlFor="bed" className="label-container">
-                  <p>{t("AddDeviceModal.Bed")}</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="bed"
-                    placeholder="Enter here"
-                    required
-                    value={bed}
-                    onChange={(e) => setBed_POST(e.target.value)}
-                  />
-                  <img className="suffix" src="" alt="dropdown icon" />
+              {isHaLowRSelected ? (
+                <div className="input g-c-3">
+                  <label htmlFor="ip" className="label-container">
+                    <p>{t("AddDeviceModal.IP")}</p>
+                    <img
+                      className="info"
+                      src="/src/assets/information-outline.svg"
+                      alt="gray outline information icon"
+                    />
+                  </label>
+                  <div className="input-gp">
+                    <input
+                      type="text"
+                      className="placeholder"
+                      id="ip"
+                      placeholder="Enter here"
+                      required
+                      value={ipaddress}
+                      onChange={(e) => setIpAddress_POST(e.target.value)}
+                      disabled={isIpAddressInputBoxDisabled}
+                    />
+                    <img className="suffix" src="" alt="dropdown icon" />
+                  </div>
+                  <div className={`assistive-text ${ipError ? "active" : ""} `}>
+                    Invalid format.
+                  </div>
                 </div>
-                <div className={`assistive-text ${bedError ? "active" : ""} `}>
-                  Oops! Something went wrong.
+              ) : (
+                <div className="input g-c-3">
+                  <label htmlFor="bed" className="label-container">
+                    <p>{t("AddDeviceModal.Bed")}</p>
+                    <img
+                      className="info"
+                      src="/src/assets/information-outline.svg"
+                      alt="gray outline information icon"
+                    />
+                  </label>
+                  <div className="input-gp">
+                    <input
+                      type="text"
+                      className="placeholder"
+                      id="bed"
+                      placeholder="Enter here"
+                      required
+                      value={bed}
+                      onChange={(e) => setBed_POST(e.target.value)}
+                    />
+                    <img className="suffix" src="" alt="dropdown icon" />
+                  </div>
+                  <div
+                    className={`assistive-text ${bedError ? "active" : ""} `}
+                  >
+                    Oops! Something went wrong.
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Section */}
               <div
@@ -447,7 +551,11 @@ const AddNewDevice = ({ callback }) => {
                     placeholder={placeholderSection}
                     readOnly
                   />
-                  <img className="suffix active" src="/src/assets/menu-down.svg" alt="dropdown icon" />
+                  <img
+                    className="suffix active"
+                    src="/src/assets/menu-down.svg"
+                    alt="dropdown icon"
+                  />
                 </div>
                 <div className="assistive-text">
                   this is a line of assistive text
@@ -488,7 +596,11 @@ const AddNewDevice = ({ callback }) => {
                     placeholder={placeholderFloor}
                     readOnly
                   />
-                  <img className="suffix active" src="/src/assets/menu-down.svg" alt="dropdown icon" />
+                  <img
+                    className="suffix active"
+                    src="/src/assets/menu-down.svg"
+                    alt="dropdown icon"
+                  />
                 </div>
                 <div className="assistive-text">
                   this is a line of assistive text

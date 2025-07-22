@@ -187,9 +187,9 @@ function PatientEngineer() {
   const DebFpsInput = useSetConfigInput("");
 
   // judgemethod already set up above
-  const edgeparDropdown = useDropdown(levelings[2]);
+  const edgeparDropdown = useDropdown(levelings[4]);
   const edgeboxDropdown = useDropdown(levelings[2]);
-  const sitparDropdown = useDropdown(levelings[2]);
+  const sitparDropdown = useDropdown(levelings[4]);
   const sitboxDropdown = useDropdown(levelings[2]);
 
   const HeightThInput = useSetConfigInput("");
@@ -199,6 +199,8 @@ function PatientEngineer() {
   const EmasizeInput = useSetConfigInput("");
   const EmaThresInput = useSetConfigInput("");
   const NoiseThresInput = useSetConfigInput("");
+  const UprtothresInput = useSetConfigInput("");
+  const XyrtothresInput = useSetConfigInput("");
 
   const [deviceInfo, setDeviceInfo] = useState([]);
   {
@@ -308,6 +310,8 @@ function PatientEngineer() {
       EmasizeInput.setInputValue(data.emasize);
       EmaThresInput.setInputValue(data.emathres);
       NoiseThresInput.setInputValue(data.noisethres);
+      UprtothresInput.setInputValue(data.uprtothres);
+      XyrtothresInput.setInputValue(data.xyrtothres);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -338,6 +342,8 @@ function PatientEngineer() {
     emasize: parseInt(EmasizeInput.inputValue, 10),
     emathres: parseInt(EmaThresInput.inputValue, 10),
     noisethres: parseInt(NoiseThresInput.inputValue, 10),
+    uprtothres: parseFloat(UprtothresInput.inputValue),
+    xyrtothres: parseFloat(XyrtothresInput.inputValue),
   };
 
   //reset device configuration to default
@@ -345,7 +351,7 @@ function PatientEngineer() {
     pmio: 100,
     vmax: 800,
     vmin: 200,
-    debTst: 1,
+    debTst: 3,
     debFps: 1,
     judgemethod: 1,
     edgepar: 90,
@@ -359,6 +365,8 @@ function PatientEngineer() {
     emasize: 1,
     emathres: 10,
     noisethres: 2,
+    uprtothres: 0.5,
+    xyrtothres: 1.7,
   };
 
   const handlePUT_API = (print_inputvalue) => {
@@ -405,6 +413,20 @@ function PatientEngineer() {
     } finally {
       setLoading(false);
     }
+  };
+  {
+    /* compare input value to default value */
+  }
+  const compareDefaultValueReturnBorderStyle = (currentValue, defaultValue) => {
+    if(currentValue === "" || currentValue === null) return;
+    const numericCurrent = parseFloat(currentValue);
+    const numericReset = parseFloat(defaultValue);
+    const isChanged =
+      isNaN(numericCurrent) || isNaN(numericReset)
+        ? currentValue !== defaultValue
+        : numericCurrent !== numericReset;
+
+    return isChanged ? { border: "2px solid blue" } : {};
   };
 
   return (
@@ -508,6 +530,7 @@ function PatientEngineer() {
                     placeholder={PmioInput.inputValue}
                     value={PmioInput.inputValue}
                     onChange={PmioInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(PmioInput.inputValue, requestBody_PUT_RESET.pmio)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -532,6 +555,7 @@ function PatientEngineer() {
                     placeholder={VmaxInput.inputValue}
                     value={VmaxInput.inputValue}
                     onChange={VmaxInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(VmaxInput.inputValue, requestBody_PUT_RESET.vmax)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -556,6 +580,7 @@ function PatientEngineer() {
                     placeholder={VminInput.inputValue}
                     value={VminInput.inputValue}
                     onChange={VminInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(VminInput.inputValue, requestBody_PUT_RESET.vmin)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -580,6 +605,7 @@ function PatientEngineer() {
                     placeholder={DebTstInput.inputValue}
                     value={DebTstInput.inputValue}
                     onChange={DebTstInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(DebTstInput.inputValue, requestBody_PUT_RESET.debTst)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -604,6 +630,7 @@ function PatientEngineer() {
                     placeholder={DebFpsInput.inputValue}
                     value={DebFpsInput.inputValue}
                     onChange={DebFpsInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(DebFpsInput.inputValue, requestBody_PUT_RESET.debFps)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -631,6 +658,7 @@ function PatientEngineer() {
                     id="judgemethod"
                     placeholder={placeholderJudgeMethod}
                     readOnly
+                    style={compareDefaultValueReturnBorderStyle(placeholderJudgeMethod === "by size" ? 1 : 0, requestBody_PUT_RESET.judgemethod)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -675,6 +703,7 @@ function PatientEngineer() {
                     id="edgepar"
                     placeholder={edgeparDropdown.placeholder}
                     readOnly
+                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(edgeparDropdown.placeholder), requestBody_PUT_RESET.edgepar)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -719,6 +748,7 @@ function PatientEngineer() {
                     id="edgebox"
                     placeholder={edgeboxDropdown.placeholder}
                     readOnly
+                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(edgeboxDropdown.placeholder), requestBody_PUT_RESET.edgebox)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -763,6 +793,8 @@ function PatientEngineer() {
                     id="sitpar"
                     placeholder={sitparDropdown.placeholder}
                     readOnly
+                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(sitparDropdown.placeholder), requestBody_PUT_RESET.sitpar)}
+
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -807,6 +839,7 @@ function PatientEngineer() {
                     id="sitbox"
                     placeholder={sitboxDropdown.placeholder}
                     readOnly
+                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(sitboxDropdown.placeholder), requestBody_PUT_RESET.sitbox)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -848,6 +881,7 @@ function PatientEngineer() {
                     placeholder={HeightThInput.inputValue}
                     value={HeightThInput.inputValue}
                     onChange={HeightThInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(HeightThInput.inputValue, requestBody_PUT_RESET.heightTh)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -872,6 +906,7 @@ function PatientEngineer() {
                     placeholder={BoxYStartInput.inputValue}
                     value={BoxYStartInput.inputValue}
                     onChange={BoxYStartInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(BoxYStartInput.inputValue,requestBody_PUT_RESET.boxYStart)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -896,6 +931,7 @@ function PatientEngineer() {
                     placeholder={ErmapInput.inputValue}
                     value={ErmapInput.inputValue}
                     onChange={ErmapInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(ErmapInput.inputValue, requestBody_PUT_RESET.erMap)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -920,6 +956,7 @@ function PatientEngineer() {
                     placeholder={EdgeSitPointInput.inputValue}
                     value={EdgeSitPointInput.inputValue}
                     onChange={EdgeSitPointInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(EdgeSitPointInput.inputValue, requestBody_PUT_RESET.edgeSitPoint)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -944,6 +981,7 @@ function PatientEngineer() {
                     placeholder={EmasizeInput.inputValue}
                     value={EmasizeInput.inputValue}
                     onChange={EmasizeInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(EmasizeInput.inputValue, requestBody_PUT_RESET.emasize)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -968,6 +1006,7 @@ function PatientEngineer() {
                     placeholder={EmaThresInput.inputValue}
                     value={EmaThresInput.inputValue}
                     onChange={EmaThresInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(EmaThresInput.inputValue, requestBody_PUT_RESET.emathres)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -992,6 +1031,57 @@ function PatientEngineer() {
                     placeholder={NoiseThresInput.inputValue}
                     value={NoiseThresInput.inputValue}
                     onChange={NoiseThresInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(NoiseThresInput.inputValue, requestBody_PUT_RESET.noisethres)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="UPRTOTHRES" className="label-container">
+                  <p>UPRTOTHRES</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="UPRTOTHRES"
+                    placeholder={UprtothresInput.inputValue}
+                    value={UprtothresInput.inputValue}
+                    onChange={UprtothresInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(UprtothresInput.inputValue, requestBody_PUT_RESET.uprtothres)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="XYRTOTHRES" className="label-container">
+                  <p>XYRTOTHRES</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="XYRTOTHRES"
+                    placeholder={XyrtothresInput.inputValue}
+                    value={XyrtothresInput.inputValue}
+                    onChange={XyrtothresInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(XyrtothresInput.inputValue, requestBody_PUT_RESET.xyrtothres)}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>

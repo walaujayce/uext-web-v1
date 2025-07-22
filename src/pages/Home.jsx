@@ -49,7 +49,8 @@ function Home() {
         }
         const data = await response.json();
         console.log(data.DATA);
-        setDevices(data.DATA || []);
+        const devicesNonHalow = data.DATA.filter((device) => device.TYPE!==201);
+        setDevices(devicesNonHalow || []);
         // console.log("the current is ", getServerIp());
       } else if (port === "7284") {
         const response = await fetch("/api/7284/db/Device");
@@ -76,23 +77,26 @@ function Home() {
 
     // 先以STAT去區分on/off-line，再以TYPE區分UEXT/UMAP，最後以POS區分狀態
     if (STAT === 0) {
-      return (
-        <Link
-          to={`/device/device-settings?macaddress=${MAC}`}
-          key={MAC}
-          state={{ from: "/home" }}
-        >
-          <Bed_disconnect
+      if(TYPE!==0){
+
+        return (
+          <Link
+            to={`/device/device-settings?macaddress=${MAC}`}
             key={MAC}
-            macaddress={MAC}
-            hold={formatSecondsToDHMS(HOLD)}
-            bed={Bed}
-            floor={Floor}
-            section={Section}
-            username={UserName}
-          />
-        </Link>
-      );
+            state={{ from: "/home" }}
+          >
+            <Bed_disconnect
+              key={MAC}
+              macaddress={MAC}
+              hold={formatSecondsToDHMS(HOLD)}
+              bed={Bed}
+              floor={Floor}
+              section={Section}
+              username={UserName}
+            />
+          </Link>
+        );
+      }
     } else if (STAT === 1) {
       if (TYPE === 1) {
         if (UserName === null || UserName === "") {

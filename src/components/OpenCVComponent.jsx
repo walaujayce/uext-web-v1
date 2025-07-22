@@ -48,7 +48,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
       const scaleAdjust_clientWidth = Math.round(
         (parentBox.clientHeight * sensor_width) / sensor_height
       );
-      canvasRef.current.width = scaleAdjust_clientWidth *0.9; // reduce a 10% percentage of output image size
+      canvasRef.current.width = scaleAdjust_clientWidth * 0.9; // reduce a 10% percentage of output image size
     }
     console.log("the cavas height ", parentBox.clientHeight);
     console.log("the cavas width ", parentBox.clientWidth);
@@ -107,7 +107,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
   };
 
   const getUMAPColor = (div) => {
-    if (div < 10) return [255, 255, 255]; 
+    if (div < 10) return [255, 255, 255];
     if (div > 150) return [37, 58, 235];
     div = Math.floor(div / 16);
 
@@ -123,7 +123,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
       case 4:
         return [245, 141, 63];
       case 5:
-        return [249, 185, 84]; 
+        return [249, 185, 84];
       case 6:
         return [250, 225, 104]; // yellow
       case 7:
@@ -159,7 +159,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
-    if (sensor_height * sensor_width > 240) {      
+    if (sensor_height * sensor_width > 240) {
       let originalImage = cv.matFromArray(
         sensor_height,
         sensor_width,
@@ -213,8 +213,6 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
         cv.INTER_LINEAR_EXACT
       );
 
-
-
       // Convert grayscale to RGB
       let dst = new cv.Mat();
       cv.cvtColor(resizedMat3, dst, cv.COLOR_GRAY2RGB, 0);
@@ -254,9 +252,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
       result.delete();
       dst.delete();
       finalOutput.delete(); // Ensure final output is deleted after use
-
     } else {
-
       const mat24 = cv.matFromArray(
         canvasRef.current.height,
         canvasRef.current.width,
@@ -344,22 +340,22 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
   useEffect(() => {
     let result = convertHexToDecimalArray(rawdata);
     if (sensor_height * sensor_width > 240) {
-      result = result.reverse()
+      result = result.reverse();
     }
-    console.log("ori: ",result)
+    console.log("ori: ", result);
     // normalized value between 80 to 0
     let scaleData = [];
     for (let i = 0; i < result.length; i++) {
       if (result[i] < 1) {
-          scaleData.push(0);
+        scaleData.push(0);
       } else if (result[i] > 80) {
-          scaleData.push(255);
+        scaleData.push(255);
       } else {
-          let normalizeValue = (result[i] - 0) / (80 - 0);
-          scaleData.push(Math.round(normalizeValue * 255));
+        let normalizeValue = (result[i] - 0) / (80 - 0);
+        scaleData.push(Math.round(normalizeValue * 255));
       }
-    } 
-    console.log("cal: ",scaleData)
+    }
+    console.log("cal: ", scaleData);
 
     setDecimalArray(scaleData); // Store the result in state
   }, [rawdata]);

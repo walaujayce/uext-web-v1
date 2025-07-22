@@ -169,7 +169,11 @@ const DeviceList = () => {
                           ? "UEXT"
                           : device.devicetype === 2
                           ? "UMAP"
-                          : "UNC"}
+                          : device.devicetype === 3
+                          ? "UNC"
+                          : device.devicetype === 201
+                          ? "HaLow-R"
+                          : "Not Specified"}
                       </h3>
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
                       <h3 className="fg2">{device.macaddress || "N/A"}</h3>
@@ -207,7 +211,11 @@ const DeviceList = () => {
                         ? "UEXT"
                         : device.devicetype === 2
                         ? "UMAP"
-                        : "UNC"}
+                        : device.devicetype === 3
+                        ? "UNC"
+                        : device.devicetype === 201
+                        ? "HaLow-R"
+                        : "Not Specified"}
                     </h3>
                     <h3 className="fg2">{device.deviceid || "N/A"}</h3>
                     <h3 className="fg2">{device.macaddress || "N/A"}</h3>

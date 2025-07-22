@@ -195,6 +195,7 @@ function DeviceSettings() {
   const deviceMacInput = useSetInfoInput("Enter MAC Address");
   const deviceIPInput = useSetInfoInput("Enter Device IP");
   const deviceConnectStatus = useSetInfoInput("");
+  const dhcpDropdown = useLocationDropdown("");
 
   /// Device Location ///
   const deviceBedInput = useSetLoactionInput("");
@@ -209,9 +210,9 @@ function DeviceSettings() {
   const DebFpsInput = useSetConfigInput("");
 
   // judgemethod already set up above
-  const edgeparDropdown = useDropdown(levelings[2]);
+  const edgeparDropdown = useDropdown(levelings[4]);
   const edgeboxDropdown = useDropdown(levelings[2]);
-  const sitparDropdown = useDropdown(levelings[2]);
+  const sitparDropdown = useDropdown(levelings[4]);
   const sitboxDropdown = useDropdown(levelings[2]);
 
   const HeightThInput = useSetConfigInput("");
@@ -221,8 +222,11 @@ function DeviceSettings() {
   const EmasizeInput = useSetConfigInput("");
   const EmaThresInput = useSetConfigInput("");
   const NoiseThresInput = useSetConfigInput("");
+  const UprtothresInput = useSetConfigInput("");
+  const XyrtothresInput = useSetConfigInput("");
 
   const [deviceInfo, setDeviceInfo] = useState([]);
+  const [deviceType, setDeviceType] = useState(0);
   {
     /* useRef Logic */
   }
@@ -247,6 +251,7 @@ function DeviceSettings() {
         sitboxDropdown.setIsActiveFalse(false);
         floorDropdown.setIsActiveFalse(false);
         sectionDropdown.setIsActiveFalse(false);
+        dhcpDropdown.setIsActiveFalse(false);
       }
     };
 
@@ -284,7 +289,9 @@ function DeviceSettings() {
   const dropdownEdgeboxStyleRef = useRef(null);
   const dropdownSitparStyleRef = useRef(null);
   const dropdownSitboxStyleRef = useRef(null);
+  const dropdownDhcpStyleRef = useRef(null);
 
+  useDynamicDropdownHeight(dropdownDhcpStyleRef, dhcpDropdown.isActive);
   useDynamicDropdownHeight(dropdownFloorStyleRef, floorDropdown.isActive);
   useDynamicDropdownHeight(dropdownSectionStyleRef, sectionDropdown.isActive);
   useDynamicDropdownHeight(dropdownJudgemethodStyleRef, isJudgeMethodActive);
@@ -292,6 +299,24 @@ function DeviceSettings() {
   // useDynamicDropdownHeight(dropdownEdgeboxStyleRef, edgeboxDropdown.isActive);
   // useDynamicDropdownHeight(dropdownSitparStyleRef, sitparDropdown.isActive);
   // useDynamicDropdownHeight(dropdownSitboxStyleRef, sitboxDropdown.isActive);
+
+{/* handle dhcp select logic */}
+const [ipAddressInputBoxDisabled, setIpAddressInputBoxDisabled] = useState(true);
+const handleDhcpItemClick = (dhcp) => {
+    dhcpDropdown.selectItem(dhcp);
+    if (
+      dhcp !==
+      dhcpDropdown.placeholder
+    ) {
+      setIsDeviceInfoChanged(true);
+    }
+    if(dhcp === "DHCP"){
+      setIpAddressInputBoxDisabled(true);
+      deviceIPInput.setInputValue("");
+    }else{
+      setIpAddressInputBoxDisabled(false);
+    }
+  };
 
   {
     /* Fetch Get Device Information API */
@@ -315,18 +340,22 @@ function DeviceSettings() {
       console.log(data);
       setDeviceInfo(data);
 
+      setDeviceType(data.devicetype);
       deviceIDInput.setInputValue(data.deviceid || "");
       deviceMacInput.setInputValue(data.macaddress || "");
       deviceIPInput.setInputValue(data.ipaddress || "");
       deviceConnectStatus.setInputValue(
         data.connect ? "Connected" : "Disconnect"
       );
-
+      
       deviceBedInput.setInputValue(data.bed || "");
       floorDropdown.selectItem(data.floor);
       floorDropdown.setIsActiveFalse;
       sectionDropdown.selectItem(data.section);
       sectionDropdown.setIsActiveFalse;
+      dhcpDropdown.selectItem(data.dhcp ? "DHCP" : "Static IP");
+      dhcpDropdown.setIsActiveFalse;
+      setIpAddressInputBoxDisabled(data.dhcp)
 
       PmioInput.setInputValue(data.pmio);
       VmaxInput.setInputValue(data.vmax);
@@ -349,6 +378,9 @@ function DeviceSettings() {
       EmasizeInput.setInputValue(data.emasize);
       EmaThresInput.setInputValue(data.emathres);
       NoiseThresInput.setInputValue(data.noisethres);
+      UprtothresInput.setInputValue(data.uprtothres);
+      XyrtothresInput.setInputValue(data.xyrtothres);
+
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -396,6 +428,12 @@ function DeviceSettings() {
   {
     /* PUT Device  API */
   }
+  // Update device Info
+    const requestBody_DeviceInfo = {
+    macaddress: deviceMacInput.inputValue,
+    dhcp: dhcpDropdown.placeholder === "DHCP" ? true : false,
+    ipaddress: deviceIPInput.inputValue,
+  };
   // Update device location
   const requestBody_DeviceLocation = {
     bed: deviceBedInput.inputValue,
@@ -421,6 +459,9 @@ function DeviceSettings() {
     emasize: parseInt(EmasizeInput.inputValue, 10),
     emathres: parseInt(EmaThresInput.inputValue, 10),
     noisethres: parseInt(NoiseThresInput.inputValue, 10),
+    uprtothres: parseFloat(UprtothresInput.inputValue),
+    xyrtothres: parseFloat(XyrtothresInput.inputValue),
+
   };
 
   //reset device configuration to default
@@ -428,7 +469,7 @@ function DeviceSettings() {
     pmio: 100,
     vmax: 800,
     vmin: 200,
-    debTst: 1,
+    debTst: 3,
     debFps: 1,
     judgemethod: 1,
     edgepar: 90,
@@ -442,13 +483,17 @@ function DeviceSettings() {
     emasize: 1,
     emathres: 10,
     noisethres: 2,
+    uprtothres: 0.5,
+    xyrtothres: 1.7,
   };
   //set used to false to hide device from device list
   const requestBody_delete = {
     used: false,
   };
   const handlePUT_API = (print_inputvalue) => {
-    if (isDeviceInfoChanged) {
+    if (isDeviceInfoChanged &&
+      print_inputvalue === requestBody_DeviceInfo) {
+      PUT_DeivceInfo(macaddress, print_inputvalue);      
     } else if (
       isDeviceLocationChanged &&
       print_inputvalue === requestBody_DeviceLocation
@@ -504,7 +549,20 @@ function DeviceSettings() {
       setLoading(false);
     }
   };
+  {
+    /* compare input value to default value */
+  }
+  const compareDefaultValueReturnBorderStyle = (currentValue, defaultValue) => {
+    if(currentValue === "" || currentValue === null) return;
+    const numericCurrent = parseFloat(currentValue);
+    const numericReset = parseFloat(defaultValue);
+    const isChanged =
+      isNaN(numericCurrent) || isNaN(numericReset)
+        ? currentValue !== defaultValue
+        : numericCurrent !== numericReset;
 
+    return isChanged ? { border: "2px solid blue" } : {};
+  };
   {
     /* Handle Calender Logic */
   }
@@ -668,6 +726,7 @@ function DeviceSettings() {
                         maxLength={12}
                         value={deviceMacInput.inputValue}
                         onChange={deviceMacInput.handleInputChange}
+                        readOnly
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -675,6 +734,53 @@ function DeviceSettings() {
                       this is a line of assistive text
                     </div>
                   </div>
+                  {deviceType === 201 && (<div
+                    className="input dropdown section g-col-3 suffix"
+                    onClick={dhcpDropdown.toggleActive}
+                    ref={addDropdownRef}
+                  >
+                    <label htmlFor="dhcp" className="label-container">
+                      <p>DHCP/Static IP</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="input-gp">
+                      <input
+                        type="text"
+                        className="placeholder"
+                        id="dhcp"
+                        placeholder={dhcpDropdown.placeholder}
+                        readOnly
+                      />
+                      <img
+                        className="suffix active"
+                        src=""
+                        alt="dropdown icon"
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                    <div
+                      className={`list ${
+                        dhcpDropdown.isActive ? "active" : ""
+                      }`}
+                      ref={dropdownDhcpStyleRef}
+                    >
+                      {["DHCP","Static IP"].map((dhcp) => (
+                        <div
+                          className="item opt1"
+                          key={dhcp}
+                          onClick={() => handleDhcpItemClick(dhcp)}
+                        >
+                          {dhcp}
+                        </div>
+                      ))}
+                    </div>
+                  </div>)}
                   <div className="input g-col-3">
                     <label htmlFor="d-ip" className="label-container">
                       <p>{t("DeviceSettings.IPAddress")}</p>
@@ -691,9 +797,10 @@ function DeviceSettings() {
                         id="d-ip"
                         placeholder={deviceIPInput.inputValue}
                         value={deviceIPInput.inputValue}
-                        readOnly
-                        style={{ cursor: "default" }}
-                        onFocus={(e) => e.target.blur()} // Forces blur when focused
+                        style={{ cursor: ipAddressInputBoxDisabled ? "default" : "pointer" }}
+                        onFocus={(e) => {ipAddressInputBoxDisabled && e.target.blur()}} // Forces blur when focused
+                        readOnly = {ipAddressInputBoxDisabled}
+                        onChange={deviceIPInput.handleInputChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>
@@ -731,6 +838,7 @@ function DeviceSettings() {
                     className={`btn text-only ${
                       isDeviceInfoChanged ? "" : "inactive"
                     }`}
+                    onClick={() => handlePUT_API(requestBody_DeviceInfo)}
                   >
                     <img src="" alt="" className="prefix" />
                     <p className="btn-text">{t("DeviceSettings.Save")}</p>
@@ -746,7 +854,7 @@ function DeviceSettings() {
               <h2>{t("DeviceSettings.DeviceLocation")}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
-                  <div className="input g-col-3">
+                  {deviceType !== 201 && (<div className="input g-col-3">
                     <label htmlFor="bed" className="label-container">
                       <p>{t("DeviceSettings.Bed")}</p>
                       <img
@@ -769,8 +877,7 @@ function DeviceSettings() {
                     <div className="assistive-text">
                       this is a line of assistive text
                     </div>
-                  </div>
-
+                  </div>)}                 
                   <div
                     className="input dropdown section g-col-3 suffix"
                     onClick={sectionDropdown.toggleActive}
@@ -894,526 +1001,587 @@ function DeviceSettings() {
                 </div>
               </div>
             </div>
+            {deviceType !== 201 &&(
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.DeviceConfiguration")}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
                   <div className="input g-col-2 ">
-                    <label htmlFor="pmio" className="label-container">
-                      <p>PMIO</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="pmio"
-                        placeholder={PmioInput.inputValue}
-                        value={PmioInput.inputValue}
-                        onChange={PmioInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2 ">
-                    <label htmlFor="vmax" className="label-container">
-                      <p>VMAX</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="vmax"
-                        placeholder={VmaxInput.inputValue}
-                        value={VmaxInput.inputValue}
-                        onChange={VmaxInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2">
-                    <label htmlFor="vmin" className="label-container">
-                      <p>VMIN</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="vmin"
-                        placeholder={VminInput.inputValue}
-                        value={VminInput.inputValue}
-                        onChange={VminInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2">
-                    <label htmlFor="Debounce_TST" className="label-container">
-                      <p>Debounce_TST</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="Debounce_TST"
-                        placeholder={DebTstInput.inputValue}
-                        value={DebTstInput.inputValue}
-                        onChange={DebTstInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2 ">
-                    <label htmlFor="Debounce_FPS" className="label-container">
-                      <p>Debounce_FPS</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="Debounce_FPS"
-                        placeholder={DebFpsInput.inputValue}
-                        value={DebFpsInput.inputValue}
-                        onChange={DebFpsInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
+                <label htmlFor="pmio" className="label-container">
+                  <p>PMIO</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="pmio"
+                    placeholder={PmioInput.inputValue}
+                    value={PmioInput.inputValue}
+                    onChange={PmioInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(PmioInput.inputValue, requestBody_PUT_RESET.pmio)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2 ">
+                <label htmlFor="vmax" className="label-container">
+                  <p>VMAX</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="vmax"
+                    placeholder={VmaxInput.inputValue}
+                    value={VmaxInput.inputValue}
+                    onChange={VmaxInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(VmaxInput.inputValue, requestBody_PUT_RESET.vmax)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="vmin" className="label-container">
+                  <p>VMIN</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="vmin"
+                    placeholder={VminInput.inputValue}
+                    value={VminInput.inputValue}
+                    onChange={VminInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(VminInput.inputValue, requestBody_PUT_RESET.vmin)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="Debounce_TST" className="label-container">
+                  <p>Debounce_TST</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="Debounce_TST"
+                    placeholder={DebTstInput.inputValue}
+                    value={DebTstInput.inputValue}
+                    onChange={DebTstInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(DebTstInput.inputValue, requestBody_PUT_RESET.debTst)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2 ">
+                <label htmlFor="Debounce_FPS" className="label-container">
+                  <p>Debounce_FPS</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="Debounce_FPS"
+                    placeholder={DebFpsInput.inputValue}
+                    value={DebFpsInput.inputValue}
+                    onChange={DebFpsInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(DebFpsInput.inputValue, requestBody_PUT_RESET.debFps)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div
+                className="input dropdown set g-col-2 suffix"
+                onClick={handleJudgeMethodDropDownMenu}
+                ref={addDropdownRef}
+              >
+                <label htmlFor="judgemethod" className="label-container">
+                  <p>Judge Method</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="judgemethod"
+                    placeholder={placeholderJudgeMethod}
+                    readOnly
+                    style={compareDefaultValueReturnBorderStyle(placeholderJudgeMethod === "by size" ? 1 : 0, requestBody_PUT_RESET.judgemethod)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+                <div
+                  className={`list ${isJudgeMethodActive ? "active" : ""}`}
+                  ref={dropdownJudgemethodStyleRef}
+                >
+                  <div
+                    className="item opt1"
+                    onClick={() => handleJudgeMethodItemClick("by value")}
+                  >
+                    by value
                   </div>
                   <div
-                    className="input dropdown set g-col-2 suffix"
-                    onClick={handleJudgeMethodDropDownMenu}
-                    ref={addDropdownRef}
+                    className="item opt2"
+                    onClick={() => handleJudgeMethodItemClick("by size")}
                   >
-                    <label htmlFor="judgemethod" className="label-container">
-                      <p>Judge Method</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="judgemethod"
-                        placeholder={placeholderJudgeMethod}
-                        readOnly
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
+                    by size
+                  </div>
+                </div>
+              </div>
+              <div
+                className="input dropdown set g-col-2 suffix"
+                onClick={edgeparDropdown.toggleActive}
+                ref={addDropdownRef}
+              >
+                <label htmlFor="edgepar" className="label-container">
+                  <p>EDGEPAR</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="edgepar"
+                    placeholder={edgeparDropdown.placeholder}
+                    readOnly
+                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(edgeparDropdown.placeholder), requestBody_PUT_RESET.edgepar)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+                <div
+                  className={`list ${edgeparDropdown.isActive ? "active" : ""}`}
+                  ref={dropdownEdgeparStyleRef}
+                >
+                  {levelings.map((leveling) => (
                     <div
-                      className={`list ${isJudgeMethodActive ? "active" : ""}`}
-                      ref={dropdownJudgemethodStyleRef}
+                      className="item opt1"
+                      key={leveling}
+                      onClick={() => {
+                        edgeparDropdown.selectItem(leveling);
+                        setIsDeviceConfigChanged(true);
+                      }}
                     >
-                      <div
-                        className="item opt1"
-                        onClick={() => handleJudgeMethodItemClick("by value")}
-                      >
-                        by value
-                      </div>
-                      <div
-                        className="item opt2"
-                        onClick={() => handleJudgeMethodItemClick("by size")}
-                      >
-                        by size
-                      </div>
+                      {leveling}
                     </div>
-                  </div>
-                  <div
-                    className="input dropdown set g-col-2 suffix"
-                    onClick={edgeparDropdown.toggleActive}
-                    ref={addDropdownRef}
-                  >
-                    <label htmlFor="edgepar" className="label-container">
-                      <p>EDGEPAR</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="edgepar"
-                        placeholder={edgeparDropdown.placeholder}
-                        readOnly
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
+                  ))}
+                </div>
+              </div>
+              <div
+                className="input dropdown set g-col-2 suffix"
+                onClick={edgeboxDropdown.toggleActive}
+                ref={addDropdownRef}
+              >
+                <label htmlFor="edgebox" className="label-container">
+                  <p>EDGEBOX</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="edgebox"
+                    placeholder={edgeboxDropdown.placeholder}
+                    readOnly
+                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(edgeboxDropdown.placeholder), requestBody_PUT_RESET.edgebox)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+                <div
+                  className={`list ${edgeboxDropdown.isActive ? "active" : ""}`}
+                  ref={dropdownEdgeboxStyleRef}
+                >
+                  {levelings.map((leveling) => (
                     <div
-                      className={`list ${
-                        edgeparDropdown.isActive ? "active" : ""
-                      }`}
-                      ref={dropdownEdgeparStyleRef}
+                      className="item opt1"
+                      key={leveling}
+                      onClick={() => {
+                        edgeboxDropdown.selectItem(leveling);
+                        setIsDeviceConfigChanged(true);
+                      }}
                     >
-                      {levelings.map((leveling) => (
-                        <div
-                          className="item opt1"
-                          key={leveling}
-                          onClick={() => {
-                            edgeparDropdown.selectItem(leveling);
-                            setIsDeviceConfigChanged(true);
-                          }}
-                        >
-                          {leveling}
-                        </div>
-                      ))}
+                      {leveling}
                     </div>
-                  </div>
-                  <div
-                    className="input dropdown set g-col-2 suffix"
-                    onClick={edgeboxDropdown.toggleActive}
-                    ref={addDropdownRef}
-                  >
-                    <label htmlFor="edgebox" className="label-container">
-                      <p>EDGEBOX</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="edgebox"
-                        placeholder={edgeboxDropdown.placeholder}
-                        readOnly
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
+                  ))}
+                </div>
+              </div>
+              <div
+                className="input dropdown set g-col-2 suffix"
+                onClick={sitparDropdown.toggleActive}
+                ref={addDropdownRef}
+              >
+                <label htmlFor="sitpar" className="label-container">
+                  <p>SITPAR</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="sitpar"
+                    placeholder={sitparDropdown.placeholder}
+                    readOnly
+                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(sitparDropdown.placeholder), requestBody_PUT_RESET.sitpar)}
+
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+                <div
+                  className={`list ${sitparDropdown.isActive ? "active" : ""}`}
+                  ref={dropdownSitparStyleRef}
+                >
+                  {levelings.map((leveling) => (
                     <div
-                      className={`list ${
-                        edgeboxDropdown.isActive ? "active" : ""
-                      }`}
-                      ref={dropdownEdgeboxStyleRef}
+                      className="item opt1"
+                      key={leveling}
+                      onClick={() => {
+                        sitparDropdown.selectItem(leveling);
+                        setIsDeviceConfigChanged(true);
+                      }}
                     >
-                      {levelings.map((leveling) => (
-                        <div
-                          className="item opt1"
-                          key={leveling}
-                          onClick={() => {
-                            edgeboxDropdown.selectItem(leveling);
-                            setIsDeviceConfigChanged(true);
-                          }}
-                        >
-                          {leveling}
-                        </div>
-                      ))}
+                      {leveling}
                     </div>
-                  </div>
-                  <div
-                    className="input dropdown set g-col-2 suffix"
-                    onClick={sitparDropdown.toggleActive}
-                    ref={addDropdownRef}
-                  >
-                    <label htmlFor="sitpar" className="label-container">
-                      <p>SITPAR</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="sitpar"
-                        placeholder={sitparDropdown.placeholder}
-                        readOnly
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
+                  ))}
+                </div>
+              </div>
+              <div
+                className="input dropdown set g-col-2 suffix"
+                onClick={sitboxDropdown.toggleActive}
+                ref={addDropdownRef}
+              >
+                <label htmlFor="sitbox" className="label-container">
+                  <p>SITBOX</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="sitbox"
+                    placeholder={sitboxDropdown.placeholder}
+                    readOnly
+                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(sitboxDropdown.placeholder), requestBody_PUT_RESET.sitbox)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+                <div
+                  className={`list ${sitboxDropdown.isActive ? "active" : ""}`}
+                  ref={dropdownSitboxStyleRef}
+                >
+                  {levelings.map((leveling) => (
                     <div
-                      className={`list ${
-                        sitparDropdown.isActive ? "active" : ""
-                      }`}
-                      ref={dropdownSitparStyleRef}
+                      className="item opt1"
+                      key={leveling}
+                      onClick={() => {
+                        sitboxDropdown.selectItem(leveling);
+                        setIsDeviceConfigChanged(true);
+                      }}
                     >
-                      {levelings.map((leveling) => (
-                        <div
-                          className="item opt1"
-                          key={leveling}
-                          onClick={() => {
-                            sitparDropdown.selectItem(leveling);
-                            setIsDeviceConfigChanged(true);
-                          }}
-                        >
-                          {leveling}
-                        </div>
-                      ))}
+                      {leveling}
                     </div>
-                  </div>
-                  <div
-                    className="input dropdown set g-col-2 suffix"
-                    onClick={sitboxDropdown.toggleActive}
-                    ref={addDropdownRef}
-                  >
-                    <label htmlFor="sitbox" className="label-container">
-                      <p>SITBOX</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="sitbox"
-                        placeholder={sitboxDropdown.placeholder}
-                        readOnly
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                    <div
-                      className={`list ${
-                        sitboxDropdown.isActive ? "active" : ""
-                      }`}
-                      ref={dropdownSitboxStyleRef}
-                    >
-                      {levelings.map((leveling) => (
-                        <div
-                          className="item opt1"
-                          key={leveling}
-                          onClick={() => {
-                            sitboxDropdown.selectItem(leveling);
-                            setIsDeviceConfigChanged(true);
-                          }}
-                        >
-                          {leveling}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  <div className="input g-col-2">
-                    <label htmlFor="HEIGHT_TH" className="label-container">
-                      <p>HEIGHT_TH</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="HEIGHT_TH"
-                        placeholder={HeightThInput.inputValue}
-                        value={HeightThInput.inputValue}
-                        onChange={HeightThInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2">
-                    <label htmlFor="BOX_Y_START" className="label-container">
-                      <p>BOX_Y_START</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="BOX_Y_START"
-                        placeholder={BoxYStartInput.inputValue}
-                        value={BoxYStartInput.inputValue}
-                        onChange={BoxYStartInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2 ">
-                    <label htmlFor="ER_MAP" className="label-container">
-                      <p>ER_MAP</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="ER_MAP"
-                        placeholder={ErmapInput.inputValue}
-                        value={ErmapInput.inputValue}
-                        onChange={ErmapInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2">
-                    <label htmlFor="EDGE_SIT_POINT" className="label-container">
-                      <p>EDGE_SIT_POINT</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="EDGE_SIT_POINT"
-                        placeholder={EdgeSitPointInput.inputValue}
-                        value={EdgeSitPointInput.inputValue}
-                        onChange={EdgeSitPointInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2">
-                    <label htmlFor="EMASIZE" className="label-container">
-                      <p>EMASIZE</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="EMASIZE"
-                        placeholder={EmasizeInput.inputValue}
-                        value={EmasizeInput.inputValue}
-                        onChange={EmasizeInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2">
-                    <label htmlFor="EMATHRES" className="label-container">
-                      <p>EMATHRES</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="EMATHRES"
-                        placeholder={EmaThresInput.inputValue}
-                        value={EmaThresInput.inputValue}
-                        onChange={EmaThresInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
-                  <div className="input g-col-2">
-                    <label htmlFor="NOISETHRES" className="label-container">
-                      <p>NOISETHRES</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="NOISETHRES"
-                        placeholder={NoiseThresInput.inputValue}
-                        value={NoiseThresInput.inputValue}
-                        onChange={NoiseThresInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>
+                  ))}
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="HEIGHT_TH" className="label-container">
+                  <p>HEIGHT_TH</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="HEIGHT_TH"
+                    placeholder={HeightThInput.inputValue}
+                    value={HeightThInput.inputValue}
+                    onChange={HeightThInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(HeightThInput.inputValue, requestBody_PUT_RESET.heightTh)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="BOX_Y_START" className="label-container">
+                  <p>BOX_Y_START</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="BOX_Y_START"
+                    placeholder={BoxYStartInput.inputValue}
+                    value={BoxYStartInput.inputValue}
+                    onChange={BoxYStartInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(BoxYStartInput.inputValue,requestBody_PUT_RESET.boxYStart)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2 ">
+                <label htmlFor="ER_MAP" className="label-container">
+                  <p>ER_MAP</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="ER_MAP"
+                    placeholder={ErmapInput.inputValue}
+                    value={ErmapInput.inputValue}
+                    onChange={ErmapInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(ErmapInput.inputValue, requestBody_PUT_RESET.erMap)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="EDGE_SIT_POINT" className="label-container">
+                  <p>EDGE_SIT_POINT</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="EDGE_SIT_POINT"
+                    placeholder={EdgeSitPointInput.inputValue}
+                    value={EdgeSitPointInput.inputValue}
+                    onChange={EdgeSitPointInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(EdgeSitPointInput.inputValue, requestBody_PUT_RESET.edgeSitPoint)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="EMASIZE" className="label-container">
+                  <p>EMASIZE</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="EMASIZE"
+                    placeholder={EmasizeInput.inputValue}
+                    value={EmasizeInput.inputValue}
+                    onChange={EmasizeInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(EmasizeInput.inputValue, requestBody_PUT_RESET.emasize)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="EMATHRES" className="label-container">
+                  <p>EMATHRES</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="EMATHRES"
+                    placeholder={EmaThresInput.inputValue}
+                    value={EmaThresInput.inputValue}
+                    onChange={EmaThresInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(EmaThresInput.inputValue, requestBody_PUT_RESET.emathres)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="NOISETHRES" className="label-container">
+                  <p>NOISETHRES</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="NOISETHRES"
+                    placeholder={NoiseThresInput.inputValue}
+                    value={NoiseThresInput.inputValue}
+                    onChange={NoiseThresInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(NoiseThresInput.inputValue, requestBody_PUT_RESET.noisethres)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="UPRTOTHRES" className="label-container">
+                  <p>UPRTOTHRES</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="UPRTOTHRES"
+                    placeholder={UprtothresInput.inputValue}
+                    value={UprtothresInput.inputValue}
+                    onChange={UprtothresInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(UprtothresInput.inputValue, requestBody_PUT_RESET.uprtothres)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
+              <div className="input g-col-2">
+                <label htmlFor="XYRTOTHRES" className="label-container">
+                  <p>XYRTOTHRES</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="XYRTOTHRES"
+                    placeholder={XyrtothresInput.inputValue}
+                    value={XyrtothresInput.inputValue}
+                    onChange={XyrtothresInput.handleInputChange}
+                    style={compareDefaultValueReturnBorderStyle(XyrtothresInput.inputValue, requestBody_PUT_RESET.xyrtothres)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+              </div>
                 </div>
                 <div className="btn-gp">
                   <div
@@ -1437,7 +1605,8 @@ function DeviceSettings() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>)}
+            {deviceType !== 201 &&(
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.DeviceVersion")}</h2>
               <div className="opt-list">
@@ -1451,7 +1620,8 @@ function DeviceSettings() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>)}
+            {deviceType !== 201 &&(
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.RawData")}</h2>
               <div className="opt-list">
@@ -1532,7 +1702,8 @@ function DeviceSettings() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>)}
+            {deviceType !== 201 &&(
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.RecordData")}</h2>
               <div className="opt-list">
@@ -1610,7 +1781,7 @@ function DeviceSettings() {
                   </div>
                 </div>
               </div>
-            </div>
+            </div>)}
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.ErrorLog")}</h2>
               <div className="opt-list">

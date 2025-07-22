@@ -209,6 +209,8 @@
     "DeviceProfile": "裝置資料",
     "DeviceType": "裝置種類",
     "MACAddress": "MAC",
+    "DHCP": "DHCP/Static IP",
+    "IP": "IP Address",
     "Bed": "床號",
     "Section": "區域",
     "Floor": "樓層",
