@@ -38,7 +38,8 @@
   },
   "FloorSection": {
     "Floor": "樓層",
-    "Section": "區域"
+    "Section": "區域",
+    "DeviceType": "裝置種類"
   },
   "AlertList": {
     "Alerts": "警示列表",
@@ -73,6 +74,7 @@
     "Monitor": "即時監控",
     "Alerts": "警示設定",
     "Debug": "除錯模式",
+    "Analysis": "分析數據",
     "Back": "返回列表"
   },
   "PatientProfile": {

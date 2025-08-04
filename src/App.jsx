@@ -17,6 +17,7 @@ import PatientDetail from "./pages/PatientDetail";
 import PatientMonitor from "./components/PatientMonitor";
 import PatientAlerts from "./components/PatientAlerts";
 import PatientEngineer from "./components/PatientEngineer";
+import PatientAnalysis from "./components/PatientAnalysis"
 import DeviceSettings from "./components/DeviceSetting";
 import AccountSetting from "./components/AccountSetting";
 import PrivateRoute from "./JS/PrivateRoute";
@@ -88,6 +89,14 @@ function App() {
           element={
             <PrivateRoute allowedRoles={["administrator"]}>
               <PatientEngineer />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="patient-analysis"
+          element={
+            <PrivateRoute allowedRoles={["administrator"]}>
+              <PatientAnalysis />
             </PrivateRoute>
           }
         />

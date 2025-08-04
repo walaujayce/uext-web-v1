@@ -104,6 +104,7 @@ function Patient() {
               <FloorSectionBar
                 selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
+                enableDeviceType={false}  
               />
               {/* <div
                 className="btn"

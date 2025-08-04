@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet, Link } from "react-router-dom";
 import dayjs from "dayjs";
 import "/src/CSS/btn.css";
@@ -35,41 +35,59 @@ const DeviceList = () => {
   const handleSelectSection = (section) => {
     setSelect_Section(section);
   };
+  const [select_deviceType, setSelect_DeviceType] = useState("");
+  const handleSelectDeviceType = (deviceType) => {
+    setSelect_DeviceType(deviceType);
+  };
+
   const fetchDeviceList = async () => {
     try {
-      const [response, response8031] = await Promise.all([
-        fetch("/api/7284/db/Device"),
-        fetch("/api/8031/devices"),
-      ]);
-
+      const response = await fetch("/api/7284/db/Device");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      if (!response8031.ok) {
-        throw new Error(`HTTP error! status: ${response8031.status}`);
-      }
       const data = await response.json();
       console.log(data);
-      const result8031 = await response8031.json();
-      const data8031 = result8031.DATA;
-      //console.log(data8031);
       setDevices(data);
-      const macSet = new Set(data.map((device) => device.macaddress));
-      const matchedMap = {};
-      data8031.forEach((device) => {
-        if (macSet.has(device.MAC)) {;
-          matchedMap[device.MAC] = {
-            rssi: device.RSSI,
-            ping: device.Ping,
-          };
-        }
-      });
-      //console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
-      setDeviceMap(matchedMap);
-    } catch (error) {
+          } catch (error) {
       console.error("Error fetching device data:", error);
     }
   };
+  // const fetchDeviceList = async () => {
+  //   try {
+  //     const [response, response8031] = await Promise.all([
+  //       fetch("/api/7284/db/Device"),
+  //       fetch("/api/8031/devices"),
+  //     ]);
+
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+  //     if (!response8031.ok) {
+  //       throw new Error(`HTTP error! status: ${response8031.status}`);
+  //     }
+  //     const data = await response.json();
+  //     console.log(data);
+  //     const result8031 = await response8031.json();
+  //     const data8031 = result8031.DATA;
+  //     //console.log(data8031);
+  //     setDevices(data);
+  //     const macSet = new Set(data.map((device) => device.macaddress));
+  //     const matchedMap = {};
+  //     data8031.forEach((device) => {
+  //       if (macSet.has(device.MAC)) {;
+  //         matchedMap[device.MAC] = {
+  //           rssi: device.RSSI,
+  //           ping: device.Ping,
+  //         };
+  //       }
+  //     });
+  //     //console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
+  //     setDeviceMap(matchedMap);
+  //   } catch (error) {
+  //     console.error("Error fetching device data:", error);
+  //   }
+  // };
   useEffect(() => {
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
@@ -90,6 +108,12 @@ const DeviceList = () => {
         select_section === "All" ||
         device.section === select_section
     ) // Filter by section
+    .filter(  
+      (device) =>
+        select_deviceType === "" ||
+        select_deviceType === "All" ||
+        device.devicetype === select_deviceType
+    ) // Filter by device type
     .sort((a, b) => {
       const macA = a.macaddress?.toUpperCase() || "";
       const macB = b.macaddress?.toUpperCase() || "";
@@ -99,6 +123,7 @@ const DeviceList = () => {
       const numB = parseInt(b.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
       return numA - numB;
     });
+
   const connectedDevicesCount = filteredDevices.filter(
     (device) => device.devicestatus
   ).length;
@@ -125,7 +150,10 @@ const DeviceList = () => {
           <FloorSectionBar
             selectFloor={handleSelectFloor}
             selectSection={handleSelectSection}
-          />
+            selectDeviceType={handleSelectDeviceType}
+            enableDeviceType={true}
+          />        
+
           <div className="btn" id="addDevice" onClick={handleAddDeviceClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">{t("DeviceList.NewDevice")}</p>

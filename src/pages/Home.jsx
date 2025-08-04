@@ -275,6 +275,7 @@ function Home() {
               <FloorSectionBar
                 selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
+                enableDeviceType={false}
               />
               <div className="sort">
                 <div className="label">{t("Home.Sortby")}</div>

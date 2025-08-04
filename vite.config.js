@@ -22,7 +22,7 @@ export default defineConfig({
     proxy: { 
       // Proxy for the first API 
       "/api/7284": {
-        target: `http://${WebAPI}:7284`,
+        target: `http://${WebAPI}:8032`,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api\/7284/, "/api"), // Rewrites '/api/device1' to '/api'
@@ -42,7 +42,7 @@ export default defineConfig({
       },
       // Proxy for the SignalR
       "/signalR/7284": { 
-        target: `ws://${WebAPI}:7284`,
+        target: `ws://${WebAPI}:8032`,
         ws: true,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/signalR\/7284/, "/notifyHub"), // Rewrite '/api' to ''
