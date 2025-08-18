@@ -6,7 +6,7 @@ import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
 
-function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
+function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceType, enableDeviceType }) {
       const { t, i18n } = useTranslation();
   
   {
@@ -111,7 +111,39 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
     setPortActive;
     selectPort(port);
   };
+    {
+    /* DeviceType Dropdown Menu Logic */
+  }
+  const deviceTypes = ["All", "Not specified", "UEXT", "UMAP", "UNC", "HaLow-R"];
+  
+  const deviceTypeToIndex = (deviceType) =>{
+    switch(deviceType) {
+      case "Not specified":
+        return 0;
+      case "UEXT":
+        return 1;
+      case "UMAP":
+        return 2;
+      case "UNC":
+        return 3;
+      case "HaLow-R":
+        return 201;
+      default:
+        return 'All'; // Not found or not specified
+      }
+    };
+  
+  const [isDeviceTypeActive, setDeviceTypeActive] = useState(false);
+  const handleDeviceTypeDropDownMenu = () => {
+    setDeviceTypeActive((prev) => !prev);
+  };
+  const [placeholderDeviceType, setPlaceholderDeviceType] = useState(deviceTypes[0]); // Input placeholder
 
+  const handleDeviceTypeItemClick = (deviceType) => {
+    setPlaceholderDeviceType(deviceType);
+    selectDeviceType(deviceTypeToIndex(deviceType));
+    handleDeviceTypeDropDownMenu;
+  };
   {
     /* useRef Logic */
   }
@@ -133,6 +165,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
         setFloorActive(false);
         setSectionActive(false);
         setPortActive(false);
+        setDeviceTypeActive(false);
       }
     };
 
@@ -164,10 +197,12 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
   };
   const dropdownFloorStyleRef = useRef(null);
   const dropdownSectionStyleRef = useRef(null);
+  const dropdownDeviceTypeStyleRef = useRef(null);
 
   // Use the custom hook for both dropdowns
   useDynamicDropdownHeight(dropdownFloorStyleRef, isFloorActive);
   useDynamicDropdownHeight(dropdownSectionStyleRef, isSectionActive);
+  useDynamicDropdownHeight(dropdownDeviceTypeStyleRef, isDeviceTypeActive );
 
   return (
     <>
@@ -245,6 +280,44 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
           ))}
         </div>
       </div>
+      {enableDeviceType && (
+      <div
+        className="input dropdown floor suffix"
+        onClick={handleDeviceTypeDropDownMenu}
+        ref={addDropdownRef}
+      >
+        <label htmlFor="deviceType" className="label-container">
+          <p>{t('FloorSection.DeviceType')}</p>
+          <img
+            className="info"
+            src="/src/assets/information-outline.svg"
+            alt="gray outline information icon"
+          />
+        </label>
+        <div className="input-gp">
+          <input
+            type="text"
+            className="placeholder"
+            id="deviceType"
+            name="name"
+            placeholder={placeholderDeviceType}
+            readOnly
+          />
+          <img className="suffix active" src="" alt="dropdown icon" />
+        </div>
+        <div className="assistive-text">this is a line of assistive text</div>
+        <div className={`list ${isDeviceTypeActive ? "active" : ""}`} ref={dropdownDeviceTypeStyleRef}>
+          {deviceTypes.map((deviceType) => (
+            <div
+              className="item"
+              key={deviceType}
+              onClick={() => handleDeviceTypeItemClick(deviceType)}
+            >
+              {deviceType}
+            </div>
+          ))}
+        </div>
+      </div>)}            
       {/* <div
         className="input dropdown port suffix"
         onClick={handlePortDropDownMenu}

@@ -38,7 +38,8 @@
   },
   "FloorSection": {
     "Floor": "Floor",
-    "Section": "Section"
+    "Section": "Section",
+    "DeviceType": "Device Type"
   },
   "AlertList": {
     "Alerts": "Alerts List",
@@ -73,6 +74,7 @@
     "Monitor": "Monitor",
     "Alerts": "Alerts",
     "Debug": "Debug",
+    "Analysis": "Analysis",
     "Back": "Back"
   },
   "PatientProfile": {
@@ -162,8 +164,8 @@
     "DeviceList": "Device List",
     "DeviceType": "Type",
     "DeviceID": "Device ID",
-    "MACAddress": "MAC Address",
-    "IPAddress": "IP Address",
+    "MACAddress": "MAC",
+    "IPAddress": "IP",
     "Bed": "Bed",
     "Section": "Section",
     "Floor": "Floor",

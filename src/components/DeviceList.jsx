@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet, Link } from "react-router-dom";
 import dayjs from "dayjs";
 import "/src/CSS/btn.css";
@@ -35,6 +35,48 @@ const DeviceList = () => {
   const handleSelectSection = (section) => {
     setSelect_Section(section);
   };
+  const [select_deviceType, setSelect_DeviceType] = useState("");
+  const handleSelectDeviceType = (deviceType) => {
+    setSelect_DeviceType(deviceType);
+  };
+
+  {
+    /* sort logic */
+  }
+  const sortTypes = [
+    "deviceType",
+    "deviceId",
+    "mac",
+    "ip",
+    "bed",
+    "section",
+    "floor",
+    "updateDate",
+    "status",
+  ];
+
+  const [sortType, setSortType] = useState(sortTypes[1]);
+  const [sortDirection, setSortDirection] = useState(true);
+  function SortType(sortTypeIndex) {
+    if (sortTypes[sortTypeIndex] !== sortType) setSortDirection(true);
+    setSortType(sortTypes[sortTypeIndex]);
+    if (sortTypes[sortTypeIndex] === sortType)
+      setSortDirection((prev) => !prev);
+  }
+
+  // const fetchDeviceList = async () => {
+  //   try {
+  //     const response = await fetch("/api/7284/db/Device");
+  //     if (!response.ok) {
+  //       throw new Error(`HTTP error! status: ${response.status}`);
+  //     }
+  //     const data = await response.json();
+  //     console.log(data);
+  //     setDevices(data);
+  //   } catch (error) {
+  //     console.error("Error fetching device data:", error);
+  //   }
+  // };
   const fetchDeviceList = async () => {
     try {
       const [response, response8031] = await Promise.all([
@@ -57,7 +99,7 @@ const DeviceList = () => {
       const macSet = new Set(data.map((device) => device.macaddress));
       const matchedMap = {};
       data8031.forEach((device) => {
-        if (macSet.has(device.MAC)) {;
+        if (macSet.has(device.MAC)) {
           matchedMap[device.MAC] = {
             rssi: device.RSSI,
             ping: device.Ping,
@@ -90,15 +132,132 @@ const DeviceList = () => {
         select_section === "All" ||
         device.section === select_section
     ) // Filter by section
+    .filter(
+      (device) =>
+        select_deviceType === "" ||
+        select_deviceType === "All" ||
+        device.devicetype === select_deviceType
+    ) // Filter by device type
     .sort((a, b) => {
-      const macA = a.macaddress?.toUpperCase() || "";
-      const macB = b.macaddress?.toUpperCase() || "";
-      if (macA < macB) return -1;
-      if (macA > macB) return 1;
-      const numA = parseInt(a.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
-      const numB = parseInt(b.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
-      return numA - numB;
+      const valA = (val) => val ?? "";
+      switch (sortType) {
+        case sortTypes[0]: // device type
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return String(b.devicetype).localeCompare(String(a.devicetype));
+          } else {
+            return String(a.devicetype).localeCompare(String(b.devicetype));
+          }
+        case sortTypes[1]: // device id
+          console.log("sortType: ", sortType);
+          // const macA = a.macaddress?.toUpperCase() || "";
+          // const macB = b.macaddress?.toUpperCase() || "";
+          // if (macA < macB) return -1;
+          // if (macA > macB) return 1;
+          // const numA = parseInt(a.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
+          // const numB = parseInt(b.macaddress?.replace(/[^0-9]/g, "") || "0", 10);
+          // return numA - numB;
+          if (sortDirection) {
+            return valA(a.macaddress).localeCompare(
+              valA(b.macaddress),
+              undefined,
+              { numeric: true }
+            );
+          } else {
+            return valA(b.macaddress).localeCompare(
+              valA(a.macaddress),
+              undefined,
+              { numeric: true }
+            );
+          }
+        case sortTypes[2]: //device mac
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return valA(a.macaddress).localeCompare(
+              valA(b.macaddress),
+              undefined,
+              { numeric: true }
+            );
+          } else {
+            return valA(b.macaddress).localeCompare(
+              valA(a.macaddress),
+              undefined,
+              { numeric: true }
+            );
+          }
+        case sortTypes[3]: //device ip
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return valA(a.ipaddress).localeCompare(
+              valA(b.ipaddress),
+              undefined,
+              {
+                numeric: true,
+              }
+            );
+          } else {
+            return valA(b.ipaddress).localeCompare(
+              valA(a.ipaddress),
+              undefined,
+              {
+                numeric: true,
+              }
+            );
+          }
+        case sortTypes[4]: // bed
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return valA(a.bed).localeCompare(valA(b.bed), undefined, {
+              numeric: true,
+            });
+          } else {
+            return valA(b.bed).localeCompare(valA(a.bed), undefined, {
+              numeric: true,
+            });
+          }
+        case sortTypes[5]: // section
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return valA(a.section).localeCompare(valA(b.section), undefined, {
+              numeric: true,
+            });
+          } else {
+            return valA(b.section).localeCompare(valA(a.section), undefined, {
+              numeric: true,
+            });
+          }
+        case sortTypes[6]: // floor
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return valA(a.floor).localeCompare(valA(b.floor), undefined, {
+              numeric: true,
+            });
+          } else {
+            return valA(b.floor).localeCompare(valA(a.floor), undefined, {
+              numeric: true,
+            });
+          }
+        case sortTypes[7]: // date
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            const dateA = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
+            const dateB = b.Updatedat ? new Date(b.Updatedat) : new Date(0);
+            return dateB - dateA; // Subtracting dates sorts by timestamp
+          } else {
+            const dateA = b.Updatedat ? new Date(b.Updatedat) : new Date(0);
+            const dateB = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
+            return dateB - dateA; // Subtracting dates sorts by timestamp
+          }
+        case sortTypes[8]: // status
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return String(b.devicestatus).localeCompare(String(a.devicestatus));
+          } else {
+            return String(a.devicestatus).localeCompare(String(b.devicestatus));
+          }
+      }
     });
+
   const connectedDevicesCount = filteredDevices.filter(
     (device) => device.devicestatus
   ).length;
@@ -125,7 +284,10 @@ const DeviceList = () => {
           <FloorSectionBar
             selectFloor={handleSelectFloor}
             selectSection={handleSelectSection}
+            selectDeviceType={handleSelectDeviceType}
+            enableDeviceType={true}
           />
+
           <div className="btn" id="addDevice" onClick={handleAddDeviceClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">{t("DeviceList.NewDevice")}</p>
@@ -136,20 +298,61 @@ const DeviceList = () => {
         </div>
         <div className="pl">
           <div className="head">
-            <h3 className="fg1">{t("DeviceList.DeviceType")}</h3>
-            <h3 className="fg2">{t("DeviceList.DeviceID")}</h3>
-            <h3 className="fg2">{t("DeviceList.MACAddress")}</h3>
-            <h3 className="fg2">{t("DeviceList.IPAddress")}</h3>
-            <h3 className="fg3">{t("DeviceList.Bed")}</h3>
-            <h3 className="fg3">{t("DeviceList.Section")}</h3>
-            <h3 className="fg3">{t("DeviceList.Floor")}</h3>
-            <h3 className="fg1">{t("DeviceList.SettingDate")}</h3>
+            <h3
+              className={`fg1 ${sortType === sortTypes[0] ? "selected" : ""}`}
+              onClick={() => SortType(0)}
+            >
+              {t("DeviceList.DeviceType")} {sortType === sortTypes[0] && (sortDirection ? "\u25BC" : "\u25B2")}
+            </h3>
+            <h3
+              className={`fg2 ${sortType === sortTypes[1] ? "selected" : ""}`}
+              onClick={() => SortType(1)}
+            >
+              {t("DeviceList.DeviceID")} {sortType === sortTypes[1] && (sortDirection ? "\u25BC" : "\u25B2")}
+            </h3>
+            <h3
+              className={`fg2 ${sortType === sortTypes[2] ? "selected" : ""}`}
+              onClick={() => SortType(2)}
+            >
+              {t("DeviceList.MACAddress")} {sortType === sortTypes[2] && (sortDirection ? "\u25BC" : "\u25B2")}
+            </h3>
+            <h3
+              className={`fg2 ${sortType === sortTypes[3] ? "selected" : ""}`}
+              onClick={() => SortType(3)}
+            >
+              {t("DeviceList.IPAddress")} {sortType === sortTypes[3] && (sortDirection ? "\u25BC" : "\u25B2")}
+            </h3>
+            <h3
+              className={`fg3 ${sortType === sortTypes[4] ? "selected" : ""}`}
+              onClick={() => SortType(4)}
+            >
+              {t("DeviceList.Bed")} {sortType === sortTypes[4] && (sortDirection ? "\u25BC" : "\u25B2")}
+            </h3>
+            <h3
+              className={`fg3 ${sortType === sortTypes[5] ? "selected" : ""}`}
+              onClick={() => SortType(5)}
+            >
+              {t("DeviceList.Section")} {sortType === sortTypes[5] && (sortDirection ? "\u25BC" : "\u25B2")}
+            </h3>
+            <h3
+              className={`fg3 ${sortType === sortTypes[6] ? "selected" : ""}`}
+              onClick={() => SortType(6)}
+            >
+              {t("DeviceList.Floor")} {sortType === sortTypes[6] && (sortDirection ? "\u25BC" : "\u25B2")}
+            </h3>
+            <h3
+              className={`fg1 ${sortType === sortTypes[7] ? "selected" : ""}`}
+              onClick={() => SortType(7)}
+            >
+              {t("DeviceList.SettingDate")} {sortType === sortTypes[7] && (sortDirection ? "\u25BC" : "\u25B2")}
+            </h3>
             <h3 className="fg3">PING(ms)</h3>
             <h3 className="fg3">RSSI(dBm)</h3>
-            <div className="connection fg2">
-              <h3>
+            <div className="connection fg2" onClick={() => SortType(8)}>
+              <h3 className={`${sortType === sortTypes[8] ? "selected" : ""}`}>
                 {t("DeviceList.DeviceStatus")}
-                {`(${connectedDevicesCount})`}
+                {`(${connectedDevicesCount})`} 
+                {sortType === sortTypes[8] && (sortDirection ? "\u25BC" : "\u25B2")}
               </h3>
             </div>
           </div>
