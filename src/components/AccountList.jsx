@@ -64,24 +64,135 @@ const AccountList = () => {
     e.preventDefault();
     setOverlayVisible(!isOverlayVisible);
   };
+{
+    /* sort logic */
+  }
+  const sortTypes = [
+    "userId",
+    "userName",
+    "password",
+    "role",
+    "email",
+    "lastLogin",
+  ];
+
+  const [sortType, setSortType] = useState(sortTypes[0]);
+  const [sortDirection, setSortDirection] = useState(true);
+  function SortType(sortTypeIndex) {
+    if (sortTypes[sortTypeIndex] !== sortType) setSortDirection(true);
+    setSortType(sortTypes[sortTypeIndex]);
+    if (sortTypes[sortTypeIndex] === sortType)
+      setSortDirection((prev) => !prev);
+  }
 
   const sortAlphabet = (a, b) => {
-    const aDigits = a.userid?.toUpperCase() || "";
-    const bDigits = b.userid?.toUpperCase() || "";
-    // Sort alphabetically first
-    if (aDigits < bDigits) return -1;
-    if (aDigits > bDigits) return 1;
-    // If alphabetical order is the same, sort numerically
-    const numA = parseInt(
-      a.userid?.replace(/[^0-9]/g, "") || "0",
-      10
-    );
-    const numB = parseInt(
-      b.userid?.replace(/[^0-9]/g, "") || "0",
-      10
-    );
+    // const aDigits = a.userid?.toUpperCase() || "";
+    // const bDigits = b.userid?.toUpperCase() || "";
+    // // Sort alphabetically first
+    // if (aDigits < bDigits) return -1;
+    // if (aDigits > bDigits) return 1;
+    // // If alphabetical order is the same, sort numerically
+    // const numA = parseInt(
+    //   a.userid?.replace(/[^0-9]/g, "") || "0",
+    //   10
+    // );
+    // const numB = parseInt(
+    //   b.userid?.replace(/[^0-9]/g, "") || "0",
+    //   10
+    // );
 
-    return numA - numB; // Numeric ascending order
+    // return numA - numB; // Numeric ascending order
+
+    const valA = (val) => val ?? "";
+      switch (sortType) {      
+        case sortTypes[0]: // user id
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return valA(a.userid).localeCompare(
+              valA(b.userid),
+              undefined,
+              { numeric: true }
+            );
+          } else {
+            return valA(b.userid).localeCompare(
+              valA(a.userid),
+              undefined,
+              { numeric: true }
+            );
+          }
+        case sortTypes[1]: //user name
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return valA(a.username).localeCompare(
+              valA(b.username),
+              undefined,
+              { numeric: true }
+            );
+          } else {
+            return valA(b.username).localeCompare(
+              valA(a.username),
+              undefined,
+              { numeric: true }
+            );
+          }
+        case sortTypes[2]: //password
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return valA(a.password).localeCompare(
+              valA(b.password),
+              undefined,
+              {
+                numeric: true,
+              }
+            );
+          } else {
+            return valA(b.password).localeCompare(
+              valA(a.password),
+              undefined,
+              {
+                numeric: true,
+              }
+            );
+          }
+        case sortTypes[3]: // role
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            return String(b.role).localeCompare(String(a.role));
+          } else {
+            return String(a.role).localeCompare(String(b.role));
+          }      
+          case sortTypes[4]: // email
+          console.log("sortType: ", sortType);
+if (sortDirection) {
+            return valA(a.email).localeCompare(
+              valA(b.email),
+              undefined,
+              {
+                numeric: true,
+              }
+            );
+          } else {
+            return valA(b.email).localeCompare(
+              valA(a.email),
+              undefined,
+              {
+                numeric: true,
+              }
+            );
+          }
+        case sortTypes[5]: // date
+          console.log("sortType: ", sortType);
+          if (sortDirection) {
+            const dateA = a.lastlogin ? new Date(a.lastlogin) : new Date(0);
+            const dateB = b.lastlogin ? new Date(b.lastlogin) : new Date(0);
+            return dateB - dateA; // Subtracting dates sorts by timestamp
+          } else {
+            const dateA = b.lastlogin ? new Date(b.lastlogin) : new Date(0);
+            const dateB = a.lastlogin ? new Date(a.lastlogin) : new Date(0);
+            return dateB - dateA; // Subtracting dates sorts by timestamp
+          }
+        
+      }
   };
 
   return (
@@ -103,12 +214,12 @@ const AccountList = () => {
         </div>
         <div className="pl">
           <div className="head">
-            <h3 className="fg1">{t("AccountList.UserID")}</h3>
-            <h3 className="fg1">{t("AccountList.UserName")}</h3>
-            <h3 className="fg1">{t("AccountList.UserPassword")}</h3>
-            <h3 className="fg1">{t("AccountList.UserRole")}</h3>
-            <h3 className="fg1">{t("AccountList.UserEmail")}</h3>
-            <h3 className="fg1">{t("AccountList.LastLogin")}</h3>
+            <h3 className={`fg1 ${sortType === sortTypes[0] ? "selected" : ""}`} onClick={() => SortType(0)}>{t("AccountList.UserID")}  {sortType === sortTypes[0] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
+            <h3 className={`fg1 ${sortType === sortTypes[1] ? "selected" : ""}`} onClick={() => SortType(1)}>{t("AccountList.UserName")}  {sortType === sortTypes[1] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
+            <h3 className={`fg1 ${sortType === sortTypes[2] ? "selected" : ""}`} onClick={() => SortType(2)}>{t("AccountList.UserPassword")}  {sortType === sortTypes[2] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
+            <h3 className={`fg1 ${sortType === sortTypes[3] ? "selected" : ""}`} onClick={() => SortType(3)}>{t("AccountList.UserRole")}  {sortType === sortTypes[3] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
+            <h3 className={`fg1 ${sortType === sortTypes[4] ? "selected" : ""}`} onClick={() => SortType(4)}>{t("AccountList.UserEmail")}  {sortType === sortTypes[4] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
+            <h3 className={`fg1 ${sortType === sortTypes[5] ? "selected" : ""}`} onClick={() => SortType(5)}>{t("AccountList.LastLogin")}  {sortType === sortTypes[5] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
           </div>
           <div className="item-list">
             {accounts

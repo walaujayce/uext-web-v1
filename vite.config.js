@@ -6,14 +6,14 @@ const WebAPI =
     ? process.env.VITE_WEBAPI_URL === "localhost"
       ? window.location.hostname
       : process.env.VITE_WEBAPI_URL
-    : "localhost";
+    : "192.9.120.168";
 
 const SocketServer =
   process.env.npm_lifecycle_event === "start:dev"
     ? process.env.VITE_SOCKETSERVER_URL === "localhost"
       ? window.location.hostname
       : process.env.VITE_SOCKETSERVER_URL
-    : "localhost";
+    : "192.9.120.168";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -22,7 +22,7 @@ export default defineConfig({
     proxy: { 
       // Proxy for the first API 
       "/api/7284": {
-        target: `http://${WebAPI}:8032`,
+        target: `http://${WebAPI}:7284`,
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/api\/7284/, "/api"), // Rewrites '/api/device1' to '/api'
@@ -42,7 +42,7 @@ export default defineConfig({
       },
       // Proxy for the SignalR
       "/signalR/7284": { 
-        target: `ws://${WebAPI}:8032`,
+        target: `ws://${WebAPI}:7284`,
         ws: true,
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/signalR\/7284/, "/notifyHub"), // Rewrite '/api' to ''
