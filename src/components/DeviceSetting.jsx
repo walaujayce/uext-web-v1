@@ -11,11 +11,14 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
 import PatientMonitor from "./PatientMonitor";
+import { useAuth } from "../JS/AuthContext";
 
 function DeviceSettings() {
   const { t, i18n } = useTranslation();
 
   const [loading, setLoading] = useState(false); //loading screen
+
+  const { role } = useAuth();
 
   const [searchParams] = useSearchParams();
 
@@ -1001,7 +1004,7 @@ const handleDhcpItemClick = (dhcp) => {
                 </div>
               </div>
             </div>
-            {deviceType !== 201 &&(
+            {deviceType !== 201 && ["administrator"].includes(role) && (
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.DeviceConfiguration")}</h2>
               <div className="opt-list">

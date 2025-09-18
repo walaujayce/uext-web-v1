@@ -241,7 +241,7 @@
     gap: 12px;
     color: var(--1000, #000);
     text-align: center;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
     font-size: 20px;
     font-style: normal;
     font-weight: 600;
@@ -1169,7 +1169,7 @@
 }
 .ll .head h3{
     color: var(--600, #666);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 .ll .fg1{
     flex: 1 1 0;

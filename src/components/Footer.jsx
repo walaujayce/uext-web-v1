@@ -32,7 +32,7 @@ function Footer(){
     return(
     <div className='Footer-container'>
         {/* <img className='Footer-img' src="/src/assets/uneo-logo.png" alt="UNEO Logo" /> */}
-        <p className='Footer-version'>v1.0.52</p>
+        <p className='Footer-version'>v1.0.53</p>
         <p className='Footer-copyright'>Copyright ©{currentDate.getFullYear()} Uneo Inc. All rights reserved.</p>
         <div className='Footer-datetime-container'>
             <p className='Footer-date'>{formattedDate}</p>

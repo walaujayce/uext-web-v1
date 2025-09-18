@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import { useAuth } from "../JS/AuthContext";
+import { is } from "date-fns/locale";
 
 function AlertList() {
   const { t, i18n } = useTranslation();
@@ -15,7 +16,7 @@ function AlertList() {
     () => JSON.parse(localStorage.getItem("expandAlertList")) || false
   );
 
-  const { isPlaying, playSound, stopSound, isUserInteracted } = useAuth(); // Access sound management
+  const { isLeftBedPlaying, isAboutToLeavePlaying, playAboutToLeaveSound, playLeaveBedSound, stopSound, isUserInteracted } = useAuth(); // Access sound management
 
 
   const handleAlertListExpandClick = () => {
@@ -46,11 +47,27 @@ function AlertList() {
       await SignalRService.startConnection();
       SignalRService.onReceiveMessage((topic, message) => {
         if (topic === "uneo/notify/all") {
-          if (isUserInteracted  && !isPlaying) {
-            console.log("FAKEKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKKK");
-            playSound(); 
-          }
           const parsedMessage = JSON.parse(message);
+          const status = parsedMessage.Status;
+          if (isUserInteracted) {
+            if(status === 8 && !isAboutToLeavePlaying){
+              playAboutToLeaveSound();
+              console.log("play about to leave inside alert list ");
+              if(isLeftBedPlaying){ 
+                stopSound("leftBed",0); 
+    console.log("stop all inside alert list ");
+
+              }
+
+            }else if(status === 4 && !isLeftBedPlaying){
+              playLeaveBedSound();
+              console.log("play left bed inside alert list ");
+              if(isAboutToLeavePlaying){ 
+                stopSound("aboutToLeave",0);
+    console.log("stop all inside alert list ");
+               }
+            }
+          }
 
           setAlertsMap((prevAlertsMap) => {
             const newAlertsMap = new Map(prevAlertsMap);
@@ -143,7 +160,7 @@ function AlertList() {
         SignalRService.connection.stop();
       }
     };
-  }, [isPlaying, playSound, isUserInteracted ]);
+  }, [isAboutToLeavePlaying, isLeftBedPlaying, playAboutToLeaveSound, playLeaveBedSound, isUserInteracted ]);
 
   // useEffect(() => {
   //   const storedAlerts = localStorage.getItem("alerts");
