@@ -118,7 +118,7 @@ export const AuthProvider = ({ children }) => {
         .play()
         .catch((error) => console.error("Error playing sound:", error));
 
-      stopSound("aboutToLeave", 4000);
+      stopSound("aboutToLeave", 6000);
     }
   };
   // ✅ Play Alert Sound(Leave Bed)
@@ -132,7 +132,7 @@ export const AuthProvider = ({ children }) => {
       audioLeftBedRef.current
         .play()
         .catch((error) => console.error("Error playing sound:", error));
-      stopSound("leftBed", 4000);
+      stopSound("leftBed", 5000);
     }
   };
 

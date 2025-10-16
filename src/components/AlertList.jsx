@@ -1,4 +1,4 @@
-import React, { useState, useEffect,useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import SignalRService from "../JS/SignalR";
 import AlertConfirmOverlay from "./Modals/AlertConfirmOverlay";
 import dayjs from "dayjs";
@@ -16,8 +16,14 @@ function AlertList() {
     () => JSON.parse(localStorage.getItem("expandAlertList")) || false
   );
 
-  const { isLeftBedPlaying, isAboutToLeavePlaying, playAboutToLeaveSound, playLeaveBedSound, stopSound, isUserInteracted } = useAuth(); // Access sound management
-
+  const {
+    isLeftBedPlaying,
+    isAboutToLeavePlaying,
+    playAboutToLeaveSound,
+    playLeaveBedSound,
+    stopSound,
+    isUserInteracted,
+  } = useAuth(); // Access sound management
 
   const handleAlertListExpandClick = () => {
     setExpandAlertList((prev) => {
@@ -50,22 +56,20 @@ function AlertList() {
           const parsedMessage = JSON.parse(message);
           const status = parsedMessage.Status;
           if (isUserInteracted) {
-            if(status === 8 && !isAboutToLeavePlaying){
+            if (status !== 4 && !isAboutToLeavePlaying) {
               playAboutToLeaveSound();
               console.log("play about to leave inside alert list ");
-              if(isLeftBedPlaying){ 
-                stopSound("leftBed",0); 
-    console.log("stop all inside alert list ");
-
+              if (isLeftBedPlaying) {
+                stopSound("leftBed", 0);
+                console.log("stop all inside alert list ");
               }
-
-            }else if(status === 4 && !isLeftBedPlaying){
+            } else if (status === 4 && !isLeftBedPlaying) {
               playLeaveBedSound();
               console.log("play left bed inside alert list ");
-              if(isAboutToLeavePlaying){ 
-                stopSound("aboutToLeave",0);
-    console.log("stop all inside alert list ");
-               }
+              if (isAboutToLeavePlaying) {
+                stopSound("aboutToLeave", 0);
+                console.log("stop all inside alert list ");
+              }
             }
           }
 
@@ -133,7 +137,6 @@ function AlertList() {
           });
         }
         if (topic === "web/notify/update/notification") {
-
           const parsedMessage = JSON.parse(message);
           const idToDelete = parsedMessage.Id; // Extract the ID from the parsed message
           const macaddress = parsedMessage.Macaddress;
@@ -160,7 +163,13 @@ function AlertList() {
         SignalRService.connection.stop();
       }
     };
-  }, [isAboutToLeavePlaying, isLeftBedPlaying, playAboutToLeaveSound, playLeaveBedSound, isUserInteracted ]);
+  }, [
+    isAboutToLeavePlaying,
+    isLeftBedPlaying,
+    playAboutToLeaveSound,
+    playLeaveBedSound,
+    isUserInteracted,
+  ]);
 
   // useEffect(() => {
   //   const storedAlerts = localStorage.getItem("alerts");
@@ -389,6 +398,64 @@ function AlertList() {
     setActiveAlert(null); // Close overlay
     deleteAlert(mac, notificationId);
   };
+
+  const statusMap = {
+    // 0 = Not specified
+    // 1 = Resting on the bed
+    // 2 = Sitting on the bed
+    // 3 = Sitting on the bed edge
+    // 4 = Leaving out bed
+    // 5 = Unusual condition
+    // 6 = Lying / Curled up on left side
+    // 7 = Lying / Curled up on right side
+    // 8 = Leaving out bed (bed exit rate)
+    0: {
+      imgUrl: "/src/assets/attention.svg",
+      title: t("AlertList.NotSpecifiedAlert"),
+      containerColor: "in-progress",
+    },
+    1: {
+      imgUrl: "/src/assets/attention.svg",
+      containerColor: "in-progress",
+      title: t("AlertList.RestOnBedAlert"),
+    },
+    2: {
+      imgUrl: "src/assets/attention.svg",
+      containerColor: "in-progress",
+      title: t("AlertList.SitOnBedAlert"),
+    },
+    3: {
+      imgUrl: "/src/assets/attention.svg",
+      containerColor: "in-progress",
+      title: t("AlertList.SitOnBedEdgeAlert"),
+    },
+    4: {
+      imgUrl: "/src/assets/alert.svg",
+      containerColor: "",
+      title: t("AlertList.BedExitAlert"),
+    },
+    5: {
+      imgUrl: "/src/assets/alert.svg",
+      containerColor: "",
+      title: t("AlertList.UnusualConditionAlert"),
+    },
+    6: {
+      imgUrl: "/src/assets/attention.svg",
+      containerColor: "in-progress",
+      title: t("AlertList.LeftAlert"),
+    },
+    7: {
+      imgUrl: "/src/assets/attention.svg",
+      containerColor: "in-progress",
+      title: t("AlertList.RightAlert"),
+    },
+    8: {
+      imgUrl: "/src/assets/attention.svg",
+      containerColor: "in-progress",
+      title: t("AlertList.AttentionAlert"),
+    },
+  };
+
   return (
     <>
       <SimpleBackdrop open={loading} />
@@ -406,58 +473,66 @@ function AlertList() {
           {alertsArray
             .slice()
             .sort((a, b) => new Date(b.alertTime) - new Date(a.alertTime))
-            .map((alert, index) => (
-              <div
-                className={`container ${
-                  alert.status === 3 || alert.status === 8 ? "in-progress" : ""
-                } new ${expandAlertList ? "min" : ""}`}
-                key={index}
-                onClick={() => handleAlertVisibleClick(alert.mac)}
-              >
-                {activeAlert === alert.mac && (
-                  <AlertConfirmOverlay
-                    key={index}
-                    callback={() => handleAlertVisibleClick(alert.mac)}
-                    confirmAlert_callback={() =>
-                      handleConfirmAlertOverlay(alert.mac, alert.id)
-                    }
-                    alertDetail={alert}
-                  />
-                )}
-                <div className="title">
-                  <img
-                    src={`${
-                      alert.status === 3 || alert.status === 8
-                        ? "/src/assets/attention.svg"
-                        : "/src/assets/alert.svg"
-                    }`}
-                    alt="red rectangular alert icon"
-                  />
-                  <h2>{`${
-                    alert.status === 3 || alert.status === 8
-                      ? t("AlertList.AttentionAlert")
-                      : t("AlertList.BedExitAlert")
-                  }`}</h2>
+            .map((alert, index) => {
+              return (
+                <div
+                  className={`container ${
+                    statusMap[alert.status].containerColor  
+                  } new ${expandAlertList ? "min" : ""}`}
+                  key={index}
+                  onClick={() => handleAlertVisibleClick(alert.mac)}
+                >
+                  {activeAlert === alert.mac && (
+                    <AlertConfirmOverlay
+                      key={index}
+                      callback={() => handleAlertVisibleClick(alert.mac)}
+                      confirmAlert_callback={() =>
+                        handleConfirmAlertOverlay(alert.mac, alert.id)
+                      }
+                      alertDetail={alert}
+                    />
+                  )}
+                  <div className="title">
+                    <img
+                      src={
+                        statusMap[alert.status].imgUrl
+                        // alert.status === 3 || alert.status === 8
+                        //   ? "/src/assets/attention.svg"
+                        //   : "/src/assets/alert.svg"
+                      }
+                      alt="red rectangular alert icon"
+                    />
+                    <h2>
+                      {
+                        // alert.status === 3 || alert.status === 8
+                        //   ? t("AlertList.AttentionAlert")
+                        //   : t("AlertList.BedExitAlert")
+                        statusMap[alert.status].title
+                      }
+                    </h2>
+                  </div>
+                  <div className="info">
+                    <div className="item">
+                      <div className="caption">{t("AlertList.Section")}</div>
+                      <p>{`${alert.floor}-${alert.section
+                        .split(" ")
+                        .pop()}`}</p>
+                    </div>
+                    <div className="item">
+                      <div className="caption">{t("AlertList.Bed")}</div>
+                      <p>{alert.bedNo}</p>
+                    </div>
+                    <div className="item">
+                      <div className="caption">{t("AlertList.Name")}</div>
+                      <p>{alert.userName}</p>
+                    </div>
+                    <div className="time">
+                      {dayjs(alert.alertTime).format("HH:mm")}
+                    </div>
+                  </div>
                 </div>
-                <div className="info">
-                  <div className="item">
-                    <div className="caption">{t("AlertList.Section")}</div>
-                    <p>{`${alert.floor}-${alert.section.split(" ").pop()}`}</p>
-                  </div>
-                  <div className="item">
-                    <div className="caption">{t("AlertList.Bed")}</div>
-                    <p>{alert.bedNo}</p>
-                  </div>
-                  <div className="item">
-                    <div className="caption">{t("AlertList.Name")}</div>
-                    <p>{alert.userName}</p>
-                  </div>
-                  <div className="time">
-                    {dayjs(alert.alertTime).format("HH:mm")}
-                  </div>
-                </div>
-              </div>
-            ))}
+              );
+            })}
         </div>
       </div>
     </>
