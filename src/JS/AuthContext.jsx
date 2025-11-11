@@ -24,7 +24,9 @@ export const AuthProvider = ({ children }) => {
   const navigate = useNavigate();
   const audioLeftBedRef = useRef(new Audio(alertLeftBedSound));
   const audioAboutToLeaveRef = useRef(new Audio(AlertAboutToLeaveSound));
+  const audioAboutToLeaveRef2 = useRef(new Audio(AlertAboutToLeaveSound));
   const [isAboutToLeavePlaying, setIsAboutToLeavePlaying] = useState(false);
+  const [isAboutToLeave2Playing, setIsAboutToLeave2Playing] = useState(false);
   const [isLeftBedPlaying, setIsLeftBedPlaying] = useState(false);
   const [isUserInteracted, setIsUserInteracted] = useState(false);
   const [isAudioAllowed, setIsAudioAllowed] = useState(false);
@@ -109,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ Play Alert Sound(About to leave Bed)
   const playAboutToLeaveSound = () => {
-    // console.log("play about to leave");
+    console.log("play about to leave");
     if (!isAboutToLeavePlaying) {
       setIsAboutToLeavePlaying(true);
       audioAboutToLeaveRef.current.loop = false;
@@ -121,9 +123,22 @@ export const AuthProvider = ({ children }) => {
       stopSound("aboutToLeave", 6000);
     }
   };
+  // ✅ Play Alert Sound(About to leave Bed)
+  const playAboutToLeaveSound2 = () => {
+    console.log("play about to leave 2");
+    if (!isAboutToLeave2Playing) {
+      setIsAboutToLeave2Playing(true);
+      audioAboutToLeaveRef2.current.loop = false;
+      audioAboutToLeaveRef2.current.volume = 1;
+      audioAboutToLeaveRef2.current
+        .play()
+        .catch((error) => console.error("Error playing sound:", error));
+      stopSound("aboutToLeave2", 6000);
+    }
+  };
   // ✅ Play Alert Sound(Leave Bed)
   const playLeaveBedSound = () => {
-    // console.log("play left bed");
+    console.log("play left bed");
 
     if (!isLeftBedPlaying) {
       setIsLeftBedPlaying(true);
@@ -144,8 +159,11 @@ export const AuthProvider = ({ children }) => {
           audioAboutToLeaveRef.current.pause();
           audioAboutToLeaveRef.current.currentTime = 0;
           setIsAboutToLeavePlaying(false);
-          // console.log("stop about to leave");
-
+          break;
+        case "aboutToLeave2":
+          audioAboutToLeaveRef2.current.pause();
+          audioAboutToLeaveRef2.current.currentTime = 0;
+          setIsAboutToLeave2Playing(false);
           break;
         case "leftBed":
           audioLeftBedRef.current.pause();
@@ -156,10 +174,13 @@ export const AuthProvider = ({ children }) => {
         default:
           audioLeftBedRef.current.pause();
           audioLeftBedRef.current.currentTime = 0;
+          setIsLeftBedPlaying(false);
           audioAboutToLeaveRef.current.pause();
           audioAboutToLeaveRef.current.currentTime = 0;
           setIsAboutToLeavePlaying(false);
-          setIsLeftBedPlaying(false);
+          audioAboutToLeaveRef2.current.pause();
+          audioAboutToLeaveRef2.current.currentTime = 0;
+          setIsAboutToLeave2Playing(false);
           // console.log("stop all");
       }
     }, timeLapse || 0);
@@ -175,7 +196,9 @@ export const AuthProvider = ({ children }) => {
         role,
         isLeftBedPlaying,
         isAboutToLeavePlaying,
+        isAboutToLeave2Playing,
         playAboutToLeaveSound,
+        playAboutToLeaveSound2,
         playLeaveBedSound,
         stopSound,
         isUserInteracted,

@@ -19,7 +19,9 @@ function AlertList() {
   const {
     isLeftBedPlaying,
     isAboutToLeavePlaying,
+    isAboutToLeave2Playing,
     playAboutToLeaveSound,
+    playAboutToLeaveSound2,
     playLeaveBedSound,
     stopSound,
     isUserInteracted,
@@ -56,13 +58,18 @@ function AlertList() {
           const parsedMessage = JSON.parse(message);
           const status = parsedMessage.Status;
           if (isUserInteracted) {
-            if (status !== 4 && !isAboutToLeavePlaying) {
+            if (status === 3 && !isAboutToLeavePlaying) {
               playAboutToLeaveSound();
               console.log("play about to leave inside alert list ");
               if (isLeftBedPlaying) {
                 stopSound("leftBed", 0);
                 console.log("stop all inside alert list ");
               }
+              if (isAboutToLeave2Playing) {
+                stopSound("aboutToLeave2", 0);
+                console.log("stop all inside alert list ");
+              }
+              
             } else if (status === 4 && !isLeftBedPlaying) {
               playLeaveBedSound();
               console.log("play left bed inside alert list ");
@@ -70,6 +77,23 @@ function AlertList() {
                 stopSound("aboutToLeave", 0);
                 console.log("stop all inside alert list ");
               }
+              if (isAboutToLeave2Playing) {
+                stopSound("aboutToLeave2", 0);
+                console.log("stop all inside alert list ");
+              }
+            }
+            else if (status === 2 && !isAboutToLeave2Playing) {
+              playAboutToLeaveSound2();
+              console.log("play about to leave 2 inside alert list ");
+              if (isLeftBedPlaying) {
+                stopSound("leftBed", 0);
+                console.log("stop all inside alert list ");
+              }
+              if (isAboutToLeavePlaying) {
+                stopSound("aboutToLeave", 0);
+                console.log("stop all inside alert list ");
+              }
+              
             }
           }
 
@@ -165,8 +189,10 @@ function AlertList() {
     };
   }, [
     isAboutToLeavePlaying,
+    isAboutToLeave2Playing,
     isLeftBedPlaying,
     playAboutToLeaveSound,
+    playAboutToLeaveSound2,
     playLeaveBedSound,
     isUserInteracted,
   ]);
