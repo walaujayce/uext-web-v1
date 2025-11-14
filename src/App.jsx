@@ -23,6 +23,7 @@ import AccountSetting from "./components/AccountSetting";
 import PrivateRoute from "./JS/PrivateRoute";
 import ForgetPassword from "./components/ForgetPassword"
 import ResetPassword from "./components/ResetPassword";
+import DemoSD from "./pages/DemoSD";
 
 function App() {
   const location = useLocation();
@@ -41,6 +42,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/uneosddemo" element={<DemoSD />} />
       <Route path="/forget-password" element={<ForgetPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route
