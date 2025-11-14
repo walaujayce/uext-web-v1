@@ -105,7 +105,8 @@
     "DeviceID": "Device ID",
     "DeviceStatus": "Connection Status",
     "Save": "Save",
-    "Discharge": "Discharge"
+    "Discharge": "Discharge",
+    "Calibration": "Calibration"
   },
   "AddPatientModal": {
     "ClickToAddPatient": "Click to add resident",
@@ -124,6 +125,11 @@
   "DischargeModal": {
     "description": "Confirm to discharge the resident?",
     "Discharge": "Discharge",
+    "Cancel": "Cancel"
+  },
+  "CalibrationModal": {
+    "description": "Confirm to proceed calibration?",
+    "Confirm": "Confirm",
     "Cancel": "Cancel"
   },
   "PatientMonitor": {

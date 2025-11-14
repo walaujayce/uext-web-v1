@@ -105,7 +105,9 @@
     "DeviceID": "裝置編號",
     "DeviceStatus": "連線狀態",
     "Save": "儲存",
-    "Discharge": "出院確認"
+    "Discharge": "出院確認",
+    "Calibration": "校正"
+
   },
   "AddPatientModal": {
     "ClickToAddPatient": "點擊以新增住民",
@@ -124,6 +126,11 @@
   "DischargeModal": {
     "description": "確定住民出院？",
     "Discharge": "出院確認",
+    "Cancel": "取消"
+  },
+    "CalibrationModal": {
+    "description": "確認執行校正?",
+    "Confirm": "確認",
     "Cancel": "取消"
   },
   "PatientMonitor": {
