@@ -12,9 +12,9 @@ function AlertList() {
 
   const [loading, setLoading] = useState(false); //loading screen
 
-  const [expandAlertList, setExpandAlertList] = useState(
-    () => JSON.parse(localStorage.getItem("expandAlertList")) || false
-  );
+  const [expandAlertList, setExpandAlertList] = useState(() => {
+    return JSON.parse(localStorage.getItem("expandAlertList")) || true;
+  });
 
   const {
     isLeftBedPlaying,
@@ -69,7 +69,6 @@ function AlertList() {
                 stopSound("aboutToLeave2", 0);
                 console.log("stop all inside alert list ");
               }
-              
             } else if (status === 4 && !isLeftBedPlaying) {
               playLeaveBedSound();
               console.log("play left bed inside alert list ");
@@ -81,8 +80,7 @@ function AlertList() {
                 stopSound("aboutToLeave2", 0);
                 console.log("stop all inside alert list ");
               }
-            }
-            else if (status === 2 && !isAboutToLeave2Playing) {
+            } else if (status === 2 && !isAboutToLeave2Playing) {
               playAboutToLeaveSound2();
               console.log("play about to leave 2 inside alert list ");
               if (isLeftBedPlaying) {
@@ -93,7 +91,6 @@ function AlertList() {
                 stopSound("aboutToLeave", 0);
                 console.log("stop all inside alert list ");
               }
-              
             }
           }
 
@@ -496,6 +493,66 @@ function AlertList() {
           />
         </div>
         <div className="alert-list">
+          {/* <div
+            className="container" 
+          >            
+            <div className="title">
+              <img
+                src="/src/assets/alert.svg"
+                alt="red rectangular alert icon"
+              />
+              <h2>
+                {t("AlertList.BedExitAlert")}
+              </h2>
+            </div>
+            <div className="info">
+              <div className="item">
+                <div className="caption">{t("AlertList.Section")}</div>
+                <p>11-4</p>
+              </div>
+              <div className="item">
+                <div className="caption">{t("AlertList.Bed")}</div>
+                <p>2</p>
+              </div>
+              <div className="item">
+                <div className="caption">{t("AlertList.Name")}</div>
+                <p>Rose</p>
+              </div>
+              <div className="time">
+                14:30
+              </div>
+            </div>
+          </div>
+          <div
+            className="container in-progress" 
+          >            
+            <div className="title">
+              <img
+                src="/src/assets/attention.svg"
+                alt="red rectangular alert icon"
+              />
+              <h2>
+                {t("AlertList.AttentionAlert")}
+              </h2>
+            </div>
+            <div className="info">
+              <div className="item">
+                <div className="caption">{t("AlertList.Section")}</div>
+                <p>2-3</p>
+              </div>
+              <div className="item">
+                <div className="caption">{t("AlertList.Bed")}</div>
+                <p>3</p>
+              </div>
+              <div className="item">
+                <div className="caption">{t("AlertList.Name")}</div>
+                <p>Abby</p>
+              </div>
+              <div className="time">
+                20:30
+              </div>
+            </div>
+          </div> */}
           {alertsArray
             .slice()
             .sort((a, b) => new Date(b.alertTime) - new Date(a.alertTime))
@@ -503,7 +560,7 @@ function AlertList() {
               return (
                 <div
                   className={`container ${
-                    statusMap[alert.status].containerColor  
+                    statusMap[alert.status].containerColor
                   } new ${expandAlertList ? "min" : ""}`}
                   key={index}
                   onClick={() => handleAlertVisibleClick(alert.mac)}

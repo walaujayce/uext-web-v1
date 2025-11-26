@@ -24,13 +24,14 @@ export function Bed_disconnect({ hold, macaddress, username, bed }) {
   );
 }
 
-export function Bed_vacant({ bed, macaddress }) {
+export function Bed_vacant({ bed, macaddress, clickable }) {
   const { t, i18n } = useTranslation();
 
   const [isOverlayVisible, setOverlayVisible] = useState(false);
   
   const handleAddPatientClick = (e) => {
     e.preventDefault();
+    if(!clickable) return;
     setOverlayVisible(!isOverlayVisible);
   };
 
@@ -92,7 +93,7 @@ export function Bed_attention({ hold, macaddress, username, bed }) {
       <div className="name">{username}&nbsp;</div>
       <div className="tag">
         <img src="" alt="" />
-        <p className="timer">{hold}</p>
+        {/* <p className="timer">{hold}</p> */}
       </div>
       <div className="dis-tag">
         <img src="/src/assets/link-off.svg" alt="" />
@@ -110,7 +111,7 @@ export function Bed_alert({ hold, macaddress, username, bed }) {
       <div className="name">{username}&nbsp;</div>
       <div className="tag">
         <img src="" alt="" />
-        <p className="timer">{hold}</p>
+        {/* <p className="timer">{hold}</p> */}
       </div>
       <div className="dis-tag">
         <img src="/src/assets/link-off.svg" alt="" />

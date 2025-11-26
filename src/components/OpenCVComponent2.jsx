@@ -60,11 +60,11 @@ const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
     const parentBox = canvasRef.current?.parentElement;
     if (parentBox) {
       // Set the canvas size to match the parent `.box` size
-      canvasRef.current.height = parentBox.clientHeight * 0.9; // reduce a 10% percentage of output image size
+      canvasRef.current.height = parentBox.clientHeight ; // reduce a 10% percentage of output image size
       const scaleAdjust_clientWidth = Math.round(
         (parentBox.clientHeight * sensor_width) / sensor_height
       );
-      canvasRef.current.width = scaleAdjust_clientWidth * 0.9; // reduce a 10% percentage of output image size
+      canvasRef.current.width = scaleAdjust_clientWidth ; // reduce a 10% percentage of output image size
     }
     // console.log("the cavas height ", parentBox.clientHeight);
     // console.log("the cavas width ", parentBox.clientWidth);

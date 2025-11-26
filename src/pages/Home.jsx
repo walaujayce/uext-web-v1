@@ -18,6 +18,7 @@ import {
 } from "../components/Bed_Cards";
 import { useTranslation } from "react-i18next";
 import { getServerIp } from "../JS/getServerIp";
+import { parseJSON } from "date-fns";
 
 function Home() {
   const { t, i18n } = useTranslation();
@@ -38,6 +39,315 @@ function Home() {
     setSelect_Section(section);
   };
 
+  // uneo-sd-demo
+
+  const [fakeList, setFakeList] = useState([
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A1",
+      HOLD: 0,
+      Bed: "4201",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A2",
+      HOLD: 0,
+      Bed: "4202",
+      Floor: "All",
+      Section: "All",
+      UserName: " ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A3",
+      HOLD: 0,
+      Bed: "4203",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A4",
+      HOLD: 0,
+      Bed: "4204",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 2,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A56",
+      HOLD: 0,
+      Bed: "4301",
+      Floor: "All",
+      Section: "All",
+      UserName: " ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A7",
+      HOLD: 0,
+      Bed: "4302",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A8",
+      HOLD: 0,
+      Bed: "4303",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A9",
+      HOLD: 0,
+      Bed: "4304",
+      Floor: "All",
+      Section: "All",
+      UserName: " ",
+      TYPE: 1,
+      BedColor: 1,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A10",
+      HOLD: 0,
+      Bed: "4211",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 2,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A11",
+      HOLD: 0,
+      Bed: "4212",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A12",
+      HOLD: 0,
+      Bed: "4213",
+      Floor: "All",
+      Section: "All",
+      UserName: " ",
+      TYPE: 1,
+      BedColor: 1,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A13",
+      HOLD: 0,
+      Bed: "4214",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 2,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A14",
+      HOLD: 0,
+      Bed: "4221",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A15",
+      HOLD: 0,
+      Bed: "4222",
+      Floor: "All",
+      Section: "All",
+      UserName: " ",
+      TYPE: 1,
+      BedColor: 1,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A16",
+      HOLD: 0,
+      Bed: "4223",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 2,
+      constant: false,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A17",
+      HOLD: 0,
+      Bed: "4224",
+      Floor: "All",
+      Section: "All",
+      UserName: "  ",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+    // dont move
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A18",
+      HOLD: 0,
+      Bed: "4401",
+      Floor: "All",
+      Section: "All",
+      UserName: "",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A19",
+      HOLD: 0,
+      Bed: "4402",
+      Floor: "All",
+      Section: "All",
+      UserName: "",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A20",
+      HOLD: 0,
+      Bed: "4403",
+      Floor: "All",
+      Section: "All",
+      UserName: "",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+    {
+      STAT: 1,
+      POS: 0,
+      MAC: "A21",
+      HOLD: 0,
+      Bed: "4404",
+      Floor: "All",
+      Section: "All",
+      UserName: "",
+      TYPE: 1,
+      BedColor: 0,
+      constant: true,
+      clickable: false,
+    },
+  ]);
+
+  // 2. The Logic to update colors
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setFakeList((prevList) => {
+        return prevList.map((device) => {
+          // check if constant is false
+          if (!device.constant) {
+            const newColor = Math.floor(Math.random() * 3); // 0, 1, or 2
+            // console.log(`Updating Bed ${device.Bed} color to: ${newColor}`);
+            return {
+              ...device,
+              BedColor: newColor,
+            };
+          }
+          return device;
+        });
+      });
+    }, 5000); // Run every 5 seconds
+
+    // Cleanup on unmount
+    return () => clearInterval(interval);
+  }, []);
+
   const [devices, setDevices] = useState([]);
 
   const fetchDeviceList = async () => {
@@ -49,8 +359,14 @@ function Home() {
         }
         const data = await response.json();
         console.log(data.DATA);
-        const devicesNonHalow = data.DATA.filter((device) => device.TYPE!==201);
-        setDevices(devicesNonHalow || []);
+        const devicesNonHalow = data.DATA.filter(
+          (device) => device.TYPE !== 201
+        );
+        devicesNonHalow.forEach(e => {
+          e["clickable"] = true;
+        });
+        const combinedDeviceList = [...devicesNonHalow, ...fakeList];
+        setDevices(combinedDeviceList || []);
         // console.log("the current is ", getServerIp());
       } else if (port === "7284") {
         const response = await fetch("/api/7284/db/Device");
@@ -69,18 +385,28 @@ function Home() {
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, [port]);
+  }, [port, fakeList]);
 
   const renderDeviceComponent = (device) => {
-    const { STAT, POS, MAC, HOLD, Bed, Floor, Section, UserName, TYPE, BedColor } =
-      device;
-
+    const {
+      STAT,
+      POS,
+      MAC,
+      HOLD,
+      Bed,
+      Floor,
+      Section,
+      UserName,
+      TYPE,
+      BedColor,
+      clickable,
+    } = device;
+    console.log(`${Bed}: ${clickable}`);
     // 先以STAT去區分on/off-line，再以TYPE區分UEXT/UMAP，最後以POS區分狀態
     if (STAT === 0) {
-      if(TYPE!==0){
-
+      if (TYPE !== 0) {
         return (
-          <Link
+          clickable ? (<Link
             to={`/device/device-settings?macaddress=${MAC}`}
             key={MAC}
             state={{ from: "/home" }}
@@ -94,7 +420,18 @@ function Home() {
               section={Section}
               username={UserName}
             />
-          </Link>
+          </Link>):(
+            <Bed_disconnect
+              key={MAC}
+              macaddress={MAC}
+              hold={formatSecondsToDHMS(HOLD)}
+              bed={Bed}
+              floor={Floor}
+              section={Section}
+              username={UserName}
+            />
+          )
+          
         );
       }
     } else if (STAT === 1) {
@@ -107,11 +444,13 @@ function Home() {
               bed={Bed}
               floor={Floor}
               section={Section}
+              clickable={clickable}
             />
           );
         } else {
           // return POS === 4 || POS === 5 || POS === 0 ? (
           return BedColor == 1 ? (
+            clickable ? (            
             <Link
               to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
               key={MAC}
@@ -126,10 +465,18 @@ function Home() {
                 section={Section}
                 username={UserName}
               />
-            </Link>
-          // ) : POS === 8 ? (
+            </Link>):(            
+              <Bed_alert
+                key={MAC}
+                macaddress={MAC}
+                hold={formatSecondsToDHMS(HOLD)}
+                bed={Bed}
+                floor={Floor}
+                section={Section}
+                username={UserName}
+              />)
           ) : BedColor === 2 ? (
-            <Link
+            clickable ? (<Link
               to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
               key={MAC}
               state={{ from: "/home" }}
@@ -143,8 +490,19 @@ function Home() {
                 section={Section}
                 username={UserName}
               />
-            </Link>
-          ) : (
+            </Link>):(
+              <Bed_attention
+                key={MAC}
+                macaddress={MAC}
+                hold={formatSecondsToDHMS(HOLD)}
+                bed={Bed}
+                floor={Floor}
+                section={Section}
+                username={UserName}
+              />
+            )
+            
+          ) : clickable ? (
             <Link
               to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
               key={MAC}
@@ -160,6 +518,16 @@ function Home() {
                 username={UserName}
               />
             </Link>
+          ) : (
+            <Bed_default
+              key={MAC}
+              macaddress={MAC}
+              hold={formatSecondsToDHMS(HOLD)}
+              bed={Bed}
+              floor={Floor}
+              section={Section}
+              username={UserName}
+            />
           );
         }
       } else if (TYPE === 2) {
@@ -171,6 +539,7 @@ function Home() {
               bed={Bed}
               floor={Floor}
               section={Section}
+              clickable={clickable}
             />
           );
         } else {
@@ -229,14 +598,8 @@ function Home() {
     if (aDigits < bDigits) return -1;
     if (aDigits > bDigits) return 1;
     // If alphabetical order is the same, sort numerically
-    const numA = parseInt(
-      a.Bed?.replace(/[^0-9]/g, "") || "0",
-      10
-    );
-    const numB = parseInt(
-      b.Bed?.replace(/[^0-9]/g, "") || "0",
-      10
-    );
+    const numA = parseInt(a.Bed?.replace(/[^0-9]/g, "") || "0", 10);
+    const numB = parseInt(b.Bed?.replace(/[^0-9]/g, "") || "0", 10);
 
     return numA - numB; // Numeric ascending order
   };
@@ -300,6 +663,26 @@ function Home() {
             </div>
             {/* Bed Grid Sort by Bed */}
             <div className={`grid ${sortBy === "bed" ? "active" : ""}`}>
+              {/*<Bed_default hold="01:01:01" username="John" bed="1" />
+              <Bed_alert hold="01:01:01" username="Rose" bed="2" />
+              <Bed_attention hold="01:01:01" username="Abby" bed="3"/>              
+              <Bed_vacant hold="01:01:01" username="Vacant" bed="4" />
+              <Bed_disconnect hold="01:01:01" username="Disconnect" bed="5" />
+              <Bed_alert hold="01:01:01" username="Rose" bed="6" />
+              <Bed_default hold="01:01:01" username="John" bed="7" />
+              <Bed_default hold="01:01:01" username="John" bed="8" />
+              <Bed_default hold="01:01:01" username="John" bed="9" />
+              <Bed_vacant hold="01:01:01" username="Vacant" bed="10" />
+              <Bed_attention hold="01:01:01" username="Abby" bed="11"/>              
+              <Bed_default hold="01:01:01" username="John" bed="12" />
+              <Bed_default hold="01:01:01" username="John" bed="13" />
+              <Bed_attention hold="01:01:01" username="Abby" bed="14"/>              
+              <Bed_disconnect hold="01:01:01" username="Disconnect" bed="15" />
+              <Bed_default hold="01:01:01" username="John" bed="16" />
+              <Bed_vacant hold="01:01:01" username="Vacant" bed="17" />
+              <Bed_disconnect hold="01:01:01" username="Disconnect" bed="18" />
+              <Bed_alert hold="01:01:01" username="Rose" bed="19" />
+              <Bed_alert hold="01:01:01" username="Rose" bed="20" />*/}
               {devices
                 .slice()
                 .filter((device) => {
@@ -343,7 +726,7 @@ function Home() {
                     device.STAT === 1 &&
                     !(device.UserName === null || device.UserName === "") &&
                     // (device.POS === 4 || device.POS === 5 || device.POS === 0)
-                    (device.BedColor === 1)
+                    device.BedColor === 1
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Alerts")}</div>
@@ -371,11 +754,11 @@ function Home() {
                             device.UserName === null || device.UserName === ""
                           ) &&
                           // (device.POS === 4 || device.POS === 5 || device.POS === 0)
-                          (device.BedColor === 1)
+                          device.BedColor === 1
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
-                        <Link
+                        device.clickable ? (<Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
                           key={device.MAC}
                           state={{ from: "/home" }}
@@ -389,7 +772,18 @@ function Home() {
                             section={device.Section}
                             username={device.UserName}
                           />
-                        </Link>
+                        </Link>):(
+                          <Bed_alert
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
+                          />
+                        )
+                        
                       ))}
                   </div>
                 </div>
@@ -448,7 +842,7 @@ function Home() {
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
-                        <Link
+                        device.clickable ? (<Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
                           key={device.MAC}
                           state={{ from: "/home" }}
@@ -462,7 +856,17 @@ function Home() {
                             section={device.Section}
                             username={device.UserName}
                           />
-                        </Link>
+                        </Link>):(
+                          <Bed_attention
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
+                          />
+                        )                        
                       ))}
                   </div>
                 </div>
@@ -493,8 +897,7 @@ function Home() {
                       //   device.POS === 5 ||
                       //   device.POS === 8 ||
                       //   device.POS === 0
-                      (device.BedColor === 0
-                      )) ||
+                      device.BedColor === 0) ||
                     (device.TYPE === 2 &&
                       device.STAT === 1 &&
                       !(device.UserName === null || device.UserName === ""))
@@ -525,12 +928,11 @@ function Home() {
                               device.UserName === null || device.UserName === ""
                             ) &&
                             // !(
-                              // device.POS === 4 ||
-                              // device.POS === 5 ||
-                              // device.POS === 8 ||
-                              // device.POS === 0
-                              (device.BedColor === 0
-                            )) ||
+                            // device.POS === 4 ||
+                            // device.POS === 5 ||
+                            // device.POS === 8 ||
+                            // device.POS === 0
+                            device.BedColor === 0) ||
                           (device.TYPE === 2 &&
                             device.STAT === 1 &&
                             !(
@@ -539,7 +941,7 @@ function Home() {
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
-                        <Link
+                        device.clickable ? (<Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
                           key={device.MAC}
                           state={{ from: "/home" }}
@@ -553,7 +955,18 @@ function Home() {
                             section={device.Section}
                             username={device.UserName}
                           />
-                        </Link>
+                        </Link>):(
+                          <Bed_default
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
+                          />
+                        )
+                        
                       ))}
                   </div>
                 </div>
@@ -620,6 +1033,7 @@ function Home() {
                           bed={device.Bed}
                           floor={device.Floor}
                           section={device.Section}
+                          clickable={device.clickable}
                         />
                       ))}
                   </div>
@@ -671,7 +1085,7 @@ function Home() {
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
-                        <Link
+                        device.clickable ? (<Link
                           to={`/device/device-settings?macaddress=${device.MAC}`}
                           key={device.MAC}
                           state={{ from: "/home" }}
@@ -685,7 +1099,18 @@ function Home() {
                             section={device.Section}
                             username={device.UserName}
                           />
-                        </Link>
+                        </Link>):(
+                          <Bed_disconnect
+                            key={device.MAC}
+                            macaddress={device.MAC}
+                            hold={formatSecondsToDHMS(device.HOLD)}
+                            bed={device.Bed}
+                            floor={device.Floor}
+                            section={device.Section}
+                            username={device.UserName}
+                          />
+                        )
+                        
                       ))}
                   </div>
                 </div>

@@ -1,0 +1,214 @@
+.monitor-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 100px;
+  width: 100%;
+  height: 100vh;
+  background-color: #f0f2f5;
+  padding: 0px 10px 10px 10px;
+  box-sizing: border-box;
+  overflow: auto; /* Allow scrolling on small screens */
+}
+
+.monitor-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  /* Ensure the wrapper hugs the width of the card so the image matches */
+  width: fit-content; 
+}
+.logo {
+  width: 100%;
+  height: 5vh; 
+  object-fit: contain;
+  margin-bottom: 30px;
+}
+
+/* The New Header Image */
+.monitor-header-img {
+  width: 100%;
+  /* Height is 1/5th of the monitor-card height (80vh / 5 = 16vh) */
+  height: 16vh; 
+  object-fit: cover;
+  border-radius: 8px; /* Optional: adds rounded corners */
+  margin-bottom: 10px; /* Optional: space between image and card */
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  background-color: #fff; /* Fallback */
+}
+
+/* 單個卡片外框 */
+.monitor-card {
+  background-color: #ffffff;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  
+  /* 關鍵佈局：垂直排列 */
+  display: flex;
+  flex-direction: column;
+  /* 尺寸控制：根據螢幕大小自適應 */
+  height: 80vh; /* 卡片高度佔螢幕的 80% */
+  aspect-ratio: 4 / 3.5; /* 保持長方形比例 */
+  max-width: 450px;
+  min-width: 280px;
+  overflow: hidden;
+}
+
+/* --- 上排 70% --- */
+.card-upper {
+  flex: 9;
+  background-color: #f9f9f9;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.image-container {
+  width: 100%;
+  height: 100%;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.pressure-image{
+  border: 0px;
+  border-color: transparent;
+  background: #f9f9f9
+}
+
+/* --- 下排 30% --- */
+.card-lower {
+  flex: 1;
+  background-color: #f9f9f9;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 30px;
+}
+
+.controls-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* --- 元件樣式 --- */
+
+/* --- New Toggle Button Styles --- */
+.custom-toggle {
+  width: 30px; /* Width to accommodate text */
+  height: 16px; /* Same height as status-light */
+  border-radius: 20px;
+  position: relative;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.1s ease;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+  user-select: none;
+}
+
+.toggle-circle {
+  width: 14px;
+  height: 14px;
+  background-color: white;
+  border-radius: 50%;
+  position: absolute;
+  top: 1px; /* (30px height - 14px circle) / 2 */
+  transition: left 0.1s cubic-bezier(0.4, 0.0, 0.2, 1);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  z-index: 2;
+}
+
+.toggle-label {
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-size: 10px;
+  font-weight: bold;
+  line-height: 20px;
+  z-index: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.status-light {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0,0,0,0.2);
+}
+
+.person-icon {
+  width: 100%;
+  height: auto;
+  max-height: 100%;
+  max-width: 300px;
+  object-fit: contain;
+}
+
+/* --- 響應式微調 --- */
+@media (min-width: 1600px) {
+  .monitor-card {
+    height: 80vh;
+    max-width: 550px;
+  }
+  .monitor-wrapper {
+    max-width: 550px;
+  }
+  .logo {
+    max-width: 550px;
+    
+  }
+}
+
+@media (max-width: 1366px) {
+  .monitor-card {
+    height: 80vh;
+    gap: 0px;
+  }
+  .monitor-container {
+      gap: 20px;
+  }
+  .logo {
+    height: 5vh; 
+    margin-bottom: 10px;
+  }
+  .person-icon{
+    max-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .monitor-container {
+    flex-direction: column;
+    height: auto;
+    padding: 40px 20px;
+  }
+  
+  .monitor-card {
+    width: 100%;
+    max-width: 300px;
+    height: 500px;
+  }
+  .monitor-wrapper {
+    width: 100%;
+    max-width: 300px;
+  }
+  .logo {
+    width: 100%;
+    max-width: 300px;
+  }
+  
+  .monitor-header-img {
+      height: 100px; /* Fixed height for mobile to avoid tiny images */
+  }
+}
