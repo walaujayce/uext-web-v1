@@ -45,7 +45,7 @@ const MonitorUEXTCard = ({
             </div>
             <div
               className="status-light"
-              style={{ backgroundColor: isOnline ? "#D9EAD3" : "#F4CCCC" }}
+              style={{ backgroundColor: isOnline ? "#68D536" : "#F4CCCC" }}
             ></div>
           </div>
         </div>
@@ -94,7 +94,7 @@ const MonitorUMAPCard = ({
           <div className="controls-wrapper">
             <div
               className="status-light"
-              style={{ backgroundColor: isOnline ? "#D9EAD3" : "#F4CCCC" }}
+              style={{ backgroundColor: isOnline ? "#68D536" : "#F4CCCC" }}
             ></div>
           </div>
         </div>
@@ -132,12 +132,9 @@ const MonitorUMAPCard = ({
 
 // 主組件
 const BedMonitor = () => {
-  const leaveBedTimeSpanThreshold = parseInt(import.meta.env.VITE_LEAVE_BED_TOTAL_TIME, 10) || 180; //離床累及時間
+  const leaveBedTimeSpanThreshold = parseInt(import.meta.env.VITE_LEAVE_BED_TOTAL_TIME, 10) || 15; //離床累及時間
   const fakeDataFrameRate = parseInt(import.meta.env.VITE_FAKE_DATA_HOLD_TIME, 10) || 5; //離床動畫frame時間
-  let leaveBedThreshold = parseInt(import.meta.env.VITE_LEAVE_BED_THRESHOLD, 10) || 0.1; //離床累及時間
-  if(leaveBedThreshold >= 1){
-    leaveBedThreshold = 0.1;
-  }
+  let leaveBedThreshold = parseFloat(import.meta.env.VITE_LEAVE_BED_THRESHOLD) || 0.1; //離床累及時間
   
   let offLineSpan = 0;
   const [hasTriggerToggle, setHasTriggerToggle] = useState(false);
