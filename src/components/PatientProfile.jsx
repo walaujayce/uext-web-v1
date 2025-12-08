@@ -12,11 +12,20 @@ import DisChargePatient from "./Modals/DisChargePatient";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import CalibrationConfirmOverlay from "./Modals/CalibrationConfirmOverlay";
 
 function PatientProfile() {
   const { t, i18n } = useTranslation();
 
   const [loading, setLoading] = useState(false); //loading screen
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    console.log("Window width:", windowWidth);
+    setWindowWidth(window.innerWidth);
+  }, [window.innerWidth]);
+
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -270,9 +279,42 @@ function PatientProfile() {
     }
   };
 
+  const [isCalibrationOverlayVisible, setCalibrationOverlayVisible] =
+    useState(false);
+  const handleCalibrationOverlay = () => {
+    setCalibrationOverlayVisible(!isCalibrationOverlayVisible);
+  };
+
+  const handleCalibration = async () => {
+    console.log("calibration clicked");
+    const requestBody = {
+      MAC: macaddress,
+    };
+    try {
+      setLoading(true);
+
+      const response = await fetch("/api/8031/ucb/denoise", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+    } catch (error) {
+      console.error("Error while submitting data:", error);
+      alert("Error: Unable to connect to the server.");
+    } finally {
+      handleCalibrationOverlay();
+      setTimeout(() => {
+        setLoading(false);
+        window.location.reload();
+      }, 15000);
+    }
+  };
+
   return (
     <div className="pp">
-      <h1  style={{zIndex:"1"}}>{t("PatientProfile.PatientProfile")}</h1>
+      <h1 style={{ zIndex: "1" }}>{t("PatientProfile.PatientProfile")}</h1>
       <div className="pfl">
         {/* Patient ID */}
         <div className="input g-c-6">
@@ -453,7 +495,7 @@ function PatientProfile() {
               name="p-id"
               placeholder={patientBedInput.inputValue}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               tabIndex="-1"
               onFocus={(e) => e.target.blur()}
             />
@@ -479,7 +521,7 @@ function PatientProfile() {
               name="section"
               placeholder={patientSectionInput.inputValue}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               tabIndex="-1"
               onFocus={(e) => e.target.blur()}
             />
@@ -505,7 +547,7 @@ function PatientProfile() {
               name="floor"
               placeholder={patientFloorInput.inputValue}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               tabIndex="-1"
               onFocus={(e) => e.target.blur()}
             />
@@ -532,7 +574,7 @@ function PatientProfile() {
               placeholder={macaddress}
               value={macaddress}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               disabled
             />
             <img className="suffix" src="" alt="dropdown icon" />
@@ -557,7 +599,7 @@ function PatientProfile() {
               name="connection"
               value={patient.devicestatus === 1 ? "Connected" : "Disconnect"}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               disabled
             />
             <img className="suffix active" src="" alt="dropdown icon" />
@@ -593,6 +635,38 @@ function PatientProfile() {
             />
           )}
         </div>
+              <div className="btn-gp calibration-display">
+        <div
+          className="btn text-only outline"
+          id="calibration"
+          onClick={handleCalibrationOverlay}
+        >
+          <img src="" alt="" className="prefix" />
+          <p className="btn-text">{t("PatientProfile.Calibration")}</p>
+        </div>
+        {isCalibrationOverlayVisible && (
+          <CalibrationConfirmOverlay
+            callback={handleCalibrationOverlay}
+            calibrationbtn_click={handleCalibration}
+          />
+        )}
+      </div>
+      </div>
+      <div className="btn-gp calibration-display-below">
+        <div
+          className="btn text-only outline"
+          id="calibration"
+          onClick={handleCalibrationOverlay}
+        >
+          <img src="" alt="" className="prefix" />
+          <p className="btn-text">{t("PatientProfile.Calibration")}</p>
+        </div>
+        {isCalibrationOverlayVisible && (
+          <CalibrationConfirmOverlay
+            callback={handleCalibrationOverlay}
+            calibrationbtn_click={handleCalibration}
+          />
+        )}
       </div>
     </div>
   );

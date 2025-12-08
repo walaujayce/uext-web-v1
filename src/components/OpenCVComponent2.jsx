@@ -1,59 +1,61 @@
 import React, { useEffect, useState, useRef } from "react";
 import { loadOpenCv } from "../JS/opencv-loader.js";
 
-const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
+const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
   const sensor_height = height;
   const sensor_width = width;
 
   const [opencvLoaded, setOpencvLoaded] = useState(false);
-  // console.log("rawdata is ", rawdata);
-//   useEffect(() => {
-//     const onCvReady = () => {
-//       console.log("OpenCV initialized for ", deviceid);
-//       setOpencvLoaded(true);
-//       window.isCvReady = true; // Use a global flag
-//     };
+  // console.log("rawdata2 is ", rawdata);
+  // useEffect(() => {
+  //   const onCvReady = () => {
+  //     console.log("OpenCV initialized for ", deviceid);
+  //     setOpencvLoaded(true);
+  //     window.isCvReady = true; // Use a global flag
+  //   };
 
-//     const existingScript = document.querySelector(
-//       'script[src="/src/JS/OpenCV.js"]'
-//     );
-//     if (!existingScript) {
-//       const script = document.createElement("script");
-//       script.src = "/src/JS/OpenCV.js";
-//       script.async = true;
-//       script.onload = () => {
-//         // Script file is loaded, now tell cv what to do when *it* is ready
-//         if (window.cv) {
-//           window.cv["onRuntimeInitialized"] = onCvReady;
-//         } else {
-//           console.error("cv object not found after script load.");
-//         }
-//       };
-//       script.onerror = () => {
-//         console.error("Failed to load OpenCV.js script. Check path.");
-//       };
-//       document.body.appendChild(script);
-//     } else {
-//       // OpenCV is already loaded
-//       if (window.isCvReady) {
-//         // Already initialized by another component
-//         onCvReady();
-//       } else if (window.cv) {
-//         // Script loaded, but still initializing (or listener wasn't set)
-//         window.cv["onRuntimeInitialized"] = onCvReady;
-//       }
-//     }
-//   }, [deviceid]); // Load OpenCV.js once when the component mounts
+  //   const existingScript = document.querySelector(
+  //     'script[src="/src/JS/OpenCV.js"]'
+  //   );
+  //   if (!existingScript) {
+  //     const script = document.createElement("script");
+  //     script.src = "/src/JS/OpenCV.js";
+  //     script.async = true;
+  //     script.onload = () => {
+  //       // Script file is loaded, now tell cv what to do when *it* is ready
+  //       if (window.cv) {
+  //         window.cv["onRuntimeInitialized"] = onCvReady;
+  //       } else {
+  //         console.error("cv object not found after script load.");
+  //       }
+  //     };
+  //     script.onerror = () => {
+  //       console.error("Failed to load OpenCV.js script. Check path.");
+  //     };
+  //     document.body.appendChild(script);
+  //   } else {
+  //     // OpenCV is already loaded
+  //     if (window.isCvReady) {
+  //       // Already initialized by another component
+  //       onCvReady();
+  //     } else if (window.cv) {
+  //       // Script loaded, but still initializing (or listener wasn't set)
+  //       window.cv["onRuntimeInitialized"] = onCvReady;
+  //     }
+  //   }
+  // }, [deviceid]); // Load OpenCV.js once when the component mounts
 
-useEffect(() => {
+  useEffect(() => {
   loadOpenCv().then(() => {
-    console.log("OpenCV ready for UEXT");
+    console.log("OpenCV ready for UMAP");
     setOpencvLoaded(true);
   });
 }, []);
 
+
   const canvasRef = useRef(null);
-useEffect(() => {
+
+  useEffect(() => {
     // Get the parent `.box` element
     const parentBox = canvasRef.current?.parentElement;
     if (parentBox) {
@@ -162,17 +164,13 @@ useEffect(() => {
         return [0, 0, 0];
     }
   };
-  
+
   const print_img = (data) => {
     if (!sensor_height || !sensor_width) {
       return;
     }
-    if (!canvasRef.current) {
-      return;
-    }
-
     if (!data.length >= sensor_height * sensor_width) {
-      const canvas = canvasRef.current;      
+      const canvas = document.getElementById("tcanvas2");
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
@@ -260,7 +258,8 @@ useEffect(() => {
       );
 
       // Display image on canvas
-      cv.imshow(canvasRef.current, finalOutput);
+      cv.imshow("tcanvas2", finalOutput);
+
       // Free memory
       originalImage.delete();
       resizedMat1.delete();
@@ -306,14 +305,31 @@ useEffect(() => {
         }
       }
 
-      cv.imshow(canvasRef.current, dst);
+      cv.imshow("tcanvas2", dst);
 
       vis.delete();
       vis2.delete();
       dst.delete();
     }
   };
-const [decimalArray, setDecimalArray] = useState([]);
+
+  // Example data to be used
+  const sampleData = [
+    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 0, 0, 0, 0, 0, 0, 2, 0, 0,
+    7, 10, 0, 7, 0, 0, 2, 0, 15, 10, 31, 9, 14, 10, 24, 21, 24, 34, 31, 33, 17,
+    38, 72, 25, 38, 55, 43, 48, 49, 53, 71, 76, 0, 255, 223, 24, 50, 66, 45, 45,
+    73, 59, 62, 66, 40, 75, 168, 43, 50, 54, 25, 30, 46, 53, 48, 75, 43, 50,
+    213, 19, 49, 53, 24, 42, 59, 41, 53, 58, 47, 48, 177, 12, 35, 48, 42, 31,
+    60, 30, 47, 34, 31, 48, 103, 15, 14, 28, 20, 24, 21, 12, 17, 28, 25, 25, 38,
+    0, 9, 10, 0, 4, 1, 5, 0, 17, 2, 9, 7, 21, 9, 15, 16, 12, 2, 12, 4, 5, 0, 7,
+    11, 64, 32, 26, 33, 30, 31, 15, 12, 32, 34, 22, 19, 123, 32, 28, 29, 39, 20,
+    26, 34, 46, 27, 52, 65, 196, 44, 35, 29, 23, 33, 33, 25, 36, 30, 32, 44, 80,
+    40, 30, 40, 43, 29, 43, 21, 34, 28, 34, 80, 67, 37, 37, 15, 28, 26, 13, 32,
+    11, 46, 13, 53, 84, 47, 31, 22, 26, 30, 23, 10, 14, 33, 32, 16, 0, 16, 20,
+    11, 21, 22, 13, 26, 6, 28, 20, 16, 0, 0, 0, 4, 3, 0, 0, 5, 20, 14, 18, 17,
+  ]; // Example data
+
+  const [decimalArray, setDecimalArray] = useState([]);
 
   // Function to convert 480-character hex string to 240 decimal values
   const convertHexToDecimalArray = (rawdata) => {
@@ -371,7 +387,7 @@ const [decimalArray, setDecimalArray] = useState([]);
     }
   }, [opencvLoaded, decimalArray]);
 
-  return <canvas ref={canvasRef}></canvas>;
+  return <canvas id="tcanvas2" ref={canvasRef}></canvas>;
 };
 
-export default OpenCVComponent;
+export default OpenCVComponent2;

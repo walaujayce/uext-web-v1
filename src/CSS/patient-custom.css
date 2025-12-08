@@ -39,6 +39,9 @@
     column-gap: 24px;
     padding-top: 24px;
 }
+.btn-gp.calibration-display-below{
+    display: none;
+}
 
 @media (max-width:1920px){
     .pp{
@@ -80,8 +83,11 @@
     .pp .btn-gp{
         display: flex;
         column-gap: 16px;
-        padding-top: 16px;
-        padding-bottom: 24px;
+        padding-top: 1px;
+        padding-bottom: 1px;
+    }
+    .pp .btn-gp.calibration-display{
+        display: none;
     }
     .pp h1{
         font-size: 16px;
