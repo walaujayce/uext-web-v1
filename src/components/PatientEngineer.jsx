@@ -22,22 +22,41 @@ function PatientEngineer() {
   const [duration, setDuration] = useState("");
   const [width, setWidth] = useState(null);
   const [height, setHeight] = useState(null);
+  const [respirationValue, setRespirationValue] = useState(0);
+  const [heartValue, setHeartValue] = useState(0);
 
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
   const postData = async () => {
     try {
-      const response = await fetch(`/api/8031/rawdata/${macaddress}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      let response;
+      if(import.meta.env.VITE_MODE === 'dev'){
+        response = await fetch(`/api/7284/ss/SocketServer/${macaddress}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
+        const contentType = response.headers.get("Content-Type");
+        if (!response.ok || !contentType?.includes("application/json")) {
+          throw new Error(`Expected JSON, got: ${contentType}`);
+        }
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
+      }else{
+        response = await fetch(`/api/8031/rawdata/${macaddress}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+  
+        const contentType = response.headers.get("Content-Type");
+        if (!response.ok || !contentType?.includes("application/json")) {
+          throw new Error(`Expected JSON, got: ${contentType}`);
+        }
+
       }
 
       const data = await response.json();
@@ -51,6 +70,9 @@ function PatientEngineer() {
       //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
       setWidth(data.WIDTH);
       setHeight(data.HEIGHT);
+      setRespirationValue(data.RR.value);
+      setHeartValue(data.HR.value);
+
     } catch (error) {
       console.error("Error making POST request:", error);
     }
@@ -502,8 +524,8 @@ function PatientEngineer() {
                 <h3 className="fg1">{rawData.POS}</h3>
                 <h3 className="fg1">{formatSecondsToDHMS(rawData.HOLD)}</h3>
                 <h3 className="fg1">{rawData.ER}</h3>
-                <h3 className="fg1">{rawData.HR}</h3>
-                <h3 className="fg1">{rawData.RR}</h3>
+                <h3 className="fg1">{heartValue}</h3>
+                <h3 className="fg1">{respirationValue}</h3>
                 <h3 className="fg1">{rawData.WIDTH}</h3>
                 <h3 className="fg1">{rawData.HEIGHT}</h3>
               </a>

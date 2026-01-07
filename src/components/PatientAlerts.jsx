@@ -337,7 +337,7 @@ function PatientAlerts() {
   const updateToggleStatesFromAlertController = (alertController) => {
     const binaryStr = (alertController >>> 0).toString(2).padStart(32, "0"); // Convert to 32-bit binary
 
-    console.log("the alertcontroller ", binaryStr);
+    // console.log("the alertcontroller ", binaryStr);
     setNotificationToggleState(binaryStr[31] === "1"); //all alerts
     setExitBedRateToggleState(binaryStr[30] === "1"); //exit alerts
     setRespHeartBeatToggleState(binaryStr[29] === "1"); //all physiological alerts
@@ -1203,7 +1203,7 @@ function PatientAlerts() {
                       <p>
                         {t("PatientAlert.PhysiologicalAlerts-description2")}.
                       </p>
-                      <div className="desc-input rpm max">
+                      <div className="desc-input hbm max">
                         <input
                           type="number"
                           value={isRnHBChecked2 ? hbHighInput : ""}
@@ -1211,7 +1211,7 @@ function PatientAlerts() {
                           readOnly={!isRnHBChecked2}
                         />
                       </div>
-                      <div className="desc-input rpm min">
+                      <div className="desc-input hbm min">
                         <input
                           type="number"
                           value={isRnHBChecked2 ? hbLowInput : ""}

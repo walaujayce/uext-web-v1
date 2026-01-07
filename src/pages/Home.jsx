@@ -18,6 +18,7 @@ import {
 } from "../components/Bed_Cards";
 import { useTranslation } from "react-i18next";
 import { getServerIp } from "../JS/getServerIp";
+import { ConsoleLogger } from "@microsoft/signalr/dist/esm/Utils";
 
 function Home() {
   const { t, i18n } = useTranslation();
@@ -43,14 +44,25 @@ function Home() {
   const fetchDeviceList = async () => {
     try {
       if (port === "8031") {
-        const response = await fetch("/api/8031/devices");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if(import.meta.env.VITE_MODE === 'dev'){
+            const response = await fetch("/api/7284/ss/SocketServer");
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log("ss/SocketServer: ", data);
+            const devicesNonHalow = data.filter((device) => device.TYPE!==201);
+            setDevices(devicesNonHalow || []);
+        }else{
+            const response = await fetch("/api/8031/devices");
+            if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            const data = await response.json();
+            console.log(data.DATA);
+            const devicesNonHalow = data.DATA.filter((device) => device.TYPE!==201);
+            setDevices(devicesNonHalow || []);
         }
-        const data = await response.json();
-        console.log(data.DATA);
-        const devicesNonHalow = data.DATA.filter((device) => device.TYPE!==201);
-        setDevices(devicesNonHalow || []);
         // console.log("the current is ", getServerIp());
       } else if (port === "7284") {
         const response = await fetch("/api/7284/db/Device");
