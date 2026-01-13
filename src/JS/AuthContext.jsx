@@ -87,9 +87,9 @@ export const AuthProvider = ({ children }) => {
         setIsAudioAllowed(true);
       } catch (error) {
         console.warn("Audio playback blocked:", error);
-        window.alert(
-          "🔊 Your browser has blocked autoplay audio. \n\nTo enable sound:\n1️⃣ Click the 🔒 lock icon in the address bar.\n2️⃣ Go to 'Site Settings'.\n3️⃣ Find 'Sound' and set it to 'Allow'.\n4️⃣ Reload this page."
-        );
+        //window.alert(
+        //   "🔊 Your browser has blocked autoplay audio. \n\nTo enable sound:\n1️⃣ Click the 🔒 lock icon in the address bar.\n2️⃣ Go to 'Site Settings'.\n3️⃣ Find 'Sound' and set it to 'Allow'.\n4️⃣ Reload this page."
+        // );
       }
     };
 

@@ -31,48 +31,57 @@ function PatientEngineer() {
   const postData = async () => {
     try {
       let response;
-      if(import.meta.env.VITE_MODE === 'dev'){
+      if (import.meta.env.VITE_MODE === "dev") {
         response = await fetch(`/api/7284/ss/SocketServer/${macaddress}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         });
-  
+
         const contentType = response.headers.get("Content-Type");
         if (!response.ok || !contentType?.includes("application/json")) {
           throw new Error(`Expected JSON, got: ${contentType}`);
         }
-
-      }else{
+        const data = await response.json();
+        setRawData(data);
+        console.log("RawData:", data);
+        setRawdatum(data.IMAGE);
+        console.log("Rawdatum:", data.IMAGE);
+        setPosition(data.POS);
+        //console.log("Position:", data.POS);
+        setDuration(formatSecondsToDHMS(data.HOLD));
+        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+        setRespirationValue(data.RR.value);
+        setHeartValue(data.HR.value);
+      } else {
         response = await fetch(`/api/8031/rawdata/${macaddress}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
           },
         });
-  
+
         const contentType = response.headers.get("Content-Type");
         if (!response.ok || !contentType?.includes("application/json")) {
           throw new Error(`Expected JSON, got: ${contentType}`);
         }
-
+        const data = await response.json();
+        setRawData(data);
+        console.log("RawData:", data);
+        setRawdatum(data.IMAGE);
+        console.log("Rawdatum:", data.IMAGE);
+        setPosition(data.POS);
+        //console.log("Position:", data.POS);
+        setDuration(formatSecondsToDHMS(data.HOLD));
+        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+        setRespirationValue(data.RR.Value);
+        setHeartValue(data.HR.Value);
       }
-
-      const data = await response.json();
-      setRawData(data);
-      console.log("RawData:", data);
-      setRawdatum(data.IMAGE);
-      console.log("Rawdatum:", data.IMAGE);
-      setPosition(data.POS);
-      //console.log("Position:", data.POS);
-      setDuration(formatSecondsToDHMS(data.HOLD));
-      //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
-      setWidth(data.WIDTH);
-      setHeight(data.HEIGHT);
-      setRespirationValue(data.RR.value);
-      setHeartValue(data.HR.value);
-
     } catch (error) {
       console.error("Error making POST request:", error);
     }
@@ -453,7 +462,6 @@ function PatientEngineer() {
     return isChanged ? { border: "2px solid blue" } : {};
   };
 
-
   return (
     <div className="monitor">
       <div className="pressure">
@@ -533,7 +541,7 @@ function PatientEngineer() {
           </div>
         </div>
       </div>
-       
+
       {/* Parameters Settings */}
       <div className="respiration">
         <div className="deviceSetting">

@@ -30,7 +30,7 @@ const RespirationChart = ({ respirationArray, minBaselineX, maxBaselineX }) => {
     <ResponsiveContainer width="100%" height="100%">
       <LineChart
         data={data}
-        margin={{ top: 5, right: 30, left: -30, bottom: 15 }}
+        margin={{ top: 5, right: 30, left: -30, bottom: 35 }}
       >
         <CartesianGrid strokeDasharray="3 3" vertical={false}/>
         <XAxis dataKey="x" type="number" domain={[0, 59]} axisLine={false} tickLine={false} hide />

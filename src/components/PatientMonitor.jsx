@@ -34,7 +34,6 @@ function PatientMonitor() {
   };
   const postData = async () => {
     try {
-      let response8031;
       if (import.meta.env.VITE_MODE === "dev") {
         const response8031API = await fetch(
           `/api/7284/ss/SocketServer/${macaddress}`,
@@ -46,7 +45,28 @@ function PatientMonitor() {
           }
         );
 
-        response8031 = await response8031API.json();
+        const data = await response8031API.json();
+        console.log("Rawdata:", data);
+        // console.log("RawData:", data);
+        setRawdatum(data.IMAGE);
+        // console.log("Rawdatum:", data.IMAGE);
+        setPosition(data.POS);
+        //console.log("Position:", data.POS);
+        setDuration(formatSecondsToDHMS(data.HOLD));
+        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+
+        setRespirationValue(data.RR.value);
+        setRespirationStatus(data.RR.status);
+        setHeartValue(data.HR.value);
+
+        setRespirationHistoryArray((prev) => {
+          const next = [...prev, data.RR.value];
+          return next.length > respirationArrayLimit
+            ? next.slice(-respirationArrayLimit)
+            : next;
+        });
       } else {
         const response8031API = await fetch(`/api/8031/rawdata/${macaddress}`, {
           method: "GET",
@@ -55,31 +75,29 @@ function PatientMonitor() {
           },
         });
 
-        response8031 = await response8031API.json();
+        const data = await response8031API.json();
+        console.log("Rawdata:", data);
+        // console.log("RawData:", data);
+        setRawdatum(data.IMAGE);
+        // console.log("Rawdatum:", data.IMAGE);
+        setPosition(data.POS);
+        //console.log("Position:", data.POS);
+        setDuration(formatSecondsToDHMS(data.HOLD));
+        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+
+        setRespirationValue(data.RR.Value);
+        setRespirationStatus(data.RR.Status);
+        setHeartValue(data.HR.Value);
+
+        setRespirationHistoryArray((prev) => {
+          const next = [...prev, data.RR.Value];
+          return next.length > respirationArrayLimit
+            ? next.slice(-respirationArrayLimit)
+            : next;
+        });
       }
-
-      const data = response8031;
-      // console.log("Rawdata:", data);
-      // console.log("RawData:", data);
-      setRawdatum(data.IMAGE);
-      // console.log("Rawdatum:", data.IMAGE);
-      setPosition(data.POS);
-      //console.log("Position:", data.POS);
-      setDuration(formatSecondsToDHMS(data.HOLD));
-      //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
-      setWidth(data.WIDTH);
-      setHeight(data.HEIGHT);
-
-      setRespirationValue(data.RR.value);
-      setRespirationStatus(data.RR.status);
-      setHeartValue(data.HR.value);
-
-      setRespirationHistoryArray((prev) => {
-        const next = [...prev, data.RR.value];
-        return next.length > respirationArrayLimit
-          ? next.slice(-respirationArrayLimit)
-          : next;
-      });
     } catch (error) {
       console.error("Error making POST request:", error);
     }
@@ -280,7 +298,6 @@ function PatientMonitor() {
           <div className="tag">bpm</div>
         </div>
       </div>
-      
     </div>
   );
 }

@@ -196,7 +196,7 @@ function PatientAnalysis() {
           alert(jsonData.messages || "Error: No raw data found");
           return;
         }
-        // console.log("result", jsonData);
+        console.log("result", jsonData);
         const bedEventArray = [];
         const adcArray = [];
         const varArray = [];
@@ -217,7 +217,7 @@ function PatientAnalysis() {
         // console.log("bed_event_list", bedEventList);
         // console.log("adcList", adcList);
         // console.log("varList", varList);
-        // console.log("dateTime_list", dateTimeList);
+        console.log("dateTime_list", dateTimeList);
       }
     } catch (error) {
       console.error("Download failed:", error);
