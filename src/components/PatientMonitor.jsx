@@ -14,17 +14,127 @@ import RespirationChart from "./RespiratoryGraph";
 function PatientMonitor() {
   const { t, i18n } = useTranslation();
 
+  const [searchParams] = useSearchParams();
+  const macaddress = searchParams.get("macaddress") || "";
+  const respirationArrayLimit = 60;
+
   const [rawdatum, setRawdatum] = useState([]);
   const [position, setPosition] = useState("");
   const [duration, setDuration] = useState("");
   const [width, setWidth] = useState(null);
   const [height, setHeight] = useState(null);
-  const [searchParams] = useSearchParams();
-  const macaddress = searchParams.get("macaddress") || "";
+  const [respirationStatus, setRespirationStatus] = useState(false);
+  const [respirationValue, setRespirationValue] = useState(0);
+  const [respirationHistoryArray, setRespirationHistoryArray] = useState([]);
+  const [heartValue, setHeartValue] = useState(0);
 
+  const requestBody_Breathing = {
+    deviceID: macaddress,
+    count: 60,
+  };
   const postData = async () => {
     try {
-      const response = await fetch(`/api/8031/rawdata/${macaddress}`, {
+      if (import.meta.env.VITE_MODE === "dev") {
+        const response8031API = await fetch(
+          `/api/7284/ss/SocketServer/${macaddress}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response8031API.json();
+        console.log("Rawdata:", data);
+        // console.log("RawData:", data);
+        setRawdatum(data.IMAGE);
+        // console.log("Rawdatum:", data.IMAGE);
+        setPosition(data.POS);
+        //console.log("Position:", data.POS);
+        setDuration(formatSecondsToDHMS(data.HOLD));
+        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+
+        setRespirationValue(data.RR.value);
+        setRespirationStatus(data.RR.status);
+        setHeartValue(data.HR.value);
+
+        setRespirationHistoryArray((prev) => {
+          const next = [...prev, data.RR.value];
+          return next.length > respirationArrayLimit
+            ? next.slice(-respirationArrayLimit)
+            : next;
+        });
+      } else {
+        const response8031API = await fetch(`/api/8031/rawdata/${macaddress}`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+
+        const data = await response8031API.json();
+        console.log("Rawdata:", data);
+        // console.log("RawData:", data);
+        setRawdatum(data.IMAGE);
+        // console.log("Rawdatum:", data.IMAGE);
+        setPosition(data.POS);
+        //console.log("Position:", data.POS);
+        setDuration(formatSecondsToDHMS(data.HOLD));
+        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+
+        setRespirationValue(data.RR.Value);
+        setRespirationStatus(data.RR.Status);
+        setHeartValue(data.HR.Value);
+
+        setRespirationHistoryArray((prev) => {
+          const next = [...prev, data.RR.Value];
+          return next.length > respirationArrayLimit
+            ? next.slice(-respirationArrayLimit)
+            : next;
+        });
+      }
+    } catch (error) {
+      console.error("Error making POST request:", error);
+    }
+  };
+
+  // useEffect(() => {
+  //   const fetchBreathingHistoryData = async () => {
+  //     const response = await fetch(`/api/7284/Breathing`, {
+  //       method: "POST",
+  //       headers: {
+  //         "Content-Type": "application/json",
+  //       },
+  //       body: JSON.stringify(requestBody_Breathing), // Convert the requestBody to JSON
+  //     });
+  //     const results = await response.json();
+  //     console.log("Breathing API: ", results);
+  //     setRespirationHistoryArray(results.map((r) => r.br).reverse());
+  //   };
+  //   fetchBreathingHistoryData();
+  // }, []);
+
+  useEffect(() => {
+    postData();
+    const interval = setInterval(postData, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  {
+    /* GET API Patient Information */
+  }
+  const [patient, setPatient] = useState([]);
+  const [respirationMinBaselineX, setRespirationMinBaselineX] = useState(null);
+  const [respirationMaxBaselineX, setRespirationMaxBaselineX] = useState(null);
+
+  const fetchPatientProfile = async () => {
+    try {
+      const response = await fetch(`/api/7284/db/Patient`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -37,25 +147,59 @@ function PatientMonitor() {
       }
 
       const data = await response.json();
-
-      setRawdatum(data.IMAGE);
-      //console.log("Rawdatum:", data.IMAGE);
-      setPosition(data.POS);
-      //console.log("Position:", data.POS);
-      setDuration(formatSecondsToDHMS(data.HOLD));
-      //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
-      setWidth(data.WIDTH);
-      setHeight(data.HEIGHT);
+      const matchingPatient = data.find((item) => item.deviceid === macaddress);
+      setPatient(matchingPatient);
+      console.log("patient detail is ", matchingPatient);
     } catch (error) {
-      console.error("Error making POST request:", error);
+      console.error("Error fetching device data:", error.message, error);
+    }
+  };
+  const fetchAlertList = async (patientid) => {
+    try {
+      const response = await fetch(`/api/7284/db/Alert/${patientid}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const contentType = response.headers.get("Content-Type");
+      if (!response.ok || !contentType?.includes("application/json")) {
+        throw new Error(`Expected JSON, got: ${contentType}`);
+      }
+
+      const data = await response.json();
+      if (data.code === -1) {
+        console.log(data.message);
+        setRespirationMaxBaselineX(null);
+        setRespirationMinBaselineX(null);
+        return;
+      }
+      console.log("Fetched data:", data);
+      const binaryStr = (data.alertcontroller >>> 0)
+        .toString(2)
+        .padStart(32, "0"); // Convert to 32-bit binary
+      if (binaryStr[29] === "1") {
+        setRespirationMaxBaselineX(data.respiratoryratehighlimit);
+        setRespirationMinBaselineX(data.respiratoryratelowlimit);
+      } else {
+        setRespirationMaxBaselineX(null);
+        setRespirationMinBaselineX(null);
+      }
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
     }
   };
 
   useEffect(() => {
-    postData();
-    const interval = setInterval(postData, 900);
-    return () => clearInterval(interval);
+    fetchPatientProfile();
   }, []);
+
+  useEffect(() => {
+    if (patient && patient.patientid) {
+      fetchAlertList(patient.patientid);
+    }
+  }, [patient]);
 
   const formatSecondsToDHMS = (seconds) => {
     const days = Math.floor(seconds / (24 * 3600));
@@ -128,22 +272,30 @@ function PatientMonitor() {
           </div>
         </div>
       </div>
+      <div className="respiration">
+        <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
+        {respirationStatus ? (
+          <RespirationChart
+            respirationArray={respirationHistoryArray}
+            minBaselineX={respirationMinBaselineX}
+            maxBaselineX={respirationMaxBaselineX}
+          />
+        ) : (
+          <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
+        )}
+
+        <div className="spec">
+          <div>{respirationValue}</div>
+          <div className="tag">/min</div>
+        </div>
+      </div>
       <div className="h-rate">
         <div className="title">{t("PatientMonitor.HeartRate")}</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
         {/* <HeartBeatGraph/> */}
         <div className="spec">
           <div>--</div>
-          <div className="tag">Hz</div>
-        </div>
-      </div>
-      <div className="respiration">
-        <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
-        <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
-        {/* <RespirationChart/> */}
-        <div className="spec">
-          <div>--</div>
-          <div className="tag">Hz</div>
+          <div className="tag">bpm</div>
         </div>
       </div>
     </div>

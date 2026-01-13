@@ -620,14 +620,25 @@
 .alertOpt.chi .opt-grid2 .opt .desc .desc-input::after{
     content: "分";
 }
-/* Custom CSS for Respiration and Heart Beat */
+/* Custom CSS for Respiration */
 .alertOpt .opt-grid2 .opt .desc .desc-input.rpm.max::after{
-    content: "Hz (Max.)";
+    content: "/min (Max.)";
     white-space: nowrap;
     padding-left: 5px;
 }
 .alertOpt .opt-grid2 .opt .desc .desc-input.rpm.min::after{
-    content: "Hz (Min.)";
+    content: "/min (Min.)";
+    white-space: nowrap;
+    padding-left: 5px;
+}
+/* Custom CSS for Heart Beat */
+.alertOpt .opt-grid2 .opt .desc .desc-input.hbm.max::after{
+    content: "bpm (Max.)";
+    white-space: nowrap;
+    padding-left: 5px;
+}
+.alertOpt .opt-grid2 .opt .desc .desc-input.hbm.min::after{
+    content: "bpm (Min.)";
     white-space: nowrap;
     padding-left: 5px;
 }

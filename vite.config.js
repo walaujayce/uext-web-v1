@@ -6,14 +6,14 @@ const WebAPI =
     ? process.env.VITE_WEBAPI_URL === "localhost"
       ? window.location.hostname
       : process.env.VITE_WEBAPI_URL
-    : "192.9.120.214";
+    : "192.9.120.118";
 
 const SocketServer =
   process.env.npm_lifecycle_event === "start:dev"
     ? process.env.VITE_SOCKETSERVER_URL === "localhost"
       ? window.location.hostname
       : process.env.VITE_SOCKETSERVER_URL
-    : "192.9.120.214";
+    : "192.9.120.118";
 
 // https://vite.dev/config/
 export default defineConfig({

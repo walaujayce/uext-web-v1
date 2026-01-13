@@ -43,16 +43,18 @@ const ChartComponent = ({
     /* format time */
     // when hour is 24, change it to 00
     const formattedDataArray = [];
+    console.log("xAxisData", xAxisData);
     xAxisData.forEach((data) => {
       const dateTimeArray = data.split("T");
-      let time = dateTimeArray[1];
-      let timeParts = time.split(":");
-      if (timeParts[1] === "24") {
-        timeParts[1] = "00";
-        dateTimeArray[1] = timeParts.join(":");
-      }
+      // let time = dateTimeArray[1];
+      // let timeParts = time.split(":");
+      // if (timeParts[1] === "24") {
+      //   timeParts[1] = "00";
+      //   dateTimeArray[1] = timeParts.join(":");
+      // }
       formattedDataArray.push(dateTimeArray);
     });
+    console.log("formattedDataArray", formattedDataArray);
 
     //plugin
     const staticLabel = {

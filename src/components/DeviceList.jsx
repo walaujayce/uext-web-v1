@@ -79,35 +79,67 @@ const DeviceList = () => {
   // };
   const fetchDeviceList = async () => {
     try {
-      const [response, response8031] = await Promise.all([
-        fetch("/api/7284/db/Device"),
-        fetch("/api/8031/devices"),
-      ]);
+      if (import.meta.env.VITE_MODE === "dev") {
+        const [response, response8031] = await Promise.all([
+          fetch("/api/7284/db/Device"),
+          fetch("/api/7284/ss/SocketServer"),
+        ]);
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      if (!response8031.ok) {
-        throw new Error(`HTTP error! status: ${response8031.status}`);
-      }
-      const data = await response.json();
-      console.log(data);
-      const result8031 = await response8031.json();
-      const data8031 = result8031.DATA;
-      //console.log(data8031);
-      setDevices(data);
-      const macSet = new Set(data.map((device) => device.macaddress));
-      const matchedMap = {};
-      data8031.forEach((device) => {
-        if (macSet.has(device.MAC)) {
-          matchedMap[device.MAC] = {
-            rssi: device.RSSI,
-            ping: device.Ping,
-          };
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
         }
-      });
-      //console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
-      setDeviceMap(matchedMap);
+        if (!response8031.ok) {
+          throw new Error(`HTTP error! status: ${response8031.status}`);
+        }
+        const data = await response.json();
+        console.log(data);
+        const result8031 = await response8031.json();
+        const data8031 = result8031;
+        //console.log(data8031);
+        setDevices(data);
+        const macSet = new Set(data.map((device) => device.macaddress));
+        const matchedMap = {};
+        data8031.forEach((device) => {
+          if (macSet.has(device.MAC)) {
+            matchedMap[device.MAC] = {
+              rssi: device.RSSI,
+              ping: device.Ping,
+            };
+          }
+        });
+        //console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
+        setDeviceMap(matchedMap);
+      } else {
+        const [response, response8031] = await Promise.all([
+          fetch("/api/7284/db/Device"),
+          fetch("/api/8031/devices"),
+        ]);
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        if (!response8031.ok) {
+          throw new Error(`HTTP error! status: ${response8031.status}`);
+        }
+        const data = await response.json();
+        console.log(data);
+        const result8031 = await response8031.json();
+        const data8031 = result8031.DATA;
+        //console.log(data8031);
+        setDevices(data);
+        const macSet = new Set(data.map((device) => device.macaddress));
+        const matchedMap = {};
+        data8031.forEach((device) => {
+          if (macSet.has(device.MAC)) {
+            matchedMap[device.MAC] = {
+              rssi: device.RSSI,
+              ping: device.Ping,
+            };
+          }
+        });
+        //console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
+        setDeviceMap(matchedMap);
+      }
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -302,57 +334,74 @@ const DeviceList = () => {
               className={`fg1 ${sortType === sortTypes[0] ? "selected" : ""}`}
               onClick={() => SortType(0)}
             >
-              {t("DeviceList.DeviceType")} {sortType === sortTypes[0] && (sortDirection ? "\u25BC" : "\u25B2")}
+              {t("DeviceList.DeviceType")}{" "}
+              {sortType === sortTypes[0] &&
+                (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
               className={`fg2 ${sortType === sortTypes[1] ? "selected" : ""}`}
               onClick={() => SortType(1)}
             >
-              {t("DeviceList.DeviceID")} {sortType === sortTypes[1] && (sortDirection ? "\u25BC" : "\u25B2")}
+              {t("DeviceList.DeviceID")}{" "}
+              {sortType === sortTypes[1] &&
+                (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
               className={`fg2 ${sortType === sortTypes[2] ? "selected" : ""}`}
               onClick={() => SortType(2)}
             >
-              {t("DeviceList.MACAddress")} {sortType === sortTypes[2] && (sortDirection ? "\u25BC" : "\u25B2")}
+              {t("DeviceList.MACAddress")}{" "}
+              {sortType === sortTypes[2] &&
+                (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
               className={`fg2 ${sortType === sortTypes[3] ? "selected" : ""}`}
               onClick={() => SortType(3)}
             >
-              {t("DeviceList.IPAddress")} {sortType === sortTypes[3] && (sortDirection ? "\u25BC" : "\u25B2")}
+              {t("DeviceList.IPAddress")}{" "}
+              {sortType === sortTypes[3] &&
+                (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
               className={`fg3 ${sortType === sortTypes[4] ? "selected" : ""}`}
               onClick={() => SortType(4)}
             >
-              {t("DeviceList.Bed")} {sortType === sortTypes[4] && (sortDirection ? "\u25BC" : "\u25B2")}
+              {t("DeviceList.Bed")}{" "}
+              {sortType === sortTypes[4] &&
+                (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
               className={`fg3 ${sortType === sortTypes[5] ? "selected" : ""}`}
               onClick={() => SortType(5)}
             >
-              {t("DeviceList.Section")} {sortType === sortTypes[5] && (sortDirection ? "\u25BC" : "\u25B2")}
+              {t("DeviceList.Section")}{" "}
+              {sortType === sortTypes[5] &&
+                (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
               className={`fg3 ${sortType === sortTypes[6] ? "selected" : ""}`}
               onClick={() => SortType(6)}
             >
-              {t("DeviceList.Floor")} {sortType === sortTypes[6] && (sortDirection ? "\u25BC" : "\u25B2")}
+              {t("DeviceList.Floor")}{" "}
+              {sortType === sortTypes[6] &&
+                (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
               className={`fg1 ${sortType === sortTypes[7] ? "selected" : ""}`}
               onClick={() => SortType(7)}
             >
-              {t("DeviceList.SettingDate")} {sortType === sortTypes[7] && (sortDirection ? "\u25BC" : "\u25B2")}
+              {t("DeviceList.SettingDate")}{" "}
+              {sortType === sortTypes[7] &&
+                (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3 className="fg3">PING(ms)</h3>
             <h3 className="fg3">RSSI(dBm)</h3>
             <div className="connection fg2" onClick={() => SortType(8)}>
               <h3 className={`${sortType === sortTypes[8] ? "selected" : ""}`}>
                 {t("DeviceList.DeviceStatus")}
-                {`(${connectedDevicesCount})`} 
-                {sortType === sortTypes[8] && (sortDirection ? "\u25BC" : "\u25B2")}
+                {`(${connectedDevicesCount})`}
+                {sortType === sortTypes[8] &&
+                  (sortDirection ? "\u25BC" : "\u25B2")}
               </h3>
             </div>
           </div>
