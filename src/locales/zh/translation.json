@@ -179,7 +179,9 @@
     "ResetToDefault": "重置設定",
     "Sec": "秒",
     "HzMax": "赫茲 (最大)",
-    "HzMin": "赫茲 (最小)"
+    "HzMin": "赫茲 (最小)",
+    "AddNewAlert": "新增時段"
+
   },
   "DeviceList": {
     "NewDevice": "新增裝置",

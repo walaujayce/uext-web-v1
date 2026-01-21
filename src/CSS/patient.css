@@ -484,7 +484,7 @@
     display: grid;
     row-gap: 24px;
     column-gap: 24px;
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: repeat(1, 0.5fr);
     opacity: 0.5;
 }
 
@@ -528,10 +528,25 @@
     line-height: 140%; /* 33.6px */
 }
 
+.alertOpt .opt-grid .opt .desc-list{
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    justify-content: space-between;
+}
 .alertOpt .opt-grid .opt .desc{
     display: flex;
     gap: 24px;
     justify-content: space-between;
+}
+.alertOpt .opt-grid .opt .desc .close-button{
+    height: 24px;
+    aspect-ratio: 1;
+    /* background-color: red; */
+}
+.alertOpt .opt-grid .opt .desc .close-button:hover{
+    cursor: pointer;
+    content: url(/src/assets/close-active.svg);
 }
 
 .alertOpt .opt-grid .opt .desc p{

@@ -177,7 +177,8 @@
     "ResetToDefault": "Reset To Default",
     "Sec": "sec",
     "HzMax": "Hz (Max.)",
-    "HzMin": "Hz (Min.)"
+    "HzMin": "Hz (Min.)",
+    "AddNewAlert": "Add time slot"
   },
   "DeviceList": {
     "NewDevice": "New Device",
