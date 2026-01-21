@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import SignalRService from "../JS/SignalR";
 import { useTranslation } from "react-i18next";
 import AddNewUser from "../components/Modals/AddNewUser";
-
+import api from "../api/apiClient"
 const AccountList = () => {
   const { t, i18n } = useTranslation();
 
@@ -18,6 +18,8 @@ const AccountList = () => {
 
   const fetchAccountList = async () => {
     try {
+      const res = await api.get("/api/7284/User");
+      console.log("res.data: ", res.data);
       const response = await fetch("/api/7284/User");
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

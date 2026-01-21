@@ -8,6 +8,7 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import { useAuth } from "../JS/AuthContext";
 import { useTranslation } from "react-i18next";
+import { login_auth } from "../auth/authService";
 
 function Login() {
   const { t, i18n } = useTranslation();
@@ -47,55 +48,54 @@ function Login() {
         alert(error);
         return;
       }
-      const user_login = await fetch("/api/7284/User/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(loginRequest)
-      });
-      if (!user_login.ok) {
-        throw new Error(`HTTP error! status: ${user_login.status}`);
-      }
-      const result = await user_login.json();
-      console.log(result);
+      login_auth(username,password);
+      // const user_login = await fetch("/api/7284/User/login", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(loginRequest)
+      // });
+      // if (!user_login.ok) {
+      //   throw new Error(`HTTP error! status: ${user_login.status}`);
+      // }
+      // const result = await user_login.json();
+      // console.log(result);
 
-      const response = await fetch("/api/7284/User", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      //console.log(data);
-      // Assuming `data.password` contains the stored password
-      const user = data.find((user) => user.userid === username);
+      // const response = await fetch("/api/7284/User", {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      // const user = data.find((user) => user.userid === username);
 
-      if (user) {
-        //console.log("Password:", user.password);
-        if (result.code===0) {
-          localStorage.setItem("username", JSON.stringify(user.username)); // Save user to localStorage
+      // if (user) {
+      //   //console.log("Password:", user.password);
+      //   if (result.code===0) {
+      //     localStorage.setItem("username", JSON.stringify(user.username)); // Save user to localStorage
 
-          switch (user.role) {
-            case 0:
-              login("administrator");
-              break;
-            case 1:
-              login("engineer");
-              break;
-            case 2:
-              login("user");
-              break;
-          }
-          navigate("/home");
-        } else {
-          setError("Incorrect password");
-          alert("Invalid User account or Password!");
-        }
-      }
+      //     switch (user.role) {
+      //       case 0:
+      //         login("administrator");
+      //         break;
+      //       case 1:
+      //         login("engineer");
+      //         break;
+      //       case 2:
+      //         login("user");
+      //         break;
+      //     }
+      //     navigate("/home");
+      //   } else {
+      //     setError("Incorrect password");
+      //     alert("Invalid User account or Password!");
+      //   }
+      // }
     } catch (error) {
       setError("An error occurred while logging in");
       console.error(error);
