@@ -6,10 +6,11 @@ import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
+import api from "../../api/apiClient";
+
 
 const AddNewUser = ({ callback }) => {
   const { t, i18n } = useTranslation();
-
   const [loading, setLoading] = useState(false); //loading screen
 
   {
@@ -94,6 +95,7 @@ const AddNewUser = ({ callback }) => {
     password: userPasswordInput.inputValue,
     email: userEmailInput.inputValue,
     role: ROLE.indexOf(placeholderRole),
+    jlog:{}
   };
   const handlePOST_API = async () => {
     console.log(requestBody_POST);
@@ -133,14 +135,14 @@ const AddNewUser = ({ callback }) => {
     }
     try {
       setLoading(true);
-      const response = await fetch("/api/7284/User", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody_POST),
-      });
-
+      // const response = await fetch("/api/7284/User", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody_POST),
+      // });
+      const response = await api.post("/api/7284/User", requestBody_POST);
       if (response.status === 200 || response.status === 201) {
         setIsActive_Stage2(true);
       } else {

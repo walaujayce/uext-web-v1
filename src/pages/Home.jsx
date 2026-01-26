@@ -17,8 +17,8 @@ import {
   Bed_default,
 } from "../components/Bed_Cards";
 import { useTranslation } from "react-i18next";
-import { getServerIp } from "../JS/getServerIp";
-import { ConsoleLogger } from "@microsoft/signalr/dist/esm/Utils";
+import api from "../api/apiClient"
+import api8031 from "../api/apiClient8031";
 
 function Home() {
   const { t, i18n } = useTranslation();
@@ -45,31 +45,36 @@ function Home() {
     try {
       if (port === "8031") {
         if(import.meta.env.VITE_MODE === 'dev'){
-            const response = await fetch("/api/7284/ss/SocketServer");
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
+            // const response = await fetch("/api/7284/ss/SocketServer");
+            // if (!response.ok) {
+              //   throw new Error(`HTTP error! status: ${response.status}`);
+              // }
+              // const data = await response.json();
+            const response = await api.get("/api/7284/ss/SocketServer");
+            const data = response.data;
             console.log("ss/SocketServer: ", data);
             const devicesNonHalow = data.filter((device) => device.TYPE!==201);
             setDevices(devicesNonHalow || []);
         }else{
-            const response = await fetch("/api/8031/devices");
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log(data.DATA);
+            // const response = await fetch("/api/8031/devices");
+            // if (!response.ok) {
+            //   throw new Error(`HTTP error! status: ${response.status}`);
+            // }
+            // const data = await response.json();
+            // console.log(data.DATA);
+            const response = await api8031.get("/api/8031/devices");
+            const data = response.data;
             const devicesNonHalow = data.DATA.filter((device) => device.TYPE!==201);
             setDevices(devicesNonHalow || []);
         }
         // console.log("the current is ", getServerIp());
       } else if (port === "7284") {
-        const response = await fetch("/api/7284/db/Device");
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+        const response = await api.get("/api/7284/db/Device");
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
+        // const data = await response.json();
+        const data = response.data;
         console.log(data);
         setDevices(data || []);
       }

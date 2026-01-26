@@ -5,6 +5,7 @@ import AlertList from "./AlertList";
 import Navbar from "./Navbar";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import api from "../api/apiClient"
 
 function AccountSetting() {
   const { t, i18n } = useTranslation();
@@ -49,9 +50,14 @@ function AccountSetting() {
   const userEmailInput = useSetInfoInput("");
   const userIdInput = useSetInfoInput("");
 
-  const [passwordValue, setPasswordValue] = useState("");
-  const handlePasswordChange = (e) => {
-    setPasswordValue(e.target.value);
+  const [currentPasswordValue, setCurrentPasswordValue] = useState("");
+  const handleCurrentPasswordChange = (e) => {
+    setCurrentPasswordValue(e.target.value);
+    setPasswordIsChanged(true);
+  };
+  const [newPasswordValue, setNewPasswordValue] = useState("");
+  const handleNewPasswordChange = (e) => {
+    setNewPasswordValue(e.target.value);
     setPasswordIsChanged(true);
   };
 
@@ -94,26 +100,28 @@ function AccountSetting() {
 
   const fetchUserInfo = async (userid) => {
     try {
-      const response = await fetch(`/api/7284/User/${userid}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await api.get(`/api/7284/User/${userid}`);
+      // const response = await fetch(`/api/7284/User/${userid}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const data = response.data;
       console.log(data);
       setUserInfo(data);
 
       userNameInput.setInputValue(data.username);
       userIdInput.setInputValue(data.userid);
       userEmailInput.setInputValue(data.email);
-      setPasswordValue(data.password);
+      // setPasswordValue(data.password);
 
       setPlaceholderRole(ROLE[data.role]);
     } catch (error) {
@@ -135,7 +143,8 @@ function AccountSetting() {
     role: placeholderRole === ROLE[0] ? 0 : placeholderRole === ROLE[1] ? 1 : 2,
   };
   const requestBody_PUT_Password = {
-    password: passwordValue,
+    currentPassword: currentPasswordValue,
+    newPassword: newPasswordValue,
   };
   const handlePUT_API = (print_inputvalue) => {
     if (isUserProfileChanged && print_inputvalue === requestBody_PUT_Profile) {
@@ -154,11 +163,11 @@ function AccountSetting() {
       isPasswordChanged &&
       print_inputvalue === requestBody_PUT_Password
     ) {
-      if (passwordValue === "") {
+      if (currentPasswordValue === ""||newPasswordValue === "") {
         alert("Please fill in a valid Password!");
         return;
       }
-      if (!passwordValidationRegex.test(passwordValue)) {
+      if (!passwordValidationRegex.test(newPasswordValue)) {
         alert(
           "Password must include at least one uppercase letter, one lowercase letter, one number, and be at least 6 characters long."
         );
@@ -179,19 +188,26 @@ function AccountSetting() {
 
       setLoading(true);
 
-      const response = await fetch(`/api/7284/User/${userid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      });
+      const response = await api.put(`/api/7284/User/${userid}`, updatedData);
+      // const response = await fetch(`/api/7284/User/${userid}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+
+      // const data = await response.json();
+      console.log("response",response.data);
+      const data = response.data;
+      if(data.code === 401){
+        alert("Password is incorrect!");
       }
-
-      const data = await response.json();
+      
       if (data.code !== 0) {
         console.log("User fail to update:", data);
         alert("User fail to update!");
@@ -224,18 +240,20 @@ function AccountSetting() {
   const deleteUser_API = async (userid) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/7284/User/${userid}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      const response = await api.delete(`/api/7284/User/${userid}`);
+      // const response = await fetch(`/api/7284/User/${userid}`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
-      const data = await response.json();
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
+      // const data = await response.json();
+      const data = response.data;
       console.log("Delete successfully!:", data);
       alert("Delete successfully!");
       navigate("/account");
@@ -555,7 +573,7 @@ function AccountSetting() {
                   </div> */}
                   <div className="input g-col-3">
                     <label htmlFor="pw" className="label-container">
-                      <p>{t("AccountSettings.Password")}</p>
+                      <p>{t("AccountSettings.CurrentPassword")}</p>
                       <img
                         className="info"
                         src="/src/assets/information-outline.svg"
@@ -568,8 +586,32 @@ function AccountSetting() {
                         className="placeholder"
                         id="pw"
                         placeholder=""
-                        value={passwordValue}
-                        onChange={handlePasswordChange}
+                        value={currentPasswordValue}
+                        onChange={handleCurrentPasswordChange}
+                      />
+                      <img className="suffix" src="" alt="dropdown icon" />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                  <div className="input g-col-3">
+                    <label htmlFor="npw" className="label-container">
+                      <p>{t("AccountSettings.NewPassword")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="input-gp">
+                      <input
+                        type="text"
+                        className="placeholder"
+                        id="npw"
+                        placeholder=""
+                        value={newPasswordValue}
+                        onChange={handleNewPasswordChange}
                       />
                       <img className="suffix" src="" alt="dropdown icon" />
                     </div>

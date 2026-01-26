@@ -12,6 +12,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
 import PatientMonitor from "./PatientMonitor";
 import { useAuth } from "../JS/AuthContext";
+import api from "../api/apiClient"
 
 function DeviceSettings() {
   const { t, i18n } = useTranslation();
@@ -327,19 +328,20 @@ const handleDhcpItemClick = (dhcp) => {
 
   const fetchDeviceInfo = async (macaddress) => {
     try {
-      const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
+      const response = await api.get(`/api/7284/db/Device/${macaddress}`);
 
-      const data = await response.json();
+      const data = response.data;
       console.log(data);
       setDeviceInfo(data);
 
@@ -400,14 +402,16 @@ const handleDhcpItemClick = (dhcp) => {
   const deleteDevice = async (deviceId) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/7284/db/Device/${deviceId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Device/${deviceId}`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
+      // const contentType = response.headers.get("Content-Type");
+      const response = await api.delete(`/api/7284/db/Device/${deviceId}`);
+
 
       if (response.status === 200) {
         alert("Device delete successfully!");
@@ -529,19 +533,22 @@ const handleDhcpItemClick = (dhcp) => {
 
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/db/Device/${macaddress}`,updatedData);
+
+      const data = response.data;
       console.log("Device updated successfully:", data);
       alert("Update Successfully!");
       window.location.reload();
@@ -626,25 +633,26 @@ const handleDhcpItemClick = (dhcp) => {
       console.log("the filter requestbody endTime ", endTime.toISOString().split(".")[0]);
       console.log("the filter requestbody", JSON.stringify(filterRequest));
 
-      // const response = await fetch(`/api/7284/db/${downloadtype}/filter`, {
-      const response = await fetch(`/api/7284/db/${downloadtype}/filter?timezone=Asia_Taipei`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(filterRequest),
-      });
+      // const response = await fetch(`/api/7284/db/${downloadtype}/filter?timezone=Asia_Taipei`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(filterRequest),
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (contentType && contentType.includes("application/json")) {
-        const jsonData = await response.json();
-        if (jsonData.code === -1) {
-          alert(jsonData.messages || "Error: No raw data found");
-          return;
-        }
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (contentType && contentType.includes("application/json")) {
+      //   const jsonData = await response.json();
+      //   if (jsonData.code === -1) {
+      //     alert(jsonData.messages || "Error: No raw data found");
+      //     return;
+      //   }
+      // }
+      const response = await api.post(`/api/7284/db/${downloadtype}/filter?timezone=Asia_Taipei`, filterRequest, { responseType: "blob"} );
+
       // Get file data
-      const blob = await response.blob();
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
 

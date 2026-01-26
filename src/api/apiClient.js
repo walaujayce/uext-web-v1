@@ -7,9 +7,12 @@ const api = axios.create({
 });
 api.interceptors.request.use((config) => {
   const token = getAccessToken();
+  // console.log("token: ", token);
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
+  // console.log("config: ", config);
+  
   return config;
 });
 let isRefreshing = false;
@@ -35,8 +38,8 @@ api.interceptors.response.use(
       isRefreshing = true;
 
       try {
-        const res = await api.post("/auth/refresh", {
-          userId: getUserId(), // ⬅ 你後端目前需要
+        const res = await api.post("/api/7284/auth/refresh", {
+          userId: JSON.parse(localStorage.getItem("username")), // ⬅ 你後端目前需要
         });
 
         const newToken = res.data.accessToken;
@@ -61,3 +64,5 @@ api.interceptors.response.use(
 );
 
 export default api;
+
+

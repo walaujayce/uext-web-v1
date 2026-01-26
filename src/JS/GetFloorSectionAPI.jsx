@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import api from "../api/apiClient"
 
 export const useDropdownLogic = (placeholder) => {
   const [isActive, setActive] = useState(false);
@@ -23,17 +24,18 @@ export const useDropdownLogic = (placeholder) => {
 
 export const fetchList = async (url, setData) => {
   try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
-    const contentType = response.headers.get("Content-Type");
-    if (!response.ok || !contentType?.includes("application/json")) {
-      throw new Error(`Expected JSON, got: ${contentType}`);
-    }
-    const data = await response.json();
+    // const response = await fetch(url, {
+    //   method: "GET",
+    //   headers: {
+    //     "Content-Type": "application/json",
+    //   },
+    // });
+    // const contentType = response.headers.get("Content-Type");
+    // if (!response.ok || !contentType?.includes("application/json")) {
+    //   throw new Error(`Expected JSON, got: ${contentType}`);
+    // }
+    const response = await api.get(url);
+    const data = response.data;
     setData(data);
     console.log(data);
   } catch (error) {

@@ -12,6 +12,8 @@ import { useAuth } from "../JS/AuthContext";
 import OpenCVComponent from "../components/OpenCVComponent";
 import OpenCVComponent2 from "../components/OpenCVComponent2";
 import { he } from "date-fns/locale";
+import api from "../api/apiClient";
+import api8031 from "../api/apiClient8031";
 
 function DemoSD() {
   const { t, i18n } = useTranslation();
@@ -34,19 +36,22 @@ function DemoSD() {
   const macaddress = "80C9553B560C";
   const postData = async () => {
     try {
-      const response = await fetch(`/api/8031/rawdata/${macaddress}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/8031/rawdata/${macaddress}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api8031.get(`/api/8031/rawdata/${macaddress}`);
+
+      const data = response.data;
 
       setRawdatum(data.IMAGE);
       //console.log("Rawdatum:", data.IMAGE);
@@ -99,19 +104,22 @@ function DemoSD() {
   const macaddressUEXT = "80C9553B5634";
   const postDataUEXT = async () => {
     try {
-      const response = await fetch(`/api/8031/rawdata/${macaddressUEXT}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/8031/rawdata/${macaddressUEXT}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/8031/rawdata/${macaddressUEXT}`);
+
+      const data = await response.data;
 
       setRawdataUEXT(data.IMAGE);
       setWidthUEXT(data.WIDTH);

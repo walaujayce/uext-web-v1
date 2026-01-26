@@ -6,6 +6,7 @@ import LogOut_Modal from "./Modals/LogOut";
 import { useTranslation } from "react-i18next";
 import ChangePasswordModal from "./Modals/ChangePassword";
 import dayjs from "dayjs";
+import api from "../api/apiClient"
 
 function Navbar() {
   const { t, i18n } = useTranslation();
@@ -91,16 +92,18 @@ function Navbar() {
     async function fetchData() {
       try {
         // Get userid based on username in local storage
-        const response = await fetch("/api/7284/User", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+        const response = await api.get("/api/7284/User");
+        const data = response.data;
+        // const response = await fetch("/api/7284/User", {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
+        // const data = await response.json();
         const stored_username = JSON.parse(localStorage.getItem("username"));
         const selected_user = data.find(
           (user) => user.username == stored_username
@@ -180,16 +183,18 @@ function Navbar() {
     async function fetchErrorlog() {
       try {
         // Get userid based on username in local storage
-        const response = await fetch("/api/7284/db/Errorlog", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+        // const response = await fetch("/api/7284/db/Errorlog", {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
+        // const data = await response.json();
+        const response = await api.get("/api/7284/db/Errorlog");
+        const data = response.data;
         console.log("error log: ", data);
         setErrorlogs(data);
       } catch (error) {
@@ -207,18 +212,19 @@ function Navbar() {
   };
   const setNotificationChecked_PUT = async (notification_Id) => {
     try {
-      const response = await fetch(`/api/7284/db/Errorlog/${notification_Id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestbody_PUT), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Errorlog/${notification_Id}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestbody_PUT), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      const response = await api.put(`/api/7284/db/Errorlog/${notification_Id}`,requestbody_PUT);
+      const data = response.data;
       if (data.code !== 0) {
         console.log(data.message);
         return;

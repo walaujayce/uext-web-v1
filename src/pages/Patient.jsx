@@ -12,6 +12,7 @@ import Navbar from "../components/Navbar";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewPatient from "../components/Modals/AddNewPatient";
 import { useTranslation } from "react-i18next";
+import api from "../api/apiClient"
 
 function Patient() {
   const { t, i18n } = useTranslation();
@@ -29,11 +30,13 @@ function Patient() {
 
   const fetchPatients = async () => {
     try {
-      const response = await fetch("/api/7284/db/Patient");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // const response = await fetch("/api/7284/db/Patient");
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.get("/api/7284/db/Patient");
+      const data = response.data;
       console.log(data);
       setPatients(data);
     } catch (error) {

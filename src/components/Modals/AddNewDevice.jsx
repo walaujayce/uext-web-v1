@@ -6,6 +6,7 @@ import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
+import api from "../../api/apiClient";
 
 const AddNewDevice = ({ callback }) => {
   const { t, i18n } = useTranslation();
@@ -86,11 +87,14 @@ const AddNewDevice = ({ callback }) => {
 
   const fetchFloorList = async () => {
     try {
-      const response = await fetch("/api/7284/Floor");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // const response = await fetch("/api/7284/Floor");
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.get("/api/7284/Floor");
+
+      const data = response.data;
       console.log(data);
       setFloors(data);
       if (data.length > 0) {
@@ -125,11 +129,13 @@ const AddNewDevice = ({ callback }) => {
 
   const fetchSectionList = async () => {
     try {
-      const response = await fetch("/api/7284/Section");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // const response = await fetch("/api/7284/Section");
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.get("/api/7284/Section");
+      const data = response.data;
       if (data.length > 0) {
         setPlaceholderSection(data[data.length - 1].description);
       }
@@ -275,13 +281,14 @@ const AddNewDevice = ({ callback }) => {
 
     try {
       setLoading(true);
-      const response = await fetch("/api/7284/db/Device", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      // const response = await fetch("/api/7284/db/Device", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody),
+      // });
+      const response = await api.post("/api/7284/db/Device", requestBody);
 
       console.log("devicetype", devicetype);
       console.log("macaddress", macaddress);
@@ -294,7 +301,7 @@ const AddNewDevice = ({ callback }) => {
       if (response.status === 200) {
         setActive_Stage2(true);
       } else {
-        const errorData = await response.json();
+        const errorData = response.data;
         alert(`Error: ${errorData.message || "Something went wrong"}`);
       }
     } catch (error) {

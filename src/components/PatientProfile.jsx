@@ -13,6 +13,8 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import CalibrationConfirmOverlay from "./Modals/CalibrationConfirmOverlay";
+import api from "../api/apiClient"
+import api8031 from "../api/apiClient8031";
 
 function PatientProfile() {
   const { t, i18n } = useTranslation();
@@ -128,19 +130,22 @@ function PatientProfile() {
   const [patient, setPatient] = useState([]);
   const fetchPatientProfile = async () => {
     try {
-      const response = await fetch(`/api/7284/db/Patient`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Patient`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/db/Patient`);
+
+      const data = response.data;
       const matchingPatient = data.find(
         (item) => item.deviceid === macaddress
       ) || {
@@ -209,19 +214,21 @@ function PatientProfile() {
   const PUT_PatientInfo = async (patientid, requestBody) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/db/Patient/${patientid}`, requestBody);
+      const data = response.data;
       if (data.code !== 0) {
         console.log("Patient fail to update:", data);
         alert("Patient fail to update!");
@@ -257,18 +264,21 @@ function PatientProfile() {
   const deletePatient_API = async (patientId) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/7284/db/Patient/${patientId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Patient/${patientId}`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
-      const data = await response.json();
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
+      // const data = await response.json();
+      const response = await api.delete(`/api/7284/db/Patient/${patientId}`);
+
+      const data = response.data;
       console.log("Delete successfully!:", data);
       alert("Delete successfully!");
       navigate("/home");
@@ -293,13 +303,14 @@ function PatientProfile() {
     try {
       setLoading(true);
 
-      const response = await fetch("/api/8031/ucb/denoise", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      // const response = await fetch("/api/8031/ucb/denoise", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody),
+      // });
+      const response = await api8031.post("/api/8031/ucb/denoise", requestBody);
     } catch (error) {
       console.error("Error while submitting data:", error);
       alert("Error: Unable to connect to the server.");

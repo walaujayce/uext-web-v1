@@ -5,6 +5,7 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
+import api from "../api/apiClient"
 
 function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceType, enableDeviceType }) {
       const { t, i18n } = useTranslation();
@@ -16,16 +17,18 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
 
   const fetchFloorList = async () => {
     try {
-      const response = await fetch("/api/7284/Floor", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // const response = await fetch("/api/7284/Floor", {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.get("/api/7284/Floor"); 
+      const data = response.data;
       console.log(data);
       setFloors(data);
       const floorToSet = data.find((floor) => floor.floorid === 0);
@@ -61,11 +64,13 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
 
   const fetchSectionList = async () => {
     try {
-      const response = await fetch("/api/7284/Section");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // const response = await fetch("/api/7284/Section");
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.get("/api/7284/Section");
+      const data = response.data;
       console.log(data);
       setSections(data);
       const sectionToSet = data.find((section) => section.sectionid === 0);

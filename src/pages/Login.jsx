@@ -9,6 +9,8 @@ import "/src/CSS/overlay.css";
 import { useAuth } from "../JS/AuthContext";
 import { useTranslation } from "react-i18next";
 import { login_auth } from "../auth/authService";
+import api from "../api/apiClient";
+import { getAccessToken } from "../auth/authStore";
 
 function Login() {
   const { t, i18n } = useTranslation();
@@ -39,7 +41,7 @@ function Login() {
 
   const loginRequest = {
     userid: username,
-    password: password
+    password: password,
   };
   const handleLogin = async () => {
     try {
@@ -48,20 +50,10 @@ function Login() {
         alert(error);
         return;
       }
-      login_auth(username,password);
-      // const user_login = await fetch("/api/7284/User/login", {
-      //   method: "POST",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(loginRequest)
-      // });
-      // if (!user_login.ok) {
-      //   throw new Error(`HTTP error! status: ${user_login.status}`);
-      // }
-      // const result = await user_login.json();
-      // console.log(result);
+      const res = await login_auth(username, password);
+      console.log("Result: ", res);
 
+      // const res = api.get('/api/7284/User');
       // const response = await fetch("/api/7284/User", {
       //   method: "GET",
       //   headers: {
@@ -74,35 +66,38 @@ function Login() {
       // const data = await response.json();
       // const user = data.find((user) => user.userid === username);
 
-      // if (user) {
-      //   //console.log("Password:", user.password);
-      //   if (result.code===0) {
-      //     localStorage.setItem("username", JSON.stringify(user.username)); // Save user to localStorage
+      if (res.code === 200) {
+        //console.log("Password:", user.password);
+        localStorage.setItem("username", JSON.stringify(username)); // Save user to localStorage
 
-      //     switch (user.role) {
-      //       case 0:
-      //         login("administrator");
-      //         break;
-      //       case 1:
-      //         login("engineer");
-      //         break;
-      //       case 2:
-      //         login("user");
-      //         break;
-      //     }
-      //     navigate("/home");
-      //   } else {
-      //     setError("Incorrect password");
-      //     alert("Invalid User account or Password!");
-      //   }
-      // }
+        switch (res.data.role) {
+          case 0:
+            login("administrator");
+            break;
+          case 1:
+            login("engineer");
+            break;
+          case 2:
+            login("user");
+            break;
+        }
+        navigate("/home");
+      } else {
+        setError("Incorrect password");
+        alert("Invalid User account or Password!");
+      }
     } catch (error) {
+      if (error.response && error.response.status === 401) {
+        console.log("Unauthorized: Access denied.");
+        // Clear local storage or redirect user
+      } else {
+        console.log("An error occurred:", error.message);
+      }
       setError("An error occurred while logging in");
       console.error(error);
     }
-
   };
-  
+
   {
     /* Navigate to forget password Page */
   }
@@ -134,7 +129,7 @@ function Login() {
                 pattern=""
                 className="placeholder"
                 name="login"
-                placeholder={t('Login.InputboxPlaceholder')}
+                placeholder={t("Login.InputboxPlaceholder")}
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -166,7 +161,7 @@ function Login() {
                 type={showPassword ? "text" : "password"}
                 className="placeholder"
                 name="pw"
-                placeholder={t('Login.InputboxPlaceholder')}
+                placeholder={t("Login.InputboxPlaceholder")}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
