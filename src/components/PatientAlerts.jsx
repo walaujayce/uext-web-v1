@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import useSessionStorageState from "../JS/PatientAlertSessionStorage";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import api from "../api/apiClient"
 
 function PatientAlerts() {
   const { t, i18n } = useTranslation();
@@ -28,19 +29,21 @@ function PatientAlerts() {
 
   const fetchPatientProfile = async () => {
     try {
-      const response = await fetch(`/api/7284/db/Patient`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Patient`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/db/Patient`);
+      const data = response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
       setPatient(matchingPatient);
       console.log("patient detail is ", matchingPatient);
@@ -412,19 +415,21 @@ function PatientAlerts() {
 
   const fetchAlertList = async (patientid) => {
     try {
-      const response = await fetch(`/api/7284/db/Alert/${patientid}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Alert/${patientid}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/db/Alert/${patientid}`);
+      const data = response.data;
       if (data.code === -1) {
         console.log(data.message);
         setNewAlert(true);
@@ -646,18 +651,20 @@ function PatientAlerts() {
     try {
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Alert`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody_POST), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Alert`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody_POST), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.post(`/api/7284/db/Alert`, requestBody_POST);
+      const data = response.data;
       if (data.code !== 0) {
         console.log(data.message);
         alert(data.message);
@@ -691,18 +698,20 @@ function PatientAlerts() {
       console.log("alert end time UTC ",formatAlertEndTimeToUTC());
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/db/Alert/${patient.patientid}`, updatedData);
+      const data = response.data;
       if (data.code !== 0) {
         console.log(data.message);
         alert(data.message);
@@ -749,18 +758,21 @@ function PatientAlerts() {
 
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/db/Alert/${patient.patientid}`,updatedData);
+
+      const data = response.data;
       if (data.code !== 0) {
         console.log(data.message);
         alert(data.message);

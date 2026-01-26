@@ -6,6 +6,7 @@ import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import { useAuth } from "../JS/AuthContext";
 import { is } from "date-fns/locale";
+import api from "../api/apiClient"
 
 function AlertList() {
   const { t, i18n } = useTranslation();
@@ -231,19 +232,21 @@ function AlertList() {
   }
   const fetchNoticitionList = async () => {
     try {
-      const response = await fetch(`/api/7284/db/Notification`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Notification`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const notifications = await response.json();
+      // const notifications = await response.json();
+      const response = await api.get(`/api/7284/db/Notification`);
+      const notifications = response.data;
       console.log("Fetched notifications:", notifications);
 
       // Group notifications by MAC address
@@ -367,21 +370,26 @@ function AlertList() {
   };
   const setNotificationChecked_PUT = async (notification_Id) => {
     try {
-      const response = await fetch(
-        `/api/7284/db/Notification/${notification_Id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(requestbody_PUT), // Convert the requestBody to JSON
-        }
-      );
+      // const response = await fetch(
+      //   `/api/7284/db/Notification/${notification_Id}`,
+      //   {
+      //     method: "PUT",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //     body: JSON.stringify(requestbody_PUT), // Convert the requestBody to JSON
+      //   }
+      // );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      const response = await api.put(
+        `/api/7284/db/Notification/${notification_Id}`,requestbody_PUT);
+
+
+      const data = response.data;
       if (data.code !== 0) {
         console.log(data.message);
         return;

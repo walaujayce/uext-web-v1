@@ -9,6 +9,7 @@ import { useAuth } from "../JS/AuthContext";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import { ConsoleLogger } from "@microsoft/signalr/dist/esm/Utils";
+import api from "../api/apiClient";
 
 function ResetPassword() {
   const { t, i18n } = useTranslation();
@@ -55,16 +56,19 @@ function ResetPassword() {
   const handleValidateEmailToken = async () => {
     try {
       setLoading(true);
-      const response = await fetch(
-        `/api/7284/SendEmail/validate-email-token?token=${token}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
-      const data = await response.json();
+      // const response = await fetch(
+      //   `/api/7284/SendEmail/validate-email-token?token=${token}`,
+      //   {
+      //     method: "GET",
+      //     headers: {
+      //       "Content-Type": "application/json",
+      //     },
+      //   }
+      // );
+      // const data = await response.json();
+      const response = await api.get(
+        `/api/7284/SendEmail/validate-email-token?token=${token}`);
+      const data = response.data;
       if (response.status === 200) {
         if(data.valid){
           return true;
@@ -92,19 +96,21 @@ function ResetPassword() {
 
   const fetchUserInfo = async (userid) => {
     try {
-      const response = await fetch(`/api/7284/User/${userid}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/User/${userid}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/User/${userid}`);
+      const data = response.data;
       console.log(data);
       setUserInfo(data);
     } catch (error) {
@@ -158,19 +164,22 @@ function ResetPassword() {
 
       setLoading(true);
 
-      const response = await fetch(`/api/7284/User/${userid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/User/${userid}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/User/${userid}`,updatedData);
+
+      const data = response.data;
       if (data.code !== 0) {
         console.log("Password fail to update:", data);
         alert("Password fail to update!");

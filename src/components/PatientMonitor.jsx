@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next";
 import Example from "./HeartRateGraph";
 import HeartBeatGraph from "./HeartRateGraph";
 import RespirationChart from "./RespiratoryGraph";
+import api from "../api/apiClient"
+import api8031 from "../api/apiClient8031";
 
 function PatientMonitor() {
   const { t, i18n } = useTranslation();
@@ -35,17 +37,21 @@ function PatientMonitor() {
   const postData = async () => {
     try {
       if (import.meta.env.VITE_MODE === "dev") {
-        const response8031API = await fetch(
-          `/api/7284/ss/SocketServer/${macaddress}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        // const response8031API = await fetch(
+        //   `/api/7284/ss/SocketServer/${macaddress}`,
+        //   {
+        //     method: "GET",
+        //     headers: {
+        //       "Content-Type": "application/json",
+        //     },
+        //   }
+        // );
 
-        const data = await response8031API.json();
+        // const data = await response8031API.json();
+        const response8031API = await api.get(
+          `/api/7284/ss/SocketServer/${macaddress}`)
+
+        const data = response8031API.data;
         console.log("Rawdata:", data);
         // console.log("RawData:", data);
         setRawdatum(data.IMAGE);
@@ -68,14 +74,17 @@ function PatientMonitor() {
             : next;
         });
       } else {
-        const response8031API = await fetch(`/api/8031/rawdata/${macaddress}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        // const response8031API = await fetch(`/api/8031/rawdata/${macaddress}`, {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
 
-        const data = await response8031API.json();
+        // const data = await response8031API.json();
+        const response8031API = await api8031.get(`/api/8031/rawdata/${macaddress}`);
+
+        const data =  response8031API.data;
         console.log("Rawdata:", data);
         // console.log("RawData:", data);
         setRawdatum(data.IMAGE);
@@ -134,19 +143,21 @@ function PatientMonitor() {
 
   const fetchPatientProfile = async () => {
     try {
-      const response = await fetch(`/api/7284/db/Patient`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Patient`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/db/Patient`);
+      const data =  response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
       setPatient(matchingPatient);
       console.log("patient detail is ", matchingPatient);
@@ -156,19 +167,22 @@ function PatientMonitor() {
   };
   const fetchAlertList = async (patientid) => {
     try {
-      const response = await fetch(`/api/7284/db/Alert/${patientid}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Alert/${patientid}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/db/Alert/${patientid}`);
+
+      const data = response.data;
       if (data.code === -1) {
         console.log(data.message);
         setRespirationMaxBaselineX(null);

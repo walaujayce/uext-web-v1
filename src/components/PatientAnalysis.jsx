@@ -12,6 +12,7 @@ import ChartComponent from "./ChartComponent";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { set } from "date-fns";
+import api from "../api/apiClient";
 
 function PatientAnalysis() {
   const { t, i18n } = useTranslation();
@@ -178,23 +179,25 @@ function PatientAnalysis() {
         Interval: parseInt(adjustedInterval, 10),
       };
       console.log("filterRequest", filterRequest);
-      const response = await fetch(
-        `/api/7284/db/RecordData/?timezone=Asia_Taipei`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(filterRequest),
-        }
-      );
-      console.log("response", response);
-      const contentType = response.headers.get("Content-Type");
-      if (contentType && contentType.includes("application/json")) {
-        const jsonData = await response.json();
-        if (jsonData.code === -1) {
-          alert(jsonData.messages || "Error: No raw data found");
-          return;
+      // const response = await fetch(
+      //   `/api/7284/db/RecordData/?timezone=Asia_Taipei`,
+      //   {
+        //     method: "POST",
+        //     headers: {
+          //       "Content-Type": "application/json",
+          //     },
+          //     body: JSON.stringify(filterRequest),
+          //   }
+          // );
+          // console.log("response", response);
+          // const contentType = response.headers.get("Content-Type");
+          // if (contentType && contentType.includes("application/json")) {
+            const response = await api.post(
+              `/api/7284/db/RecordData/?timezone=Asia_Taipei`,filterRequest);
+            const jsonData = response.data;
+            if (jsonData.code === -1) {
+              alert(jsonData.messages || "Error: No raw data found");
+              return;
         }
         console.log("result", jsonData);
         const bedEventArray = [];
@@ -218,7 +221,7 @@ function PatientAnalysis() {
         // console.log("adcList", adcList);
         // console.log("varList", varList);
         console.log("dateTime_list", dateTimeList);
-      }
+      // }
     } catch (error) {
       console.error("Download failed:", error);
     } finally {

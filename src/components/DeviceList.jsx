@@ -11,6 +11,8 @@ import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewDevice from "../components/Modals/AddNewDevice";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
+import api from "../api/apiClient"
+import api8031 from "../api/apiClient8031";
 
 const DeviceList = () => {
   const { t, i18n } = useTranslation();
@@ -81,19 +83,21 @@ const DeviceList = () => {
     try {
       if (import.meta.env.VITE_MODE === "dev") {
         const [response, response8031] = await Promise.all([
-          fetch("/api/7284/db/Device"),
-          fetch("/api/7284/ss/SocketServer"),
+          api.get("/api/7284/db/Device"),
+          api.get("/api/7284/ss/SocketServer"),
         ]);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        if (!response8031.ok) {
-          throw new Error(`HTTP error! status: ${response8031.status}`);
-        }
-        const data = await response.json();
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
+        // if (!response8031.ok) {
+        //   throw new Error(`HTTP error! status: ${response8031.status}`);
+        // }
+        const data = response.data;
+        // const data = await response.json();
         console.log(data);
-        const result8031 = await response8031.json();
+        const result8031 = response8031.data;
+        // const result8031 = await response8031.json();
         const data8031 = result8031;
         //console.log(data8031);
         setDevices(data);
@@ -111,19 +115,19 @@ const DeviceList = () => {
         setDeviceMap(matchedMap);
       } else {
         const [response, response8031] = await Promise.all([
-          fetch("/api/7284/db/Device"),
-          fetch("/api/8031/devices"),
+          api.get("/api/7284/db/Device"),
+          api8031.get("/api/8031/devices"),
         ]);
 
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        if (!response8031.ok) {
-          throw new Error(`HTTP error! status: ${response8031.status}`);
-        }
-        const data = await response.json();
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
+        // if (!response8031.ok) {
+        //   throw new Error(`HTTP error! status: ${response8031.status}`);
+        // }
+        const data = response.data;
         console.log(data);
-        const result8031 = await response8031.json();
+        const result8031 = response8031.data;
         const data8031 = result8031.DATA;
         //console.log(data8031);
         setDevices(data);

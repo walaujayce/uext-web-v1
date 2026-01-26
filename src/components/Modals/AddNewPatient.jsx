@@ -9,6 +9,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
+import api from "../../api/apiClient";
 
 const AddNewPatient = ({ mac, callback }) => {
   const { t, i18n } = useTranslation();
@@ -139,13 +140,14 @@ const AddNewPatient = ({ mac, callback }) => {
     };
     try {
       setLoading(true);
-      const response = await fetch("/api/7284/db/Patient", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody),
-      });
+      // const response = await fetch("/api/7284/db/Patient", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody),
+      // });
+      const response = await api.post("/api/7284/db/Patient", requestBody);
 
       if (response.status === 200) {
         setActive_Stage2(true);

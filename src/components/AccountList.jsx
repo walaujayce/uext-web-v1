@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import SignalRService from "../JS/SignalR";
 import { useTranslation } from "react-i18next";
 import AddNewUser from "../components/Modals/AddNewUser";
-
+import api from "../api/apiClient";
 const AccountList = () => {
   const { t, i18n } = useTranslation();
 
@@ -18,13 +18,15 @@ const AccountList = () => {
 
   const fetchAccountList = async () => {
     try {
-      const response = await fetch("/api/7284/User");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log(data);
-      setAccount(data);
+      const res = await api.get("/api/7284/User");
+      console.log("res.data: ", res.data);
+      // const response = await fetch("/api/7284/User");
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      // console.log(data);
+      setAccount(res.data);
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -216,7 +218,7 @@ if (sortDirection) {
           <div className="head">
             <h3 className={`fg1 ${sortType === sortTypes[0] ? "selected" : ""}`} onClick={() => SortType(0)}>{t("AccountList.UserID")}  {sortType === sortTypes[0] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
             <h3 className={`fg1 ${sortType === sortTypes[1] ? "selected" : ""}`} onClick={() => SortType(1)}>{t("AccountList.UserName")}  {sortType === sortTypes[1] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
-            <h3 className={`fg1 ${sortType === sortTypes[2] ? "selected" : ""}`} onClick={() => SortType(2)}>{t("AccountList.UserPassword")}  {sortType === sortTypes[2] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
+            {/* <h3 className={`fg1 ${sortType === sortTypes[2] ? "selected" : ""}`} onClick={() => SortType(2)}>{t("AccountList.UserPassword")}  {sortType === sortTypes[2] && (sortDirection ? "\u25BC" : "\u25B2")}</h3> */}
             <h3 className={`fg1 ${sortType === sortTypes[3] ? "selected" : ""}`} onClick={() => SortType(3)}>{t("AccountList.UserRole")}  {sortType === sortTypes[3] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
             <h3 className={`fg1 ${sortType === sortTypes[4] ? "selected" : ""}`} onClick={() => SortType(4)}>{t("AccountList.UserEmail")}  {sortType === sortTypes[4] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
             <h3 className={`fg1 ${sortType === sortTypes[5] ? "selected" : ""}`} onClick={() => SortType(5)}>{t("AccountList.LastLogin")}  {sortType === sortTypes[5] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
@@ -232,10 +234,10 @@ if (sortDirection) {
                 <a className="item" key={account.userid}>
                   <h3 className="fg1">{account.userid}</h3>
                   <h3 className="fg1">{account.username}</h3>
-                  <h3 className="fg1">
+                  {/* <h3 className="fg1">
                     {account.password[0] +
                       "*".repeat(account.password.length - 1)}
-                  </h3>
+                  </h3> */}
                   <h3 className="fg1">
                     {account.role === 0
                       ? "Administrator"

@@ -10,6 +10,8 @@ import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import api from "../api/apiClient";
+import api8031 from "../api/apiClient8031";
 
 function PatientEngineer() {
   const { t, i18n } = useTranslation();
@@ -32,18 +34,21 @@ function PatientEngineer() {
     try {
       let response;
       if (import.meta.env.VITE_MODE === "dev") {
-        response = await fetch(`/api/7284/ss/SocketServer/${macaddress}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        // response = await fetch(`/api/7284/ss/SocketServer/${macaddress}`, {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
 
-        const contentType = response.headers.get("Content-Type");
-        if (!response.ok || !contentType?.includes("application/json")) {
-          throw new Error(`Expected JSON, got: ${contentType}`);
-        }
-        const data = await response.json();
+        // const contentType = response.headers.get("Content-Type");
+        // if (!response.ok || !contentType?.includes("application/json")) {
+        //   throw new Error(`Expected JSON, got: ${contentType}`);
+        // }
+        // const data = await response.json();
+        response = await api.get(`/api/7284/ss/SocketServer/${macaddress}`);
+
+        const data = response.data;
         setRawData(data);
         console.log("RawData:", data);
         setRawdatum(data.IMAGE);
@@ -57,18 +62,20 @@ function PatientEngineer() {
         setRespirationValue(data.RR.value);
         setHeartValue(data.HR.value);
       } else {
-        response = await fetch(`/api/8031/rawdata/${macaddress}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        // response = await fetch(`/api/8031/rawdata/${macaddress}`, {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
 
-        const contentType = response.headers.get("Content-Type");
-        if (!response.ok || !contentType?.includes("application/json")) {
-          throw new Error(`Expected JSON, got: ${contentType}`);
-        }
-        const data = await response.json();
+        // const contentType = response.headers.get("Content-Type");
+        // if (!response.ok || !contentType?.includes("application/json")) {
+        //   throw new Error(`Expected JSON, got: ${contentType}`);
+        // }
+        // const data = await response.json();
+        response = await api8031.get(`/api/8031/rawdata/${macaddress}`);
+        const data = response.data;
         setRawData(data);
         console.log("RawData:", data);
         setRawdatum(data.IMAGE);
@@ -306,19 +313,22 @@ function PatientEngineer() {
 
   const fetchDeviceInfo = async (macaddress) => {
     try {
-      const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/db/Device/${macaddress}`);
+
+      const data = response.data;
       console.log(data);
       setDeviceInfo(data);
 
@@ -424,20 +434,22 @@ function PatientEngineer() {
 
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      });
+      // console.log("Device updated successfully:", data);
+      // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
 
-      const data = await response.json();
-      console.log("Device updated successfully:", data);
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/db/Device/${macaddress}`, updatedData);
+      const data = response.data;
       alert("Update Successfully!");
       window.location.reload();
       return data; // Return the response data if needed
