@@ -23,25 +23,29 @@ const MonitorUEXTCard = ({
         {/* 下排：佔 30% - 功能列與狀態 */}
         <div className="card-lower">
           <div className="controls-wrapper">
-            <div 
-              className="custom-toggle" 
+            <div
+              className="custom-toggle"
               onClick={toggleToOpenCV}
-              style={{ backgroundColor: type === "icon" ? "#1890FF" : "#FF4D4F" }}
+              style={{
+                backgroundColor: type === "icon" ? "#1890FF" : "#FF4D4F",
+              }}
             >
-               {/* The moving circle */}
-               <div 
-                 className="toggle-circle"
-                 style={{ left: type === "icon" ? "calc(100% - 16px)" : "1px" }}
-               />
-               
-               {/* The Label Text */}
-               <span className="toggle-label" style={{ 
-                   paddingLeft: type === "icon" ? "0px" : "12px", 
-                   paddingRight: type === "icon" ? "12px" : "0",
-                   
-               }}>
-                  {type === "icon" ? "I" : "P"}
-               </span>
+              {/* The moving circle */}
+              <div
+                className="toggle-circle"
+                style={{ left: type === "icon" ? "calc(100% - 16px)" : "1px" }}
+              />
+
+              {/* The Label Text */}
+              <span
+                className="toggle-label"
+                style={{
+                  paddingLeft: type === "icon" ? "0px" : "12px",
+                  paddingRight: type === "icon" ? "12px" : "0",
+                }}
+              >
+                {type === "icon" ? "I" : "P"}
+              </span>
             </div>
             <div
               className="status-light"
@@ -80,9 +84,11 @@ const MonitorUEXTCard = ({
 const MonitorUMAPCard = ({
   type,
   macaddress,
+  umapImg,
   rawdata,
   width,
   height,
+  toggleToOpenCV,
   isOnline,
 }) => {
   return (
@@ -93,6 +99,30 @@ const MonitorUMAPCard = ({
         <div className="card-lower">
           <div className="controls-wrapper">
             <div
+              className="custom-toggle"
+              onClick={toggleToOpenCV}
+              style={{
+                backgroundColor: type === "icon" ? "#1890FF" : "#FF4D4F",
+              }}
+            >
+              {/* The moving circle */}
+              <div
+                className="toggle-circle"
+                style={{ left: type === "icon" ? "calc(100% - 16px)" : "1px" }}
+              />
+
+              {/* The Label Text */}
+              <span
+                className="toggle-label"
+                style={{
+                  paddingLeft: type === "icon" ? "0px" : "12px",
+                  paddingRight: type === "icon" ? "12px" : "0",
+                }}
+              >
+                {type === "icon" ? "I" : "P"}
+              </span>
+            </div>
+            <div
               className="status-light"
               style={{ backgroundColor: isOnline ? "#68D536" : "#F4CCCC" }}
             ></div>
@@ -101,24 +131,26 @@ const MonitorUMAPCard = ({
         {/* 上排：佔 70% - 顯示圖片/內容 */}
         <div className="card-upper">
           <div
-            className="image-container"
-            style={{ border: "0px", background: "#f9f9f9" }}
+            className={`image-container ${
+              type === "pressureImage" ? "pressure-image" : ""
+            } `}
+            // style={{ border: "0px", background: "#f9f9f9" }}
           >
-            {type === "icon" ? (
-              <img
-                className="person-icon"
-                src="/src/assets/icon_sitting.jpg"
-                alt="Person Icon"
-              />
-            ) : (
-              // 模擬右側：熱圖示意圖
+            {type === "pressureImage" ? (
               <OpenCVComponent2
                 deviceid={macaddress}
                 rawdata={rawdata}
                 width={width}
                 height={height}
               />
-              // <img className="person-icon" src="/src/assets/icon_sitting.jpg" alt="Person Icon" />
+
+            ) : (
+              // 模擬右側：熱圖示意圖
+              <img
+                className="person-icon"
+                src={umapImg}
+                alt="Person Icon"
+              />
             )}
           </div>
         </div>
@@ -132,32 +164,34 @@ const MonitorUMAPCard = ({
 
 // 主組件
 const BedMonitor = () => {
-  const leaveBedTimeSpanThreshold = parseInt(import.meta.env.VITE_LEAVE_BED_TOTAL_TIME, 10) || 15; //離床累及時間
-  const fakeDataFrameRate = parseInt(import.meta.env.VITE_FAKE_DATA_HOLD_TIME, 10) || 5; //離床動畫frame時間
-  let leaveBedThreshold = parseFloat(import.meta.env.VITE_LEAVE_BED_THRESHOLD) || 0.1; //離床累及時間
-  
+  const leaveBedTimeSpanThreshold =
+    parseInt(import.meta.env.VITE_LEAVE_BED_TOTAL_TIME, 10) || 15; //離床累及時間
+  const fakeDataFrameRate =
+    parseInt(import.meta.env.VITE_FAKE_DATA_HOLD_TIME, 10) || 5; //離床動畫frame時間
+  let leaveBedThreshold =
+    parseFloat(import.meta.env.VITE_LEAVE_BED_THRESHOLD) || 0.1; //離床累及時間
+
   let offLineSpan = 0;
-  const [hasTriggerToggle, setHasTriggerToggle] = useState(false);
   const UEXT_sample_rawdata = [
-    "/src/assets/icon_out-of-bed.jpg",
-    "/src/assets/icon_leaving.jpg",
-    "/src/assets/icon_sitting.jpg",
-    "/src/assets/icon_resting.jpg",
-    "/src/assets/icon_sitting.jpg",
-    "/src/assets/icon_leaving.jpg",
+    "/src/assets/icon_out-of-bed.svg",
+    "/src/assets/icon_leaving.svg",
+    "/src/assets/icon_sitting.svg",
+    "/src/assets/icon_resting.svg",
+    "/src/assets/icon_sitting.svg",
+    "/src/assets/icon_leaving.svg",
   ];
   const getIconBasedOnPos = (pos) => {
     switch (pos) {
       case 1:
-        return "/src/assets/icon_resting.jpg";
+        return "/src/assets/icon_resting.svg";
       case 2:
-        return "/src/assets/icon_sitting.jpg";
+        return "/src/assets/icon_sitting.svg";
       case 3:
-        return "/src/assets/icon_leaving.jpg";
+        return "/src/assets/icon_leaving.svg";
       case 4:
-        return "/src/assets/icon_out-of-bed.jpg";
+        return "/src/assets/icon_out-of-bed.svg";
       default:
-        return "/src/assets/icon_out-of-bed.jpg";
+        return "/src/assets/icon_out-of-bed.svg";
     }
   };
 
@@ -170,11 +204,12 @@ const BedMonitor = () => {
   const [isOnlineUEXT, setOnlineUEXT] = useState(true);
   const [isAllowToggleUEXT, setAllowToggleUEXT] = useState(true);
   const [offlineTimeSpanUEXT, setOfflineTimeSpanUEXT] = useState(0);
+  const [hasTriggerToggle, setHasTriggerToggle] = useState(false);
 
   const sampleIndexUEXTRef = useRef(0); // Tracks which sample image to show
   const offlineCountUEXTRef = useRef(0); // Tracks the offline count for logic
 
-  const toggleToOpenCV = () => {
+  const toggleUextToOpenCV = () => {
     if (isOnlineUEXT && isAllowToggleUEXT)
       setShowTypeUEXT((prev) => (prev === "icon" ? "pressureImage" : "icon"));
   };
@@ -197,7 +232,7 @@ const BedMonitor = () => {
       if (data.STAT === 1) {
         setOnlineUEXT(true);
         offLineSpan = 0;
-        console.log("(UEXT)POS: " + data.POS);
+        // console.log("(UEXT)POS: " + data.POS);
         // 2. CALCULATE NEXT STATUS USING LOCAL VARIABLES/REFS
         let nextTimeSpan = 0;
         if (data.POS === 4) {
@@ -232,7 +267,7 @@ const BedMonitor = () => {
           setAllowToggleUEXT(true);
         }
 
-        console.log("(UEXT)Leave count: " + nextTimeSpan);
+        // console.log("(UEXT)Leave count: " + nextTimeSpan);
       } else {
         setOnlineUEXT(false);
         if (offLineSpan % fakeDataFrameRate === 0) {
@@ -241,9 +276,10 @@ const BedMonitor = () => {
           setUextImg(UEXT_sample_rawdata[sampleIndexUEXTRef.current]);
         }
         offLineSpan++;
+        setShowTypeUEXT("icon");
       }
     } catch (error) {
-      console.error("(UEXT)Error making POST request:", error);
+      // console.error("(UEXT)Error making POST request:", error);
       setOnlineUEXT(false);
       setAllowToggleUEXT(false);
       if (offLineSpan % fakeDataFrameRate === 0) {
@@ -252,8 +288,10 @@ const BedMonitor = () => {
         setUextImg(UEXT_sample_rawdata[sampleIndexUEXTRef.current]);
       }
       offLineSpan++;
+      setShowTypeUEXT("icon");
+
     }
-    console.log("(UEXT)Offline count: " + offLineSpan);
+    // console.log("(UEXT)Offline count: " + offLineSpan);
   };
 
   useEffect(() => {
@@ -322,16 +360,39 @@ const BedMonitor = () => {
     "000000000000000000000000000000000000000000000000000000000000040000000000000000000000000008000A00000000000000020700000000000000000000000000180600000000000000000E080500000000000000000000000B00000000000000000000000E1200000000000000000000000702000000000000000000080F0B0000000000000000000009100A000000000000000000111D140500000000000000000007170F000000000000000000151921020000000000000000020E150A000000000000000000051E1A0400000000000000000A151B120000000000000000000B1E1B05000000000000000007131C06000000000000000000000F0F00000000000000000001110C00000000000000000000000400000000000000000000000505000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000003000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000040000000000000002080500000000000000000000000000060905000000000000070E05000000000000000000000000000E171207000000000101040E00000000000000000000000002111F120E0000000008020F0C000000000000000000000000000E0908030000000007100B050000000000000000000000000016100C110300000004040805000000000000000000000000000B0604020600000402020603000000000000000000000004041307040405000000000F0B0D00000000000000000000000003070007060C00000712161006010000000000000000000000051E22161A1A140C171E30201C0100000000000000000000000A0A1725292424272E22281C171300000000000000000000000E291F242D2A2E2B2C2F2D26200E000000000000000200000005223836433D37393D3535251909000000000000000000000001181C28333E2C2C383F29211E10000000000000000000000003191C2B3732292E334B3F39261C0000000000000000000000060E1D2245231D101F332C2634130000000000000000000000000B10163220151013301F1F1A01000000000000000000000000031E22150E0A11151911151100000000000000000000000000030A0304141A323E3327090900000000000300000000000000000309220C1A24180A0A080300000000000900030000000000000008120F080D111A170F04000000000008001A000000000000000404211319131C1B120700000000000F000600000000000000081A0C19152324211A060000000008140607060000000000031116241B0F171C2B23120700000123733416110000000000050B1C261F141730241613050000020810011E08000000000002071516191D161F251709010100000202000A0A040000000003091C141E2D2726251A0F0901000004030002050802000000090B111B2812141A2510070201000001000000050909000000080D161C281710131008060B030400060000000007030105030A131E161B151A1D0A10090D0B0600020000000000060905120E1B2B1D181B1D1D1C161A180B0A0A0200000000000004080A0912181A1D14141716171C0E030B07030000000000000004080A110F1016110F151A14120A030300000000000000000000070C080404090909100F0C080501000000000000000000000000000607090A19020A0605020100000000000000000000000000000001050900000200000000000000000000000000000000000000000000060100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000007000000000000000000000000000000000000000000002300181400000000000000000000000000000000000000000018012017000000000000000000000000000000000000000000000E313B000000000000000000000000000000000000000000003660390000000000000000000000000000000000000000000004260702000000000000000000000000000000000000000000030000000000000000000000000000000000000000000000000000000000000000000000000000",
   ];
 
-  const macaddressUMAP = import.meta.env.VITE_UMAP_MAC || "00C0CAB7A36D";
+    const getUmapIconBasedOnPos = (pos) => {
+    switch (pos) {
+      case 1:
+        return "/src/assets/icon_resting.svg";
+      case 4:
+        return "/src/assets/icon_out-of-bed.svg";
+      case 6:
+        return "/src/assets/icon_left_bed.svg";
+      case 7:
+        return "/src/assets/icon_right_bed.svg";
+      default:
+        return "/src/assets/icon_out-of-bed.svg";
+    }
+  };
+
+  const macaddressUMAP = import.meta.env.VITE_UMAP_MAC || "80C9553B52A0";
   const [rawdataUMAP, setRawdataUMAP] = useState(UMAP_sample_rawdata[0]);
   const [widthUMAP, setWidthUMAP] = useState(25);
   const [heightUMAP, setHeightUMAP] = useState(63);
+  const [umapImg, setUmapImg] = useState(UMAP_sample_rawdata[0]);
   const [showTypeUMAP, setShowTypeUMAP] = useState("pressureImage");
   const [isOnlineUMAP, setOnlineUMAP] = useState(true);
+  const [isAllowToggleUMAP, setAllowToggleUMAP] = useState(true);
   const [offlineTimeSpanUMAP, setOfflineTimeSpanUMAP] = useState(0);
+  const [hasTriggerToggleUMAP, setHasTriggerToggleUMAP] = useState(false);
 
   const sampleIndexRef = useRef(0); // Tracks which sample image to show
   const offlineCountRef = useRef(0); // Tracks the offline count for logic
+
+  const toggleUmapToOpenCV = () => {
+    if (isOnlineUMAP && isAllowToggleUMAP)
+      setShowTypeUMAP((prev) => (prev === "icon" ? "pressureImage" : "icon"));
+  };
 
   const postUMAPData = async () => {
     try {
@@ -344,10 +405,10 @@ const BedMonitor = () => {
       if (!response.ok || !contentType?.includes("application/json")) {
         throw new Error(`Expected JSON, got: ${contentType}`);
       }
-
       const data = await response.json();
       setWidthUMAP(data.WIDTH);
       setHeightUMAP(data.HEIGHT);
+      console.log("(UMAP)POS: ", data.POS);
       if (data.STAT === 1) {
         setOnlineUMAP(true);
         // Calculate percentage
@@ -377,11 +438,18 @@ const BedMonitor = () => {
           setRawdataUMAP(UMAP_sample_rawdata[sampleIndexRef.current]);
 
           // Optional: Update UI mode if needed
-          // setShowTypeUMAP("icon");
+          if (!hasTriggerToggleUMAP) {
+            setShowTypeUMAP("pressureImage");
+            setHasTriggerToggleUMAP(true);
+            setAllowToggleUMAP(false);
+          }
         } else {
           // ONLINE MODE: Use the API
           sampleIndexRef.current = 0;
           setRawdataUMAP(data.IMAGE);
+          setUmapImg(getUmapIconBasedOnPos(data.POS));
+          setAllowToggleUMAP(true);
+
         }
         console.log("(UMAP)Offline count: " + nextTimeSpan);
       } else {
@@ -389,6 +457,8 @@ const BedMonitor = () => {
         sampleIndexRef.current =
           (sampleIndexRef.current + 1) % UMAP_sample_rawdata.length;
         setRawdataUMAP(UMAP_sample_rawdata[sampleIndexRef.current]);
+        setShowTypeUMAP("pressureImage");
+
       }
     } catch (error) {
       console.error("(UMAP)Error making POST request:", error);
@@ -396,6 +466,8 @@ const BedMonitor = () => {
         (sampleIndexRef.current + 1) % UMAP_sample_rawdata.length;
       setRawdataUMAP(UMAP_sample_rawdata[sampleIndexRef.current]);
       setOnlineUMAP(false);
+      setShowTypeUMAP("pressureImage");
+      setAllowToggleUMAP(false);
     }
     // console.log("(UMAP)online status: " + isOnlineUMAP);
   };
@@ -420,7 +492,7 @@ const BedMonitor = () => {
         width={widthUEXT}
         height={heightUEXT}
         uextImg={uextImg}
-        toggleToOpenCV={toggleToOpenCV}
+        toggleToOpenCV={toggleUextToOpenCV}
         isOnline={isOnlineUEXT}
       />
       <MonitorUMAPCard
@@ -429,6 +501,8 @@ const BedMonitor = () => {
         rawdata={rawdataUMAP}
         width={widthUMAP}
         height={heightUMAP}
+        umapImg={umapImg}
+        toggleToOpenCV={toggleUmapToOpenCV}
         isOnline={isOnlineUMAP}
       />
     </div>

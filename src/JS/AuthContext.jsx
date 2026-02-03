@@ -38,7 +38,18 @@ export const AuthProvider = ({ children }) => {
       setIsAuthenticated(true);
     }
   }, []);
+  // ✅ Fake Click to Simulate User Interaction
+  useEffect(() => {
+    const fakeClick = () => {
+      document.body.click(); // Simulate user click
+      setIsUserInteracted(true);
+      console.log(
+        "Fake Click Executed! Audio permission should now be granted."
+      );
+    };
 
+    setTimeout(fakeClick, 100);
+  }, []);
   // ✅ Handle Login
   const login = (role) => {
     setRole(role);
@@ -96,18 +107,7 @@ export const AuthProvider = ({ children }) => {
     requestAudioPermission();
   }, []);
 
-  // ✅ Fake Click to Simulate User Interaction
-  useEffect(() => {
-    const fakeClick = () => {
-      document.body.click(); // Simulate user click
-      setIsUserInteracted(true);
-      console.log(
-        "Fake Click Executed! Audio permission should now be granted."
-      );
-    };
 
-    setTimeout(fakeClick, 500);
-  }, []);
 
   // ✅ Play Alert Sound(About to leave Bed)
   const playAboutToLeaveSound = () => {
