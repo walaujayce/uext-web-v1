@@ -323,10 +323,10 @@ const DeviceList = () => {
           <div className="btn" id="addDevice" onClick={handleAddDeviceClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">{t("DeviceList.NewDevice")}</p>
-            {isOverlayVisible && (
-              <AddNewDevice callback={handleAddDeviceClick} />
-            )}
           </div>
+          {isOverlayVisible && (
+            <AddNewDevice callback={handleAddDeviceClick} />
+          )}
         </div>
         <div className="pl">
           <div className="head">

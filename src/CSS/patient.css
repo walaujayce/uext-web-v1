@@ -45,6 +45,8 @@
         overflow: hidden;
         overflow-y: scroll;
         height: 80vh;
+            scrollbar-color: var(--scrollbar-thumb) transparent;
+
     }
     .pp h1{
         position: sticky;
@@ -163,6 +165,8 @@
     height: 100%;
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .monitor .pressure{
@@ -405,6 +409,8 @@
     max-height: calc(100vh - 20vh);
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .alertSetting{
@@ -499,7 +505,7 @@
     align-items: flex-start;
     padding: 20px;
     gap: 40px;
-    background: #FAFAFA;
+    background: var(--alert-opt-bg-color);
     border-bottom: 3px solid transparent;
 }
 
@@ -612,7 +618,7 @@
 
 .alertOpt .opt-grid .opt.on:hover{
     cursor: pointer;
-    background: var(--50, #F2F2F2);
+    background: var(--50, var(--alert-opt-active-bg-color));
 }
 
 .alertOpt .opt-grid.active{
@@ -621,7 +627,7 @@
 
 .alertOpt .opt-grid .opt.on.active{
     border-bottom: 3px solid var(--850, #262626);
-    background: var(--50, #F2F2F2);
+    background: var(--50, var(--alert-opt-active-bg-color));
     img{
         content: url(/src/assets/checkbox-filled-outline.svg);
     }
@@ -767,6 +773,8 @@
     overflow: hidden;
     overflow-y: scroll;
     padding-bottom: 80px;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .ct{
@@ -1186,6 +1194,8 @@
     max-height: calc(100vh - 20vh - 260px);
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 .ll .item{
     display: flex;

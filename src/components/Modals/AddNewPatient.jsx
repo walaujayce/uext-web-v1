@@ -408,7 +408,7 @@ const AddNewPatient = ({ mac, callback }) => {
                     alt="gray outline information icon"
                   />
                 </label>
-                <div>
+                <div className="dob-input">
                   <DatePicker
                     dateFormat="yyyy/MM/dd"
                     selected={selectedDate}
@@ -417,7 +417,7 @@ const AddNewPatient = ({ mac, callback }) => {
                     showMonthDropdown
                     showYearDropdown
                     dropdownMode="select"
-                    // className="react-date-picker"
+                    className="react-date-picker"
                   />
                 </div>
                 {/* <div

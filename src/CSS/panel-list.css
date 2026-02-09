@@ -10,7 +10,9 @@
     display: flex;
     justify-content: space-between;
     padding-bottom: 12px;
-    border-bottom: 1.5px solid var(--850, #262626);
+    /* border-bottom: 1.5px solid var(--850, #262626); */
+    border-bottom: 1.5px solid var(--850, #ffffff);
+
 }
 .main .container{
     display: flex;
@@ -51,13 +53,13 @@
     display: block;
 }
 .pl .head h3{
-    color: var(--600, #666);
+    color: var(--600, var(--label-color));
     font-family: "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
     cursor: pointer;
 }
 .pl .head .selected{
-    color: var(--600, #000000);
-    font-weight: 600;    
+    color: var(--600, var(--primary-color));
+    font-weight: 800;    
 }
 .pl .fg1{
     flex: 2 1 0;
@@ -89,6 +91,8 @@
     max-height: calc(100vh - 22vh - 260px);
     overflow: hidden;
     overflow-y: scroll;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 .pl .item{
     display: flex;
@@ -98,7 +102,8 @@
     border-bottom: 1.5px solid #E6E6E6;
 }
 .pl .item:hover{
-    background: #F7F7F7;
+    /* TODO */
+    /* background: #F7F7F7; */ 
 }
 .pl .item.selected{
     background: #F2F2F2;
@@ -107,7 +112,7 @@
     }
 }
 .pl .item h3{
-    color: var(--950, #0D0D0D);
+    color: var(--950, var(--text-fg-color));
 }
 .pl .item .connection.connected h3{
     color: #43951D;
@@ -131,7 +136,9 @@
     }
     .main .box{
         padding-bottom: 8px;
-        border-bottom: 1.5px solid var(--850, #262626);
+        /* border-bottom: 1.5px solid var(--850, #262626); */
+        border-bottom: 1.5px solid var(--850, #ffffff);
+        
     }
     .main .container {
         row-gap: 24px;

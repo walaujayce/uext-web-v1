@@ -431,7 +431,7 @@ function PatientAlerts() {
         return;
       }
       console.log("Fetched data:", data);
-      console.log("json:", data.jlog.alert_triggers);
+      // console.log("json:", data.jlog.alert_triggers);
       setAlertList(data); // Update state with filtered object
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
@@ -610,11 +610,11 @@ function PatientAlerts() {
     enablealert7: true,
     patientid: patient.patientid,
     jlog: {
-      "alert_triggers": [ 
-        { "label": "set1", "start": 0, "end": 8 }, 
-        { "label": "set2", "start": 10, "end": 16 }, 
-        { "label": "set3", "start": 18, "end": 22 } 
-      ] 
+      // "alert_triggers": [ 
+      //   { "label": "set1", "start": 0, "end": 8 }, 
+      //   { "label": "set2", "start": 10, "end": 16 }, 
+      //   { "label": "set3", "start": 18, "end": 22 } 
+      // ] 
     }
   };
 

@@ -22,13 +22,13 @@ function Login() {
   };
 
   const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
+    event.preventDefault(); // Prevents the page from reloading
       handleLogin();
-    }
   };
 
+
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, toggleThemeMode, isDarkMode } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -112,12 +112,13 @@ function Login() {
 
   return (
     <>
-      <img className="background" src="/src/assets/login-bg.svg" alt="" />
+      <img className={`background ${isDarkMode ? "dark" : ""}`} src="/src/assets/login-bg.svg" alt="" />
+      <div className={`toggle-btn ${isDarkMode ? "dark" : ""}`} onClick={toggleThemeMode}><img className="img" src="/src/assets/light-mode-grey.svg" alt="" /></div>
       <div className="login">
         <img className="uextLogo" src="/src/assets/uneo-logo.svg" alt="" />
         {/* <div className="title">{t("Login.title")}</div> */}
         {/* Login Page */}
-        <form className="st2 active">
+        <form className="st2 active" onSubmit={handleKeyPress} noValidate>
           {/* login input box */}
           <div className="input g-c-6">
             <label htmlFor="login" className="label-container">
@@ -130,7 +131,7 @@ function Login() {
             </label>
             <div className="input-gp">
               <input
-                type="email"
+                type="text"
                 pattern=""
                 className="placeholder"
                 name="login"
@@ -189,9 +190,9 @@ function Login() {
           </div>
           <div className="btn-gp">
             {/* login button */}
-            <a className="btn text-only pri" onClick={handleLogin}>
+            <button className="btn text-only pri" onClick={handleLogin} type="submit">
               <p className="btn-text pri-text">{t("Login.Login")}</p>
-            </a>
+            </button>
 
             {/* forget password button */}
             <div

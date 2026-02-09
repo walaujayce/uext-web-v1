@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 const WebAPI =
   process.env.npm_lifecycle_event === "start:dev"
     ? process.env.VITE_WEBAPI_URL === "localhost"
-      ? window.location.hostname
+      ? window.location.hostname  
       : process.env.VITE_WEBAPI_URL
     : "192.9.120.118";
 

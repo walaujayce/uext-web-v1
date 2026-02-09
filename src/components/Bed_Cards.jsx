@@ -76,6 +76,9 @@ export function Bed_default({ hold, macaddress, username, bed }) {
         <img src="" alt="" />
         <p className="timer">{hold}</p>
       </div>
+      <div className="icon-tag">
+        <img src="/src/assets/icon_homepage_rest.svg" alt=""/>
+      </div>
       <div className="dis-tag">
         <img src="/src/assets/link-off.svg" alt="" />
         <p>Disconnected</p>
@@ -94,6 +97,9 @@ export function Bed_attention({ hold, macaddress, username, bed }) {
         <img src="" alt="" />
         <p className="timer">{hold}</p>
       </div>
+      <div className="icon-tag">
+        <img src="/src/assets/icon_homepage_edge.svg" alt=""/>
+      </div>
       <div className="dis-tag">
         <img src="/src/assets/link-off.svg" alt="" />
         <p>Disconnected</p>
@@ -111,6 +117,9 @@ export function Bed_alert({ hold, macaddress, username, bed }) {
       <div className="tag">
         <img src="" alt="" />
         <p className="timer">{hold}</p>
+      </div>
+      <div className="icon-tag">
+        <img src="/src/assets/icon_homepage_exit.svg" alt=""/>
       </div>
       <div className="dis-tag">
         <img src="/src/assets/link-off.svg" alt="" />

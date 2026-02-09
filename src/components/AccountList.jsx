@@ -209,14 +209,14 @@ if (sortDirection) {
           <div className="btn" id="addUser" onClick={handleAddUserClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">{t("AccountList.NewUser")}</p>
-            {isOverlayVisible && <AddNewUser callback={handleAddUserClick} />}
           </div>
+          {isOverlayVisible && <AddNewUser callback={handleAddUserClick} />}
         </div>
         <div className="pl">
           <div className="head">
             <h3 className={`fg1 ${sortType === sortTypes[0] ? "selected" : ""}`} onClick={() => SortType(0)}>{t("AccountList.UserID")}  {sortType === sortTypes[0] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
             <h3 className={`fg1 ${sortType === sortTypes[1] ? "selected" : ""}`} onClick={() => SortType(1)}>{t("AccountList.UserName")}  {sortType === sortTypes[1] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
-            <h3 className={`fg1 ${sortType === sortTypes[2] ? "selected" : ""}`} onClick={() => SortType(2)}>{t("AccountList.UserPassword")}  {sortType === sortTypes[2] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
+            {/* <h3 className={`fg1 ${sortType === sortTypes[2] ? "selected" : ""}`} onClick={() => SortType(2)}>{t("AccountList.UserPassword")}  {sortType === sortTypes[2] && (sortDirection ? "\u25BC" : "\u25B2")}</h3> */}
             <h3 className={`fg1 ${sortType === sortTypes[3] ? "selected" : ""}`} onClick={() => SortType(3)}>{t("AccountList.UserRole")}  {sortType === sortTypes[3] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
             <h3 className={`fg1 ${sortType === sortTypes[4] ? "selected" : ""}`} onClick={() => SortType(4)}>{t("AccountList.UserEmail")}  {sortType === sortTypes[4] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
             <h3 className={`fg1 ${sortType === sortTypes[5] ? "selected" : ""}`} onClick={() => SortType(5)}>{t("AccountList.LastLogin")}  {sortType === sortTypes[5] && (sortDirection ? "\u25BC" : "\u25B2")}</h3>
@@ -232,10 +232,10 @@ if (sortDirection) {
                 <a className="item" key={account.userid}>
                   <h3 className="fg1">{account.userid}</h3>
                   <h3 className="fg1">{account.username}</h3>
-                  <h3 className="fg1">
+                  {/* <h3 className="fg1">
                     {account.password[0] +
                       "*".repeat(account.password.length - 1)}
-                  </h3>
+                  </h3> */}
                   <h3 className="fg1">
                     {account.role === 0
                       ? "Administrator"

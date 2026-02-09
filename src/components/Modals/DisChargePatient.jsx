@@ -30,10 +30,10 @@ function DisChargePatient({ callback, dischargebtn_click }) {
           <p className="desc">
             {/* You will need to reconnect to a bed to obtain live data. */}
           </p>
-          <div className="btn-gp">
+          <div className="btn-gp discharge">
             <a className="btn text-only pri" onClick={dischargebtn_click}>
               <img src="" alt="" className="prefix" />
-              <p className="btn-text pri-text" style={{ color: "white" }}>
+              <p className="btn-text pri-text" style={{color:"red"}}>
                 {t("DischargeModal.Discharge")}
               </p>
             </a>

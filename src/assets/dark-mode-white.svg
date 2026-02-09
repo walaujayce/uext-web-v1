@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!-- ####################################################################
+
+This file was generates automatically via the 
+IconPacks.Browser (MIT-License). 
+
+Visit https://github.com/MahApps/MahApps.Metro.IconPacks and 
+https://github.com/MahApps/MahApps.Metro.IconPacks/blob/develop/LICENSE 
+for more information.
+ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+Icon-Name: 			DarkModeOutline
+Iconpack:			MaterialDesign
+Iconpack-Homepage: 	https://github.com/google/material-design-icons
+Iconpack-License:	https://github.com/google/material-design-icons?tab=Apache-2.0-1-ov-file#readme
+
+#####################################################################-->
+
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="16"
+     height="16">
+    <path d="M 12 3 A 9 9 0 1 0 21 12 C 21 11.54 20.960391 11.080625 20.900391 10.640625 A 5.389 5.389 0 0 1 16.5 12.900391 A 5.403 5.403 0 0 1 13.359375 3.0996094 C 12.919375 3.0396094 12.46 3 12 3 z M 9.3691406 5.5097656 A 7.35 7.35 0 0 0 9.0996094 7.5 C 9.0996094 11.579996 12.420004 14.900391 16.5 14.900391 C 17.179999 14.900391 17.850235 14.810859 18.490234 14.630859 A 7.014 7.014 0 0 1 12 19 C 8.1400039 19 5 15.859996 5 12 C 5 9.0700029 6.8091432 6.5497646 9.3691406 5.5097656 z "
+          style="fill:#FFFFFF;
+                 stroke:none
+                 stroke-width:0;
+                 stroke-linecap:flat;
+                 stroke-linejoin:miter;"
+          transform="matrix(0.8888758908512394,0,0,0.8888758908512394,-2.6663938138382903,-2.666627672553718)" />
+</svg>

@@ -1,66 +1,68 @@
 import React, { useEffect, useState, useRef } from "react";
 import { loadOpenCv } from "../JS/opencv-loader.js";
+import { useAuth } from "../JS/AuthContext.jsx";
 
 const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
   const sensor_height = height;
   const sensor_width = width;
+  const { isDarkMode } = useAuth();
 
   const [opencvLoaded, setOpencvLoaded] = useState(false);
   // console.log("rawdata is ", rawdata);
-//   useEffect(() => {
-//     const onCvReady = () => {
-//       console.log("OpenCV initialized for ", deviceid);
-//       setOpencvLoaded(true);
-//       window.isCvReady = true; // Use a global flag
-//     };
+  //   useEffect(() => {
+  //     const onCvReady = () => {
+  //       console.log("OpenCV initialized for ", deviceid);
+  //       setOpencvLoaded(true);
+  //       window.isCvReady = true; // Use a global flag
+  //     };
 
-//     const existingScript = document.querySelector(
-//       'script[src="/src/JS/OpenCV.js"]'
-//     );
-//     if (!existingScript) {
-//       const script = document.createElement("script");
-//       script.src = "/src/JS/OpenCV.js";
-//       script.async = true;
-//       script.onload = () => {
-//         // Script file is loaded, now tell cv what to do when *it* is ready
-//         if (window.cv) {
-//           window.cv["onRuntimeInitialized"] = onCvReady;
-//         } else {
-//           console.error("cv object not found after script load.");
-//         }
-//       };
-//       script.onerror = () => {
-//         console.error("Failed to load OpenCV.js script. Check path.");
-//       };
-//       document.body.appendChild(script);
-//     } else {
-//       // OpenCV is already loaded
-//       if (window.isCvReady) {
-//         // Already initialized by another component
-//         onCvReady();
-//       } else if (window.cv) {
-//         // Script loaded, but still initializing (or listener wasn't set)
-//         window.cv["onRuntimeInitialized"] = onCvReady;
-//       }
-//     }
-//   }, [deviceid]); // Load OpenCV.js once when the component mounts
+  //     const existingScript = document.querySelector(
+  //       'script[src="/src/JS/OpenCV.js"]'
+  //     );
+  //     if (!existingScript) {
+  //       const script = document.createElement("script");
+  //       script.src = "/src/JS/OpenCV.js";
+  //       script.async = true;
+  //       script.onload = () => {
+  //         // Script file is loaded, now tell cv what to do when *it* is ready
+  //         if (window.cv) {
+  //           window.cv["onRuntimeInitialized"] = onCvReady;
+  //         } else {
+  //           console.error("cv object not found after script load.");
+  //         }
+  //       };
+  //       script.onerror = () => {
+  //         console.error("Failed to load OpenCV.js script. Check path.");
+  //       };
+  //       document.body.appendChild(script);
+  //     } else {
+  //       // OpenCV is already loaded
+  //       if (window.isCvReady) {
+  //         // Already initialized by another component
+  //         onCvReady();
+  //       } else if (window.cv) {
+  //         // Script loaded, but still initializing (or listener wasn't set)
+  //         window.cv["onRuntimeInitialized"] = onCvReady;
+  //       }
+  //     }
+  //   }, [deviceid]); // Load OpenCV.js once when the component mounts
 
-useEffect(() => {
-  loadOpenCv().then(() => {
-    console.log("OpenCV ready for UEXT");
-    setOpencvLoaded(true);
-  });
-}, []);
+  useEffect(() => {
+    loadOpenCv().then(() => {
+      console.log("OpenCV ready for UEXT");
+      setOpencvLoaded(true);
+    });
+  }, []);
 
   const canvasRef = useRef(null);
-useEffect(() => {
+  useEffect(() => {
     // Get the parent `.box` element
     const parentBox = canvasRef.current?.parentElement;
     if (parentBox) {
       // Set the canvas size to match the parent `.box` size
       canvasRef.current.height = parentBox.clientHeight * 0.9; // reduce a 10% percentage of output image size
       const scaleAdjust_clientWidth = Math.round(
-        (parentBox.clientHeight * sensor_width) / sensor_height
+        (parentBox.clientHeight * sensor_width) / sensor_height,
       );
       canvasRef.current.width = scaleAdjust_clientWidth * 0.9; // reduce a 10% percentage of output image size
     }
@@ -77,7 +79,9 @@ useEffect(() => {
   }, []);
 
   const getColor = (div) => {
-    if (div < 5) return [255, 255, 255];
+    if (div < 5) {
+      return isDarkMode ? [0, 0, 0] : [255, 255, 255];
+    }
 
     div = Math.floor(div / 16);
     if (div > 15) return [37, 58, 235];
@@ -121,7 +125,9 @@ useEffect(() => {
   };
 
   const getUMAPColor = (div) => {
-    if (div < 10) return [255, 255, 255];
+    if (div < 10) {
+      return isDarkMode ? [0, 0, 0] : [255, 255, 255];
+    }
     if (div > 150) return [37, 58, 235];
     div = Math.floor(div / 16);
 
@@ -162,7 +168,7 @@ useEffect(() => {
         return [0, 0, 0];
     }
   };
-  
+
   const print_img = (data) => {
     if (!sensor_height || !sensor_width) {
       return;
@@ -172,7 +178,7 @@ useEffect(() => {
     }
 
     if (!data.length >= sensor_height * sensor_width) {
-      const canvas = canvasRef.current;      
+      const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
@@ -182,7 +188,7 @@ useEffect(() => {
         sensor_height,
         sensor_width,
         cv.CV_8UC1,
-        data
+        data,
       );
 
       let m = 3; // Scaling factor
@@ -195,7 +201,7 @@ useEffect(() => {
         new cv.Size(sensor_width * m, sensor_height * m),
         0,
         0,
-        cv.INTER_LINEAR_EXACT
+        cv.INTER_LINEAR_EXACT,
       );
 
       // Apply Gaussian blur
@@ -207,7 +213,7 @@ useEffect(() => {
         kernelSize,
         3.0,
         3.0,
-        cv.BORDER_DEFAULT
+        cv.BORDER_DEFAULT,
       );
       // Resize step 2
       let resizedMat2 = new cv.Mat();
@@ -217,7 +223,7 @@ useEffect(() => {
         new cv.Size(sensor_width * m * m, sensor_height * m * m),
         0,
         0,
-        cv.INTER_LINEAR_EXACT
+        cv.INTER_LINEAR_EXACT,
       );
 
       // Resize step 3
@@ -228,7 +234,7 @@ useEffect(() => {
         new cv.Size(sensor_width * m * m * m, sensor_height * m * m * m),
         0,
         0,
-        cv.INTER_LINEAR_EXACT
+        cv.INTER_LINEAR_EXACT,
       );
 
       // Convert grayscale to RGB
@@ -256,7 +262,7 @@ useEffect(() => {
         new cv.Size(canvasWidth, canvasHeight),
         0,
         0,
-        cv.INTER_LINEAR_EXACT
+        cv.INTER_LINEAR_EXACT,
       );
 
       // Display image on canvas
@@ -274,18 +280,18 @@ useEffect(() => {
         canvasRef.current.height,
         canvasRef.current.width,
         cv.CV_8UC1,
-        Array(canvasRef.current.width * canvasRef.current.height).fill(24)
+        Array(canvasRef.current.width * canvasRef.current.height).fill(24),
       );
       const vis = cv.matFromArray(
         sensor_height,
         sensor_width,
         cv.CV_8UC1,
-        data
+        data,
       );
 
       const dim = new cv.Size(
         canvasRef.current.width,
-        canvasRef.current.height
+        canvasRef.current.height,
       );
       const vis2 = new cv.Mat();
 
@@ -313,7 +319,7 @@ useEffect(() => {
       dst.delete();
     }
   };
-const [decimalArray, setDecimalArray] = useState([]);
+  const [decimalArray, setDecimalArray] = useState([]);
 
   // Function to convert 480-character hex string to 240 decimal values
   const convertHexToDecimalArray = (rawdata) => {
@@ -325,7 +331,7 @@ const [decimalArray, setDecimalArray] = useState([]);
     }
     const sum = decimalArray.reduce(
       (accumulator, currentValue) => accumulator + currentValue,
-      0
+      0,
     );
     // console.log("the total of rawdata is ", sum);
     // Find the highest value
@@ -358,7 +364,7 @@ const [decimalArray, setDecimalArray] = useState([]);
     // console.log("cal: ", scaleData);
 
     setDecimalArray(scaleData); // Store the result in state
-  }, [rawdata]);
+  }, [rawdata, isDarkMode]);
 
   useEffect(() => {
     try {

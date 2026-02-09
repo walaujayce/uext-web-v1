@@ -10,11 +10,13 @@ import dayjs from "dayjs";
 function Navbar() {
   const { t, i18n } = useTranslation();
 
-  const { logout, role } = useAuth();
+  const { logout, role, toggleThemeMode, isDarkMode } = useAuth();
 
   const [currentLang, setCurrentLang] = useState("zh");
 
   const [userName, setUserName] = useState("");
+
+  const [theme, setTheme] = useState("");
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng); // Change the active language
@@ -30,6 +32,13 @@ function Navbar() {
       changeLanguage("zh");
     }
     setUserName(JSON.parse(localStorage.getItem("username")));
+
+    //   const theme = localStorage.getItem("theme");
+    //   if(theme){
+    //     toggleThemeMode(theme);
+    //   }else{
+    //     toggleThemeMode("dark");
+    //   }
   }, []);
   {
     /* nav link 字體反黑 */
@@ -103,7 +112,7 @@ function Navbar() {
         const data = await response.json();
         const stored_username = JSON.parse(localStorage.getItem("username"));
         const selected_user = data.find(
-          (user) => user.username == stored_username
+          (user) => user.username == stored_username,
         );
         setSelectedUserId(selected_user.userid);
       } catch (error) {
@@ -227,7 +236,7 @@ function Navbar() {
 
       // Remove the dismissed notification from state
       setErrorlogs((prevLogs) =>
-        prevLogs.filter((errorlog) => errorlog.guid !== notification_Id)
+        prevLogs.filter((errorlog) => errorlog.guid !== notification_Id),
       );
     } catch (error) {
       console.error("Error updating device:", error.message);
@@ -288,23 +297,27 @@ function Navbar() {
         {/* Settings */}
         <div className="other">
           <div
-            className={`lang ${isActiveLang ? "" : ""}`}
+            className="lang"
             onMouseEnter={handleMouseEnterLang}
             onMouseLeave={handleMouseLeaveLang}
           >
             <img
-              src="/src/assets/lang.svg"
+              src={
+                isDarkMode
+                  ? "/src/assets/lang-white.svg"
+                  : "/src/assets/lang.svg"
+              }
               alt="language button"
               className="langBtn"
             />
             <div className={`list ${isActiveLang ? "active" : ""}`}>
               <a
                 href="#"
-                className="option"
+                className={`option ${isDarkMode ? "dark" : ""}`}
                 onClick={() => changeLanguage("en")}
               >
                 <img
-                  src="/src/assets/check.svg"
+                  src="/src/assets/check-grey.svg"
                   alt=""
                   style={{ display: currentLang === "en" ? "flex" : "none" }}
                 />
@@ -312,11 +325,11 @@ function Navbar() {
               </a>
               <a
                 href="#"
-                className="option"
+                className={`option ${isDarkMode ? "dark" : ""}`}
                 onClick={() => changeLanguage("zh")}
               >
                 <img
-                  src="/src/assets/check.svg"
+                  src="/src/assets/check-grey.svg"
                   alt=""
                   style={{ display: currentLang === "en" ? "none" : "flex" }}
                 />
@@ -329,7 +342,15 @@ function Navbar() {
             onMouseEnter={handleMouseEnterNotification}
             onMouseLeave={handleMouseLeaveNotification}
           >
-            <img src="/src/assets/notice.svg" alt="" className="notiBtn" />
+            <img
+              src={
+                isDarkMode
+                  ? "/src/assets/notice-white.svg"
+                  : "/src/assets/notice.svg"
+              }
+              alt=""
+              className="notiBtn"
+            />
             <div className={`list ${isActiveNotification ? "active" : ""}`}>
               {errorlogs
                 .filter((errorlog) => /connected|offline/i.test(errorlog.log))
@@ -363,11 +384,15 @@ function Navbar() {
             onMouseLeave={handleMouseLeave}
           >
             <img
-              src="/src/assets/account-active.svg"
+              src={
+                isDarkMode
+                  ? "/src/assets/account-white.svg"
+                  : "/src/assets/account-active.svg"
+              }
               alt=""
               className="settingBtn"
             />
-            <div className={`list ${isActiveAccount ? "active" : ""}`}>
+            <div className={`list ${isDarkMode ? "dark":""} ${isActiveAccount ? "active" : ""}`}>
               <div className="profile">
                 <img src="/src/assets/account-active.svg" alt="" />
                 <p>{userName}</p>
@@ -376,36 +401,62 @@ function Navbar() {
                 to={`/account/account-settings?userid=${selected_user_id}`}
                 key={selected_user_id}
               >
-                <a href="#" className="option setting">
+                <a
+                  href="#"
+                  className={`option setting ${isDarkMode ? "dark" : ""}`}
+                >
                   <img
-                    src="/src/assets/setting.svg"
+                    src="/src/assets/setting-grey.svg"
                     alt=""
                     className="setting-img"
-                    style={{ width: "34px" }}
+                    style={{ width: "34px", padding: "2px" }}
                   />
                   <p>{t("Navbar.AccountSettings")}</p>
                 </a>
               </Link>
               <a
                 href="#"
-                className="option pw"
+                className={`option pw ${isDarkMode ? "dark" : ""}`}
                 id="changePassword"
                 onClick={handleChangePasswordVisibleClick}
               >
                 <img
-                  src="/src/assets/lock.svg"
+                  src="/src/assets/lock-grey.svg"
                   className="setting-img"
-                  style={{ width: "34px" }}
+                  style={{ width: "34px", padding: "2px" }}
                   alt=""
                 />
                 <p>{t("Navbar.ChangePassword")}</p>
               </a>
-              <a className="option logout" onClick={handleLogOutVisibleClick}>
+              {/* toggle light/dark mode */}
+              <a
+                href="#"
+                className={`option theme ${isDarkMode ? "dark" : ""}`}
+                id="toggleTheme"
+                onClick={toggleThemeMode}
+              >
                 <img
-                  src="/src/assets/logout.svg"
+                  src={
+                    isDarkMode
+                      ? "/src/assets/dark-mode-grey.svg"
+                      : "/src/assets/light-mode-grey.svg"
+                  }
+                  className="setting-img"
+                  style={{ width: "34px", padding: "2px" }}
+                  alt=""
+                />
+                <p>{t("Navbar.ToggleLightDarkMode")}</p>
+              </a>
+              {/* 登出 */}
+              <a
+                className={`option logout ${isDarkMode ? "dark" : ""}`}
+                onClick={handleLogOutVisibleClick}
+              >
+                <img
+                  src="/src/assets/logout-grey.svg"
                   alt=""
                   className="setting-img"
-                  style={{ width: "34px" }}
+                  style={{ width: "34px", padding: "3px" }}
                 />
                 <p>{t("Navbar.Logout")}</p>
               </a>
@@ -431,3 +482,5 @@ function Navbar() {
 }
 
 export default Navbar;
+
+//TODO: icon size 

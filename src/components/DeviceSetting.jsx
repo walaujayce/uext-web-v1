@@ -1884,7 +1884,7 @@ const handleDhcpItemClick = (dhcp) => {
                     onClick={() => handleDeleteDevice()}
                   >
                     {/* <img src="" alt="" className="prefix" /> */}
-                    <p className="btn-text">{t("DeviceSettings.Delete")}</p>
+                    <p className="btn-text" style={{color:"white"}}>{t("DeviceSettings.Delete")}</p>
                   </div>
                 </div>
             {/* <PatientMonitor/> */}
