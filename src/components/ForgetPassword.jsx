@@ -22,7 +22,7 @@ function LoginPassword() {
   };
 
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, isDarkMode } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -112,7 +112,7 @@ function LoginPassword() {
   return (
     <>
       <SimpleBackdrop open={loading} />
-      <img className="background" src="/src/assets/login-bg.svg" alt="" />
+      <img className="background" src={`${isDarkMode ? "/src/assets/background2x-dark.png" :"/src/assets/background2x.png" }`} alt="" />
       <div
         className="login"
         style={{
