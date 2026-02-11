@@ -102,7 +102,7 @@ export const AuthProvider = ({ children }) => {
       document.body.click(); // Simulate user click
       setIsUserInteracted(true);
       console.log(
-        "Fake Click Executed! Audio permission should now be granted."
+        "Fake Click Executed! Audio permission should now be granted.",
       );
     };
 
@@ -181,9 +181,32 @@ export const AuthProvider = ({ children }) => {
           audioAboutToLeaveRef2.current.pause();
           audioAboutToLeaveRef2.current.currentTime = 0;
           setIsAboutToLeave2Playing(false);
-          // console.log("stop all");
+        // console.log("stop all");
       }
     }, timeLapse || 0);
+  };
+
+  // toggle light/dark mode
+const [isDarkMode, setDarkMode] = useState(() => {
+  // const root = document.documentElement;
+  // return root.classList.contains("dark");
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    if (isDarkMode) {
+      root.classList.add("dark");
+      localStorage.setItem("theme", "dark");  
+    } else {
+      root.classList.remove("dark");
+      localStorage.removeItem("theme");
+    }
+  }, [isDarkMode]);
+
+  const toggleThemeMode = () => {
+    setDarkMode(prev => !prev);
   };
 
   return (
@@ -202,6 +225,8 @@ export const AuthProvider = ({ children }) => {
         playLeaveBedSound,
         stopSound,
         isUserInteracted,
+        toggleThemeMode,
+        isDarkMode,
       }}
     >
       {children}

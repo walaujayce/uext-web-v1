@@ -5,10 +5,11 @@ import "/src/CSS/input.css";
 import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
+import { useAuth } from "../../JS/AuthContext";
 
 const LogOut_Modal = ({ callback, logout_callback }) => {
   const { t, i18n } = useTranslation();
-
+  const {isDarkMode} = useAuth();
   {
     /* Handle Overlay Logic */
   }
@@ -27,7 +28,7 @@ const LogOut_Modal = ({ callback, logout_callback }) => {
         <div className="warn">
           <img
             className="icon"
-            src="/src/assets/logout-active.svg"
+            src={`${isDarkMode  ? "/src/assets/logout-white.svg" : "/src/assets/logout-black.svg"} `}
             alt="logout icon"
           />
           <h1 className="title">{t('LogoutModal.LogoutTitle')}</h1>

@@ -8,17 +8,19 @@
 .input-gp {
   position: relative;
 }
+
 .input-gp2 {
   position: relative;
   width: 10vw;
 }
+
 input,
 textarea {
   /* Structure & Styles */
   display: flex;
   justify-content: space-between;
   padding: 20px 16px;
-  background-color: #f7f7f7;
+  background-color: var(--input-bg-color);
   box-shadow: 2px 2px 4px 0px rgba(0, 0, 0, 0);
   border-bottom: 2px solid transparent;
   width: 100%;
@@ -29,7 +31,7 @@ textarea {
   font-size: 24px;
   text-align: start;
   font-weight: 400;
-  color: var(--700, #4d4d4d);
+  color: var(--700, var(--input-text-color));
 }
 
 input:hover {
@@ -56,7 +58,7 @@ label {
   margin-bottom: 6px;
 
   /* Typography */
-  color: var(--600, #666);
+  color: var(--600, var(--label-color));
 }
 
 label .info {
@@ -204,9 +206,17 @@ label .info {
   color: var(--300, #b3b3b3);
 }
 
+.placeholder::placeholder{
+  color:var(--label-color);
+}
+
 /* Dropdown Input */
 .input.dropdown .suffix {
-  content: url(/src/assets/menu-down.svg);
+  content: var(--menu-down-url);
+}
+html.dark .input.dropdown .suffix {
+  height: 10px;
+  width: 10px;
 }
 
 .input .list {
@@ -225,13 +235,15 @@ label .info {
   height: 240px;
   transition: all ease-out 300ms;
   overflow-y: auto;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 .input .list .item {
   display: flex;
   padding: 20px 16px !important;
   border-bottom: 1.5px solid var(--150, #d9d9d9);
-  background: #f7f7f7;
-  color: var(--700, #4d4d4d);
+  background: var(--optbox-bg-color);
+  color: var(--700, var(--input-text-color));
   font-size: 24px;
   font-weight: 400;
   line-height: 100%; /* 24px */

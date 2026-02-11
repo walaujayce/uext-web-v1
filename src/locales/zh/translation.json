@@ -22,6 +22,7 @@
     "Account": "帳戶",
     "AccountSettings": "帳戶設定",
     "ChangePassword": "更改密碼",
+    "ToggleLightDarkMode": "切換深/淺模式",
     "Logout": "登出",
     "Notification-date-today":"今日"
   },

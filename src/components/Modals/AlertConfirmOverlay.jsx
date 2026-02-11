@@ -20,7 +20,7 @@ const AlertConfirmOverlay = ({
     // Prevent event propagation to the overlay
     e.stopPropagation();
   };
-
+ 
   {
     /* Handle Stage 1 Btn Logic */
   }
@@ -93,10 +93,9 @@ const AlertConfirmOverlay = ({
           <h1 className="title">{statusMap[alertDetail.status].title}</h1>
           <p className="desc" style={{ margin: "10px 0px 20px 0px" }}>
             {t("ConfirmAlertModal.description-alert-p1", {
-                    PatientName: alertDetail.userName,
-                    BedNo: alertDetail.bedNo,
-                  })
-            }
+              PatientName: alertDetail.userName,
+              BedNo: alertDetail.bedNo,
+            })}
             <br /> {t("ConfirmAlertModal.description-alert-p2")}
           </p>
           <div className="btn-gp">

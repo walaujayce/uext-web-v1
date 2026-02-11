@@ -211,8 +211,8 @@ if (sortDirection) {
           <div className="btn" id="addUser" onClick={handleAddUserClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">{t("AccountList.NewUser")}</p>
-            {isOverlayVisible && <AddNewUser callback={handleAddUserClick} />}
           </div>
+          {isOverlayVisible && <AddNewUser callback={handleAddUserClick} />}
         </div>
         <div className="pl">
           <div className="head">

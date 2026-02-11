@@ -22,6 +22,7 @@
     "Account": "Account",
     "AccountSettings": "Account Settings",
     "ChangePassword": "Change Password",
+    "ToggleLightDarkMode": "Toggle Dark/Light Mode",
     "Logout": "Logout",
     "Notification-date-today":"Today"
   },

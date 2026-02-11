@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+
+<!-- ####################################################################
+
+This file was generates automatically via the 
+IconPacks.Browser (MIT-License). 
+
+Visit https://github.com/MahApps/MahApps.Metro.IconPacks and 
+https://github.com/MahApps/MahApps.Metro.IconPacks/blob/develop/LICENSE 
+for more information.
+ 
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ 
+Icon-Name: 			ExclamationSquare
+Iconpack:			BootstrapIcons
+Iconpack-Homepage: 	https://icons.getbootstrap.com/
+Iconpack-License:	https://github.com/twbs/icons?tab=MIT-1-ov-file#readme
+
+#####################################################################-->
+
+
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="128"
+     height="128">
+    <path d="M262.5 281.25A18.75 18.75 0 0 0 281.25 262.5V37.5A18.75 18.75 0 0 0 262.5 18.75H37.5A18.75 18.75 0 0 0 18.75 37.5V262.5A18.75 18.75 0 0 0 37.5 281.25zM37.5 300A37.5 37.5 0 0 1 0 262.5V37.5A37.5 37.5 0 0 1 37.5 0H262.5A37.5 37.5 0 0 1 300 37.5V262.5A37.5 37.5 0 0 1 262.5 300zM131.2875 93.75A18.75 18.75 0 1 0 168.7875 93.75A18.75 18.75 0 0 0 131.2875 93.75M133.125 206.34375A16.96875 16.96875 0 1 0 166.875 206.34375L160.3125 140.5875A10.35 10.35 0 0 0 139.6875 140.5875z"
+          style="fill:#FFFFFF;
+                 stroke:none
+                 stroke-width:0;
+                 stroke-linecap:flat;
+                 stroke-linejoin:miter;"
+          transform="matrix(0.4266666666666667,0,0,-0.4266666666666667,0,128)" />
+</svg>

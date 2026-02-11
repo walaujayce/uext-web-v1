@@ -9,7 +9,7 @@
 
 .pp h1{
     padding-bottom: 12px;
-    border-bottom: 1.5px solid var(--850, #262626);
+    border-bottom: 1.5px solid var(--850, var(--primary-text-color));
 }
 
 .pp .pfl{
@@ -49,6 +49,8 @@
         max-width: 360px;
         overflow: hidden;
         overflow-y: scroll;
+            scrollbar-color: var(--scrollbar-thumb) transparent;
+
         height: 80vh;
     }
     .pp h1{
@@ -56,9 +58,9 @@
         position: -webkit-sticky;
         top: 0;
         z-index: 97;
-        background-color: #FFF;
+        background-color: var(--bg-color);
         padding-bottom: 8px;
-        border-bottom: 1.5px solid var(--850, #262626);
+        border-bottom: 1.5px solid var(--850, var(--primary-text-color));
     }
     .pp .pfl{
         display: grid;
@@ -107,7 +109,7 @@
     align-items: flex-end;
     column-gap: 40px;
     padding-bottom: 12px;
-    border-bottom: 1.5px solid var(--850, #262626);
+    border-bottom: 1.5px solid var(--850, var(--primary-text-color));
 }
 .tab .opt{
     font-size: 32px;
@@ -118,8 +120,8 @@
     cursor: pointer;
 }
 .tab .opt.active{
-    color: var(--850, #262626);
-    font-weight: 500;
+    color: var(--850, var(--primary-text-color));
+    font-weight: 600;
 }
 .tab .btn.frameless{
     margin-left: auto;
@@ -141,7 +143,7 @@
     .main .tab{
         column-gap: 24px;
         padding-bottom: 8px;
-        border-bottom: 1.5px solid var(--850, #262626);
+        border-bottom: 1.5px solid var(--850, var(--primary-text-color));
     }
     .tab .opt{
         font-size: 20px;
@@ -155,7 +157,7 @@
     .main .tab{
         column-gap: 16px;
         padding-bottom: 8px;
-        border-bottom: 1.5px solid var(--850, #262626);
+        border-bottom: 1.5px solid var(--850, var(--primary-text-color));
     }
     .tab .opt{
         font-size: 16px;
@@ -171,6 +173,8 @@
     height: 100%;
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .monitor .pressure{
@@ -194,7 +198,7 @@
 }
 
 .monitor .title{
-    color: var(--600, #666);
+    color: var(--600, var(--label-color));
     font-size: 24px;
     font-style: normal;
     font-weight: 400;
@@ -438,6 +442,8 @@
     max-height: calc(100vh - 20vh);
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .alertSetting{
@@ -532,7 +538,7 @@
     align-items: flex-start;
     padding: 20px;
     gap: 40px;
-    background: #FAFAFA;
+    background: var(--alert-opt-bg-color);
     border-bottom: 3px solid transparent;
     width: 40vw;
 }
@@ -660,7 +666,7 @@
 
 .alertOpt .opt-grid2 .opt.on:hover{
     cursor: pointer;
-    background: var(--50, #F2F2F2);
+    background: var(--50, var(--alert-opt-bg-color));
 }
 
 .alertOpt .opt-grid2.active{
@@ -669,7 +675,7 @@
 
 .alertOpt .opt-grid2 .opt.on.active{
     border-bottom: 3px solid var(--850, #262626);
-    background: var(--50, #F2F2F2);
+    background: var(--50, var(--alert-opt-bg-color));
     img{
         content: url(/src/assets/checkbox-filled-outline.svg);
     }
@@ -816,6 +822,8 @@
     overflow: hidden;
     overflow-y: scroll;
     padding-bottom: 80px;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .ct{
@@ -1235,6 +1243,8 @@
     max-height: calc(100vh - 20vh - 260px);
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 .ll .item{
     display: flex;

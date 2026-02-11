@@ -26,6 +26,7 @@ function AlertList() {
     playLeaveBedSound,
     stopSound,
     isUserInteracted,
+    isDarkMode
   } = useAuth(); // Access sound management
 
   const handleAlertListExpandClick = () => {
@@ -35,12 +36,18 @@ function AlertList() {
       return newState;
     });
   };
+  // const [isDarkMode, setDarkMode] = useState(true); //TODO
+  // const root = document.documentElement;
   useEffect(() => {
     const storedState = localStorage.getItem("expandAlertList");
     if (storedState !== null) {
       setExpandAlertList(JSON.parse(storedState)); // Restore the state from localStorage
     }
+    // setDarkMode(root.classList.contains("dark"));
+    // console.log("root contain dark: ", root.classList.length);
+    // console.log("isDarkMode: ", isDarkMode);
   }, []);
+
   {
     /* Signal R Connection */
   }
@@ -444,47 +451,47 @@ function AlertList() {
     // 7 = Lying / Curled up on right side
     // 8 = Leaving out bed (bed exit rate)
     0: {
-      imgUrl: "/src/assets/attention.svg",
+      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
       title: t("AlertList.NotSpecifiedAlert"),
       containerColor: "in-progress",
     },
     1: {
-      imgUrl: "/src/assets/attention.svg",
+      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.RestOnBedAlert"),
     },
     2: {
-      imgUrl: "src/assets/attention.svg",
+      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.SitOnBedAlert"),
     },
     3: {
-      imgUrl: "/src/assets/attention.svg",
+      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.SitOnBedEdgeAlert"),
     },
     4: {
-      imgUrl: "/src/assets/alert.svg",
+      imgUrl: isDarkMode ? "/src/assets/alert-white.svg" : "/src/assets/alert.svg",
       containerColor: "",
       title: t("AlertList.BedExitAlert"),
     },
     5: {
-      imgUrl: "/src/assets/alert.svg",
+      imgUrl: isDarkMode ? "/src/assets/alert-white.svg" : "/src/assets/alert.svg",
       containerColor: "",
       title: t("AlertList.UnusualConditionAlert"),
     },
     6: {
-      imgUrl: "/src/assets/attention.svg",
+      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.LeftAlert"),
     },
     7: {
-      imgUrl: "/src/assets/attention.svg",
+      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.RightAlert"),
     },
     8: {
-      imgUrl: "/src/assets/attention.svg",
+      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.AttentionAlert"),
     },

@@ -33,7 +33,7 @@ function CalibrationConfirmOverlay({ callback, calibrationbtn_click }) {
           <div className="btn-gp">
             <a className="btn text-only pri" onClick={calibrationbtn_click}>
               <img src="" alt="" className="prefix" />
-              <p className="btn-text pri-text" style={{ color: "white" }}>
+              <p className="btn-text pri-text">
                 {t("CalibrationModal.Confirm")}
               </p>
             </a>

@@ -9,7 +9,8 @@
     display: flex;
     justify-content: space-between;
     padding-bottom: 12px;
-    border-bottom: 1.5px solid var(--850, #262626);
+    /* border-bottom: 1.5px solid var(--850, #262626); */
+    border-bottom: 1.5px solid var(--850, var(--primary-color));
 }
 
 .main .box .btn img{
@@ -30,6 +31,8 @@
     max-height: calc(100vh - 25vh);
     overflow: hidden;
     overflow-y: scroll;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .accSetting{
@@ -42,6 +45,7 @@
 .accSetting h2{
     width: 320px;
     flex-shrink: 0;
+    color: var(--primary-color);
 }
 
 .opt-list{
@@ -81,7 +85,7 @@
 }
 
 .ver-stat{
-    color: rgba(0, 0, 0, 0.50);
+    color: var(--primary-color);
     font-size: 24px;
     font-style: normal;
     font-weight: 500;

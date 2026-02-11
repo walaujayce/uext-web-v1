@@ -152,7 +152,7 @@ function PatientProfile() {
         patientname: "",
         patientid: "",
         sex: "",
-        birthday: "",
+        birthday: "1999-01-01T00:00:00",
         height: "",
         weight: "",
         bed: "",
@@ -325,7 +325,7 @@ function PatientProfile() {
 
   return (
     <div className="pp">
-      <h1 style={{ zIndex: "1" }}>{t("PatientProfile.PatientProfile")}</h1>
+      <h1 className="pp-title" style={{ zIndex: "1" }}>{t("PatientProfile.PatientProfile")}</h1>
       <div className="pfl">
         {/* Patient ID */}
         <div className="input g-c-6">
