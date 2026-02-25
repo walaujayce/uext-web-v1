@@ -24,6 +24,7 @@ import PrivateRoute from "./JS/PrivateRoute";
 import ForgetPassword from "./components/ForgetPassword"
 import ResetPassword from "./components/ResetPassword";
 import DemoSD from "./pages/DemoSD";
+import Alert from "./pages/Alert";
 
 function App() {
   const location = useLocation();
@@ -103,6 +104,14 @@ function App() {
           }
         />
       </Route>
+      <Route
+        path="/alert"
+        element={
+          <PrivateRoute allowedRoles={["all"]}>
+            <Alert />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/device"
         element={

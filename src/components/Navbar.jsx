@@ -103,7 +103,7 @@ function Navbar() {
         const data = await response.json();
         const stored_username = JSON.parse(localStorage.getItem("username"));
         const selected_user = data.find(
-          (user) => user.username == stored_username
+          (user) => user.username == stored_username,
         );
         setSelectedUserId(selected_user.userid);
       } catch (error) {
@@ -227,7 +227,7 @@ function Navbar() {
 
       // Remove the dismissed notification from state
       setErrorlogs((prevLogs) =>
-        prevLogs.filter((errorlog) => errorlog.guid !== notification_Id)
+        prevLogs.filter((errorlog) => errorlog.guid !== notification_Id),
       );
     } catch (error) {
       console.error("Error updating device:", error.message);
@@ -263,6 +263,15 @@ function Navbar() {
             }`}
           >
             {t("Navbar.Patient")}
+          </Link>
+          <Link
+            to="/alert"
+            state={{ reload: true }}
+            className={`nav-link ${
+              location.pathname.includes("/alert") ? "active" : ""
+            }`}
+          >
+            {t("Navbar.Alert")}
           </Link>
           <Link
             to="/device"

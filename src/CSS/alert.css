@@ -1,0 +1,99 @@
+.al {
+  /* background-color: yellow; */
+  position: relative;
+  display: flex;
+}
+.al .checkbox-table {
+  /* background-color: rgb(161, 161, 255); */
+  opacity: 0.6;
+  position: absolute;
+  z-index: 1;
+  width: 90vw;
+  padding-bottom: 60px;
+  display: flex;
+  flex-direction: column;
+  /* display: none; */
+}
+
+.chart-container {
+  /* display: none; */
+  /* background-color: yellow; */
+  position: absolute;
+  z-index: 0;
+  width: 90vw;
+  padding-bottom: 50px;
+}
+.chart-container .chart {
+  margin: 0px 0px 0px 29px;
+}
+
+.al .checkbox-table .checkbox-header {
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid black;
+  justify-content: flex-start;
+  align-items: center;
+  .bed-list-title {
+    margin-left: 5px;
+  }
+}
+.al .checkbox-table .checkbox-header .checkbox-all {
+  width: fit-content;
+  cursor: pointer;
+  img {
+    width: 24px;
+  }
+}
+.al .checkbox-table .checkbox-header .checkbox-all.active {
+  img {
+    content: url(/src/assets/checkbox-filled-outline.svg);
+  }
+}
+.al .checkbox-table .checkbox-list {
+  display: flex;
+  flex-direction: column;
+  /* align-items: flex-start; */
+  justify-content: space-evenly;
+  /* background-color: white; */
+  flex-grow: 1;
+}
+.al .checkbox-table .checkbox-list .checkbox-row {
+  display: flex;
+  flex-direction: row;
+  height: stretch;
+  justify-content: flex-start;
+  align-items: center;
+  border-bottom: 1px solid black;
+  cursor: pointer;
+  /* background-color: red; */
+}
+.al .checkbox-table .checkbox-list .checkbox-row:hover {
+  background-color: rgb(244, 243, 243);
+}
+.al .checkbox-table .checkbox-list .checkbox-row .checkbox-row-header {
+  display: flex;
+  flex-direction: row;
+  /* height: 70.5px; */
+  justify-content: flex-start;
+  align-items: center;
+  width: 120px;
+  .bed-id {
+    margin-left: 5px;
+    min-width: 0;
+    flex-grow: 1;
+    p {
+      word-break: break-all;
+      margin: 0;
+    }
+  }
+}
+.al
+  .checkbox-table
+  .checkbox-list
+  .checkbox-row
+  .checkbox-row-header
+  .checkbox.active {
+  img {
+    content: url(/src/assets/checkbox-filled-outline.svg);
+  }
+}

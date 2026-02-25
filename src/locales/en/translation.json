@@ -18,6 +18,7 @@
   "Navbar": {
     "Home": "Home",
     "Patient": "Resident",
+    "Alert": "Alert",
     "Device": "Device",
     "Account": "Account",
     "AccountSettings": "Account Settings",
@@ -179,6 +180,10 @@
     "HzMax": "Hz (Max.)",
     "HzMin": "Hz (Min.)",
     "AddNewAlert": "Add time slot"
+  },
+  "Alert":{
+    "AlertSettingList":"Alert Setting List",
+    "Setting":"Setting"
   },
   "DeviceList": {
     "NewDevice": "New Device",

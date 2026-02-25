@@ -18,6 +18,7 @@
   "Navbar": {
     "Home": "首頁",
     "Patient": "住民",
+    "Alert": "警示",
     "Device": "裝置",
     "Account": "帳戶",
     "AccountSettings": "帳戶設定",
@@ -181,7 +182,10 @@
     "HzMax": "赫茲 (最大)",
     "HzMin": "赫茲 (最小)",
     "AddNewAlert": "新增時段"
-
+  },
+  "Alert":{
+    "AlertSettingList":"警示設定列表",
+    "Setting":"設定"
   },
   "DeviceList": {
     "NewDevice": "新增裝置",

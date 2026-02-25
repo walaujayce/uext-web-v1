@@ -10,6 +10,7 @@ import useSessionStorageState from "../JS/PatientAlertSessionStorage";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import { TimeScale } from "chart.js";
+import DatePicker from "react-datepicker";
 
 function PatientAlerts() {
   const { t, i18n } = useTranslation();
@@ -22,7 +23,43 @@ function PatientAlerts() {
 
   const [loading, setLoading] = useState(false); //loading screen
 
-  const [timeSlot, setTimeSlot] = useState([]);
+  var timeSlotTemplate = [
+    {
+      id: 0,
+      start_time: {
+        hour: 0,
+        minute: 15,
+      },
+      end_time: {
+        hour: 0,
+        minute: 0,
+      },
+    },
+    {
+      id: 1,
+      start_time: {
+        hour: 0,
+        minute: 0,
+      },
+      end_time: {
+        hour: 0,
+        minute: 0,
+      },
+    },
+    {
+      id: 2,
+      start_time: {
+        hour: 0,
+        minute: 0,
+      },
+      end_time: {
+        hour: 0,
+        minute: 0,
+      },
+    },
+  ];
+
+  const [timeSlot, setTimeSlot] = useState([timeSlotTemplate]);
 
   {
     /* GET API Patient Information */
@@ -89,9 +126,13 @@ function PatientAlerts() {
   };
 
   const handleNotificationCheckBox = (notification) => {
-    setSelectedNotification((prev) =>
-      prev === notification ? null : notification
-    ); // Toggle the same option off, otherwise select
+    setSelectedNotification((prev) => {
+      return prev === notification ? null : notification;
+    });
+    if (notification === 5 && timeSlot.length === 0) handleAddAlertTimeSlot();
+    // Toggle the same option off, otherwise select
+    console.log("notification: ", notification);
+    console.log("timeSlot.length: ", timeSlot.length);
     setCustomStartTime("");
     setCustomEndTime("");
   };
@@ -140,7 +181,7 @@ function PatientAlerts() {
     PositionStatus.reduce((acc, option) => {
       acc[option.id] = "600"; // Default value
       return acc;
-    }, {})
+    }, {}),
   );
 
   const handleNotificationCheckBox2 = (notification) => {
@@ -233,6 +274,7 @@ function PatientAlerts() {
   const handlePositionToggle = () => {
     if (notificationToggleState) {
       setPositionToggleState((prev) => !prev);
+      // setAlertRepeatToggleState((prev) => !prev);
       //setSelectedNotifications2((prev) => false);
       if (exitBedRateToggleState) {
         setExitBedRateToggleState(false);
@@ -303,7 +345,7 @@ function PatientAlerts() {
           const items = ref.current.querySelectorAll(".item");
           const totalHeight = Array.from(items).reduce(
             (acc, item) => acc + item.offsetHeight,
-            0
+            0,
           );
 
           // Set the height dynamically
@@ -458,15 +500,15 @@ function PatientAlerts() {
       // Alert Controller
       updateToggleStatesFromAlertController(alertList.alertcontroller);
       // Alert Start and End Time
-      if (
-        timeSlot.length === 1 &&
-        timeSlot[0].start === 0 &&
-        timeSlot[0].end === 24
-      ) {
-        setSelectedNotification(1);
-      } else {
-        setSelectedNotification(5);
-      }
+      // if (
+      //   timeSlot.length === 1 &&
+      //   timeSlot[0].start === 0 &&
+      //   timeSlot[0].end === 24
+      // ) {
+      //   setSelectedNotification(1);
+      // } else {
+      //   setSelectedNotification(5);
+      // } TODO
       // Alert Repeat Time
       if (alertList.debounce !== 0) {
         setAlertRepeatToggleState(true);
@@ -500,8 +542,8 @@ function PatientAlerts() {
       startTime === endTime
         ? 0
         : selectedNotification === 5
-        ? parseInt(customStartTime, 10)
-        : startTime;
+          ? parseInt(customStartTime, 10)
+          : startTime;
     var StartTime_UTC = StartTime_Local - 8;
     return StartTime_UTC < 0 ? StartTime_UTC + 24 : StartTime_UTC;
   };
@@ -537,7 +579,7 @@ function PatientAlerts() {
     heartratelowlimit: parseInt(hbLowInput, 10),
     respiratoryratehighlimit: parseInt(respHighInput, 10),
     respiratoryratelowlimit: parseInt(respLowInput, 10),
-    jlog: {"alert_triggers":sortTimeSlotByLabel(timeSlot)},
+    jlog: { alert_triggers: sortTimeSlotByLabel(timeSlot) },
   };
 
   const requestBody_POST = {
@@ -566,7 +608,7 @@ function PatientAlerts() {
     enablealert6: true,
     enablealert7: true,
     patientid: patient.patientid,
-    jlog: {"alert_triggers":sortTimeSlotByLabel(timeSlot)},
+    jlog: { alert_triggers: sortTimeSlotByLabel(timeSlot) },
   };
 
   const handleUpdateAlertClicked = () => {
@@ -689,8 +731,7 @@ function PatientAlerts() {
     heartratelowlimit: 60,
     respiratoryratehighlimit: 20,
     respiratoryratelowlimit: 12,
-    jlog: {"alert_triggers":[{id:0,start:0,end:24}]},
-
+    jlog: { alert_triggers: [{ id: 0, start: 0, end: 24 }] },
   };
   const PUT_PatientAlert_RESET = async () => {
     try {
@@ -736,6 +777,7 @@ function PatientAlerts() {
   };
 
   const handleAddAlertTimeSlot = () => {
+    if (selectedNotification !== 5) return;
     if (timeSlot.length >= 5) {
       window.alert("Alert trigger time is limited up to 5 intervals only.");
       return;
@@ -757,13 +799,13 @@ function PatientAlerts() {
 
   const handleStartChange = (id, value) => {
     setTimeSlot((prev) =>
-      prev.map((slot) => (slot.id === id ? { ...slot, start: value } : slot))
+      prev.map((slot) => (slot.id === id ? { ...slot, start: value } : slot)),
     );
   };
 
   const handleEndChange = (id, value) => {
     setTimeSlot((prev) =>
-      prev.map((slot) => (slot.id === id ? { ...slot, end: value } : slot))
+      prev.map((slot) => (slot.id === id ? { ...slot, end: value } : slot)),
     );
   };
   useEffect(() => {
@@ -773,13 +815,14 @@ function PatientAlerts() {
   function sortTimeSlotByLabel(timeSlot) {
     const temp = [];
     console.log("debug: ", timeSlot);
-    timeSlot = timeSlot.filter((slot)=> slot.start !== '' || slot.end !== '');
+    timeSlot = timeSlot.filter((slot) => slot.start !== "" || slot.end !== "");
     timeSlot.sort((a, b) => a.id - b.id);
     timeSlot.map((slot, index) => {
-      temp.push({ 
-        id: index, 
+      temp.push({
+        id: index,
         start: parseInt(slot.start, 10),
-        end: parseInt(slot.end, 10),});
+        end: parseInt(slot.end, 10),
+      });
     });
     return temp;
   }
@@ -838,22 +881,27 @@ function PatientAlerts() {
                               return (
                                 <div className="desc" key={slot.id}>
                                   <div className="desc-input">
+                                    <TimePicker />
+                                    {/*
                                     <input
                                       type="number"
                                       value={slot.start}
                                       onChange={(e) =>
                                         handleStartChange(
                                           slot.id,
-                                          e.target.value
+                                          e.target.value,
                                         )
                                       }
                                       readOnly={
                                         selectedNotification !== option.id
                                       }
                                     />
+                                  */}
                                   </div>
                                   <p>{t("PatientAlert.To")}</p>
                                   <div className="desc-input">
+                                    <TimePicker />
+                                    {/*
                                     <input
                                       type="number"
                                       value={slot.end}
@@ -864,6 +912,7 @@ function PatientAlerts() {
                                         selectedNotification !== option.id
                                       }
                                     />
+                                    */}
                                   </div>
                                   <div
                                     className="close-button"
@@ -1101,7 +1150,9 @@ function PatientAlerts() {
             {t("PatientAlert.PostureAlertsDescription")}
           </p>
           <div className="opt-list">
-            <div className={`opt-grid ${positionToggleState ? "active" : ""}`}>
+            <div
+              className={`opt-grid position ${positionToggleState ? "active" : ""}`}
+            >
               {PositionStatus.map((option) => (
                 <div key={option.id} className="opt-box">
                   <div
@@ -1153,6 +1204,56 @@ function PatientAlerts() {
               <div
                 className={`text-only btn ${
                   positionToggleState ? "" : "inactive"
+                }`}
+              >
+                <img src="" alt="" className="prefix" />
+                <p className="btn-text">Save</p>
+              </div>
+            </div> */}
+          </div>
+        </div>
+        <div
+          className="alertOpt"
+          style={{ display: positionToggleState ? "" : "none" }} //TODO
+        >
+          <p className="alertDesc">
+            {t("PatientAlert.RepeatedAlertDescription")}
+          </p>
+          <div className="opt-list">
+            <div className={`opt-grid ${positionToggleState ? "active" : ""}`}>
+              <div className="opt-box">
+                <div
+                  className={`opt ${positionToggleState ? "on" : ""} ${
+                    alertRepeatToggleState ? "active" : ""
+                  } `}
+                >
+                  <img
+                    src="/src/assets/checkbox-blank-outline.svg"
+                    alt=""
+                    onClick={handleAlertRepeatToggle}
+                  />
+                  <div className="desc-box">
+                    <p>{t("PatientAlert.Limitrepeatedalerts")}</p>
+                    <div className="desc">
+                      <p>{t("PatientAlert.Limitrepeatedalerts-description")}</p>
+                      <div className="desc-input">
+                        <input
+                          type="number"
+                          value={alertRepeatToggleState ? debounceInput : ""}
+                          onChange={handleDebounceInputChange}
+                          readOnly={!positionToggleState}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="assistive-text">This is a line of text</div>
+              </div>
+            </div>
+            {/* <div className="btn-gp">
+              <div
+                className={`btn text-only ${
+                  alertRepeatToggleState ? "" : "inactive"
                 }`}
               >
                 <img src="" alt="" className="prefix" />
@@ -1316,5 +1417,20 @@ function PatientAlerts() {
     </div>
   );
 }
+
+const TimePicker = () => {
+  const [selectedDateTime, setSelectedDateTime] = useState(new Date());
+  return (
+    <DatePicker
+      selected={selectedDateTime}
+      onChange={setSelectedDateTime}
+      showTimeSelect
+      showTimeSelectOnly
+      timeIntervals={15}
+      dateFormat="h:mm aa"
+      showTimeCaption={false}
+    />
+  );
+};
 
 export default PatientAlerts;

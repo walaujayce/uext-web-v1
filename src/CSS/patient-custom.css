@@ -516,7 +516,7 @@
     display: grid;
     row-gap: 24px;
     column-gap: 24px;
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: repeat(1, 0.5fr);
     opacity: 0.5;
     padding-right: 10px;
 }
