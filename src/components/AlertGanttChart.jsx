@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
 import { Chart } from "chart.js";
 import "/src/CSS/alert.css";
+import ChartDataLabels from "chartjs-plugin-datalabels";
 
 function AlertGanttChart() {
   const { t, i18n } = useTranslation();
@@ -16,6 +17,10 @@ function AlertGanttChart() {
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     setSelect_Section(section);
+  };
+  const [select_device, setSelect_Device] = useState("");
+  const handleSelectDeviceType = (section) => {
+    setSelect_Device(section);
   };
 
   {
@@ -42,9 +47,9 @@ function AlertGanttChart() {
   const handleSelectAllAlert = () => {
     setSelectedAlert((prev) => {
       if (!Array.isArray(prev)) prev = []; // Ensure state is always an array
-      if (prev.length !== alertSettingListTemplate.length){
-        return alertSettingListTemplate.map(item => item.bed_id);
-      }else{
+      if (prev.length !== alertSettingListTemplate.length) {
+        return alertSettingListTemplate.map((item) => item.bed_id);
+      } else {
         return [];
       }
     });
@@ -81,7 +86,7 @@ function AlertGanttChart() {
     },
     {
       bed_id: "A02",
-      patient_name: "David2222222222222222222222222222222222222",
+      patient_name: "David",
       alert_triggers: [
         {
           id: 0,
@@ -172,6 +177,17 @@ function AlertGanttChart() {
             minute: 45,
           },
         },
+        {
+          id: 3,
+          start_time: {
+            hour: 1,
+            minute: 0,
+          },
+          end_time: {
+            hour: 1,
+            minute: 15,
+          },
+        },
       ],
     },
   ];
@@ -215,21 +231,37 @@ function AlertGanttChart() {
         borderSkipped: false,
         grouped: false,
         base: 0,
+        datalabels: {
+          display: false,
+          color: "black", // Text color
+          formatter: (value) => {
+            if (!value) return "";
+            // value[0] is start, value[1] is end
+            return `${toTimeStr(value[0])} ~ ${toTimeStr(value[1])}`;
+          },
+          font: {
+            weight: "bold",
+            size: 10,
+          },
+          anchor: "center", // Position relative to the bar
+          align: "center", // Position inside the bar
+        },
       });
     }
+    Chart.register(ChartDataLabels);
     var myChart = new Chart(
       document.getElementById("myChart").getContext("2d"),
       {
         type: "bar",
         data: {
           labels: alertSettingListTemplate.map((item) => {
-            const name = item.patient_name;
+            const label = `${item.bed_id} (${item.patient_name})`;
             // If name is longer than 10 chars, cut to 7 and add "..."
-            const truncatedName =
-              name.length > 10 ? name.substring(0, 7) + "..." : name;
+            const truncatedLabel =
+              label.length > 15 ? label.substring(0, 10) + "..." : label;
 
             // Return as an array to keep the wrapping (Bed ID on top, Name below)
-            return `${item.bed_id} (${truncatedName})`;
+            return truncatedLabel.padEnd(15, " ");
           }),
           datasets: datasets,
         },
@@ -251,6 +283,7 @@ function AlertGanttChart() {
             y: {
               grid: {
                 display: false,
+                // drawBorder:false,
               },
               stacked: false, // Keep them on the same line but not added together
               title: { display: false, text: "Bed / Patient" },
@@ -259,11 +292,11 @@ function AlertGanttChart() {
           },
           plugins: {
             datalabels: {
-              align: "left",
+              //   align: "left",
               textAlign: "left",
             },
             tooltip: {
-              enabled: false,
+              //   enabled: false,
               callbacks: {
                 label: function (context) {
                   const range = context.raw;
@@ -294,6 +327,8 @@ function AlertGanttChart() {
           <FloorSectionBar
             selectFloor={handleSelectFloor}
             selectSection={handleSelectSection}
+            selectDeviceType={handleSelectDeviceType}
+            enableDeviceType={true}
           />
 
           <div className="btn" id="addDevice" onClick={handleAddDeviceClick}>
@@ -311,7 +346,7 @@ function AlertGanttChart() {
             {/* checkbox header */}
             <div className="checkbox-header">
               <div
-                className="checkbox-all"
+                className={`checkbox-all ${selectedAlert.length === alertSettingListTemplate.length ? "active" : ""}`}
                 onClick={() => handleSelectAllAlert()}
               >
                 <img src="/src/assets/checkbox-blank-outline.svg" alt="" />

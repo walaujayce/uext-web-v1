@@ -1,85 +1,77 @@
-.al {
-  /* background-color: yellow; */
-  display: flex;
-  flex-direction: row;
-  gap: 0;
-}
-.al .checkbox-container {
-  display: flex;
-  /* background-color: red; */
-  width: 120px;
-  flex-direction: row;
-  margin-bottom: 60px;
-  .tickbox-container {
-    width: 40px;
-    /* background-color: blueviolet; */
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #c9c9c9;
-    .tickbox-head {
-      height: 40px;
-      width: 40px;
-      border-bottom: 1px solid #c9c9c9;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .tickbox-list {
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-  }
-  .name-container {
-    width: 80px;
-    /* background-color: gray; */
-    display: flex;
-    flex-direction: column;
-    .name-head {
-      height: 40px;
-      border-bottom: 1px solid #c9c9c9;
-      align-content: center;
-      justify-items: center;
-    }
-    .name-list {
-      display: flex;
-      flex-direction: column;
-      flex-grow: 1;
-    }
-  }
-}
-.al .chart-container {
-  display: flex;
-  /* background-color: blue; */
-  flex-grow: 1;
-}
-.al .chart-container .chart {
-  width: 80vw;
-  margin: 12px 0px 50px 0px;
-  /* background-color: blue; */
-}
-
-.al .checkbox-container .name-list .name-content {
-  background-color: white;
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-bottom: 1px solid #c9c9c9; /* Optional: to see the stretch */
-}
-.al .checkbox-container .tickbox-list .tickbox-content {
-  background-color: white;
-  flex-grow: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  border-bottom: 1px solid #c9c9c9; /* Optional: to see the stretch */
-  img {
-    height: 24px;
-    width: 24px;
-  }
-}
-.al .checkbox-container .tickbox-list .tickbox-content:hover {
-    background-color: rgb(243, 243, 243);
-}
+<div className="opt-list">
+            <div
+              className={`opt-grid ${notificationToggleState ? "active" : ""}`}
+            >
+              {NotificationTimeRange.map((option) => (
+                <div key={option.id} className="opt-box">
+                  <div
+                    className={`opt ${
+                      option.id === 5 ? "custom" : "duration"
+                    } ${notificationToggleState ? "on" : ""} ${
+                      selectedNotification === option.id ? "active" : ""
+                    }`}
+                  >
+                    <img
+                      src="/src/assets/checkbox-blank-outline.svg"
+                      alt=""
+                      onClick={() => handleNotificationCheckBox(option.id)}
+                    />
+                    <div className="desc-box">
+                      <p>{option.label}</p>
+                      {option.id === 5 && (
+                        <div className="desc-list">
+                          {selectedNotification === 5 &&
+                            timeSlot.map((slot) => {
+                              return (
+                                <div className="desc" key={slot.id}>
+                                  <div className="desc-input">
+                                    <TimePicker />
+                                  </div>
+                                  <p>{t("PatientAlert.To")}</p>
+                                  <div className="desc-input">
+                                    <TimePicker />
+                                  </div>
+                                  <div
+                                    className="close-button"
+                                    onClick={() =>
+                                      handleRemoveAlertTimeSlot(slot.id)
+                                    }
+                                  >
+                                    <img
+                                      src="/src/assets/close.svg"
+                                      alt="close icon"
+                                      className="close"
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  <div className="assistive-text">This is a line of text</div>
+                </div>
+              ))}
+            </div>
+            <div className="btn-gp">
+              <div
+                className="btn"
+                id="addTimeSlot"
+                onClick={handleAddAlertTimeSlot}
+              >
+                <img src="" alt="" className="prefix" />
+                <p className="btn-text">{t("PatientAlert.AddNewAlert")}</p>
+              </div>
+            </div>
+            {/* <div className="btn-gp">
+              <div
+                className={`text-only btn ${
+                  notificationToggleState ? "" : "inactive"
+                }`}
+              >
+                <img src="" alt="" className="prefix" />
+                <p className="btn-text">Save</p>
+              </div>
+            </div> */}
+          </div>

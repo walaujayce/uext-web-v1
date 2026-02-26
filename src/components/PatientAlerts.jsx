@@ -26,40 +26,44 @@ function PatientAlerts() {
   var timeSlotTemplate = [
     {
       id: 0,
-      start_time: {
+      start: {
+        hour: 0,
+        minute: 0,
+      },
+      end: {
         hour: 0,
         minute: 15,
       },
-      end_time: {
-        hour: 0,
-        minute: 0,
-      },
     },
-    {
-      id: 1,
-      start_time: {
-        hour: 0,
-        minute: 0,
-      },
-      end_time: {
-        hour: 0,
-        minute: 0,
-      },
-    },
-    {
-      id: 2,
-      start_time: {
-        hour: 0,
-        minute: 0,
-      },
-      end_time: {
-        hour: 0,
-        minute: 0,
-      },
-    },
+    // {
+    //   id: 1,
+    //   start_time: {
+    //     hour: 0,
+    //     minute: 0,
+    //   },
+    //   end_time: {
+    //     hour: 0,
+    //     minute: 0,
+    //   },
+    // },
+    // {
+    //   id: 2,
+    //   start_time: {
+    //     hour: 0,
+    //     minute: 0,
+    //   },
+    //   end_time: {
+    //     hour: 0,
+    //     minute: 0,
+    //   },
+    // },
   ];
 
-  const [timeSlot, setTimeSlot] = useState([timeSlotTemplate]);
+  const default24HourNotification = [
+        { id: 0, start: { hour: 0, minute: 0 }, end: { hour: 24, minute: 0 } },
+      ];
+
+  const [timeSlot, setTimeSlot] = useState([]);
 
   {
     /* GET API Patient Information */
@@ -93,11 +97,8 @@ function PatientAlerts() {
     /* NOTIFICATION TIME RANGE ARRAY */
   }
   const NotificationTimeRange = [
-    { id: 1, label: "00 - 24" },
-    // { id: 2, label: "00 - 08" },
-    // { id: 3, label: "08 - 16" },
-    // { id: 4, label: "16 - 24" },
-    { id: 5, label: t("PatientAlert.Custom") },
+    { id: 0, label: "00 - 24" },
+    { id: 1, label: t("PatientAlert.Custom") },
   ];
 
   const PositionStatus = [
@@ -115,50 +116,21 @@ function PatientAlerts() {
   // Notification
   const [selectedNotification, setSelectedNotification] = useState(null); // Track selected checkbox
 
-  const [customStartTime, setCustomStartTime] = useState("");
-  const handleAlertStartTimeChange = (e) => {
-    setCustomStartTime(e.target.value);
-  };
-
-  const [customEndTime, setCustomEndTime] = useState("");
-  const handleAlertEndTimeChange = (e) => {
-    setCustomEndTime(e.target.value);
-  };
-
   const handleNotificationCheckBox = (notification) => {
     setSelectedNotification((prev) => {
       return prev === notification ? null : notification;
     });
-    if (notification === 5 && timeSlot.length === 0) handleAddAlertTimeSlot();
-    // Toggle the same option off, otherwise select
-    console.log("notification: ", notification);
-    console.log("timeSlot.length: ", timeSlot.length);
-    setCustomStartTime("");
-    setCustomEndTime("");
+    // if (notification === 0) {
+    //   setTimeSlot([
+    //     { id: 0, start: { hour: 0, minute: 0 }, end: { hour: 24, minute: 0 } },
+    //   ]);
+    // }
+    // if (notification === 1 && timeSlot.length === 0)
+    //   handleAddAlertTimeSlot(notification);
   };
-
-  const [startTime, setStartTime] = useState(0);
-  const [endTime, setEndTime] = useState(0);
-
   useEffect(() => {
-    switch (selectedNotification) {
-      case 1:
-        setStartTime(0);
-        setEndTime(24);
-        break;
-      case 2:
-        setStartTime(0);
-        setEndTime(8);
-        break;
-      case 3:
-        setStartTime(8);
-        setEndTime(16);
-        break;
-      case 4:
-        setStartTime(16);
-        setEndTime(24);
-        break;
-    }
+    if (selectedNotification === 1 && timeSlot.length === 0)
+      handleAddAlertTimeSlot();
   }, [selectedNotification]);
 
   // Alert Repeat Time
@@ -243,14 +215,14 @@ function PatientAlerts() {
   const [notificationToggleState, setNotificationToggleState] = useState(false);
   const handleNotificationToggle = () => {
     setNotificationToggleState((prev) => !prev);
-    setSelectedNotification(1);
+    // setSelectedNotification(1);
   };
   // Alert Repeat Time
   const [alertRepeatToggleState, setAlertRepeatToggleState] = useState(false);
   const handleAlertRepeatToggle = () => {
     if (notificationToggleState) {
       setAlertRepeatToggleState((prev) => !prev);
-      setARTIsChecked(() => false);
+      // setARTIsChecked(() => false);
     } else {
       alert("At least one time interval for alerts has to be selected.");
     }
@@ -475,11 +447,25 @@ function PatientAlerts() {
         setNewAlert(true);
         return;
       }
-      // console.log("Fetched data:", data);
-      // console.log("json:", data.jlog.alert_triggers);
-      // console.log("typeof:", typeof data.jlog.alert_triggers);
       setAlertList(data); // Update state with filtered object
-      setTimeSlot(data.jlog.alert_triggers);
+      // console.log("Fetched data:", data);
+      console.log("json:", data.jlog.alert_triggers);
+      // console.log("typeof:", typeof data.jlog.alert_triggers);
+      const alertTrigger = data.jlog.alert_triggers;
+      if (alertTrigger.length > 0) {
+        if (
+          alertTrigger.length === 1 &&
+          alertTrigger[0].start.hour === 0 &&
+          alertTrigger[0].start.minute === 0 &&
+          alertTrigger[0].end.hour === 24 &&
+          alertTrigger[0].end.minute === 0
+        ) {
+          setSelectedNotification(0);
+        } else {
+          setSelectedNotification(1);
+          setTimeSlot(data.jlog.alert_triggers);
+        }
+      }
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -499,16 +485,6 @@ function PatientAlerts() {
     if (alertList) {
       // Alert Controller
       updateToggleStatesFromAlertController(alertList.alertcontroller);
-      // Alert Start and End Time
-      // if (
-      //   timeSlot.length === 1 &&
-      //   timeSlot[0].start === 0 &&
-      //   timeSlot[0].end === 24
-      // ) {
-      //   setSelectedNotification(1);
-      // } else {
-      //   setSelectedNotification(5);
-      // } TODO
       // Alert Repeat Time
       if (alertList.debounce !== 0) {
         setAlertRepeatToggleState(true);
@@ -535,37 +511,37 @@ function PatientAlerts() {
       setHbHighInput(alertList.heartratehighlimit);
       setHbLowInput(alertList.heartratelowlimit);
     }
-  }, [alertList, timeSlot]);
+  }, [alertList]);
 
-  const formatAlertStartTimeToUTC = () => {
-    var StartTime_Local =
-      startTime === endTime
-        ? 0
-        : selectedNotification === 5
-          ? parseInt(customStartTime, 10)
-          : startTime;
-    var StartTime_UTC = StartTime_Local - 8;
-    return StartTime_UTC < 0 ? StartTime_UTC + 24 : StartTime_UTC;
-  };
+  // const formatAlertStartTimeToUTC = () => {
+  //   var StartTime_Local =
+  //     startTime === endTime
+  //       ? 0
+  //       : selectedNotification === 5
+  //         ? parseInt(customStartTime, 10)
+  //         : startTime;
+  //   var StartTime_UTC = StartTime_Local - 8;
+  //   return StartTime_UTC < 0 ? StartTime_UTC + 24 : StartTime_UTC;
+  // };
 
-  const formatAlertEndTimeToUTC = () => {
-    var EndTime_Local =
-      startTime === endTime
-        ? 24
-        : (selectedNotification === 5
-            ? parseInt(customEndTime, 10)
-            : endTime) || 24;
-    var EndTime_UTC = EndTime_Local - 8;
-    return EndTime_UTC < 0 ? EndTime_UTC + 24 : EndTime_UTC;
-  };
+  // const formatAlertEndTimeToUTC = () => {
+  //   var EndTime_Local =
+  //     startTime === endTime
+  //       ? 24
+  //       : (selectedNotification === 5
+  //           ? parseInt(customEndTime, 10)
+  //           : endTime) || 24;
+  //   var EndTime_UTC = EndTime_Local - 8;
+  //   return EndTime_UTC < 0 ? EndTime_UTC + 24 : EndTime_UTC;
+  // };
 
   {
     /* Requestbody */
   }
   const requestBody_PUT = {
     alertcontroller: generateAlertControllerFromToggleStates(),
-    alertstarttime: startTime,
-    alertstoptime: endTime,
+    // alertstarttime: startTime,
+    // alertstoptime: endTime,
     debounce: alertRepeatToggleState ? parseInt(debounceInput, 10) : 0,
     exitalert: placeholder === "High" ? 60 : placeholder === "Medium" ? 70 : 80,
     posturealert1: parseInt(inputValues[1], 10),
@@ -579,13 +555,13 @@ function PatientAlerts() {
     heartratelowlimit: parseInt(hbLowInput, 10),
     respiratoryratehighlimit: parseInt(respHighInput, 10),
     respiratoryratelowlimit: parseInt(respLowInput, 10),
-    jlog: { alert_triggers: sortTimeSlotByLabel(timeSlot) },
+    jlog: { alert_triggers: selectedNotification === 0 ? default24HourNotification : sortTimeSlotByLabel(timeSlot) },
   };
 
   const requestBody_POST = {
     alertcontroller: generateAlertControllerFromToggleStates() || 3,
-    alertstarttime: startTime,
-    alertstoptime: endTime,
+    alertstarttime: 0,
+    alertstoptime: 0,
     debounce: (alertRepeatToggleState ? parseInt(debounceInput, 10) : 0) || 0,
     exitalert:
       (placeholder === "High" ? 60 : placeholder === "Medium" ? 70 : 80) || 70,
@@ -678,10 +654,8 @@ function PatientAlerts() {
 
       // Combine the filtered alert list with the new request body
       const updatedData = { ...filteredAlertList, ...requestBody_PUT };
-      console.log("alert start time ", startTime);
-      console.log("alert end time ", endTime);
-      console.log("alert start time UTC ", formatAlertStartTimeToUTC());
-      console.log("alert end time UTC ", formatAlertEndTimeToUTC());
+      console.log("updatedData: ", updatedData.jlog);
+      // return;
       setLoading(true);
 
       const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
@@ -731,7 +705,9 @@ function PatientAlerts() {
     heartratelowlimit: 60,
     respiratoryratehighlimit: 20,
     respiratoryratelowlimit: 12,
-    jlog: { alert_triggers: [{ id: 0, start: 0, end: 24 }] },
+    jlog: {
+      alert_triggers: default24HourNotification,
+    },
   };
   const PUT_PatientAlert_RESET = async () => {
     try {
@@ -777,17 +753,26 @@ function PatientAlerts() {
   };
 
   const handleAddAlertTimeSlot = () => {
-    if (selectedNotification !== 5) return;
+    // console.log("selectedNotification: ", selectedNotification);
+    if (selectedNotification !== 1) return;
     if (timeSlot.length >= 5) {
       window.alert("Alert trigger time is limited up to 5 intervals only.");
       return;
     }
+    const newStartDate = new Date();
+    const newEndDate = new Date(newStartDate.getTime() + 60 * 60 * 1000);
     setTimeSlot((prev) => [
       ...prev,
       {
         id: timeSlot.length === 0 ? 0 : timeSlot[timeSlot.length - 1].id + 1, // unique key
-        start: "",
-        end: "",
+        start: {
+          hour: newStartDate.getHours(),
+          minute: newStartDate.getMinutes(),
+        },
+        end: {
+          hour: newEndDate.getHours(),
+          minute: newEndDate.getMinutes(),
+        },
       },
     ]);
   };
@@ -797,31 +782,39 @@ function PatientAlerts() {
     setTimeSlot((prev) => prev.filter((slot) => slot.id !== id));
   };
 
-  const handleStartChange = (id, value) => {
-    setTimeSlot((prev) =>
-      prev.map((slot) => (slot.id === id ? { ...slot, start: value } : slot)),
+  const updateSlotTime = (id, type, newHour, newMinute) => {
+    setTimeSlot((prevSlots) =>
+      prevSlots.map((slot) =>
+        slot.id === id
+          ? {
+              ...slot,
+              [type]: { hour: newHour, minute: newMinute },
+            }
+          : slot,
+      ),
     );
   };
 
-  const handleEndChange = (id, value) => {
-    setTimeSlot((prev) =>
-      prev.map((slot) => (slot.id === id ? { ...slot, end: value } : slot)),
-    );
-  };
-  useEffect(() => {
-    console.log("time slot: ", timeSlot);
-  }, [timeSlot]);
+  // useEffect(() => {
+  //   console.log("time slot: ", timeSlot);
+  // }, [timeSlot]);
 
   function sortTimeSlotByLabel(timeSlot) {
     const temp = [];
-    console.log("debug: ", timeSlot);
+    // console.log("debug: ", timeSlot);
     timeSlot = timeSlot.filter((slot) => slot.start !== "" || slot.end !== "");
     timeSlot.sort((a, b) => a.id - b.id);
     timeSlot.map((slot, index) => {
       temp.push({
         id: index,
-        start: parseInt(slot.start, 10),
-        end: parseInt(slot.end, 10),
+        start: {
+          hour: parseInt(slot.start.hour, 10),
+          minute: parseInt(slot.start.minute, 10),
+        },
+        end: {
+          hour: parseInt(slot.end.hour, 10),
+          minute: parseInt(slot.end.minute, 10),
+        },
       });
     });
     return temp;
@@ -856,13 +849,12 @@ function PatientAlerts() {
           <div className="opt-list">
             <div
               className={`opt-grid ${notificationToggleState ? "active" : ""}`}
-              // style={{ gridTemplateColumns: "repeat(1, 1fr)" }}
             >
               {NotificationTimeRange.map((option) => (
                 <div key={option.id} className="opt-box">
                   <div
                     className={`opt ${
-                      option.id === 5 ? "custom" : "duration"
+                      option.id === 1 ? "custom" : "duration"
                     } ${notificationToggleState ? "on" : ""} ${
                       selectedNotification === option.id ? "active" : ""
                     }`}
@@ -874,45 +866,31 @@ function PatientAlerts() {
                     />
                     <div className="desc-box">
                       <p>{option.label}</p>
-                      {option.id === 5 && (
+                      {option.id === 1 && (
                         <div className="desc-list">
-                          {selectedNotification === 5 &&
+                          {selectedNotification === 1 &&
                             timeSlot.map((slot) => {
+                              // console.log("slot: ",slot);
                               return (
                                 <div className="desc" key={slot.id}>
                                   <div className="desc-input">
-                                    <TimePicker />
-                                    {/*
-                                    <input
-                                      type="number"
-                                      value={slot.start}
-                                      onChange={(e) =>
-                                        handleStartChange(
-                                          slot.id,
-                                          e.target.value,
-                                        )
-                                      }
-                                      readOnly={
-                                        selectedNotification !== option.id
+                                    <TimePicker
+                                      hour={slot.start.hour}
+                                      minute={slot.start.minute}
+                                      onChange={(h, m) =>
+                                        updateSlotTime(slot.id, "start", h, m)
                                       }
                                     />
-                                  */}
                                   </div>
                                   <p>{t("PatientAlert.To")}</p>
                                   <div className="desc-input">
-                                    <TimePicker />
-                                    {/*
-                                    <input
-                                      type="number"
-                                      value={slot.end}
-                                      onChange={(e) =>
-                                        handleEndChange(slot.id, e.target.value)
-                                      }
-                                      readOnly={
-                                        selectedNotification !== option.id
+                                    <TimePicker
+                                      hour={slot.end.hour}
+                                      minute={slot.end.minute}
+                                      onChange={(h, m) =>
+                                        updateSlotTime(slot.id, "end", h, m)
                                       }
                                     />
-                                    */}
                                   </div>
                                   <div
                                     className="close-button"
@@ -941,26 +919,16 @@ function PatientAlerts() {
               <div
                 className="btn"
                 id="addTimeSlot"
-                onClick={handleAddAlertTimeSlot}
+                onClick={() => handleAddAlertTimeSlot()}
               >
                 <img src="" alt="" className="prefix" />
                 <p className="btn-text">{t("PatientAlert.AddNewAlert")}</p>
               </div>
             </div>
-            {/* <div className="btn-gp">
-              <div
-                className={`text-only btn ${
-                  notificationToggleState ? "" : "inactive"
-                }`}
-              >
-                <img src="" alt="" className="prefix" />
-                <p className="btn-text">Save</p>
-              </div>
-            </div> */}
           </div>
         </div>
       </div>
-      <div className="alertSetting">
+      <div className="alertSetting" style={{display:"none"}}> 
         <div className="alertHead">
           <h1>{t("PatientAlert.RepeatedAlert")}</h1>
           <div
@@ -1223,14 +1191,12 @@ function PatientAlerts() {
             <div className={`opt-grid ${positionToggleState ? "active" : ""}`}>
               <div className="opt-box">
                 <div
-                  className={`opt ${positionToggleState ? "on" : ""} ${
-                    alertRepeatToggleState ? "active" : ""
-                  } `}
+                  className={`opt ${positionToggleState ? "on" : ""} ${alertRepeatToggleState ? "active" : ""}`}
                 >
                   <img
                     src="/src/assets/checkbox-blank-outline.svg"
                     alt=""
-                    onClick={handleAlertRepeatToggle}
+                    onClick={()=>handleAlertRepeatToggle()}
                   />
                   <div className="desc-box">
                     <p>{t("PatientAlert.Limitrepeatedalerts")}</p>
@@ -1418,12 +1384,28 @@ function PatientAlerts() {
   );
 }
 
-const TimePicker = () => {
-  const [selectedDateTime, setSelectedDateTime] = useState(new Date());
+const TimePicker = ({ hour, minute, onChange }) => {
+  const [selectedDateTime, setSelectedDateTime] = useState(() => {
+    const date = new Date();
+    date.setHours(hour, minute, 0, 0); // Sets hours, minutes, seconds, and milliseconds
+    return date;
+  });
+  const handleChange = (date) => {
+    setSelectedDateTime(date);
+    // Send the new hours and minutes back to the parent
+    if (onChange) {
+      onChange(date.getHours(), date.getMinutes());
+    }
+  };
+  useEffect(() => {
+    const date = new Date();
+    date.setHours(hour, minute, 0, 0);
+    setSelectedDateTime(date);
+  }, [hour, minute]);
   return (
     <DatePicker
       selected={selectedDateTime}
-      onChange={setSelectedDateTime}
+      onChange={handleChange}
       showTimeSelect
       showTimeSelectOnly
       timeIntervals={15}

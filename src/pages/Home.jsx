@@ -38,30 +38,36 @@ function Home() {
     console.log("section");
     setSelect_Section(section);
   };
+  const [select_deviceType, setSelect_DeviceType] = useState("");
+  const handleSelectDeviceType = (deviceType) => {
+    setSelect_DeviceType(deviceType);
+  };
 
   const [devices, setDevices] = useState([]);
 
   const fetchDeviceList = async () => {
     try {
       if (port === "8031") {
-        if(import.meta.env.VITE_MODE === 'dev'){
-            const response = await fetch("/api/7284/ss/SocketServer");
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log("ss/SocketServer: ", data);
-            const devicesNonHalow = data.filter((device) => device.TYPE!==201);
-            setDevices(devicesNonHalow || []);
-        }else{
-            const response = await fetch("/api/8031/devices");
-            if (!response.ok) {
-              throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            const data = await response.json();
-            console.log(data.DATA);
-            const devicesNonHalow = data.DATA.filter((device) => device.TYPE!==201);
-            setDevices(devicesNonHalow || []);
+        if (import.meta.env.VITE_MODE === "dev") {
+          const response = await fetch("/api/7284/ss/SocketServer");
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          console.log("ss/SocketServer: ", data);
+          const devicesNonHalow = data.filter((device) => device.TYPE !== 201);
+          setDevices(devicesNonHalow || []);
+        } else {
+          const response = await fetch("/api/8031/devices");
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          const data = await response.json();
+          console.log(data.DATA);
+          const devicesNonHalow = data.DATA.filter(
+            (device) => device.TYPE !== 201,
+          );
+          setDevices(devicesNonHalow || []);
         }
         // console.log("the current is ", getServerIp());
       } else if (port === "7284") {
@@ -84,13 +90,22 @@ function Home() {
   }, [port]);
 
   const renderDeviceComponent = (device) => {
-    const { STAT, POS, MAC, HOLD, Bed, Floor, Section, UserName, TYPE, BedColor } =
-      device;
+    const {
+      STAT,
+      POS,
+      MAC,
+      HOLD,
+      Bed,
+      Floor,
+      Section,
+      UserName,
+      TYPE,
+      BedColor,
+    } = device;
 
     // 先以STAT去區分on/off-line，再以TYPE區分UEXT/UMAP，最後以POS區分狀態
     if (STAT === 0) {
-      if(TYPE!==0){
-
+      if (TYPE !== 0) {
         return (
           <Link
             to={`/device/device-settings?macaddress=${MAC}`}
@@ -139,8 +154,8 @@ function Home() {
                 username={UserName}
               />
             </Link>
-          // ) : POS === 8 ? (
-          ) : BedColor === 2 ? (
+          ) : // ) : POS === 8 ? (
+          BedColor === 2 ? (
             <Link
               to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
               key={MAC}
@@ -221,14 +236,14 @@ function Home() {
       days > 0
         ? `${String(days).padStart(2, "0")}:${String(hours).padStart(
             2,
-            "0"
+            "0",
           )}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
             2,
-            "0"
+            "0",
           )}`
         : `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
             2,
-            "0"
+            "0",
           )}:${String(seconds).padStart(2, "0")}`;
 
     return dateTime;
@@ -241,14 +256,8 @@ function Home() {
     if (aDigits < bDigits) return -1;
     if (aDigits > bDigits) return 1;
     // If alphabetical order is the same, sort numerically
-    const numA = parseInt(
-      a.Bed?.replace(/[^0-9]/g, "") || "0",
-      10
-    );
-    const numB = parseInt(
-      b.Bed?.replace(/[^0-9]/g, "") || "0",
-      10
-    );
+    const numA = parseInt(a.Bed?.replace(/[^0-9]/g, "") || "0", 10);
+    const numB = parseInt(b.Bed?.replace(/[^0-9]/g, "") || "0", 10);
 
     return numA - numB; // Numeric ascending order
   };
@@ -257,7 +266,7 @@ function Home() {
     /* Handle Sort by BED/STATUS */
   }
   const [sortBy, setSortBy] = useState(
-    () => localStorage.getItem("sort_by") || "bed"
+    () => localStorage.getItem("sort_by") || "bed",
   );
 
   const handleToggleSort = (type) => {
@@ -287,7 +296,8 @@ function Home() {
               <FloorSectionBar
                 selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
-                enableDeviceType={false}
+                selectDeviceType={handleSelectDeviceType}
+                enableDeviceType={true}
               />
               <div className="sort">
                 <div className="label">{t("Home.Sortby")}</div>
@@ -314,6 +324,13 @@ function Home() {
             <div className={`grid ${sortBy === "bed" ? "active" : ""}`}>
               {devices
                 .slice()
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .filter((device) => {
                   return (
                     select_floor === "" ||
@@ -349,13 +366,20 @@ function Home() {
                     device.Section === select_section
                   );
                 })
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .some(
                   (device) =>
                     device.TYPE === 1 &&
                     device.STAT === 1 &&
                     !(device.UserName === null || device.UserName === "") &&
                     // (device.POS === 4 || device.POS === 5 || device.POS === 0)
-                    (device.BedColor === 1)
+                    device.BedColor === 1,
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Alerts")}</div>
@@ -375,6 +399,13 @@ function Home() {
                           device.Section === select_section
                         );
                       })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
+                        );
+                      })
                       .filter(
                         (device) =>
                           device.TYPE === 1 &&
@@ -383,7 +414,7 @@ function Home() {
                             device.UserName === null || device.UserName === ""
                           ) &&
                           // (device.POS === 4 || device.POS === 5 || device.POS === 0)
-                          (device.BedColor === 1)
+                          device.BedColor === 1,
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
@@ -422,13 +453,20 @@ function Home() {
                     device.Section === select_section
                   );
                 })
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .some(
                   (device) =>
                     device.TYPE === 1 &&
                     device.STAT === 1 &&
                     !(device.UserName === null || device.UserName === "") &&
                     // device.POS === 8
-                    device.BedColor === 2
+                    device.BedColor === 2,
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Attention")}</div>
@@ -448,6 +486,13 @@ function Home() {
                           device.Section === select_section
                         );
                       })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
+                        );
+                      })
                       .filter(
                         (device) =>
                           device.TYPE === 1 &&
@@ -456,7 +501,7 @@ function Home() {
                             device.UserName === null || device.UserName === ""
                           ) &&
                           // device.POS === 8
-                          device.BedColor === 2
+                          device.BedColor === 2,
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
@@ -490,6 +535,13 @@ function Home() {
                 })
                 .filter((device) => {
                   return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
+                .filter((device) => {
+                  return (
                     select_section === "" ||
                     select_section === "All" ||
                     device.Section === select_section
@@ -505,11 +557,10 @@ function Home() {
                       //   device.POS === 5 ||
                       //   device.POS === 8 ||
                       //   device.POS === 0
-                      (device.BedColor === 0
-                      )) ||
+                      device.BedColor === 0) ||
                     (device.TYPE === 2 &&
                       device.STAT === 1 &&
-                      !(device.UserName === null || device.UserName === ""))
+                      !(device.UserName === null || device.UserName === "")),
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Normal")}</div>
@@ -529,6 +580,13 @@ function Home() {
                           device.Section === select_section
                         );
                       })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
+                        );
+                      })
                       .filter(
                         (device) =>
                           (device.TYPE === 1 &&
@@ -537,17 +595,16 @@ function Home() {
                               device.UserName === null || device.UserName === ""
                             ) &&
                             // !(
-                              // device.POS === 4 ||
-                              // device.POS === 5 ||
-                              // device.POS === 8 ||
-                              // device.POS === 0
-                              (device.BedColor === 0
-                            )) ||
+                            // device.POS === 4 ||
+                            // device.POS === 5 ||
+                            // device.POS === 8 ||
+                            // device.POS === 0
+                            device.BedColor === 0) ||
                           (device.TYPE === 2 &&
                             device.STAT === 1 &&
                             !(
                               device.UserName === null || device.UserName === ""
-                            ))
+                            )),
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
@@ -586,6 +643,13 @@ function Home() {
                     device.Section === select_section
                   );
                 })
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .some(
                   (device) =>
                     (device.TYPE === 1 &&
@@ -593,7 +657,7 @@ function Home() {
                       (device.UserName === null || device.UserName === "")) ||
                     (device.TYPE === 2 &&
                       device.STAT === 1 &&
-                      (device.UserName === null || device.UserName === ""))
+                      (device.UserName === null || device.UserName === "")),
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Vacant")}</div>
@@ -613,6 +677,13 @@ function Home() {
                           device.Section === select_section
                         );
                       })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
+                        );
+                      })
                       .filter(
                         (device) =>
                           (device.TYPE === 1 &&
@@ -622,7 +693,7 @@ function Home() {
                           (device.TYPE === 2 &&
                             device.STAT === 1 &&
                             (device.UserName === null ||
-                              device.UserName === ""))
+                              device.UserName === "")),
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
@@ -653,10 +724,17 @@ function Home() {
                     device.Section === select_section
                   );
                 })
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .some(
                   (device) =>
                     (device.TYPE === 1 && device.STAT === 0) ||
-                    (device.TYPE === 2 && device.STAT === 0)
+                    (device.TYPE === 2 && device.STAT === 0),
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Disconnected")}</div>
@@ -676,10 +754,17 @@ function Home() {
                           device.Section === select_section
                         );
                       })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
+                        );
+                      })
                       .filter(
                         (device) =>
                           (device.TYPE === 1 && device.STAT === 0) ||
-                          (device.TYPE === 2 && device.STAT === 0)
+                          (device.TYPE === 2 && device.STAT === 0),
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
