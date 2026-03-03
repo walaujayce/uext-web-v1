@@ -12,7 +12,7 @@ import SimpleBackdrop from "./LoadingOverlay";
 import { TimeScale } from "chart.js";
 import DatePicker from "react-datepicker";
 
-function PatientAlerts() {
+function PatientAlerts({ patientIDs, isBatch = false }) {
   const { t, i18n } = useTranslation();
 
   const [searchParams] = useSearchParams();
@@ -60,8 +60,8 @@ function PatientAlerts() {
   ];
 
   const default24HourNotification = [
-        { id: 0, start: { hour: 0, minute: 0 }, end: { hour: 24, minute: 0 } },
-      ];
+    { id: 0, start: { hour: 0, minute: 0 }, end: { hour: 24, minute: 0 } },
+  ];
 
   const [timeSlot, setTimeSlot] = useState([]);
 
@@ -451,7 +451,7 @@ function PatientAlerts() {
       // console.log("Fetched data:", data);
       console.log("json:", data.jlog.alert_triggers);
       // console.log("typeof:", typeof data.jlog.alert_triggers);
-      const alertTrigger = data.jlog.alert_triggers;
+      const alertTrigger = data.jlog.alert_triggers.intervals;
       if (alertTrigger.length > 0) {
         if (
           alertTrigger.length === 1 &&
@@ -463,7 +463,7 @@ function PatientAlerts() {
           setSelectedNotification(0);
         } else {
           setSelectedNotification(1);
-          setTimeSlot(data.jlog.alert_triggers);
+          setTimeSlot(data.jlog.alert_triggers.intervals);
         }
       }
     } catch (error) {
@@ -472,14 +472,78 @@ function PatientAlerts() {
   };
 
   useEffect(() => {
+    console.log("macaddress: ", macaddress);
+    if (macaddress === "") return;
     fetchPatientProfile();
   }, [macaddress]);
 
   useEffect(() => {
+    // if(patient.length === 0) return;
     if (patient && patient.patientid) {
       fetchAlertList(patient.patientid);
     }
   }, [patient]);
+
+  const [batchAlertList, setBatchAlertList] = useState([]);
+
+  const fetchBatchAlertList = async (patientid) => {
+    try {
+      const response = await fetch(`/api/7284/db/Alert/${patientid}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      const contentType = response.headers.get("Content-Type");
+      if (!response.ok || !contentType?.includes("application/json")) {
+        throw new Error(`Expected JSON, got: ${contentType}`);
+      }
+
+      const data = await response.json();
+      console.log("fetched batch data: ", data);
+      setBatchAlertList((prev) => {
+        if (data.code === -1) {
+          return [
+            ...prev,
+            {
+              patientid: patientid,
+              isNewAlert: true,
+            },
+          ];
+        } else {
+          return [
+            ...prev,
+            {
+              patientid: patientid,
+              isNewAlert: false,
+              alertList: data,
+            },
+          ];
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
+    }
+  };
+
+  useEffect(() => {
+    if (Array.isArray(patientIDs)) {
+      if (patientIDs.length === 1) {
+        if(isBatch){
+          fetchAlertList(patientIDs[0]);
+          fetchBatchAlertList(patientIDs[0]);
+          setPatient({ patientid: patientIDs[0] });
+        }
+      } else {
+        patientIDs.forEach((id) => fetchBatchAlertList(id));
+      }
+    }
+    // console.log("patientAlert: ", patientIDs);
+  }, [patientIDs, isBatch]);
+  useEffect(() => {
+    console.log("batchlist: ", batchAlertList);
+  }, [batchAlertList]);
 
   useEffect(() => {
     if (alertList) {
@@ -555,7 +619,15 @@ function PatientAlerts() {
     heartratelowlimit: parseInt(hbLowInput, 10),
     respiratoryratehighlimit: parseInt(respHighInput, 10),
     respiratoryratelowlimit: parseInt(respLowInput, 10),
-    jlog: { alert_triggers: selectedNotification === 0 ? default24HourNotification : sortTimeSlotByLabel(timeSlot) },
+    jlog: {
+      alert_triggers: {
+        status: notificationToggleState,
+        intervals:
+          selectedNotification === 0
+            ? default24HourNotification
+            : sortTimeSlotByLabel(timeSlot),
+      },
+    },
   };
 
   const requestBody_POST = {
@@ -584,28 +656,59 @@ function PatientAlerts() {
     enablealert6: true,
     enablealert7: true,
     patientid: patient.patientid,
-    jlog: { alert_triggers: sortTimeSlotByLabel(timeSlot) },
+    jlog: {
+      alert_triggers: {
+        status: true,
+        intervals:
+          selectedNotification === 0
+            ? default24HourNotification
+            : sortTimeSlotByLabel(timeSlot),
+      },
+    },
   };
 
   const handleUpdateAlertClicked = () => {
-    // handle new patient but no change of toggle state
-    if (
-      isNewAlert &&
-      !notificationToggleState &&
-      !alertRepeatToggleState &&
-      !exitBedRateToggleState &&
-      !positionToggleState &&
-      !respHeartBeatToggleState
-    ) {
-      alert("At least change one status of alert settings !");
-      return;
-    }
-    if (isNewAlert) {
-      console.log("the input requestbody is ", requestBody_POST);
-      POST_PatientAlert();
+    if (isBatch) {
+      if (
+        isNewAlert &&
+        !notificationToggleState &&
+        !alertRepeatToggleState &&
+        !exitBedRateToggleState &&
+        !positionToggleState &&
+        !respHeartBeatToggleState
+      ) {
+        alert("At least change one status of alert settings !");
+        return;
+      }
+      console.log("AAAAA");
+      batchAlertList.forEach((alert)=>{
+        if(alert.isNewAlert){
+          requestBody_POST.patientid = alert.patientid;
+          POST_PatientAlert();
+        }else{
+          PUT_PatientAlert(alert.alertList, alert.patientid);
+        }
+      });
     } else {
-      console.log("the input requestbody is ", requestBody_PUT);
-      PUT_PatientAlert();
+      // handle new patient but no change of toggle state
+      if (
+        isNewAlert &&
+        !notificationToggleState &&
+        !alertRepeatToggleState &&
+        !exitBedRateToggleState &&
+        !positionToggleState &&
+        !respHeartBeatToggleState
+      ) {
+        alert("At least change one status of alert settings !");
+        return;
+      }
+      if (isNewAlert) {
+        console.log("the input requestbody is ", requestBody_POST);
+        POST_PatientAlert();
+      } else {
+        console.log("the input requestbody is ", requestBody_PUT);
+        PUT_PatientAlert(alertList, patient.patientid);
+      }
     }
   };
   {
@@ -614,6 +717,7 @@ function PatientAlerts() {
   const POST_PatientAlert = async () => {
     try {
       setLoading(true);
+      console.log("requestBody_POST: ", requestBody_POST);
 
       const response = await fetch(`/api/7284/db/Alert`, {
         method: "POST",
@@ -633,7 +737,7 @@ function PatientAlerts() {
         return;
       }
       console.log("Device POST successfully:", data);
-      alert("Update Successfully!");
+      // alert("Update Successfully!");
       window.location.reload();
 
       console.log(data); // Return the response data if needed
@@ -647,7 +751,7 @@ function PatientAlerts() {
   {
     /* PUT API Update Toggle State */
   }
-  const PUT_PatientAlert = async () => {
+  const PUT_PatientAlert = async (alertList, patientid) => {
     try {
       // Remove 'alertguid' from the alertList
       const { alertguid, ...filteredAlertList } = alertList; // Destructure to exclude alertguid
@@ -658,7 +762,7 @@ function PatientAlerts() {
       // return;
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
+      const response = await fetch(`/api/7284/db/Alert/${patientid}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -676,7 +780,7 @@ function PatientAlerts() {
         return;
       }
       console.log("Device PUT successfully:", data);
-      alert("Update Successfully!");
+      // alert("Update Successfully!");
       console.log(data); // Return the response data if needed
       window.location.reload();
     } catch (error) {
@@ -706,10 +810,10 @@ function PatientAlerts() {
     respiratoryratehighlimit: 20,
     respiratoryratelowlimit: 12,
     jlog: {
-      alert_triggers: default24HourNotification,
+      alert_triggers: { status: true, intervals: default24HourNotification },
     },
   };
-  const PUT_PatientAlert_RESET = async () => {
+  const PUT_PatientAlert_RESET = async (alertList,patientid) => {
     try {
       // Remove 'alertguid' from the alertList
       const { alertguid, ...filteredAlertList } = alertList; // Destructure to exclude alertguid
@@ -719,7 +823,7 @@ function PatientAlerts() {
 
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Alert/${patient.patientid}`, {
+      const response = await fetch(`/api/7284/db/Alert/${patientid}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -737,7 +841,7 @@ function PatientAlerts() {
         return;
       }
       console.log("Device RESET successfully:", data);
-      alert("Update Successfully!");
+      // alert("Update Successfully!");
       console.log(data); // Return the response data if needed
       window.location.reload();
     } catch (error) {
@@ -748,7 +852,7 @@ function PatientAlerts() {
   };
   const handleResetAlertClicked = () => {
     if (!isNewAlert) {
-      PUT_PatientAlert_RESET();
+      PUT_PatientAlert_RESET(alertList,patient.patientid);
     }
   };
 
@@ -760,6 +864,10 @@ function PatientAlerts() {
       return;
     }
     const newStartDate = new Date();
+    const minutes = newStartDate.getMinutes();
+    const roundedMinutes = Math.round(minutes / 5) * 5;
+    newStartDate.setMinutes(roundedMinutes, 0, 0);
+
     const newEndDate = new Date(newStartDate.getTime() + 60 * 60 * 1000);
     setTimeSlot((prev) => [
       ...prev,
@@ -928,7 +1036,7 @@ function PatientAlerts() {
           </div>
         </div>
       </div>
-      <div className="alertSetting" style={{display:"none"}}> 
+      <div className="alertSetting" style={{ display: "none" }}>
         <div className="alertHead">
           <h1>{t("PatientAlert.RepeatedAlert")}</h1>
           <div
@@ -1196,7 +1304,7 @@ function PatientAlerts() {
                   <img
                     src="/src/assets/checkbox-blank-outline.svg"
                     alt=""
-                    onClick={()=>handleAlertRepeatToggle()}
+                    onClick={() => handleAlertRepeatToggle()}
                   />
                   <div className="desc-box">
                     <p>{t("PatientAlert.Limitrepeatedalerts")}</p>
@@ -1363,19 +1471,19 @@ function PatientAlerts() {
             <div className="btn-gp">
               <div
                 className={`btn text-only`}
-                onClick={handleUpdateAlertClicked}
+                onClick={() => handleUpdateAlertClicked()}
               >
                 <img src="" alt="" className="prefix" />
                 <p className="btn-text">{t("PatientAlert.Save")}</p>
               </div>
-              <div
+              {!isBatch && <div
                 className="btn text-only outline"
                 id="reset"
                 onClick={handleResetAlertClicked}
               >
                 <img src="" alt="" className="prefix" />
                 <p className="btn-text">{t("PatientAlert.ResetToDefault")}</p>
-              </div>
+              </div>}
             </div>
           </div>
         </div>

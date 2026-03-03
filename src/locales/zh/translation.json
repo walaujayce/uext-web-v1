@@ -9,11 +9,11 @@
     "send-me-reset-link": "發送重置密碼鏈接",
     "reset-link-send": "密碼重置鏈接已發送至該電郵 ",
     "back-to-login": "返回登入",
-    "ResetPassword":"重置密碼",
-    "NewPassword":"新密碼：",
-    "ConfirmYourNewPassword":"確認新密碼：",
-    "ConfirmChangePassword":"確認更新密碼",
-    "InputboxPlaceholder":"輸入欄位"
+    "ResetPassword": "重置密碼",
+    "NewPassword": "新密碼：",
+    "ConfirmYourNewPassword": "確認新密碼：",
+    "ConfirmChangePassword": "確認更新密碼",
+    "InputboxPlaceholder": "輸入欄位"
   },
   "Navbar": {
     "Home": "首頁",
@@ -24,7 +24,7 @@
     "AccountSettings": "帳戶設定",
     "ChangePassword": "更改密碼",
     "Logout": "登出",
-    "Notification-date-today":"今日"
+    "Notification-date-today": "今日"
   },
   "Home": {
     "Monitor": "監控列表",
@@ -108,7 +108,6 @@
     "Save": "儲存",
     "Discharge": "出院確認",
     "Calibration": "校正"
-
   },
   "AddPatientModal": {
     "ClickToAddPatient": "點擊以新增住民",
@@ -129,7 +128,7 @@
     "Discharge": "出院確認",
     "Cancel": "取消"
   },
-    "CalibrationModal": {
+  "CalibrationModal": {
     "description": "確認執行校正?",
     "Confirm": "確認",
     "Cancel": "取消"
@@ -183,9 +182,12 @@
     "HzMin": "赫茲 (最小)",
     "AddNewAlert": "新增時段"
   },
-  "Alert":{
-    "AlertSettingList":"警示設定列表",
-    "Setting":"設定"
+  "Alert": {
+    "AlertSettingList": "警示設定列表",
+    "Setting": "設定",
+    "BedID": "床號",
+    "PatientID": "住民",
+    "NoResident": "目前沒有任何住民資料"
   },
   "DeviceList": {
     "NewDevice": "新增裝置",
@@ -215,7 +217,7 @@
     "DeviceVersion": "裝置版本",
     "DeviceVersion-p": "目前版本 - ",
     "DeviceRemove": "裝置移除",
-    "DeviceRemove-p": "將裝置從監控列表中移除",    
+    "DeviceRemove-p": "將裝置從監控列表中移除",
     "RawData": "原始數據",
     "RawData-p": "下載原始數據至本地端",
     "RecordData": "裝置數據",
@@ -230,7 +232,7 @@
     "Update": "更新日期",
     "Delete": "移除",
     "Back": "返回列表",
-    "Download":"下載"
+    "Download": "下載"
   },
   "AddDeviceModal": {
     "AddDevice": "新增裝置",
@@ -293,16 +295,19 @@
     "Cancel": "取消",
     "Okay": "好的"
   },
-  "ChangePassword":{
-    "EnterHere" : "輸入欄位",
-    "CurrentPw" : "目前密碼",
-    "NewPw" : "新密碼",
-    "ConfirmNewPw" : "再次確認新密碼",
-    "Confirm" : "確認",
-    "Back" : "返回",
-    "Okay" : "好的",
-    "OkayMessageTitle":"新密碼已更新",
-    "OkayMessageH1" : "下次登入請記得使用新密碼。"
-
+  "ChangePassword": {
+    "EnterHere": "輸入欄位",
+    "CurrentPw": "目前密碼",
+    "NewPw": "新密碼",
+    "ConfirmNewPw": "再次確認新密碼",
+    "Confirm": "確認",
+    "Back": "返回",
+    "Okay": "好的",
+    "OkayMessageTitle": "新密碼已更新",
+    "OkayMessageH1": "下次登入請記得使用新密碼。"
+  },
+  "AlertBatchSetting": {
+    "Title": "警示設定",
+    "Confirm": "確認"
   }
 }
