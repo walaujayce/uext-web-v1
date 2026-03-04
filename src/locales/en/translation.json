@@ -18,13 +18,14 @@
   "Navbar": {
     "Home": "Home",
     "Patient": "Resident",
+    "Alert": "Alert",
     "Device": "Device",
     "Account": "Account",
     "AccountSettings": "Account Settings",
     "ChangePassword": "Change Password",
     "ToggleLightDarkMode": "Toggle Dark/Light Mode",
     "Logout": "Logout",
-    "Notification-date-today":"Today"
+    "Notification-date-today": "Today"
   },
   "Home": {
     "Monitor": "Monitors List",
@@ -178,7 +179,15 @@
     "ResetToDefault": "Reset To Default",
     "Sec": "sec",
     "HzMax": "Hz (Max.)",
-    "HzMin": "Hz (Min.)"
+    "HzMin": "Hz (Min.)",
+    "AddNewAlert": "Add time slot"
+  },
+  "Alert": {
+    "AlertSettingList": "Alert Setting List",
+    "Setting": "Setting",
+    "BedID": "Bed ID",
+    "PatientID": "Resident",
+    "NoResident": "No resident"
   },
   "DeviceList": {
     "NewDevice": "New Device",
@@ -297,5 +306,9 @@
     "Okay": "Okay",
     "OkayMessageTitle": "New password has been updated",
     "OkayMessageH1": "Remember to use the new password when you login next time."
+  },
+  "AlertBatchSetting": {
+    "Title": "Alert Setting",
+    "Confirm": "Confirm"
   }
 }

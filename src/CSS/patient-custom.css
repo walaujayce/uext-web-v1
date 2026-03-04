@@ -522,7 +522,7 @@
     display: grid;
     row-gap: 24px;
     column-gap: 24px;
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: repeat(1, 0.5fr);
     opacity: 0.5;
     padding-right: 10px;
 }
@@ -675,7 +675,7 @@
 
 .alertOpt .opt-grid2 .opt.on.active{
     border-bottom: 3px solid var(--850, #262626);
-    background: var(--50, var(--alert-opt-bg-color));
+    background: var(--50, var(--alert-opt-active-bg-color));
     img{
         content: url(/src/assets/checkbox-filled-outline.svg);
     }

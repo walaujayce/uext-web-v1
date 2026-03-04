@@ -277,6 +277,7 @@ const AddNewDevice = ({ callback }) => {
       floor,
       section,
       used: true,
+      jlog:{}
     };
 
     try {

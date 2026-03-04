@@ -258,6 +258,7 @@ function PatientProfile() {
   const handleDischargePatient = (patientid) => {
     patientid = patient.patientid;
     console.log("delete patient ", patientid);
+    deletePatientAlert_API(patientid);
     deletePatient_API(patientid);
   };
 
@@ -286,6 +287,31 @@ function PatientProfile() {
       console.error("Error fetching device data:", error.message, error);
     } finally {
       setLoading(false);
+    }
+  };
+  const deletePatientAlert_API = async (patientId) => {
+    try {
+      setLoading(true);
+      // const response = await fetch(`/api/7284/db/Alert/${patientId}`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+      const response = await api.delete(`/api/7284/db/Alert/${patientId}`);
+
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
+      // const data = await response.json();
+      // console.log("Delete successfully!:", data);
+      // alert("Delete successfully!");
+      // navigate("/home");
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
+    } finally {
+      // setLoading(false);
     }
   };
 

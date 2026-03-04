@@ -280,6 +280,15 @@ function Navbar() {
             {t("Navbar.Patient")}
           </Link>
           <Link
+            to="/alert"
+            state={{ reload: true }}
+            className={`nav-link ${
+              location.pathname.includes("/alert") ? "active" : ""
+            }`}
+          >
+            {t("Navbar.Alert")}
+          </Link>
+          <Link
             to="/device"
             state={{ reload: true }}
             className={`nav-link ${
@@ -415,7 +424,7 @@ function Navbar() {
                     src="/src/assets/setting-grey.svg"
                     alt=""
                     className="setting-img"
-                    style={{ width: "34px", padding: "2px" }}
+                    style={{ width: "34px", padding: "2px", height:"34px"}}
                   />
                   <p>{t("Navbar.AccountSettings")}</p>
                 </a>
@@ -429,7 +438,7 @@ function Navbar() {
                 <img
                   src="/src/assets/lock-grey.svg"
                   className="setting-img"
-                  style={{ width: "34px", padding: "2px" }}
+                  style={{ width: "34px", padding: "2px"  ,height:"34px"}}
                   alt=""
                 />
                 <p>{t("Navbar.ChangePassword")}</p>
@@ -448,7 +457,7 @@ function Navbar() {
                       : "/src/assets/light-mode-grey.svg"
                   }
                   className="setting-img"
-                  style={{ width: "34px", padding: "2px" }}
+                  style={{ width: "34px", padding: "2px", height:"34px"}}
                   alt=""
                 />
                 <p>{t("Navbar.ToggleLightDarkMode")}</p>
@@ -462,7 +471,7 @@ function Navbar() {
                   src="/src/assets/logout-grey.svg"
                   alt=""
                   className="setting-img"
-                  style={{ width: "34px", padding: "3px" }}
+                  style={{ width: "34px", padding: "3px" ,  height:"34px"}}
                 />
                 <p>{t("Navbar.Logout")}</p>
               </a>

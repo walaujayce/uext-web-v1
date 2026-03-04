@@ -411,34 +411,40 @@ function Home() {
   //   const interval = setInterval(fetchDeviceList, 1000);
   //   return () => clearInterval(interval);
   // }, [port, fakeList]);
+  const [select_deviceType, setSelect_DeviceType] = useState("");
+  const handleSelectDeviceType = (deviceType) => {
+    setSelect_DeviceType(deviceType);
+  };
 
   const [devices, setDevices] = useState([]);
 
   const fetchDeviceList = async () => {
     try {
       if (port === "8031") {
-        if(import.meta.env.VITE_MODE === 'dev'){
-            // const response = await fetch("/api/7284/ss/SocketServer");
-            // if (!response.ok) {
-              //   throw new Error(`HTTP error! status: ${response.status}`);
-              // }
-              // const data = await response.json();
-            const response = await api.get("/api/7284/ss/SocketServer");
-            const data = response.data;
-            console.log("ss/SocketServer: ", data);
-            const devicesNonHalow = data.filter((device) => device.TYPE!==201);
-            setDevices(devicesNonHalow || []);
-        }else{
-            // const response = await fetch("/api/8031/devices");
-            // if (!response.ok) {
+        if (import.meta.env.VITE_MODE === "dev") {
+          // const response = await fetch("/api/7284/ss/SocketServer");
+          // if (!response.ok) {
             //   throw new Error(`HTTP error! status: ${response.status}`);
             // }
             // const data = await response.json();
-            // console.log(data.DATA);
+            const response = await api.get("/api/7284/ss/SocketServer");
+            const data = response.data;
+          console.log("ss/SocketServer: ", data);
+          const devicesNonHalow = data.filter((device) => device.TYPE !== 201);
+          setDevices(devicesNonHalow || []);
+        } else {
+          // const response = await fetch("/api/8031/devices");
+          // if (!response.ok) {
+          //   throw new Error(`HTTP error! status: ${response.status}`);
+          // }
+          // const data = await response.json();
+          // console.log(data.DATA);
             const response = await api8031.get("/api/8031/devices");
             const data = response.data;
-            const devicesNonHalow = data.DATA.filter((device) => device.TYPE!==201);
-            setDevices(devicesNonHalow || []);
+          const devicesNonHalow = data.DATA.filter(
+            (device) => device.TYPE !== 201,
+          );
+          setDevices(devicesNonHalow || []);
         }
         // console.log("the current is ", getServerIp());
       } else if (port === "7284") {
@@ -668,7 +674,8 @@ function Home() {
               <FloorSectionBar
                 selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
-                enableDeviceType={false}
+                selectDeviceType={handleSelectDeviceType}
+                enableDeviceType={true}
               />
               <div className="sort">
                 <div className="label">{t("Home.Sortby")}</div>
@@ -695,6 +702,13 @@ function Home() {
             <div className={`grid ${sortBy === "bed" ? "active" : ""}`}>
               {devices
                 .slice()
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .filter((device) => {
                   return (
                     select_floor === "" ||
@@ -730,6 +744,13 @@ function Home() {
                     device.Section === select_section
                   );
                 })
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .some(
                   (device) =>
                     device.TYPE === 1 &&
@@ -754,6 +775,13 @@ function Home() {
                           select_section === "" ||
                           select_section === "All" ||
                           device.Section === select_section
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
                         );
                       })
                       .filter(
@@ -803,6 +831,13 @@ function Home() {
                     device.Section === select_section
                   );
                 })
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .some(
                   (device) =>
                     device.TYPE === 1 &&
@@ -827,6 +862,13 @@ function Home() {
                           select_section === "" ||
                           select_section === "All" ||
                           device.Section === select_section
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
                         );
                       })
                       .filter(
@@ -871,6 +913,13 @@ function Home() {
                 })
                 .filter((device) => {
                   return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
+                .filter((device) => {
+                  return (
                     select_section === "" ||
                     select_section === "All" ||
                     device.Section === select_section
@@ -907,6 +956,13 @@ function Home() {
                           select_section === "" ||
                           select_section === "All" ||
                           device.Section === select_section
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
                         );
                       })
                       .filter(
@@ -965,6 +1021,13 @@ function Home() {
                     device.Section === select_section
                   );
                 })
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .some(
                   (device) =>
                     (device.TYPE === 1 &&
@@ -990,6 +1053,13 @@ function Home() {
                           select_section === "" ||
                           select_section === "All" ||
                           device.Section === select_section
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
                         );
                       })
                       .filter(
@@ -1032,6 +1102,13 @@ function Home() {
                     device.Section === select_section
                   );
                 })
+                .filter((device) => {
+                  return (
+                    select_deviceType === "" ||
+                    select_deviceType === "All" ||
+                    device.TYPE === select_deviceType
+                  );
+                })
                 .some(
                   (device) =>
                     (device.TYPE === 1 && device.STAT === 0) ||
@@ -1053,6 +1130,13 @@ function Home() {
                           select_section === "" ||
                           select_section === "All" ||
                           device.Section === select_section
+                        );
+                      })
+                      .filter((device) => {
+                        return (
+                          select_deviceType === "" ||
+                          select_deviceType === "All" ||
+                          device.TYPE === select_deviceType
                         );
                       })
                       .filter(

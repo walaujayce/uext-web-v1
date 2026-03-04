@@ -130,7 +130,9 @@ form{
     --add-button-img: url(/src/assets/btn-add.svg);
     --alert-opt-bg-color: #F2F2F2;
     --alert-opt-active-bg-color: #F2F2F2;
-
+    --checkbox-url: url(/src/assets/checkbox-blank-outline-gray.svg);
+    --checkbox-active-url: url(/src/assets/checkbox-filled-outline-gray.svg);
+    --grid-containter-hover: #f4f3f3;
 }   
 
 html.dark{
@@ -164,10 +166,9 @@ html.dark{
     --add-button-img: url(/src/assets/btn-add-outline.svg);
     --alert-opt-bg-color: #616060;
     --alert-opt-active-bg-color: #8b8b8b;
-
-
-
-
+    --checkbox-url: url(/src/assets/checkbox-blank-outline-white.svg);
+    --checkbox-active-url: url(/src/assets/checkbox-filled-outline-white.svg);
+    --grid-containter-hover: #3b3b3b;
 }
 
 body{
@@ -427,8 +428,9 @@ header .list{
     font-size: 24px;
 }
 .setting .list.dark .profile img{
-    width: 24px;
-    height: 24px;
+    width: 36px;
+    height: 36px;
+    padding: 6px;
     content: url(/src/assets/account-white.svg);
 }
 .setting .list.dark .profile p{

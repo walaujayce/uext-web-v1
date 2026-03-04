@@ -137,6 +137,7 @@ const AddNewPatient = ({ mac, callback }) => {
       height: parseInt(height, 10),
       weight: parseInt(weight, 10),
       deviceid: mac,
+      jlog:{}
     };
     try {
       setLoading(true);
