@@ -390,7 +390,7 @@ function Home() {
   //         );
   //         const combinedDeviceList = [...devicesNonHalow, ...fakeList];
 
-  //         setDevices(combinedDeviceList || []); //TODO
+  //         setDevices(combinedDeviceList || []);
   //       }
   //       // console.log("the current is ", getServerIp());
   //     } else if (port === "7284") {
