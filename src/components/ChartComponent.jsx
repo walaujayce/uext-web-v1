@@ -24,7 +24,7 @@ const ChartComponent = ({
 
     // var yAxisDataMaxValue = Math.max(...yAxisData);
     var yAxisMaxDataScale = Math.ceil(yAxisDataMaxValue * 1.2);
-    console.log(`xAxisTitle: ${xAxisTitle} | yAxisDataMaxValue: ${yAxisDataMaxValue} | yAxisMaxDataScale: ${yAxisMaxDataScale}`)
+    //console.log(`xAxisTitle: ${xAxisTitle} | yAxisDataMaxValue: ${yAxisDataMaxValue} | yAxisMaxDataScale: ${yAxisMaxDataScale}`)
     if (yAxisMaxDataScale >= 10) { // 1676
       let scaleStr = yAxisMaxDataScale.toString(); // scaleStr = '1676'
       scaleStr = scaleStr[0] + scaleStr[1] + "0".repeat(scaleStr.length - 2); // scaleStr = 1600 , scaleStr.length = 4
@@ -32,7 +32,7 @@ const ChartComponent = ({
       // yAxisMaxDataScale = Number(scaleStr) + addFirstDigitValue; // yAxisMaxDataScale = 1100
       yAxisMaxDataScale = Number(scaleStr); // yAxisMaxDataScale = 1600
     }
-    console.log(`xAxisTitle2: ${xAxisTitle} | yAxisDataMaxValue2: ${yAxisDataMaxValue} | yAxisMaxDataScale2: ${yAxisMaxDataScale}`)
+    //console.log(`xAxisTitle2: ${xAxisTitle} | yAxisDataMaxValue2: ${yAxisDataMaxValue} | yAxisMaxDataScale2: ${yAxisMaxDataScale}`)
     // step size format
     let stepSize = 1;
     const digits = yAxisDataMaxValue.toString().length;
@@ -43,7 +43,7 @@ const ChartComponent = ({
     /* format time */
     // when hour is 24, change it to 00
     const formattedDataArray = [];
-    console.log("xAxisData", xAxisData);
+    //console.log("xAxisData", xAxisData);
     xAxisData.forEach((data) => {
       const dateTimeArray = data.split("T");
       // let time = dateTimeArray[1];
@@ -54,7 +54,7 @@ const ChartComponent = ({
       // }
       formattedDataArray.push(dateTimeArray);
     });
-    console.log("formattedDataArray", formattedDataArray);
+    //console.log("formattedDataArray", formattedDataArray);
 
     //plugin
     const staticLabel = {
@@ -68,7 +68,7 @@ const ChartComponent = ({
       //   } = chart;
       //   ctx.save();
       //   const lastPoint = data.datasets[0].data.length - 1;
-      //   // console.log("lastPoint", lastPoint, data.datasets[0]);
+      //   // //console.log("lastPoint", lastPoint, data.datasets[0]);
 
       //   //static line
       //   ctx.beginPath();
@@ -118,13 +118,13 @@ const ChartComponent = ({
           chartArea: { top, bottom, left, right, width, height },
           scales: { x, y },
         } = chart;
-        //console.log('data', data);
+        ////console.log('data', data);
         if (xHoverCoor && yHoverCoor) {
           const nearestX = x.getValueForPixel(xHoverCoor); //nearestX return the index of x labels
-          // console.log("nearestX:", nearestX);
+          // //console.log("nearestX:", nearestX);
           const nearestXDate = data.labels[nearestX]; // return date array ex: ["2025-07-30", "00:24:00"]
           xHoverLabel = nearestXDate;
-          // console.log("nearestXDate:", nearestXDate);
+          // //console.log("nearestXDate:", nearestXDate);
           ctx.save();
           ctx.beginPath();
           ctx.fillStyle = "rgba(255, 0, 0, 0.5)";
@@ -144,9 +144,9 @@ const ChartComponent = ({
         const nearestX = x.getValueForPixel(xHoverCoor); //nearestX return the index of x labels
         const nearestXDate = data.labels[nearestX]; // return date array ex: ["2025-07-30", "00:24:00"]
 
-        // console.log("nearestX:", nearestX);
-        // console.log("nearestXDate:", nearestXDate);
-        // console.log("xHoverLabel:", xHoverLabel);
+        // //console.log("nearestX:", nearestX);
+        // //console.log("nearestXDate:", nearestXDate);
+        // //console.log("xHoverLabel:", xHoverLabel);
         if (!nearestX || !nearestXDate || !xHoverLabel.length) return;
         // cloud
         const textWidth = ctx.measureText(xHoverLabel[0]).width + 20;
@@ -189,7 +189,7 @@ const ChartComponent = ({
         });
 
         // x-hoverline
-        // console.log("y", data.datasets[0].data[nearestX]);
+        // //console.log("y", data.datasets[0].data[nearestX]);
         ctx.beginPath();
         ctx.strokeStyle = "rgba(255, 0, 0, 0.5)";
         ctx.moveTo(left, y.getPixelForValue(data.datasets[0].data[nearestX]));
@@ -228,7 +228,7 @@ const ChartComponent = ({
           chartArea: { top, bottom, left, right, width, height },
           scales: { x, y },
         } = chart;
-        //console.log("arg:", args);
+        ////console.log("arg:", args);
         if (args.inChartArea && args.event.type === "mousemove") {
           canvas.addEventListener("mousemove", (e) => {
             nearestValue(chart, e);
@@ -275,7 +275,7 @@ const ChartComponent = ({
           hoverIndex = null;
         }
         args.changed = true;
-          // console.log("xHoverCoor:", xHoverCoor, "yHoverCoor:", yHoverCoor);        
+          // //console.log("xHoverCoor:", xHoverCoor, "yHoverCoor:", yHoverCoor);        
           */
         }
       },

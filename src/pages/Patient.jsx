@@ -37,7 +37,7 @@ function Patient() {
       // const data = await response.json();
       const response = await api.get("/api/7284/db/Patient");
       const data = response.data;
-      console.log(data);
+      //console.log(data);
       setPatients(data);
     } catch (error) {
       console.error("Error fetching device data:", error);
@@ -101,7 +101,7 @@ function Patient() {
       const valA = (val) => val ?? "";
       switch (sortType) {
         case sortTypes[0]: // patient id
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.patientid).localeCompare(
               valA(b.patientid),
@@ -116,7 +116,7 @@ function Patient() {
             );
           }
         case sortTypes[1]: //patient name
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.patientname).localeCompare(
               valA(b.patientname),
@@ -131,14 +131,14 @@ function Patient() {
             );
           }
         case sortTypes[2]: // sex
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.sex).localeCompare(String(a.sex));
           } else {
             return String(a.sex).localeCompare(String(b.sex));
           }
         case sortTypes[3]: // bed
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.bed).localeCompare(valA(b.bed), undefined, {
               numeric: true,
@@ -149,7 +149,7 @@ function Patient() {
             });
           }
         case sortTypes[4]: // section
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.section).localeCompare(valA(b.section), undefined, {
               numeric: true,
@@ -160,7 +160,7 @@ function Patient() {
             });
           }
         case sortTypes[5]: // floor
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.floor).localeCompare(valA(b.floor), undefined, {
               numeric: true,
@@ -171,7 +171,7 @@ function Patient() {
             });
           }
         case sortTypes[6]: // device id
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.deviceid).localeCompare(valA(b.deviceid), undefined, {
               numeric: true,
@@ -182,7 +182,7 @@ function Patient() {
             });
           }
         case sortTypes[7]: // status
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.devicestatus).localeCompare(String(a.devicestatus));
           } else {

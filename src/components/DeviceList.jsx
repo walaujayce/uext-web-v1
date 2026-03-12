@@ -25,7 +25,7 @@ const DeviceList = () => {
 
   const [port, setPort] = useState("7284");
   const handleSelectPort = (port) => {
-    console.log(port);
+    //console.log(port);
     setPort(port);
   };
 
@@ -73,7 +73,7 @@ const DeviceList = () => {
   //       throw new Error(`HTTP error! status: ${response.status}`);
   //     }
   //     const data = await response.json();
-  //     console.log(data);
+  //     //console.log(data);
   //     setDevices(data);
   //   } catch (error) {
   //     console.error("Error fetching device data:", error);
@@ -95,11 +95,11 @@ const DeviceList = () => {
         // }
         const data = response.data;
         // const data = await response.json();
-        console.log(data);
+        //console.log(data);
         const result8031 = response8031.data;
         // const result8031 = await response8031.json();
         const data8031 = result8031;
-        //console.log(data8031);
+        ////console.log(data8031);
         setDevices(data);
         const macSet = new Set(data.map((device) => device.macaddress));
         const matchedMap = {};
@@ -111,7 +111,7 @@ const DeviceList = () => {
             };
           }
         });
-        //console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
+        ////console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
         setDeviceMap(matchedMap);
       } else {
         const [response, response8031] = await Promise.all([
@@ -126,10 +126,10 @@ const DeviceList = () => {
         //   throw new Error(`HTTP error! status: ${response8031.status}`);
         // }
         const data = response.data;
-        console.log(data);
+        //console.log(data);
         const result8031 = response8031.data;
         const data8031 = result8031.DATA;
-        //console.log(data8031);
+        ////console.log(data8031);
         setDevices(data);
         const macSet = new Set(data.map((device) => device.macaddress));
         const matchedMap = {};
@@ -141,7 +141,7 @@ const DeviceList = () => {
             };
           }
         });
-        //console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
+        ////console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
         setDeviceMap(matchedMap);
       }
     } catch (error) {
@@ -178,14 +178,14 @@ const DeviceList = () => {
       const valA = (val) => val ?? "";
       switch (sortType) {
         case sortTypes[0]: // device type
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.devicetype).localeCompare(String(a.devicetype));
           } else {
             return String(a.devicetype).localeCompare(String(b.devicetype));
           }
         case sortTypes[1]: // device id
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           // const macA = a.macaddress?.toUpperCase() || "";
           // const macB = b.macaddress?.toUpperCase() || "";
           // if (macA < macB) return -1;
@@ -207,7 +207,7 @@ const DeviceList = () => {
             );
           }
         case sortTypes[2]: //device mac
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.macaddress).localeCompare(
               valA(b.macaddress),
@@ -222,7 +222,7 @@ const DeviceList = () => {
             );
           }
         case sortTypes[3]: //device ip
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.ipaddress).localeCompare(
               valA(b.ipaddress),
@@ -241,7 +241,7 @@ const DeviceList = () => {
             );
           }
         case sortTypes[4]: // bed
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.bed).localeCompare(valA(b.bed), undefined, {
               numeric: true,
@@ -252,7 +252,7 @@ const DeviceList = () => {
             });
           }
         case sortTypes[5]: // section
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.section).localeCompare(valA(b.section), undefined, {
               numeric: true,
@@ -263,7 +263,7 @@ const DeviceList = () => {
             });
           }
         case sortTypes[6]: // floor
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.floor).localeCompare(valA(b.floor), undefined, {
               numeric: true,
@@ -274,7 +274,7 @@ const DeviceList = () => {
             });
           }
         case sortTypes[7]: // date
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             const dateA = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
             const dateB = b.Updatedat ? new Date(b.Updatedat) : new Date(0);
@@ -285,7 +285,7 @@ const DeviceList = () => {
             return dateB - dateA; // Subtracting dates sorts by timestamp
           }
         case sortTypes[8]: // status
-          console.log("sortType: ", sortType);
+          //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.devicestatus).localeCompare(String(a.devicestatus));
           } else {

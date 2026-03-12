@@ -111,7 +111,7 @@ function ResetPassword() {
       // const data = await response.json();
       const response = await api.get(`/api/7284/User/${userid}`);
       const data = response.data;
-      console.log(data);
+      //console.log(data);
       setUserInfo(data);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
@@ -160,7 +160,7 @@ function ResetPassword() {
       const { lastlogin, userid, ...filteredUserInfo } = userInfo; // Destructure to exclude alertguid
 
       const updatedData = { ...filteredUserInfo, ...requestBody };
-      console.log("updated data is :", updatedData);
+      //console.log("updated data is :", updatedData);
 
       setLoading(true);
 
@@ -181,10 +181,10 @@ function ResetPassword() {
 
       const data = response.data;
       if (data.code !== 0) {
-        console.log("Password fail to update:", data);
+        //console.log("Password fail to update:", data);
         alert("Password fail to update!");
       } else {
-        console.log("Password updated successfully:", data);
+        //console.log("Password updated successfully:", data);
         alert("Update Successfully!");
         navigate("/");
       }

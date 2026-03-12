@@ -37,7 +37,7 @@ export const fetchList = async (url, setData) => {
     const response = await api.get(url);
     const data = response.data;
     setData(data);
-    console.log(data);
+    //console.log(data);
   } catch (error) {
     console.error("Error fetching data:", error);
   }

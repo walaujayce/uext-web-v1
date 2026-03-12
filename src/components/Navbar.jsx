@@ -204,7 +204,7 @@ function Navbar() {
         // const data = await response.json();
         const response = await api.get("/api/7284/db/Errorlog");
         const data = response.data;
-        console.log("error log: ", data);
+        //console.log("error log: ", data);
         setErrorlogs(data);
       } catch (error) {
         console.error("Error :", error.message);
@@ -235,10 +235,10 @@ function Navbar() {
       const response = await api.put(`/api/7284/db/Errorlog/${notification_Id}`,requestbody_PUT);
       const data = response.data;
       if (data.code !== 0) {
-        console.log(data.message);
+        //console.log(data.message);
         return;
       }
-      console.log("Notification is set CHECKED successfully:", data);
+      //console.log("Notification is set CHECKED successfully:", data);
 
       // Remove the dismissed notification from state
       setErrorlogs((prevLogs) =>

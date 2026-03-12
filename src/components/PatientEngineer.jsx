@@ -50,13 +50,13 @@ function PatientEngineer() {
 
         const data = response.data;
         setRawData(data);
-        console.log("RawData:", data);
+        //console.log("RawData:", data);
         setRawdatum(data.IMAGE);
-        console.log("Rawdatum:", data.IMAGE);
+        //console.log("Rawdatum:", data.IMAGE);
         setPosition(data.POS);
-        //console.log("Position:", data.POS);
+        ////console.log("Position:", data.POS);
         setDuration(formatSecondsToDHMS(data.HOLD));
-        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        ////console.log("Duration:", formatSecondsToDHMS(data.HOLD));
         setWidth(data.WIDTH);
         setHeight(data.HEIGHT);
         setRespirationValue(data.RR.value);
@@ -77,13 +77,13 @@ function PatientEngineer() {
         response = await api8031.get(`/api/8031/rawdata/${macaddress}`);
         const data = response.data;
         setRawData(data);
-        console.log("RawData:", data);
+        //console.log("RawData:", data);
         setRawdatum(data.IMAGE);
-        console.log("Rawdatum:", data.IMAGE);
+        //console.log("Rawdatum:", data.IMAGE);
         setPosition(data.POS);
-        //console.log("Position:", data.POS);
+        ////console.log("Position:", data.POS);
         setDuration(formatSecondsToDHMS(data.HOLD));
-        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        ////console.log("Duration:", formatSecondsToDHMS(data.HOLD));
         setWidth(data.WIDTH);
         setHeight(data.HEIGHT);
         setRespirationValue(data.RR.Value);
@@ -329,7 +329,7 @@ function PatientEngineer() {
       const response = await api.get(`/api/7284/db/Device/${macaddress}`);
 
       const data = response.data;
-      console.log(data);
+      //console.log(data);
       setDeviceInfo(data);
 
       PmioInput.setInputValue(data.pmio);
@@ -417,13 +417,13 @@ function PatientEngineer() {
       isDeviceConfigChanged &&
       print_inputvalue === requestBody_DeviceLConfiguration
     ) {
-      console.log(
-        "the input requestbody is device configuration",
-        print_inputvalue
-      );
+      //console.log(
+      //   "the input requestbody is device configuration",
+      //   print_inputvalue
+      // );
       PUT_DeivceInfo(macaddress, print_inputvalue);
     } else if (print_inputvalue === requestBody_PUT_RESET) {
-      console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
+      //console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
       PUT_DeivceInfo(macaddress, print_inputvalue);
     }
   };
@@ -434,7 +434,7 @@ function PatientEngineer() {
 
       setLoading(true);
 
-      // console.log("Device updated successfully:", data);
+      // //console.log("Device updated successfully:", data);
       // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
       //   method: "PUT",
       //   headers: {

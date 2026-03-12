@@ -112,12 +112,12 @@ const ChangePasswordModal = ({ callback }) => {
       //   return;
       // }else{
         //update new password
-        console.log("userInfo data is :", selected_user);
+        //console.log("userInfo data is :", selected_user);
 
         const { lastlogin, userid, ...filteredUserInfo } = selected_user; // Destructure to exclude alertguid
 
         const updatedData = { ...filteredUserInfo, ...requestBody_PUT_Password };
-        console.log("updated data is :", updatedData);
+        //console.log("updated data is :", updatedData);
   
         // const response = await fetch(`/api/7284/User/${selected_user.userid}`, {
         //   method: "PUT",

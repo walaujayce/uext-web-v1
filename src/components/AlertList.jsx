@@ -44,8 +44,8 @@ function AlertList() {
       setExpandAlertList(JSON.parse(storedState)); // Restore the state from localStorage
     }
     // setDarkMode(root.classList.contains("dark"));
-    // console.log("root contain dark: ", root.classList.length);
-    // console.log("isDarkMode: ", isDarkMode);
+    // //console.log("root contain dark: ", root.classList.length);
+    // //console.log("isDarkMode: ", isDarkMode);
   }, []);
 
   {
@@ -68,38 +68,38 @@ function AlertList() {
           if (isUserInteracted) {
             if (status === 3 && !isAboutToLeavePlaying) {
               playAboutToLeaveSound();
-              console.log("play about to leave inside alert list ");
+              //console.log("play about to leave inside alert list ");
               if (isLeftBedPlaying) {
                 stopSound("leftBed", 0);
-                console.log("stop all inside alert list ");
+                //console.log("stop all inside alert list ");
               }
               if (isAboutToLeave2Playing) {
                 stopSound("aboutToLeave2", 0);
-                console.log("stop all inside alert list ");
+                //console.log("stop all inside alert list ");
               }
               
             } else if (status === 4 && !isLeftBedPlaying) {
               playLeaveBedSound();
-              console.log("play left bed inside alert list ");
+              //console.log("play left bed inside alert list ");
               if (isAboutToLeavePlaying) {
                 stopSound("aboutToLeave", 0);
-                console.log("stop all inside alert list ");
+                //console.log("stop all inside alert list ");
               }
               if (isAboutToLeave2Playing) {
                 stopSound("aboutToLeave2", 0);
-                console.log("stop all inside alert list ");
+                //console.log("stop all inside alert list ");
               }
             }
             else if (status === 2 && !isAboutToLeave2Playing) {
               playAboutToLeaveSound2();
-              console.log("play about to leave 2 inside alert list ");
+              //console.log("play about to leave 2 inside alert list ");
               if (isLeftBedPlaying) {
                 stopSound("leftBed", 0);
-                console.log("stop all inside alert list ");
+                //console.log("stop all inside alert list ");
               }
               if (isAboutToLeavePlaying) {
                 stopSound("aboutToLeave", 0);
-                console.log("stop all inside alert list ");
+                //console.log("stop all inside alert list ");
               }
               
             }
@@ -109,16 +109,16 @@ function AlertList() {
             const newAlertsMap = new Map(prevAlertsMap);
             const mac = parsedMessage.MAC;
             const existingAlertMessage = newAlertsMap.get(mac);
-            //console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
+            ////console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
             if (
               existingAlertMessage &&
               new Date(existingAlertMessage.alertTime) <
                 new Date(parsedMessage.AlertTime)
             ) {
-              // console.log("existingAlert for MAC:", mac, existingAlertMessage);
-              // console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
-              // console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
-              // console.log("existingAlertMessage ID is ", existingAlertMessage.id);
+              // //console.log("existingAlert for MAC:", mac, existingAlertMessage);
+              // //console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
+              // //console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
+              // //console.log("existingAlertMessage ID is ", existingAlertMessage.id);
               setNotificationChecked_PUT(existingAlertMessage.id); // CHECK TRUE old message in database
               //save new message to alert list
               newAlertsMap.set(mac, {
@@ -254,7 +254,7 @@ function AlertList() {
       // const notifications = await response.json();
       const response = await api.get(`/api/7284/db/Notification`);
       const notifications = response.data;
-      console.log("Fetched notifications:", notifications);
+      //console.log("Fetched notifications:", notifications);
 
       // Group notifications by MAC address
       const groupedByMAC = notifications.reduce((acc, notification) => {
@@ -280,31 +280,31 @@ function AlertList() {
           );
 
           // Log the latest notification for this MAC
-          console.log(
-            "Latest unchecked notification for MAC:",
-            mac,
-            uncheckedNotifications[0]
-          );
+          //console.log(
+          //   "Latest unchecked notification for MAC:",
+          //   mac,
+          //   uncheckedNotifications[0]
+          // );
 
           const parsedMessage = JSON.parse(
             uncheckedNotifications[0].notifyBody
           );
-          console.log(parsedMessage);
+          //console.log(parsedMessage);
 
           setAlertsMap((prevAlertsMap) => {
             const newAlertsMap = new Map(prevAlertsMap);
             const mac = parsedMessage.MAC;
             const existingAlertMessage = newAlertsMap.get(mac);
-            // console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
+            // //console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
             if (
               existingAlertMessage &&
               new Date(existingAlertMessage.alertTime) <
                 new Date(parsedMessage.AlertTime)
             ) {
-              // console.log("existingAlert for MAC:", mac, existingAlertMessage);
-              // console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
-              // console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
-              // console.log("existingAlertMessage ID is ", existingAlertMessage.id);
+              // //console.log("existingAlert for MAC:", mac, existingAlertMessage);
+              // //console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
+              // //console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
+              // //console.log("existingAlertMessage ID is ", existingAlertMessage.id);
               //setNotificationChecked_PUT(existingAlertMessage.id); // CHECK TRUE old message in database
               //save new message to alert list
               newAlertsMap.set(mac, {
@@ -360,7 +360,7 @@ function AlertList() {
             await setNotificationChecked_PUT(notification.id);
           }
         } else {
-          console.log(`No unchecked notifications for MAC: ${mac}`);
+          //console.log(`No unchecked notifications for MAC: ${mac}`);
         }
       }
     } catch (error) {
@@ -398,11 +398,11 @@ function AlertList() {
 
       const data = response.data;
       if (data.code !== 0) {
-        console.log(data.message);
+        //console.log(data.message);
         return;
       }
-      console.log("Notification is set CHECKED successfully:", data);
-      // console.log(data); // Return the response data if needed
+      //console.log("Notification is set CHECKED successfully:", data);
+      // //console.log(data); // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
     }
@@ -421,7 +421,7 @@ function AlertList() {
       // PUT API to database
       setNotificationChecked_PUT(notificationId);
       stopSound();
-      console.log(notificationId);
+      //console.log(notificationId);
       return newAlertsMap;
     });
   };
@@ -432,7 +432,7 @@ function AlertList() {
 
   const handleAlertVisibleClick = (mac) => {
     setActiveAlert(mac === activeAlert ? null : mac); // Toggle overlay visibility
-    console.log("Active alert for mac:", mac);
+    //console.log("Active alert for mac:", mac);
   };
 
   const handleConfirmAlertOverlay = (mac, notificationId) => {

@@ -98,7 +98,7 @@ const AddNewUser = ({ callback }) => {
     jlog:{}
   };
   const handlePOST_API = async () => {
-    console.log(requestBody_POST);
+    //console.log(requestBody_POST);
     if (!ROLE.includes(placeholderRole)) {
       alert("Please select role!");
       return;

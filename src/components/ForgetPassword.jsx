@@ -46,7 +46,7 @@ function LoginPassword() {
     /* Generate Email Token */
   }
   const handleGenerateEmailToken = async (requestBody_POST) => {
-    // console.log(requestBody_POST);
+    // //console.log(requestBody_POST);
     try {
       // const response = await fetch("/api/7284/SendEmail/generate-email-token", {
       //   method: "POST",
@@ -78,7 +78,7 @@ function LoginPassword() {
     message: "",
   };
   const handleSendResetLink = async (requestBody_POST) => {
-    // console.log(requestBody_POST);
+    // //console.log(requestBody_POST);
     if (emailInput === "") {
       alert("Please fill in a valid Email!");
       return;
@@ -90,7 +90,7 @@ function LoginPassword() {
         import.meta.env.VITE_WEBAPI_URL
       }:8005/reset-password`;
       requestBody_POST.message = `${send_message_email}\r\n${url}?email=${emailInput}&token=${token}`;
-      console.log("message is ", requestBody_POST.message);
+      //console.log("message is ", requestBody_POST.message);
       // const response = await fetch("/api/7284/SendEmail/send-email", {
       //   method: "POST",
       //   headers: {
@@ -116,7 +116,7 @@ function LoginPassword() {
   return (
     <>
       <SimpleBackdrop open={loading} />
-      <img className="background" src={`${isDarkMode ? "/src/assets/background2x-dark.png" :"/src/assets/background2x.png" }`} alt="" />
+      <img className={`background ${isDarkMode ? "dark" : ""}`} src="/src/assets/login-bg.svg" alt="" />
       <div
         className="login"
         style={{
@@ -170,7 +170,7 @@ function LoginPassword() {
               onClick={handleBackToLogin}
             >
               <img src="" alt="" className="prefix" />
-              <p className="btn-text pri-text">{t("Login.back-to-login")}</p>
+              <p className="btn-text pri-text" style={{color: isDarkMode? "" : "black"}}>{t("Login.back-to-login")}</p>
             </a>
           </div>
         </form>

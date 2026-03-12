@@ -6,10 +6,10 @@ const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
   const sensor_width = width;
 
   const [opencvLoaded, setOpencvLoaded] = useState(false);
-  // console.log("rawdata2 is ", rawdata);
+  // //console.log("rawdata2 is ", rawdata);
   // useEffect(() => {
   //   const onCvReady = () => {
-  //     console.log("OpenCV initialized for ", deviceid);
+  //     //console.log("OpenCV initialized for ", deviceid);
   //     setOpencvLoaded(true);
   //     window.isCvReady = true; // Use a global flag
   //   };
@@ -47,7 +47,7 @@ const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
 
   useEffect(() => {
   loadOpenCv().then(() => {
-    console.log("OpenCV ready for UMAP");
+    //console.log("OpenCV ready for UMAP");
     setOpencvLoaded(true);
   });
 }, []);
@@ -66,11 +66,11 @@ const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
       );
       canvasRef.current.width = scaleAdjust_clientWidth * 0.9; // reduce a 10% percentage of output image size
     }
-    // console.log("the cavas height ", parentBox.clientHeight);
-    // console.log("the cavas width ", parentBox.clientWidth);
-    // console.log("the sensorrrrrrrr height ", height);
-    // console.log("the sensorrrrrrrr width ", width);
-    // console.log(
+    // //console.log("the cavas height ", parentBox.clientHeight);
+    // //console.log("the cavas width ", parentBox.clientWidth);
+    // //console.log("the sensorrrrrrrr height ", height);
+    // //console.log("the sensorrrrrrrr width ", width);
+    // //console.log(
     //   "the cavas width multiple ",
     //   Math.round((parentBox.clientWidth * sensor_width) / sensor_height)
     // );
@@ -343,12 +343,12 @@ const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
       (accumulator, currentValue) => accumulator + currentValue,
       0
     );
-    // console.log("the total of rawdata is ", sum);
+    // //console.log("the total of rawdata is ", sum);
     // Find the highest value
     const maxValue = Math.max(...decimalArray);
-    // console.log("The highest value in decimalArray is:", maxValue);
+    // //console.log("The highest value in decimalArray is:", maxValue);
     const minValue = Math.min(...decimalArray);
-    // console.log("The smallest value in decimalArray is:", minValue);
+    // //console.log("The smallest value in decimalArray is:", minValue);
 
     return decimalArray;
   };
@@ -358,7 +358,7 @@ const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
     if (sensor_height * sensor_width > 240) {
       result = result.reverse();
     }
-    // console.log("ori: ", result);
+    // //console.log("ori: ", result);
     // normalized value between 80 to 0
     let scaleData = [];
     for (let i = 0; i < result.length; i++) {
@@ -371,7 +371,7 @@ const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
         scaleData.push(Math.round(normalizeValue * 255));
       }
     }
-    // console.log("cal: ", scaleData);
+    // //console.log("cal: ", scaleData);
 
     setDecimalArray(scaleData); // Store the result in state
   }, [rawdata]);
@@ -383,7 +383,7 @@ const OpenCVComponent2 = ({ deviceid, rawdata, height, width }) => {
       }
     } catch (error) {
       console.error("Error making in print_img request:", error);
-      //console.log("the aaaaaaaa is ", decimalArray);
+      ////console.log("the aaaaaaaa is ", decimalArray);
     }
   }, [opencvLoaded, decimalArray]);
 

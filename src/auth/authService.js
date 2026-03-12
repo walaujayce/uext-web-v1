@@ -6,11 +6,11 @@ export const login_auth = async (userId, password) => {
     userId,
     password,
   });
-  console.log("login result: ", res);
+  // console.log("login result: ", res);
   // console.log("login token: ", res.data.data.accessToken);
   if(res.data.code === 200){
     setAccessToken(res.data.data.accessToken, userId);
-    console.log("authService: ", userId);
+    // console.log("authService: ", userId);
   }
   if(res.data.code === 401){
     alert("aaa");

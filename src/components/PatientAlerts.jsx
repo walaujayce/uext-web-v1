@@ -90,7 +90,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       const data = response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
       setPatient(matchingPatient);
-      console.log("patient detail is ", matchingPatient);
+      //console.log("patient detail is ", matchingPatient);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -357,7 +357,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   const updateToggleStatesFromAlertController = (alertController) => {
     const binaryStr = (alertController >>> 0).toString(2).padStart(32, "0"); // Convert to 32-bit binary
 
-    // console.log("the alertcontroller ", binaryStr);
+    // //console.log("the alertcontroller ", binaryStr);
     setNotificationToggleState(binaryStr[31] === "1"); //all alerts
     setExitBedRateToggleState(binaryStr[30] === "1"); //exit alerts
     setRespHeartBeatToggleState(binaryStr[29] === "1"); //all physiological alerts
@@ -448,16 +448,16 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       const response = await api.get(`/api/7284/db/Alert/${patientid}`);
       const data = response.data;
       if (data.code === -1) {
-        console.log(data.message);
+        //console.log(data.message);
         setNewAlert(true);
         return;
       }
-      console.log("Fetched data:", data);
-      // console.log("json:", data.jlog.alert_triggers);
+      //console.log("Fetched data:", data);
+      // //console.log("json:", data.jlog.alert_triggers);
       setAlertList(data); // Update state with filtered object
-      // console.log("Fetched data:", data);
-      console.log("json:", data.jlog.alert_triggers);
-      // console.log("typeof:", typeof data.jlog.alert_triggers);
+      // //console.log("Fetched data:", data);
+      //console.log("json:", data.jlog.alert_triggers);
+      // //console.log("typeof:", typeof data.jlog.alert_triggers);
       const alertTrigger = data.jlog.alert_triggers.intervals;
       if (alertTrigger.length > 0) {
         if (
@@ -479,7 +479,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   };
 
   useEffect(() => {
-    console.log("macaddress: ", macaddress);
+    //console.log("macaddress: ", macaddress);
     if (macaddress === "") return;
     fetchPatientProfile();
   }, [macaddress]);
@@ -503,7 +503,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       // }
 
       const data = await response.data;
-      console.log("fetched batch data: ", data);
+      //console.log("fetched batch data: ", data);
       setBatchAlertList((prev) => {
         if (data.code === -1) {
           return [
@@ -541,10 +541,10 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
         patientIDs.forEach((id) => fetchBatchAlertList(id));
       }
     }
-    // console.log("patientAlert: ", patientIDs);
+    // //console.log("patientAlert: ", patientIDs);
   }, [patientIDs, isBatch]);
   useEffect(() => {
-    console.log("batchlist: ", batchAlertList);
+    //console.log("batchlist: ", batchAlertList);
   }, [batchAlertList]);
 
   useEffect(() => {
@@ -682,7 +682,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
         alert("At least change one status of alert settings !");
         return;
       }
-      // console.log("AAAAA");
+      // //console.log("AAAAA");
       batchAlertList.forEach((alert) => {
         if (alert.isNewAlert) {
           requestBody_POST.patientid = alert.patientid;
@@ -705,10 +705,10 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
         return;
       }
       if (isNewAlert) {
-        console.log("the input requestbody is ", requestBody_POST);
+        //console.log("the input requestbody is ", requestBody_POST);
         POST_PatientAlert();
       } else {
-        console.log("the input requestbody is ", requestBody_PUT);
+        //console.log("the input requestbody is ", requestBody_PUT);
         PUT_PatientAlert(alertList, patient.patientid);
       }
     }
@@ -719,7 +719,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   const POST_PatientAlert = async () => {
     try {
       setLoading(true);
-      console.log("requestBody_POST: ", requestBody_POST.jlog.alert_triggers.intervals);
+      //console.log("requestBody_POST: ", requestBody_POST.jlog.alert_triggers.intervals);
 
       // const response = await fetch(`/api/7284/db/Alert`, {
       //   method: "POST",
@@ -738,15 +738,15 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       const response = await api.post(`/api/7284/db/Alert`, requestBody_POST);
       const data = response.data;
       if (data.code !== 0) {
-        console.log(data.message);
+        //console.log(data.message);
         alert(data.message);
         return;
       }
-      console.log("Device POST successfully:", data);
+      //console.log("Device POST successfully:", data);
       // alert("Update Successfully!");
       window.location.reload();
 
-      // console.log(data); // Return the response data if needed
+      // //console.log(data); // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
     } finally {
@@ -764,7 +764,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
 
       // Combine the filtered alert list with the new request body
       const updatedData = { ...filteredAlertList, ...requestBody_PUT };
-      console.log("updatedData: ", updatedData.jlog.alert_triggers.intervals);
+      //console.log("updatedData: ", updatedData.jlog.alert_triggers.intervals);
       // return;
       setLoading(true);
 
@@ -788,13 +788,13 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       );
       const data = response.data;
       if (data.code !== 0) {
-        console.log(data.message);
+        //console.log(data.message);
         alert(data.message);
         return;
       }
-      console.log("Device PUT successfully:", data);
+      //console.log("Device PUT successfully:", data);
       // alert("Update Successfully!");
-      console.log(data); // Return the response data if needed
+      //console.log(data); // Return the response data if needed
       window.location.reload();
     } catch (error) {
       console.error("Error updating device:", error.message);
@@ -855,13 +855,13 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
 
       const data = response.data;
       if (data.code !== 0) {
-        console.log(data.message);
+        //console.log(data.message);
         alert(data.message);
         return;
       }
-      console.log("Device RESET successfully:", data);
+      //console.log("Device RESET successfully:", data);
       // alert("Update Successfully!");
-      console.log(data); // Return the response data if needed
+      //console.log(data); // Return the response data if needed
       window.location.reload();
     } catch (error) {
       console.error("Error updating device:", error.message);
@@ -876,7 +876,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   };
 
   const handleAddAlertTimeSlot = () => {
-    // console.log("selectedNotification: ", selectedNotification);
+    // //console.log("selectedNotification: ", selectedNotification);
     if (selectedNotification !== 1) return;
     if (timeSlot.length >= 5) {
       window.alert("Alert trigger time is limited up to 5 intervals only.");
@@ -904,7 +904,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
     ]);
   };
   const handleRemoveAlertTimeSlot = (id) => {
-    console.log("delete time slot id: ", id);
+    //console.log("delete time slot id: ", id);
     if (timeSlot.length === 1) return;
     setTimeSlot((prev) => prev.filter((slot) => slot.id !== id));
   };
@@ -923,12 +923,12 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   };
 
   // useEffect(() => {
-  //   console.log("time slot: ", timeSlot);
+  //   //console.log("time slot: ", timeSlot);
   // }, [timeSlot]);
 
   function sortTimeSlotByLabel(timeSlot) {
     // const temp = [];
-    // console.log("debug: ", timeSlot);
+    // //console.log("debug: ", timeSlot);
     // timeSlot = timeSlot.filter((slot) => slot.start !== "" || slot.end !== "");
     return sortIntervals(
       timeSlot.filter((slot) => slot.start !== "" || slot.end !== ""),
@@ -1056,7 +1056,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
                         <div className="desc-list">
                           {selectedNotification === 1 &&
                             timeSlot.map((slot) => {
-                              // console.log("slot: ",slot);
+                              // //console.log("slot: ",slot);
                               return (
                                 <div className="desc" key={slot.id}>
                                   <div className="desc-input">

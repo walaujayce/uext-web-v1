@@ -123,7 +123,7 @@ function PatientAnalysis() {
 
       // Convert milliseconds to days
       const differenceInDays = timeDifference / (1000 * 3600 * 24);
-      console.log("differenceInDays", differenceInDays);
+      //console.log("differenceInDays", differenceInDays);
       let adjustedInterval = parseInt(intervalValue, 10); // Start with current user value
 
       // Check from the largest duration to the smallest
@@ -153,8 +153,8 @@ function PatientAnalysis() {
           interval: adjustedInterval,
         })
       );
-      console.log("selectedStartDate", startTime);
-      console.log("selectedEndDate", endTime);
+      //console.log("selectedStartDate", startTime);
+      //console.log("selectedEndDate", endTime);
 
       const filterRequest = {
         Deviceid: macaddress,
@@ -178,7 +178,7 @@ function PatientAnalysis() {
         // EndTime: "2025-07-30T09:25:00",
         Interval: parseInt(adjustedInterval, 10),
       };
-      console.log("filterRequest", filterRequest);
+      //console.log("filterRequest", filterRequest);
       // const response = await fetch(
       //   `/api/7284/db/RecordData/?timezone=Asia_Taipei`,
       //   {
@@ -189,7 +189,7 @@ function PatientAnalysis() {
           //     body: JSON.stringify(filterRequest),
           //   }
           // );
-          // console.log("response", response);
+          // //console.log("response", response);
           // const contentType = response.headers.get("Content-Type");
           // if (contentType && contentType.includes("application/json")) {
             const response = await api.post(
@@ -199,7 +199,7 @@ function PatientAnalysis() {
               alert(jsonData.messages || "Error: No raw data found");
               return;
         }
-        console.log("result", jsonData);
+        //console.log("result", jsonData);
         const bedEventArray = [];
         const adcArray = [];
         const varArray = [];
@@ -217,10 +217,10 @@ function PatientAnalysis() {
         setVarList(varArray);
         setDateTimeList(dateTimes);
 
-        // console.log("bed_event_list", bedEventList);
-        // console.log("adcList", adcList);
-        // console.log("varList", varList);
-        console.log("dateTime_list", dateTimeList);
+        // //console.log("bed_event_list", bedEventList);
+        // //console.log("adcList", adcList);
+        // //console.log("varList", varList);
+        //console.log("dateTime_list", dateTimeList);
       // }
     } catch (error) {
       console.error("Download failed:", error);
@@ -236,9 +236,9 @@ function PatientAnalysis() {
       setIntervalValue(parseInt(interval), 10);
       filterSelectedDate.handleStartDateSelect(new Date(startTime));
       filterSelectedDate.handleEndDateSelect(new Date(endTime));
-      console.log("saved1", saved);
+      //console.log("saved1", saved);
       handleGetAlgoResult(new Date(startTime), new Date(endTime), interval);
-      console.log("saved2", saved);
+      //console.log("saved2", saved);
     }
     return () => {
       // Cleanup: remove saved parameters when leaving the page
@@ -270,9 +270,9 @@ function PatientAnalysis() {
     charts.forEach(({ ref, name }) => {
       if (ref.current) {
         const tempCanvas = document.createElement("canvas");
-        console.log(
-          `${name} = width: ${ref.current.width} | height: ${ref.current.height}`
-        );
+        //console.log(
+        //   `${name} = width: ${ref.current.width} | height: ${ref.current.height}`
+        // );
         tempCanvas.width = 1200;
         tempCanvas.height = 300;
         const tempCtx = tempCanvas.getContext("2d");

@@ -29,7 +29,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
       // const data = await response.json();
       const response = await api.get("/api/7284/Floor"); 
       const data = response.data;
-      console.log(data);
+      //console.log(data);
       setFloors(data);
       const floorToSet = data.find((floor) => floor.floorid === 0);
       if (floorToSet) {
@@ -71,7 +71,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
       // const data = await response.json();
       const response = await api.get("/api/7284/Section");
       const data = response.data;
-      console.log(data);
+      //console.log(data);
       setSections(data);
       const sectionToSet = data.find((section) => section.sectionid === 0);
       if (sectionToSet) {

@@ -23,7 +23,7 @@ const RespirationChart = ({ respirationArray, minBaselineX, maxBaselineX }) => {
 
     setData(formatted);
 
-    console.log("respirationArray", respirationArray);
+    //console.log("respirationArray", respirationArray);
   }, [respirationArray]);
 
   return (
@@ -79,7 +79,7 @@ const RespirationChart = ({ respirationArray, minBaselineX, maxBaselineX }) => {
 //   const [data, setData] = useState([]);
 
 //   useEffect(()=>{
-//     console.log("array[graph]: ", respirationArray);
+//     //console.log("array[graph]: ", respirationArray);
 //   },[respirationArray])
 //   useEffect(() => {
 //     const interval = setInterval(() => {

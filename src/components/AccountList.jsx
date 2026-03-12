@@ -19,7 +19,7 @@ const AccountList = () => {
   const fetchAccountList = async () => {
     try {
       const res = await api.get("/api/7284/User");
-      console.log("res.data: ", res.data);
+      // console.log("res.data: ", res.data);
       // const response = await fetch("/api/7284/User");
       // if (!response.ok) {
       //   throw new Error(`HTTP error! status: ${response.status}`);
@@ -49,7 +49,7 @@ const AccountList = () => {
 
       // Send the message using SignalR
       await SignalRService.sendMessage(topic, message);
-      console.log("Message sent successfully.");
+      // console.log("Message sent successfully.");
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -108,7 +108,7 @@ const AccountList = () => {
     const valA = (val) => val ?? "";
       switch (sortType) {      
         case sortTypes[0]: // user id
-          console.log("sortType: ", sortType);
+          // console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.userid).localeCompare(
               valA(b.userid),
@@ -123,7 +123,7 @@ const AccountList = () => {
             );
           }
         case sortTypes[1]: //user name
-          console.log("sortType: ", sortType);
+          // console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.username).localeCompare(
               valA(b.username),
@@ -138,7 +138,7 @@ const AccountList = () => {
             );
           }
         case sortTypes[2]: //password
-          console.log("sortType: ", sortType);
+          // console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.password).localeCompare(
               valA(b.password),
@@ -157,14 +157,14 @@ const AccountList = () => {
             );
           }
         case sortTypes[3]: // role
-          console.log("sortType: ", sortType);
+          // console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.role).localeCompare(String(a.role));
           } else {
             return String(a.role).localeCompare(String(b.role));
           }      
           case sortTypes[4]: // email
-          console.log("sortType: ", sortType);
+          // console.log("sortType: ", sortType);
 if (sortDirection) {
             return valA(a.email).localeCompare(
               valA(b.email),
@@ -183,7 +183,7 @@ if (sortDirection) {
             );
           }
         case sortTypes[5]: // date
-          console.log("sortType: ", sortType);
+          // console.log("sortType: ", sortType);
           if (sortDirection) {
             const dateA = a.lastlogin ? new Date(a.lastlogin) : new Date(0);
             const dateB = b.lastlogin ? new Date(b.lastlogin) : new Date(0);

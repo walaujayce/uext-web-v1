@@ -342,7 +342,7 @@ const handleDhcpItemClick = (dhcp) => {
       const response = await api.get(`/api/7284/db/Device/${macaddress}`);
 
       const data = response.data;
-      console.log(data);
+      //console.log(data);
       setDeviceInfo(data);
 
       setDeviceType(data.devicetype);
@@ -505,22 +505,22 @@ const handleDhcpItemClick = (dhcp) => {
       isDeviceLocationChanged &&
       print_inputvalue === requestBody_DeviceLocation
     ) {
-      console.log(
-        "the input requestbody is device location ",
-        print_inputvalue
-      );
+      //console.log(
+      //   "the input requestbody is device location ",
+      //   print_inputvalue
+      // );
       PUT_DeivceInfo(macaddress, print_inputvalue);
     } else if (
       isDeviceConfigChanged &&
       print_inputvalue === requestBody_DeviceLConfiguration
     ) {
-      console.log(
-        "the input requestbody is device configuration",
-        print_inputvalue
-      );
+      //console.log(
+      //   "the input requestbody is device configuration",
+      //   print_inputvalue
+      // );
       PUT_DeivceInfo(macaddress, print_inputvalue);
     } else if (print_inputvalue === requestBody_PUT_RESET) {
-      console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
+      //console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
       PUT_DeivceInfo(macaddress, print_inputvalue);
     } else if (print_inputvalue === requestBody_delete) {
       PUT_DeivceInfo(macaddress, print_inputvalue);
@@ -549,7 +549,7 @@ const handleDhcpItemClick = (dhcp) => {
       const response = await api.put(`/api/7284/db/Device/${macaddress}`,updatedData);
 
       const data = response.data;
-      console.log("Device updated successfully:", data);
+      //console.log("Device updated successfully:", data);
       alert("Update Successfully!");
       window.location.reload();
       return data; // Return the response data if needed
@@ -629,9 +629,9 @@ const handleDhcpItemClick = (dhcp) => {
         // EndTime: endTime.toISOString().split(".")[0],
       };
 
-      console.log("the filter requestbody startTime", startTime.toISOString().split(".")[0]);
-      console.log("the filter requestbody endTime ", endTime.toISOString().split(".")[0]);
-      console.log("the filter requestbody", JSON.stringify(filterRequest));
+      //console.log("the filter requestbody startTime", startTime.toISOString().split(".")[0]);
+      //console.log("the filter requestbody endTime ", endTime.toISOString().split(".")[0]);
+      //console.log("the filter requestbody", JSON.stringify(filterRequest));
 
       // const response = await fetch(`/api/7284/db/${downloadtype}/filter?timezone=Asia_Taipei`, {
       //   method: "POST",

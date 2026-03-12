@@ -115,7 +115,7 @@ function AccountSetting() {
 
       // const data = await response.json();
       const data = response.data;
-      console.log(data);
+      // console.log(data);
       setUserInfo(data);
 
       userNameInput.setInputValue(data.username);
@@ -148,10 +148,10 @@ function AccountSetting() {
   };
   const handlePUT_API = (print_inputvalue) => {
     if (isUserProfileChanged && print_inputvalue === requestBody_PUT_Profile) {
-      console.log("the input requestbody is User Profile ", print_inputvalue);
+      // console.log("the input requestbody is User Profile ", print_inputvalue);
       PUT_UserInfo(userid, print_inputvalue);
     } else if (isRoleChanged && print_inputvalue === requestBody_PUT_Role) {
-      console.log("the input requestbody is Role", print_inputvalue);
+      // console.log("the input requestbody is Role", print_inputvalue);
       if (userInfo.role===0) {
         alert("Cannot modify Administrator role!");
         window.location.reload();
@@ -173,7 +173,7 @@ function AccountSetting() {
         );
         return;
       }
-      console.log("the input requestbody is Password", print_inputvalue);
+      // console.log("the input requestbody is Password", print_inputvalue);
       PUT_UserInfo(userid, print_inputvalue);
     }
   };
@@ -184,7 +184,7 @@ function AccountSetting() {
       const { lastlogin, userid, ...filteredUserInfo } = userInfo; // Destructure to exclude alertguid
 
       const updatedData = { ...filteredUserInfo, ...requestBody };
-      console.log("updated data is :", updatedData);
+      // console.log("updated data is :", updatedData);
 
       setLoading(true);
 
@@ -202,17 +202,17 @@ function AccountSetting() {
       // }
 
       // const data = await response.json();
-      console.log("response",response.data);
+      // console.log("response",response.data);
       const data = response.data;
       if(data.code === 401){
         alert("Password is incorrect!");
       }
       
       if (data.code !== 0) {
-        console.log("User fail to update:", data);
+        // console.log("User fail to update:", data);
         alert("User fail to update!");
       } else {
-        console.log("User updated successfully:", data);
+        // console.log("User updated successfully:", data);
         alert("Update Successfully!");
         window.location.reload();
       }
@@ -225,7 +225,7 @@ function AccountSetting() {
   };
 
   const handleDeleteUser = (userid) => {
-    console.log("delete userid is ", userid);
+    // console.log("delete userid is ", userid);
     if(storedUserRole!=="administrator"){
       return;
     }
@@ -254,7 +254,7 @@ function AccountSetting() {
       // }
       // const data = await response.json();
       const data = response.data;
-      console.log("Delete successfully!:", data);
+      // console.log("Delete successfully!:", data);
       alert("Delete successfully!");
       navigate("/account");
     } catch (error) {

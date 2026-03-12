@@ -95,7 +95,7 @@ const AddNewDevice = ({ callback }) => {
       const response = await api.get("/api/7284/Floor");
 
       const data = response.data;
-      console.log(data);
+      //console.log(data);
       setFloors(data);
       if (data.length > 0) {
         setPlaceholderFloor(data[data.length - 1].description);
@@ -291,13 +291,13 @@ const AddNewDevice = ({ callback }) => {
       // });
       const response = await api.post("/api/7284/db/Device", requestBody);
 
-      console.log("devicetype", devicetype);
-      console.log("macaddress", macaddress);
-      console.log("dhcp", dhcp);
-      console.log("ipaddress", ipaddress);
-      console.log("bed", bed);
-      console.log("floor", floor);
-      console.log("section", section);
+      //console.log("devicetype", devicetype);
+      //console.log("macaddress", macaddress);
+      //console.log("dhcp", dhcp);
+      //console.log("ipaddress", ipaddress);
+      //console.log("bed", bed);
+      //console.log("floor", floor);
+      //console.log("section", section);
 
       if (response.status === 200) {
         setActive_Stage2(true);

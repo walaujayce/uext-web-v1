@@ -25,7 +25,7 @@ function Home() {
 
   const [port, setPort] = useState("8031");
   const handleSelectPort = (port) => {
-    console.log(port);
+    //console.log(port);
     setPort(port);
   };
 
@@ -35,7 +35,7 @@ function Home() {
   };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
-    console.log("section");
+    //console.log("section");
     setSelect_Section(section);
   };
 
@@ -347,7 +347,7 @@ function Home() {
           // check if constant is false
           if (!device.constant) {
             const newColor = Math.floor(Math.random() * 3); // 0, 1, or 2
-            // console.log(`Updating Bed ${device.Bed} color to: ${newColor}`);
+            // //console.log(`Updating Bed ${device.Bed} color to: ${newColor}`);
             return {
               ...device,
               BedColor: newColor,
@@ -373,7 +373,7 @@ function Home() {
   //           throw new Error(`HTTP error! status: ${response.status}`);
   //         }
   //         const data = await response.json();
-  //         console.log("ss/SocketServer: ", data);
+  //         //console.log("ss/SocketServer: ", data);
   //         const devicesNonHalow = data.filter((device) => device.TYPE !== 201);
   //         const combinedDeviceList = [...devicesNonHalow, ...fakeList];
 
@@ -384,7 +384,7 @@ function Home() {
   //           throw new Error(`HTTP error! status: ${response.status}`);
   //         }
   //         const data = await response.json();
-  //         console.log(data.DATA);
+  //         //console.log(data.DATA);
   //         const devicesNonHalow = data.DATA.filter(
   //           (device) => device.TYPE !== 201,
   //         );
@@ -392,14 +392,14 @@ function Home() {
 
   //         setDevices(combinedDeviceList || []);
   //       }
-  //       // console.log("the current is ", getServerIp());
+  //       // //console.log("the current is ", getServerIp());
   //     } else if (port === "7284") {
   //       const response = await fetch("/api/7284/db/Device");
   //       if (!response.ok) {
   //         throw new Error(`HTTP error! status: ${response.status}`);
   //       }
   //       const data = await response.json();
-  //       console.log(data);
+  //       //console.log(data);
   //       setDevices(data || []);
   //     }
   //   } catch (error) {
@@ -429,7 +429,7 @@ function Home() {
             // const data = await response.json();
             const response = await api.get("/api/7284/ss/SocketServer");
             const data = response.data;
-          console.log("ss/SocketServer: ", data);
+          //console.log("ss/SocketServer: ", data);
           const devicesNonHalow = data.filter((device) => device.TYPE !== 201);
           setDevices(devicesNonHalow || []);
         } else {
@@ -438,7 +438,7 @@ function Home() {
           //   throw new Error(`HTTP error! status: ${response.status}`);
           // }
           // const data = await response.json();
-          // console.log(data.DATA);
+          // //console.log(data.DATA);
             const response = await api8031.get("/api/8031/devices");
             const data = response.data;
           const devicesNonHalow = data.DATA.filter(
@@ -446,7 +446,7 @@ function Home() {
           );
           setDevices(devicesNonHalow || []);
         }
-        // console.log("the current is ", getServerIp());
+        // //console.log("the current is ", getServerIp());
       } else if (port === "7284") {
         const response = await api.get("/api/7284/db/Device");
         // if (!response.ok) {
@@ -454,7 +454,7 @@ function Home() {
         // }
         // const data = await response.json();
         const data = response.data;
-        console.log(data);
+        //console.log(data);
         setDevices(data || []);
       }
     } catch (error) {

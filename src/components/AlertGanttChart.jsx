@@ -38,7 +38,7 @@ function AlertGanttChart() {
       return;
     }
     setOverlayVisible(!isOverlayVisible);
-    console.log("selected patient: ", selectedAlert.length);
+    // console.log("selected patient: ", selectedAlert.length);
   };
 
   var alertSettingListTemplate = [
@@ -244,9 +244,9 @@ function AlertGanttChart() {
       const patientData = await responsePatient.data;
       const deviceData = await responseDevice.data;
       const alertData = await responseAlert.data;
-      console.log("patients: ", patientData);
-      console.log("devices: ", deviceData);
-      console.log("alerts: ", alertData);
+      // console.log("patients: ", patientData);
+      // console.log("devices: ", deviceData);
+      // console.log("alerts: ", alertData);
 
       const formattedData = patientData.map((patient) => {
         const matchingDevice = deviceData.find(
@@ -273,7 +273,7 @@ function AlertGanttChart() {
         };
       });
 
-      console.log("formattedData :", formattedData);
+      // console.log("formattedData :", formattedData);
       // 2. Set the result with the CLEAN data
       setResult(formattedData.filter((data) => data !== undefined));
       // setResult(alertSettingListTemplate);
@@ -285,7 +285,7 @@ function AlertGanttChart() {
     fetchPatients();
   }, []);
   useEffect(() => {
-    console.log("result: ", result);
+    // console.log("result: ", result);
   }, [result]);
 
   const toDecimal = (t) => t.hour + t.minute / 60;

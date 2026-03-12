@@ -52,14 +52,14 @@ function PatientMonitor() {
           `/api/7284/ss/SocketServer/${macaddress}`)
 
         const data = response8031API.data;
-        console.log("Rawdata:", data);
-        // console.log("RawData:", data);
+        //console.log("Rawdata:", data);
+        // //console.log("RawData:", data);
         setRawdatum(data.IMAGE);
-        // console.log("Rawdatum:", data.IMAGE);
+        // //console.log("Rawdatum:", data.IMAGE);
         setPosition(data.POS);
-        //console.log("Position:", data.POS);
+        ////console.log("Position:", data.POS);
         setDuration(formatSecondsToDHMS(data.HOLD));
-        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        ////console.log("Duration:", formatSecondsToDHMS(data.HOLD));
         setWidth(data.WIDTH);
         setHeight(data.HEIGHT);
 
@@ -85,14 +85,14 @@ function PatientMonitor() {
         const response8031API = await api8031.get(`/api/8031/rawdata/${macaddress}`);
 
         const data =  response8031API.data;
-        console.log("Rawdata:", data);
-        // console.log("RawData:", data);
+        //console.log("Rawdata:", data);
+        // //console.log("RawData:", data);
         setRawdatum(data.IMAGE);
-        // console.log("Rawdatum:", data.IMAGE);
+        // //console.log("Rawdatum:", data.IMAGE);
         setPosition(data.POS);
-        //console.log("Position:", data.POS);
+        ////console.log("Position:", data.POS);
         setDuration(formatSecondsToDHMS(data.HOLD));
-        //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        ////console.log("Duration:", formatSecondsToDHMS(data.HOLD));
         setWidth(data.WIDTH);
         setHeight(data.HEIGHT);
 
@@ -122,7 +122,7 @@ function PatientMonitor() {
   //       body: JSON.stringify(requestBody_Breathing), // Convert the requestBody to JSON
   //     });
   //     const results = await response.json();
-  //     console.log("Breathing API: ", results);
+  //     //console.log("Breathing API: ", results);
   //     setRespirationHistoryArray(results.map((r) => r.br).reverse());
   //   };
   //   fetchBreathingHistoryData();
@@ -160,7 +160,7 @@ function PatientMonitor() {
       const data =  response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
       setPatient(matchingPatient);
-      console.log("patient detail is ", matchingPatient);
+      //console.log("patient detail is ", matchingPatient);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -184,12 +184,12 @@ function PatientMonitor() {
 
       const data = response.data;
       if (data.code === -1) {
-        console.log(data.message);
+        //console.log(data.message);
         setRespirationMaxBaselineX(null);
         setRespirationMinBaselineX(null);
         return;
       }
-      console.log("Fetched data:", data);
+      //console.log("Fetched data:", data);
       const binaryStr = (data.alertcontroller >>> 0)
         .toString(2)
         .padStart(32, "0"); // Convert to 32-bit binary

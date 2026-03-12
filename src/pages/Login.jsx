@@ -51,7 +51,7 @@ function Login() {
         return;
       }
       const res = await login_auth(username, password);
-      console.log("Result: ", res);
+      //console.log("Result: ", res);
 
       // const res = api.get('/api/7284/User');
       // const response = await fetch("/api/7284/User", {
@@ -67,7 +67,7 @@ function Login() {
       // const user = data.find((user) => user.userid === username);
 
       if (res.code === 200) {
-        //console.log("Password:", user.password);
+        ////console.log("Password:", user.password);
         localStorage.setItem("username", JSON.stringify(username)); // Save user to localStorage
 
         switch (res.data.role) {
@@ -88,10 +88,10 @@ function Login() {
       }
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        console.log("Unauthorized: Access denied.");
+        //console.log("Unauthorized: Access denied.");
         // Clear local storage or redirect user
       } else {
-        console.log("An error occurred:", error.message);
+        //console.log("An error occurred:", error.message);
       }
       setError("An error occurred while logging in");
       console.error(error);

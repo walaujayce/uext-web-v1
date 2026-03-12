@@ -24,7 +24,7 @@ function PatientProfile() {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
   useEffect(() => {
-    console.log("Window width:", windowWidth);
+    //console.log("Window width:", windowWidth);
     setWindowWidth(window.innerWidth);
   }, [window.innerWidth]);
 
@@ -163,7 +163,7 @@ function PatientProfile() {
       };
 
       setPatient(matchingPatient);
-      console.log("patient detail is ", matchingPatient);
+      //console.log("patient detail is ", matchingPatient);
 
       patientIDInput.setInputValue(matchingPatient.patientid);
       patientNameInput.setInputValue(matchingPatient.patientname);
@@ -207,7 +207,7 @@ function PatientProfile() {
   };
 
   const handlePut_API = (print_inputvalue) => {
-    console.log("the input requestbody is ", print_inputvalue);
+    //console.log("the input requestbody is ", print_inputvalue);
     PUT_PatientInfo(patientIDInput.inputValue, print_inputvalue);
   };
 
@@ -230,11 +230,11 @@ function PatientProfile() {
       const response = await api.put(`/api/7284/db/Patient/${patientid}`, requestBody);
       const data = response.data;
       if (data.code !== 0) {
-        console.log("Patient fail to update:", data);
+        //console.log("Patient fail to update:", data);
         alert("Patient fail to update!");
         setIsChanged(false);
       } else {
-        console.log("Patient updated successfully:", data);
+        //console.log("Patient updated successfully:", data);
         alert("Update Successfully!");
         window.location.reload();
         setIsChanged(false);
@@ -257,7 +257,7 @@ function PatientProfile() {
 
   const handleDischargePatient = (patientid) => {
     patientid = patient.patientid;
-    console.log("delete patient ", patientid);
+    //console.log("delete patient ", patientid);
     deletePatientAlert_API(patientid);
     deletePatient_API(patientid);
   };
@@ -280,7 +280,7 @@ function PatientProfile() {
       const response = await api.delete(`/api/7284/db/Patient/${patientId}`);
 
       const data = response.data;
-      console.log("Delete successfully!:", data);
+      //console.log("Delete successfully!:", data);
       alert("Delete successfully!");
       navigate("/home");
     } catch (error) {
@@ -305,7 +305,7 @@ function PatientProfile() {
       //   throw new Error(`Expected JSON, got: ${contentType}`);
       // }
       // const data = await response.json();
-      // console.log("Delete successfully!:", data);
+      // //console.log("Delete successfully!:", data);
       // alert("Delete successfully!");
       // navigate("/home");
     } catch (error) {
@@ -322,7 +322,7 @@ function PatientProfile() {
   };
 
   const handleCalibration = async () => {
-    console.log("calibration clicked");
+    //console.log("calibration clicked");
     const requestBody = {
       MAC: macaddress,
     };
