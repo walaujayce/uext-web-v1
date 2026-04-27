@@ -10,8 +10,9 @@ import { useTranslation } from "react-i18next";
 import Example from "./HeartRateGraph";
 import HeartBeatGraph from "./HeartRateGraph";
 import RespirationChart from "./RespiratoryGraph";
-import api from "../api/apiClient"
+import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
+import RiskRegion from "./RiskRegion";
 
 function PatientMonitor() {
   const { t, i18n } = useTranslation();
@@ -49,7 +50,8 @@ function PatientMonitor() {
 
         // const data = await response8031API.json();
         const response8031API = await api.get(
-          `/api/7284/ss/SocketServer/${macaddress}`)
+          `/api/7284/ss/SocketServer/${macaddress}`,
+        );
 
         const data = response8031API.data;
         //console.log("Rawdata:", data);
@@ -82,9 +84,11 @@ function PatientMonitor() {
         // });
 
         // const data = await response8031API.json();
-        const response8031API = await api8031.get(`/api/8031/rawdata/${macaddress}`);
+        const response8031API = await api8031.get(
+          `/api/8031/rawdata/${macaddress}`,
+        );
 
-        const data =  response8031API.data;
+        const data = response8031API.data;
         //console.log("Rawdata:", data);
         // //console.log("RawData:", data);
         setRawdatum(data.IMAGE);
@@ -157,7 +161,7 @@ function PatientMonitor() {
 
       // const data = await response.json();
       const response = await api.get(`/api/7284/db/Patient`);
-      const data =  response.data;
+      const data = response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
       setPatient(matchingPatient);
       //console.log("patient detail is ", matchingPatient);
@@ -226,14 +230,14 @@ function PatientMonitor() {
       days > 0
         ? `${String(days).padStart(2, "0")}:${String(hours).padStart(
             2,
-            "0"
+            "0",
           )}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
             2,
-            "0"
+            "0",
           )}`
         : `${String(hours).padStart(2, "0")}:${String(minutes).padStart(
             2,
-            "0"
+            "0",
           )}:${String(seconds).padStart(2, "0")}`;
 
     return dateTime;
@@ -286,6 +290,8 @@ function PatientMonitor() {
           </div>
         </div>
       </div>
+      <RiskRegion />
+      {/*
       <div className="respiration">
         <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
         {respirationStatus ? (
@@ -306,12 +312,12 @@ function PatientMonitor() {
       <div className="h-rate">
         <div className="title">{t("PatientMonitor.HeartRate")}</div>
         <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
-        {/* <HeartBeatGraph/> */}
         <div className="spec">
           <div>--</div>
           <div className="tag">bpm</div>
         </div>
       </div>
+      */}
     </div>
   );
 }
