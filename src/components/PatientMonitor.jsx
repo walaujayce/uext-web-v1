@@ -30,6 +30,7 @@ function PatientMonitor() {
   const [respirationValue, setRespirationValue] = useState(0);
   const [respirationHistoryArray, setRespirationHistoryArray] = useState([]);
   const [heartValue, setHeartValue] = useState(0);
+  const [riskRegionArray, setRiskRegionArray] = useState([]);
 
   const requestBody_Breathing = {
     deviceID: macaddress,
@@ -75,6 +76,9 @@ function PatientMonitor() {
             ? next.slice(-respirationArrayLimit)
             : next;
         });
+
+        setRiskRegionArray(data.RecordDatumJlog.RiskRegions);
+        console.log("risk regions: ", data.RecordDatumJlog.RiskRegions);
       } else {
         // const response8031API = await fetch(`/api/8031/rawdata/${macaddress}`, {
         //   method: "GET",
@@ -290,7 +294,7 @@ function PatientMonitor() {
           </div>
         </div>
       </div>
-      <RiskRegion />
+      <RiskRegion data={riskRegionArray}/>
       {/*
       <div className="respiration">
         <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
