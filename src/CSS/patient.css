@@ -45,8 +45,7 @@
     overflow: hidden;
     overflow-y: scroll;
     height: 80vh;
-            scrollbar-color: var(--scrollbar-thumb) transparent;
-
+    scrollbar-color: var(--scrollbar-thumb) transparent;
   }
   .pp h1 {
     position: sticky;
@@ -157,16 +156,15 @@
 }
 
 /* Monitor Tab Content */
-.monitor{
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    grid-template-rows: repeat(6, 1fr);
-    gap: 48px;
-    height: 100%;
-    overflow: hidden;
-    overflow-y: scroll;
-        scrollbar-color: var(--scrollbar-thumb) transparent;
-
+.monitor {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(6, 1fr);
+  gap: 48px;
+  height: 100%;
+  overflow: hidden;
+  overflow-y: scroll;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .monitor .pressure {
@@ -403,15 +401,14 @@
 }
 
 /* Alert Setting Tab Content */
-.alertSection{
-    display: flex;  
-    flex-direction: column;
-    row-gap: 48px;
-    max-height: calc(100vh - 20vh);
-    overflow: hidden;
-    overflow-y: scroll;
-        scrollbar-color: var(--scrollbar-thumb) transparent;
-
+.alertSection {
+  display: flex;
+  flex-direction: column;
+  row-gap: 48px;
+  max-height: calc(100vh - 20vh);
+  overflow: hidden;
+  overflow-y: scroll;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .alertSetting {
@@ -494,6 +491,9 @@
   grid-template-columns: repeat(1, 0.5fr);
   opacity: 0.5;
 }
+.alertOpt .opt-grid.turn-over {
+  grid-template-columns: repeat(1, 1fr);
+}
 .alertOpt .opt-grid.position {
   grid-template-columns: repeat(2, 0.5fr);
 }
@@ -504,13 +504,13 @@
   grid-column: span 1;
 }
 
-.alertOpt .opt-grid .opt{
-    display: flex;
-    align-items: flex-start;
-    padding: 20px;
-    gap: 40px;
-    background: var(--alert-opt-bg-color);
-    border-bottom: 3px solid transparent;
+.alertOpt .opt-grid .opt {
+  display: flex;
+  align-items: flex-start;
+  padding: 20px;
+  gap: 40px;
+  background: var(--alert-opt-bg-color);
+  border-bottom: 3px solid transparent;
 }
 
 .alertOpt .opt-grid .opt.duration {
@@ -552,12 +552,12 @@
 .alertOpt .opt-grid .opt .desc .close-button {
   height: 24px;
   aspect-ratio: 1;
-  content: url(/src/assets/close.svg);       
+  content: url(/src/assets/close.svg);
   /* background-color: red; */
 }
 .alertOpt .opt-grid .opt .desc .close-button:hover {
   cursor: pointer;
-  content: url(/src/assets/close-active.svg);       
+  content: url(/src/assets/close-active.svg);
 }
 
 .alertOpt .opt-grid .opt .desc p {
@@ -617,6 +617,12 @@
 .alertOpt .opt-grid .opt .desc .desc-input.rpm.min::after {
   content: "Hz (Min.)";
 }
+.alertOpt .opt-grid.turn-over .opt .desc .desc-input.rpm.max::after {
+  content: "mmHg";
+}
+.alertOpt .opt-grid.turn-over .opt .desc .desc-input.rpm.min::after {
+  content: "min";
+}
 
 /* Custom CSS for Respiration and Heart Beat */
 .alertOpt .opt-grid .opt .desc .desc-input.rpm::after {
@@ -633,27 +639,27 @@
 
 /* Hover and Active Status */
 
-.alertOpt .opt-grid .opt.on:hover{
-    cursor: pointer;
-    background: var(--50, var(--alert-opt-active-bg-color));
+.alertOpt .opt-grid .opt.on:hover {
+  cursor: pointer;
+  background: var(--50, var(--alert-opt-active-bg-color));
 }
 
 .alertOpt .opt-grid.active {
   opacity: 1;
 }
 
-.alertOpt .opt-grid .opt.on.active{
-    border-bottom: 3px solid var(--850, #262626);
-    background: var(--50, var(--alert-opt-active-bg-color));
-    img{
-        content: url(/src/assets/checkbox-filled-outline.svg);
-    }
-    .desc-input{
-        opacity: 1;
-    }
+.alertOpt .opt-grid .opt.on.active {
+  border-bottom: 3px solid var(--850, #262626);
+  background: var(--50, var(--alert-opt-active-bg-color));
+  img {
+    content: url(/src/assets/checkbox-filled-outline.svg);
+  }
+  .desc-input {
+    opacity: 1;
+  }
 }
 
-.alertOpt .opt-grid .opt .desc .dropdown .input-gp .suffix{
+.alertOpt .opt-grid .opt .desc .dropdown .input-gp .suffix {
   content: var(--menu-down-url);
 }
 
@@ -752,6 +758,11 @@
     font-size: 16px;
     padding-left: 5px;
   }
+  .alertOpt .opt-grid.turn-over .opt .desc .desc-input::after {
+    content: "min";
+    font-size: 16px;
+    padding-left: 5px;
+  }
 }
 
 @media (max-width: 1366px) {
@@ -786,16 +797,15 @@
 
 /* Analysis Section */
 
-.analysis{
-    display: flex;
-    flex-direction: column;
-    gap: 48px;
-    max-height: calc(100vh - 20vh);
-    overflow: hidden;
-    overflow-y: scroll;
-    padding-bottom: 80px;
-        scrollbar-color: var(--scrollbar-thumb) transparent;
-
+.analysis {
+  display: flex;
+  flex-direction: column;
+  gap: 48px;
+  max-height: calc(100vh - 20vh);
+  overflow: hidden;
+  overflow-y: scroll;
+  padding-bottom: 80px;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .ct {
@@ -1210,14 +1220,13 @@
 }
 
 /* Items */
-.ll .item-list{
-    display: flex;
-    flex-direction: column;
-    max-height: calc(100vh - 20vh - 260px);
-    overflow: hidden;
-    overflow-y: scroll;
-        scrollbar-color: var(--scrollbar-thumb) transparent;
-
+.ll .item-list {
+  display: flex;
+  flex-direction: column;
+  max-height: calc(100vh - 20vh - 260px);
+  overflow: hidden;
+  overflow-y: scroll;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 .ll .item {
   display: flex;

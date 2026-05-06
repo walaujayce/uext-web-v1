@@ -3,12 +3,6 @@ import React, { useState, useEffect } from "react";
 function RiskRegion({ data = [] }) {
   // 依照 idx 排序 (不修改原 array)
 
-  const temp = [
-    { idx: 0, duration_sec: 100, radius: 25, level: "high" },
-    { idx: 1, duration_sec: 20, radius: 20, level: "medium" },
-    { idx: 2, duration_sec: 60, radius: 50, level: "low" },
-  ];
-
   const sortedData = Array.isArray(data)
     ? [...data].sort((a, b) => a.idx - b.idx)
     : [];

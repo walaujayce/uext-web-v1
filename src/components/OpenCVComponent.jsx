@@ -377,7 +377,13 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
     }
   }, [opencvLoaded, decimalArray]);
 
-  return <canvas ref={canvasRef}></canvas>;
+  return <canvas ref={canvasRef} style={{
+        position: "absolute",
+        top: "50%",
+        left: "50%",
+        transform: "translate(-50%, -50%)",
+        pointerEvents: "none",
+      }} ></canvas>;
 };
 
 export default OpenCVComponent;

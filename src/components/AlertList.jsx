@@ -54,6 +54,7 @@ function AlertList() {
   const [alertsMap, setAlertsMap] = useState(new Map());
 
   const saveToLocalStorage = (map) => {
+    
     const alertsArray = Array.from(map.values());
     localStorage.setItem("alerts", JSON.stringify(alertsArray));
   };

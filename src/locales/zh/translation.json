@@ -181,7 +181,9 @@
     "Sec": "秒",
     "HzMax": "赫茲 (最大)",
     "HzMin": "赫茲 (最小)",
-    "AddNewAlert": "新增時段"
+    "AddNewAlert": "新增時段",
+    "TurnOverAlert": "翻身警報"
+
   },
   "Alert": {
     "AlertSettingList": "警示設定列表",

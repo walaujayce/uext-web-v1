@@ -96,6 +96,18 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
     }
   };
 
+  const [device, setDevice] = useState(null);
+  const fetchDeviceInfo = async(mac) =>{
+    try {
+      const response = await api.get(`/api/7284/db/Device/${mac}`);
+      const data = response.data;
+      setDevice(data);
+      console.log("device detail is ", data);
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
+    }
+  }
+
   {
     /* NOTIFICATION TIME RANGE ARRAY */
   }
@@ -479,9 +491,10 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   };
 
   useEffect(() => {
-    //console.log("macaddress: ", macaddress);
+    console.log("macaddress: ", macaddress);
     if (macaddress === "") return;
     fetchPatientProfile();
+    fetchDeviceInfo(macaddress);
   }, [macaddress]);
 
   useEffect(() => {
@@ -1178,7 +1191,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           </div>
         </div>
       </div>
-      <div className="alertSetting">
+      <div className="alertSetting" style={{display: device?.devicetype === 1 ? "" : "none"}}>
         <div className="alertHead">
           <h1>{t("PatientAlert.BedExitAlert")}</h1>
           <div
@@ -1283,7 +1296,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           </div>
         </div>
       </div>
-      <div className="alertSetting">
+      <div className="alertSetting" style={{display: "none"}}>
         <div className="alertHead">
           <h1>{t("PatientAlert.PostureAlerts")}</h1>
           <div
@@ -1419,7 +1432,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       </div>
       <div
         className="alertSetting"
-        style={{ borderBottom: respHeartBeatToggleState ? "0px" : "" }}
+        style={{ borderBottom: respHeartBeatToggleState ? "0px" : "" , display:"none"}}
       >
         {/* customize css */}
         <div className="alertHead">
@@ -1541,6 +1554,105 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
                 <p className="btn-text">Save</p>
               </div>
             </div> */}
+          </div>
+        </div>
+      </div>
+      {/* 翻身警報 */}
+      <div
+        className="alertSetting"
+        style={{ borderBottom: respHeartBeatToggleState ? "0px" : "" }}
+      >
+        {/* customize css */}
+        <div className="alertHead">
+          <h1>翻身警報</h1>
+          <div
+            className={`toggle ${respHeartBeatToggleState ? "active" : ""}`}
+            onClick={handleRespHeartBeatToggle}
+          >
+            <img
+              className="line"
+              src="/src/assets/toggle-line.svg"
+              alt="toggle button"
+            />
+            <img className="dot" src="/src/assets/toggle-dot.svg" alt="" />
+          </div>
+        </div>
+        <div
+          className="alertOpt"
+          style={{ display: respHeartBeatToggleState ? "" : "" }} // none
+        >
+          <div className="opt-list">
+            <div className={`opt-grid turn-over ${positionToggleState ? "active" : ""}`}>
+              <div className="opt-box">
+                <div
+                  className={`opt ${positionToggleState ? "on" : ""} ${alertRepeatToggleState ? "active" : ""}`}
+                >
+                  <img
+                    src="/src/assets/checkbox-blank-outline.svg"
+                    alt=""
+                    onClick={() => handleAlertRepeatToggle()}
+                  />
+                  <div className="desc-box">
+                    <p>翻身警報時間</p>
+                    <div className="desc">
+                      <p>當住民姿勢維持超過設定時間，系統會發送警報。</p>
+                      <div className="desc-input">
+                        <input
+                          type="number"
+                          value={alertRepeatToggleState ? debounceInput : ""}
+                          onChange={handleDebounceInputChange}
+                          readOnly={!positionToggleState}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="assistive-text">This is a line of text</div>
+              </div>
+            </div>
+            <div
+              className={`opt-grid turn-over ${
+                respHeartBeatToggleState ? "active" : ""
+              }`}
+            >
+              <div className="opt-box">
+                <div
+                  className={`opt ${respHeartBeatToggleState ? "on" : ""} ${
+                    isRnHBChecked1 ? "active" : ""
+                  } `}
+                >
+                  <img
+                    src="/src/assets/checkbox-blank-outline.svg"
+                    alt=""
+                    onClick={handleRnHBCheckBox1}
+                  />
+                  <div className="desc-box">
+                    <p>壓力風險警報</p>
+                    <div className="desc">
+                      <p>
+                        依照所設定之壓力與時間相乘所得到之數值，作為壓力風險警報通知基準。例如設定值為30mmHg與120分鐘，所得到的乘積為3600，則當區域壓力達到100mmHg與持續時間達到36分鐘時，系統會發出警報。
+                      </p>
+                      <div className="desc-input rpm max">
+                        <input
+                          type="number"
+                          value={isRnHBChecked1 ? respHighInput : ""}
+                          onChange={handleRespHighInputChange}
+                          readOnly={!isRnHBChecked1}
+                        />
+                      </div>
+                      <div className="desc-input rpm min">
+                        <input
+                          type="number"
+                          value={isRnHBChecked1 ? respLowInput : ""}
+                          onChange={handleRespLowInputChange}
+                          readOnly={!isRnHBChecked1}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -13,6 +13,7 @@ import RespirationChart from "./RespiratoryGraph";
 import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
 import RiskRegion from "./RiskRegion";
+import RiskArea from "./RiskArea";
 
 function PatientMonitor() {
   const { t, i18n } = useTranslation();
@@ -251,16 +252,23 @@ function PatientMonitor() {
     <div className="monitor">
       <div className="pressure">
         <div className="title">{t("PatientMonitor.PressureMap")}</div>
-        <div className="box">
+        <div className="box" style={{ position: "relative" }}>
           {width &&
             height &&
             (rawdatum ? (
-              <OpenCVComponent
-                deviceid={macaddress}
-                rawdata={rawdatum}
-                width={width}
-                height={height}
-              />
+              <>
+                <OpenCVComponent
+                  deviceid={macaddress}
+                  rawdata={rawdatum}
+                  width={width}
+                  height={height}
+                />
+                <RiskArea
+                  data={riskRegionArray}
+                  width={width}
+                  height={height}
+                />
+              </>
             ) : (
               <img
                 className="disconnect"
