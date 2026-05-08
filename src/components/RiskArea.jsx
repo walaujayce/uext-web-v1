@@ -114,7 +114,7 @@ function RiskArea({ data = [], width, height }) {
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         zIndex: 10,
-        backgroundColor: "rgba(0, 0, 255, 0.5)", // 透明度 50% 的藍色
+        // backgroundColor: "rgba(0, 0, 255, 0.5)", // 透明度 50% 的藍色
       }}
     />
   );
