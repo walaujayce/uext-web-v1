@@ -19,9 +19,9 @@ import React, { useEffect, useRef } from "react";
  * 2. 兩個 canvas 都依照 parentBox.clientHeight * 0.9 + 維持 sensor 比例 計算尺寸
  */
 function RiskArea({ data = [], width, height }) {
-  console.log("risk area: ", data);
-  console.log("risk area: ", width);
-  console.log("risk area: ", height);
+  // console.log("risk area: ", data);
+  // console.log("risk area: ", width);
+  // console.log("risk area: ", height);
   const sensor_width = width;
   const sensor_height = height;
   const canvasRef = useRef(null);
@@ -56,10 +56,10 @@ function RiskArea({ data = [], width, height }) {
     data.forEach((region) => {
       if (!region) return;
       const { idx, center_x, center_y, radius } = region;
-      console.log("idx: ", idx);
-      console.log("center_x: ", center_x);
-      console.log("center_y: ", center_y);
-      console.log("radius: ", radius);
+      // console.log("idx: ", idx);
+      // console.log("center_x: ", center_x);
+      // console.log("center_y: ", center_y);
+      // console.log("radius: ", radius);
 
       // 顏色: 1 → 黃, 2 → 紅, 其它略過
       let color = "#FF2D2D";
@@ -72,9 +72,19 @@ function RiskArea({ data = [], width, height }) {
       const r = (Number(radius) || 0) * 2.54;
       if (r <= 0) return;
 
-      const cx = Number(center_x) || 0;
-      const cy = Number(center_y) || 0;
-
+      const cx = (Number((sensor_width - 1 )- center_x) || 0) * ((canvas.width ) / (sensor_width-1)); // “sensor_width-1”是因爲旋轉180
+      const cy = (Number((sensor_height - 1 )- center_y) || 0) * ((canvas.height) / (sensor_height-1));
+      // console.log("canvas.width: ", canvas.width);
+      // console.log("canvas.height: ", canvas.height);
+      // console.log("sensor_width: ", sensor_width);
+      // console.log("sensor_height: ", sensor_height);
+      // console.log("idx: ", idx);
+      // console.log("center_x: ", center_x);
+      // console.log("center_y: ", center_y);
+      // console.log("cx: ", cx);
+      // console.log("cy: ", cx);
+      // console.log("canvas w: ", canvas.width);
+      // console.log("canvas h: ", canvas.height);
       // 圓形框
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
@@ -104,7 +114,7 @@ function RiskArea({ data = [], width, height }) {
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         zIndex: 10,
-        // backgroundColor: "rgba(0, 0, 255, 0.5)", // 透明度 50% 的藍色
+        backgroundColor: "rgba(0, 0, 255, 0.5)", // 透明度 50% 的藍色
       }}
     />
   );
