@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import Chart from "chart.js/auto";
 import SimpleBackdrop from "./LoadingOverlay";
 import api from "../api/apiClient";
+import { useAuth } from "../JS/AuthContext";
 
 /* ------------------------------ helpers ------------------------------ */
 
@@ -163,7 +164,7 @@ const pickRecommendation = (metric, warns, values) => {
 function BarChart({ labels, values, warns, title, yAxisLabel, yUnit = "" }) {
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
-
+  const { isDarkMode } = useAuth();
   useEffect(() => {
     if (!canvasRef.current) return;
 
@@ -200,8 +201,7 @@ function BarChart({ labels, values, warns, title, yAxisLabel, yUnit = "" }) {
           tooltip: {
             displayColors: false,
             callbacks: {
-              title: (items) =>
-                items.length ? `Date: ${items[0].label}` : "",
+              title: (items) => (items.length ? `Date: ${items[0].label}` : ""),
               label: (item) => {
                 const v = item.parsed.y;
                 return `${yAxisLabel}: ${v}${yUnit ? " " + yUnit : ""}`;
@@ -213,11 +213,18 @@ function BarChart({ labels, values, warns, title, yAxisLabel, yUnit = "" }) {
           x: {
             title: { display: true, text: "Date (mm/dd)", font: { size: 14 } },
             grid: { display: false },
+            border: {
+              color: isDarkMode ? "#666666" : "#cbd5e1",
+            },
           },
           y: {
             title: { display: false, text: yAxisLabel, font: { size: 14 } },
             beginAtZero: true,
             ticks: { precision: 0 },
+            grid: { color: isDarkMode ? "#666666" : "#cbd5e1" },
+            border: {
+              color: isDarkMode ? "#666666" : "#cbd5e1",
+            },
           },
         },
       },
@@ -229,7 +236,7 @@ function BarChart({ labels, values, warns, title, yAxisLabel, yUnit = "" }) {
         chartRef.current = null;
       }
     };
-  }, [labels, values, warns, title, yAxisLabel, yUnit]);
+  }, [labels, values, warns, title, yAxisLabel, yUnit, isDarkMode]);
 
   return (
     <div style={{ width: "100%", height: 320, marginBottom: 16 }}>
@@ -270,8 +277,15 @@ function RecommendationPanel({ summary, details, warn }) {
 
   return (
     <div style={{ ...cardBase, display: "flex", gap: 16, marginBottom: 32 }}>
-      <div style={{ flex: 2, minWidth: 0, justifyItems:"center", alignContent:"center" }}>
-        <div style={{ fontSize: 15, lineHeight: 1.6, justifyItems:"center", }}>
+      <div
+        style={{
+          flex: 2,
+          minWidth: 0,
+          justifyItems: "center",
+          alignContent: "center",
+        }}
+      >
+        <div style={{ fontSize: 15, lineHeight: 1.6, justifyItems: "center" }}>
           {summary.map((line, i) => (
             <div key={i} style={{ fontWeight: i === 0 ? 600 : 400 }}>
               {line}
@@ -280,8 +294,8 @@ function RecommendationPanel({ summary, details, warn }) {
         </div>
       </div>
 
-      <div style={{  flex: 8, minWidth: 0 }}>
-        <ul
+      <div style={{ flex: 8, minWidth: 0 }}>
+        <div
           style={{
             margin: 0,
             paddingLeft: 20,
@@ -294,7 +308,7 @@ function RecommendationPanel({ summary, details, warn }) {
               {item}
             </li>
           ))}
-        </ul>
+        </div>
       </div>
     </div>
   );
@@ -349,8 +363,16 @@ function PatientRecord() {
   const fetchRecord = async () => {
     setLoading(true);
     try {
+      let patientId = "";
+      const patientResponse = await api.get(`/api/7284/db/Patient`);
+
+      const data = patientResponse.data;
+      const matchingPatient = data.find((item) => item.deviceid === macaddress);
+
+      patientId = matchingPatient.patientid;
+
       const response = await api.get(
-        `/api/7284/db/RecordData/analyse?mac=${macaddress}&timezone=Asia_Taipei`,
+        `/api/7284/db/RecordData/analyse?mac=${macaddress}&patientid=${patientId}&timezone=Asia_Taipei`,
       );
       const result = response.data;
       setRecord(Array.isArray(result?.data) ? result.data : []);
@@ -392,35 +414,35 @@ function PatientRecord() {
       <SimpleBackdrop open={loading} />
       <div style={{ padding: "16px 24px" }}>
         {!loading && !hasData && (
-          <div style={{ color: "#888", fontStyle: "italic" }}>無資料</div>
+          <div style={{ color: "#888", fontStyle: "italic" }}>分析資料不足</div>
         )}
 
         {hasData && deviceType === 1 && (
           <>
             <ChartSection
-              title="Accumulated Sleeping Time"
+              title="睡眠時數"
               labels={labels}
               values={sleepHours}
               warns={sleepWarns}
-              yAxisLabel="Sleeping Time"
+              yAxisLabel="睡眠時數"
               yUnit="hr"
               recommendationKey="sleepTime"
             />
             <ChartSection
-              title="Leave Bed Count"
+              title="離床次數"
               labels={labels}
               values={leaveBedCounts}
               warns={leaveBedWarns}
-              yAxisLabel="Leave Bed Count"
+              yAxisLabel="離床次數"
               yUnit="times"
               recommendationKey="leaveBed"
             />
             <ChartSection
-              title="Turn Over Count"
+              title="翻身次數"
               labels={labels}
               values={turnOverCounts}
               warns={turnOverWarns}
-              yAxisLabel="Turn Over Count"
+              yAxisLabel="翻身次數"
               yUnit="times"
               recommendationKey="turnOverUEXT"
             />
@@ -430,20 +452,20 @@ function PatientRecord() {
         {hasData && deviceType === 2 && (
           <>
             <ChartSection
-              title="Turn Over Count"
+              title="翻身次數"
               labels={labels}
               values={turnOverCounts}
               warns={turnOverWarns}
-              yAxisLabel="Turn Over Count"
+              yAxisLabel="翻身次數"
               yUnit="times"
               recommendationKey="turnOverUMAP"
             />
             <ChartSection
-              title="Turn Over Interval"
+              title="最長翻身間隔時數"
               labels={labels}
               values={turnOverIntervals}
               warns={turnOverIntervalWarns}
-              yAxisLabel="Turn Over Interval"
+              yAxisLabel="最長翻身間隔時數"
               yUnit="hr"
               recommendationKey="turnOverInterval"
             />
