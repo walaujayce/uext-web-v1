@@ -85,20 +85,41 @@ function RiskArea({ data = [], width, height }) {
       // console.log("cy: ", cx);
       // console.log("canvas w: ", canvas.width);
       // console.log("canvas h: ", canvas.height);
-      // 圓形框
+      // ── 圓形框（雙層 stroke + 陰影，讓圓圈在任何底色都能凸顯）──
+      // 1. 先畫一圈白色外框 (halo)，比主色稍粗
+      ctx.save();
       ctx.beginPath();
       ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.lineWidth = 3;
+      ctx.lineWidth = 4;
+      ctx.strokeStyle = "#FFFFFF";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.6)";
+      ctx.shadowBlur = 6;
+      ctx.stroke();
+      ctx.restore();
+
+      // 2. 再畫主色圓圈（細一點，疊在白色 halo 上）
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, Math.PI * 2);
+      ctx.lineWidth = 2;
       ctx.strokeStyle = color;
       ctx.stroke();
+      ctx.restore();
 
-      // 在圓內標示 idx (黑色字體)
+      // 在圓內標示 idx (白底黑描邊，避免和底色融合)
       if (idx !== undefined && idx !== null) {
         const fontSize = Math.max(12, Math.round(r * 0.8));
         ctx.font = `bold ${fontSize}px Arial, sans-serif`;
-        ctx.fillStyle = "#FFFFFF";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
+
+        // 文字外框（黑色描邊）
+        ctx.lineWidth = Math.max(2, Math.round(fontSize * 0.15));
+        ctx.strokeStyle = "#000000";
+        ctx.strokeText(String(idx), cx, cy);
+
+        // 文字主體（白色填色）
+        ctx.fillStyle = "#FFFFFF";
         ctx.fillText(String(idx), cx, cy);
       }
     });

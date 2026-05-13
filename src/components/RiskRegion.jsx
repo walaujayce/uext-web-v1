@@ -55,11 +55,14 @@ function RiskRegion({ data = [] }) {
     boxSizing: "border-box",
   };
 
+  // 外層 wrapper：佔滿 .respiration 剩餘高度，內容超出時自動縱向 scroll
   const tableWrapperStyle = {
     width: "100%",
+    flex: "1 1 auto",     // 撐滿父層 .respiration (display:flex; flex-direction:column)
+    minHeight: 0,         // 關鍵：flex 子元素預設 min-height:auto 會擋掉 scroll
+    overflowY: "auto",    // 超出高度時垂直滾動
     border: "1px solid #e0e0e0",
     borderRadius: "8px",
-    overflow: "hidden",
     boxShadow: "0 2px 6px rgba(0,0,0,0.05)",
     backgroundColor: "#ffffff",
     boxSizing: "border-box",
@@ -73,9 +76,13 @@ function RiskRegion({ data = [] }) {
     fontSize: "14px",
   };
 
+  // 表頭固定 (sticky)，滾動時表頭不會跟著消失
   const theadStyle = {
     backgroundColor: "#f5f7fa",
     color: "#333",
+    position: "sticky",
+    top: 0,
+    zIndex: 1,
   };
 
   const thStyle = {
@@ -84,6 +91,7 @@ function RiskRegion({ data = [] }) {
     borderBottom: "2px solid #e0e0e0",
     textAlign: "center",
     verticalAlign: "middle",
+    backgroundColor: "#f5f7fa", // sticky 在某些瀏覽器需要 cell 也有底色
   };
 
   const tdStyle = {
@@ -103,13 +111,21 @@ function RiskRegion({ data = [] }) {
   };
 
   return (
-    <div className="respiration">
+    <div
+      className="respiration"
+      style={{
+        height: "100%",     // 撐滿 .monitor grid cell 高度
+        minHeight: 0,       // 允許 flex 子元素正確 shrink + scroll
+        overflow: "hidden", // 避免內容超出 .respiration 邊界
+        gridRow:"span 6"
+      }}
+    >
       <div style={tableWrapperStyle}>
         <table style={tableStyle}>
           <thead style={theadStyle}>
             <tr>
               <th style={thStyle}>區域編號</th>
-              <th style={thStyle}>持續時間</th>
+              <th style={thStyle}>持續時間(秒)</th>
               <th style={thStyle}>壓力範圍(cm&sup2;)</th>
               {/* <th style={thStyle}>x</th>
               <th style={thStyle}>y</th> */}
