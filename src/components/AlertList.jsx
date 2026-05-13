@@ -63,8 +63,9 @@ function AlertList() {
     const initializeSignalR = async () => {
       await SignalRService.startConnection();
       SignalRService.onReceiveMessage((topic, message) => {
-        if (topic === "uneo/notify/all") {
+        if (topic === "uneo/notify/all" || topic === "uneo/notify/all/risk" || topic === "uneo/notify/all/turnover") {
           const parsedMessage = JSON.parse(message);
+          console.log(`${topic}: ${parsedMessage.MAC}|${parsedMessage.Status}|${parsedMessage.EventName}`);
           const status = parsedMessage.Status;
           if (isUserInteracted) {
             if (status === 3 && !isAboutToLeavePlaying) {
