@@ -20,15 +20,28 @@ function RiskRegion({ data = [] }) {
       textAlign: "center",
     };
 
-    switch ((level || "").toLowerCase()) {
-      case "high":
+    switch (level || 0) {
+      case 2:
         return { ...baseStyle, backgroundColor: "#fde2e2", color: "#c0392b" };
-      case "medium":
+      case 1:
         return { ...baseStyle, backgroundColor: "#fff4d6", color: "#b8860b" };
-      case "low":
+      case 0:
         return { ...baseStyle, backgroundColor: "#dff5e1", color: "#1e7e34" };
       default:
-        return { ...baseStyle, backgroundColor: "#e0e0e0", color: "#555" };
+        return { ...baseStyle, backgroundColor: "#dff5e1", color: "#1e7e34" };
+      // return { ...baseStyle, backgroundColor: "#e0e0e0", color: "#555" };
+    }
+  };
+  const getLevelChar = (level) => {
+    switch (level) {
+      case 2:
+        return "高";
+      case 1:
+        return "中";
+      case 0:
+        return "低";
+      default:
+        return "異常";
     }
   };
 
@@ -97,9 +110,9 @@ function RiskRegion({ data = [] }) {
             <tr>
               <th style={thStyle}>區域編號</th>
               <th style={thStyle}>持續時間</th>
-              <th style={thStyle}>壓力範圍cm&sup2;</th>
-              <th style={thStyle}>x</th>
-              <th style={thStyle}>y</th>
+              <th style={thStyle}>壓力範圍(cm&sup2;)</th>
+              {/* <th style={thStyle}>x</th>
+              <th style={thStyle}>y</th> */}
               <th style={thStyle}>風險等級</th>
             </tr>
           </thead>
@@ -121,10 +134,12 @@ function RiskRegion({ data = [] }) {
                   <td style={tdStyle}>{item.idx}</td>
                   <td style={tdStyle}>{item.duration_sec}</td>
                   <td style={tdStyle}>{item.radius}</td>
-                  <td style={tdStyle}>{item.center_x}</td>
-                  <td style={tdStyle}>{item.center_y}</td>
+                  {/* <td style={tdStyle}>{item.center_x}</td>
+                  <td style={tdStyle}>{item.center_y}</td> */}
                   <td style={tdStyle}>
-                    <span style={getLevelStyle(item.level)}>{item.level}</span>
+                    <span style={getLevelStyle(item.risk_level)}>
+                      {getLevelChar(item.risk_level)}
+                    </span>
                   </td>
                 </tr>
               ))

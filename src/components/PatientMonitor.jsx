@@ -27,6 +27,7 @@ function PatientMonitor() {
   const [duration, setDuration] = useState("");
   const [width, setWidth] = useState(null);
   const [height, setHeight] = useState(null);
+  const [isUMAP, setIsUMAP] = useState(false);
   const [respirationStatus, setRespirationStatus] = useState(false);
   const [respirationValue, setRespirationValue] = useState(0);
   const [respirationHistoryArray, setRespirationHistoryArray] = useState([]);
@@ -73,7 +74,7 @@ function PatientMonitor() {
         ////console.log("Duration:", formatSecondsToDHMS(data.HOLD));
         setWidth(data.WIDTH);
         setHeight(data.HEIGHT);
-
+        setIsUMAP(data.HEIGHT * data.WIDTH >= 1575);
         setRespirationValue(data.RR.value);
         setRespirationStatus(data.RR.status);
         setHeartValue(data.HR.value);
@@ -112,6 +113,7 @@ function PatientMonitor() {
         ////console.log("Duration:", formatSecondsToDHMS(data.HOLD));
         setWidth(data.WIDTH);
         setHeight(data.HEIGHT);
+        setIsUMAP(data.HEIGHT * data.WIDTH >= 1575);
 
         setRespirationValue(data.RR.Value);
         setRespirationStatus(data.RR.Status);
@@ -123,8 +125,8 @@ function PatientMonitor() {
             ? next.slice(-respirationArrayLimit)
             : next;
         });
-        setRiskRegionArray(data.RecordDatumJlog.RiskRegions);
-
+        setRiskRegionArray(data.RecordDatumJlog.risk_regions);
+        // setRiskRegionArray(data.RecordDatumJlog.risk_regions.filter((region)=>region.risk_level !== 0));
       }
     } catch (error) {
       console.error("Error making POST request:", error);
@@ -273,11 +275,13 @@ function PatientMonitor() {
                   width={width}
                   height={height}
                 />
-                <RiskArea
-                  data={riskRegionArray}
-                  width={width}
-                  height={height}
-                />
+                {isUMAP && (
+                  <RiskArea
+                    data={riskRegionArray}
+                    width={width}
+                    height={height}
+                  />
+                )}
               </>
             ) : (
               <img
@@ -312,34 +316,37 @@ function PatientMonitor() {
           </div>
         </div>
       </div>
-      <RiskRegion data={riskRegionArray} />
-      {/*
-      <div className="respiration">
-        <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
-        {respirationStatus ? (
-          <RespirationChart
-            respirationArray={respirationHistoryArray}
-            minBaselineX={respirationMinBaselineX}
-            maxBaselineX={respirationMaxBaselineX}
-          />
-        ) : (
-          <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
-        )}
+      {isUMAP ? (
+        <RiskRegion data={riskRegionArray} />
+      ) : (
+        <>
+          <div className="respiration">
+            <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
+            {respirationStatus ? (
+              <RespirationChart
+                respirationArray={respirationHistoryArray}
+                minBaselineX={respirationMinBaselineX}
+                maxBaselineX={respirationMaxBaselineX}
+              />
+            ) : (
+              <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
+            )}
 
-        <div className="spec">
-          <div>{respirationValue}</div>
-          <div className="tag">/min</div>
-        </div>
-      </div>
-      <div className="h-rate">
-        <div className="title">{t("PatientMonitor.HeartRate")}</div>
-        <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
-        <div className="spec">
-          <div>--</div>
-          <div className="tag">bpm</div>
-        </div>
-      </div>
-      */}
+            <div className="spec">
+              <div>{respirationValue}</div>
+              <div className="tag">/min</div>
+            </div>
+          </div>
+          <div className="h-rate">
+            <div className="title">{t("PatientMonitor.HeartRate")}</div>
+            <img src="/src/assets/patient-monitor-disconnected.png" alt="" />
+            <div className="spec">
+              <div>--</div>
+              <div className="tag">bpm</div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }

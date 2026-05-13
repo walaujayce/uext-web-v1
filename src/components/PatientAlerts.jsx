@@ -12,6 +12,7 @@ import SimpleBackdrop from "./LoadingOverlay";
 import api from "../api/apiClient";
 import { TimeScale } from "chart.js";
 import DatePicker from "react-datepicker";
+import { tr } from "date-fns/locale";
 
 function PatientAlerts({ patientIDs, isBatch = false }) {
   const { t, i18n } = useTranslation();
@@ -97,7 +98,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   };
 
   const [device, setDevice] = useState(null);
-  const fetchDeviceInfo = async(mac) =>{
+  const fetchDeviceInfo = async (mac) => {
     try {
       const response = await api.get(`/api/7284/db/Device/${mac}`);
       const data = response.data;
@@ -106,7 +107,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
-  }
+  };
 
   {
     /* NOTIFICATION TIME RANGE ARRAY */
@@ -230,6 +231,9 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   const [notificationToggleState, setNotificationToggleState] = useState(false);
   const handleNotificationToggle = () => {
     setNotificationToggleState((prev) => !prev);
+    if(!notificationToggleState){
+      setTurnOverToggleState(true);
+    }
     // setSelectedNotification(1);
   };
   // Alert Repeat Time
@@ -435,6 +439,48 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
 
     return parseInt(binaryStr, 2); // Convert binary string back to int32
   };
+
+  {
+    /* 翻身機制 */
+  }
+  const [turnOverToggleState, setTurnOverToggleState] = useState(false);
+  const handleTurnOverToggleState = () => {
+    setTurnOverToggleState((prev) => !prev);
+    if(turnOverToggleState){
+      setIsTurnOverHoldTimeChecked(false);
+      setIsPressureRiskChecked(false);
+      setNotificationToggleState(false);
+    }
+    if(!turnOverToggleState){
+      setNotificationToggleState(true);
+    }
+  };
+  // turn over hold time checkbox
+  const [isTurnOverHoldTimeChecked, setIsTurnOverHoldTimeChecked] =
+    useState(false);
+  const handleTurnOverHoldTimeCheckbox = () => {
+    setIsTurnOverHoldTimeChecked((prev) => !prev);
+  };
+  // turn over hold time input
+  const [turnOverHoldTimeInput, setTurnOverHoldTimeInput] = useState(120);
+  const handleTurnOverHoldTimeInputChange = (e) => {
+    setTurnOverHoldTimeInput(e.target.value);
+  };
+  // pressure risk checkbox
+  const [isPressureRiskChecked, setIsPressureRiskChecked] = useState(false);
+  const handlePressureRiskCheckbox = () => {
+    setIsPressureRiskChecked((prev) => !prev);
+  };
+  // pressure input
+  const [pressureInput, setPressureInput] = useState(30);
+  const handlePressureInputChange = (e) => {
+    setPressureInput(e.target.value);
+  };
+  // pressure hold time input
+  const [pressureHoldTimeInput, setPressureHoldTimeInput] = useState(120);
+  const handlePressureHoldTimeInputChange = (e) => {
+    setPressureHoldTimeInput(e.target.value);
+  };
   {
     /* GET API Patient Alert List */
   }
@@ -465,7 +511,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
         return;
       }
       //console.log("Fetched data:", data);
-      // //console.log("json:", data.jlog.alert_triggers);
+      console.log("json:", data.jlog);
       setAlertList(data); // Update state with filtered object
       // //console.log("Fetched data:", data);
       //console.log("json:", data.jlog.alert_triggers);
@@ -485,13 +531,27 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           setTimeSlot(data.jlog.alert_triggers.intervals);
         }
       }
+      const alertTurnOver = data.jlog.alert_turn_over;
+      const alertPressureRisk = data.jlog.alert_pressure_risk;
+      if(alertTurnOver.enable_tat || alertPressureRisk.enable_pra){
+        setTurnOverToggleState(true);
+        setIsTurnOverHoldTimeChecked(alertTurnOver.enable_tat);
+        setIsPressureRiskChecked(alertPressureRisk.enable_pra);
+        setTurnOverHoldTimeInput(alertTurnOver.turn_over_time);
+        setPressureInput(alertPressureRisk.risk_mmhg);
+        setPressureHoldTimeInput(alertPressureRisk.risk_time);
+      } else{        
+        setTurnOverToggleState(false);
+        setIsTurnOverHoldTimeChecked(false);
+        setIsPressureRiskChecked(false);
+      }
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
   };
 
   useEffect(() => {
-    console.log("macaddress: ", macaddress);
+    // console.log("macaddress: ", macaddress);
     if (macaddress === "") return;
     fetchPatientProfile();
     fetchDeviceInfo(macaddress);
@@ -642,6 +702,15 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
             ? default24HourNotification
             : sortTimeSlotByLabel(timeSlot),
       },
+      alert_turn_over: {
+        enable_tat: isTurnOverHoldTimeChecked,
+        turn_over_time: parseInt(turnOverHoldTimeInput, 10),
+      },
+      alert_pressure_risk: {
+        enable_pra: isPressureRiskChecked,
+        risk_mmhg: parseInt(pressureInput, 10),
+        risk_time: parseInt(pressureHoldTimeInput, 10),
+      },
     },
   };
 
@@ -679,10 +748,24 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
             ? default24HourNotification
             : sortTimeSlotByLabel(timeSlot),
       },
+      alert_turn_over: {
+        enable_tat: isTurnOverHoldTimeChecked,
+        turn_over_time: parseInt(turnOverHoldTimeInput, 10),
+      },
+      alert_pressure_risk: {
+        enable_pra: isPressureRiskChecked,
+        risk_mmhg: parseInt(pressureInput, 10),
+        risk_time: parseInt(pressureHoldTimeInput, 10),
+      },
     },
   };
 
   const handleUpdateAlertClicked = () => {
+    if(selectedNotification!==0 && timeSlot.length === 0){
+      alert("At least one time interval need to be set!");
+      return;
+    }
+    
     if (isBatch) {
       if (
         isNewAlert &&
@@ -718,10 +801,10 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
         return;
       }
       if (isNewAlert) {
-        //console.log("the input requestbody is ", requestBody_POST);
+        console.log("the input requestbody is ", requestBody_POST);
         POST_PatientAlert();
       } else {
-        //console.log("the input requestbody is ", requestBody_PUT);
+        console.log("the input requestbody is ", requestBody_PUT);
         PUT_PatientAlert(alertList, patient.patientid);
       }
     }
@@ -837,6 +920,15 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
     respiratoryratelowlimit: 12,
     jlog: {
       alert_triggers: { status: true, intervals: default24HourNotification },
+      alert_turn_over: {
+        enable_tat: false,
+        turn_over_time: 120,
+      },
+      alert_pressure_risk: {
+        enable_pra: false,
+        risk_mmhg: 30,
+        risk_time: 120,
+      },
     },
   };
   const PUT_PatientAlert_RESET = async (alertList, patientid) => {
@@ -1191,7 +1283,10 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           </div>
         </div>
       </div>
-      <div className="alertSetting" style={{display: device?.devicetype === 1 ? "" : "none"}}>
+      <div
+        className="alertSetting"
+        style={{ display: device?.devicetype === 1 ? "" : "none" }}
+      >
         <div className="alertHead">
           <h1>{t("PatientAlert.BedExitAlert")}</h1>
           <div
@@ -1296,7 +1391,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           </div>
         </div>
       </div>
-      <div className="alertSetting" style={{display: "none"}}>
+      <div className="alertSetting" style={{ display: "none" }}>
         <div className="alertHead">
           <h1>{t("PatientAlert.PostureAlerts")}</h1>
           <div
@@ -1432,7 +1527,10 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       </div>
       <div
         className="alertSetting"
-        style={{ borderBottom: respHeartBeatToggleState ? "0px" : "" , display:"none"}}
+        style={{
+          borderBottom: respHeartBeatToggleState ? "0px" : "",
+          display: "none",
+        }}
       >
         {/* customize css */}
         <div className="alertHead">
@@ -1560,14 +1658,14 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       {/* 翻身警報 */}
       <div
         className="alertSetting"
-        style={{ borderBottom: respHeartBeatToggleState ? "0px" : "" }}
+        style={{ borderBottom: turnOverToggleState ? "0px" : "", display: device?.devicetype === 1 ? "none" : "" }}
       >
         {/* customize css */}
         <div className="alertHead">
           <h1>翻身警報</h1>
           <div
-            className={`toggle ${respHeartBeatToggleState ? "active" : ""}`}
-            onClick={handleRespHeartBeatToggle}
+            className={`toggle ${turnOverToggleState ? "active" : ""}`}
+            onClick={handleTurnOverToggleState}
           >
             <img
               className="line"
@@ -1579,29 +1677,35 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
         </div>
         <div
           className="alertOpt"
-          style={{ display: respHeartBeatToggleState ? "" : "" }} // none
+          style={{ display: turnOverToggleState ? "" : "none" }} // none
         >
           <div className="opt-list">
-            <div className={`opt-grid turn-over ${positionToggleState ? "active" : ""}`}>
+            <div
+              className={`opt-grid turn-over ${turnOverToggleState ? "active" : ""}`}
+            >
               <div className="opt-box">
                 <div
-                  className={`opt ${positionToggleState ? "on" : ""} ${alertRepeatToggleState ? "active" : ""}`}
+                  className={`opt ${turnOverToggleState ? "on" : ""} ${isTurnOverHoldTimeChecked ? "active" : ""}`}
                 >
                   <img
                     src="/src/assets/checkbox-blank-outline.svg"
                     alt=""
-                    onClick={() => handleAlertRepeatToggle()}
+                    onClick={() => handleTurnOverHoldTimeCheckbox()}
                   />
                   <div className="desc-box">
-                    <p>翻身警報時間</p>
+                    <p>維持時間</p>
                     <div className="desc">
                       <p>當住民姿勢維持超過設定時間，系統會發送警報。</p>
                       <div className="desc-input">
                         <input
                           type="number"
-                          value={alertRepeatToggleState ? debounceInput : ""}
-                          onChange={handleDebounceInputChange}
-                          readOnly={!positionToggleState}
+                          value={
+                            isTurnOverHoldTimeChecked
+                              ? turnOverHoldTimeInput
+                              : ""
+                          }
+                          onChange={handleTurnOverHoldTimeInputChange}
+                          readOnly={!isTurnOverHoldTimeChecked}
                         />
                       </div>
                     </div>
@@ -1612,22 +1716,22 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
             </div>
             <div
               className={`opt-grid turn-over ${
-                respHeartBeatToggleState ? "active" : ""
+                turnOverToggleState ? "active" : ""
               }`}
             >
               <div className="opt-box">
                 <div
-                  className={`opt ${respHeartBeatToggleState ? "on" : ""} ${
-                    isRnHBChecked1 ? "active" : ""
+                  className={`opt ${turnOverToggleState ? "on" : ""} ${
+                    isPressureRiskChecked ? "active" : ""
                   } `}
                 >
                   <img
                     src="/src/assets/checkbox-blank-outline.svg"
                     alt=""
-                    onClick={handleRnHBCheckBox1}
+                    onClick={handlePressureRiskCheckbox}
                   />
                   <div className="desc-box">
-                    <p>壓力風險警報</p>
+                    <p>壓力風險</p>
                     <div className="desc">
                       <p>
                         依照所設定之壓力與時間相乘所得到之數值，作為壓力風險警報通知基準。例如設定值為30mmHg與120分鐘，所得到的乘積為3600，則當區域壓力達到100mmHg與持續時間達到36分鐘時，系統會發出警報。
@@ -1635,17 +1739,19 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
                       <div className="desc-input rpm max">
                         <input
                           type="number"
-                          value={isRnHBChecked1 ? respHighInput : ""}
-                          onChange={handleRespHighInputChange}
-                          readOnly={!isRnHBChecked1}
+                          value={isPressureRiskChecked ? pressureInput : ""}
+                          onChange={handlePressureInputChange}
+                          readOnly={!isPressureRiskChecked}
                         />
                       </div>
                       <div className="desc-input rpm min">
                         <input
                           type="number"
-                          value={isRnHBChecked1 ? respLowInput : ""}
-                          onChange={handleRespLowInputChange}
-                          readOnly={!isRnHBChecked1}
+                          value={
+                            isPressureRiskChecked ? pressureHoldTimeInput : ""
+                          }
+                          onChange={handlePressureHoldTimeInputChange}
+                          readOnly={!isPressureRiskChecked}
                         />
                       </div>
                     </div>
@@ -1673,6 +1779,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
                   className="btn text-only outline"
                   id="reset"
                   onClick={handleResetAlertClicked}
+                  style={{ display: device?.devicetype === 2 ? "none" : "" }}
                 >
                   <img src="" alt="" className="prefix" />
                   <p className="btn-text">{t("PatientAlert.ResetToDefault")}</p>

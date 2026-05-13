@@ -15,9 +15,10 @@ import {
   Bed_attention,
   Bed_vacant,
   Bed_default,
+  Bed_Online,
 } from "../components/Bed_Cards";
 import { useTranslation } from "react-i18next";
-import api from "../api/apiClient"
+import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
 
 function Home() {
@@ -42,297 +43,257 @@ function Home() {
   // uneo-sd-demo
 
   const [fakeList, setFakeList] = useState([
+    // UEXT / REST / GREEN
     {
       STAT: 1,
-      POS: 0,
+      POS: 1,
       MAC: "A1",
       HOLD: 0,
       Bed: "4201",
       Floor: "All",
       Section: "All",
-      UserName: "Apple",
+      UserName: "UEXT/REST/GEEN",
       TYPE: 1,
       BedColor: 0,
       constant: true,
       clickable: false,
     },
+    // UEXT / EDGE / YELLOW
     {
       STAT: 1,
-      POS: 0,
+      POS: 3,
       MAC: "A2",
       HOLD: 0,
       Bed: "4202",
       Floor: "All",
       Section: "All",
-      UserName: "Apple",
+      UserName: "UEXT/EDGE/YELLOW",
       TYPE: 1,
-      BedColor: 0,
+      BedColor: 2,
       constant: false,
       clickable: false,
     },
+    // UEXT / LEAVE / RED
     {
       STAT: 1,
-      POS: 0,
+      POS: 4,
       MAC: "A3",
       HOLD: 0,
       Bed: "4203",
       Floor: "All",
       Section: "All",
-      UserName: "Apple",
+      UserName: "UEXT/LEAVE/RED",
       TYPE: 1,
-      BedColor: 0,
+      BedColor: 1,
       constant: false,
       clickable: false,
     },
+    // UMAP / REST / GREEN
     {
       STAT: 1,
-      POS: 0,
+      POS: 1,
       MAC: "A4",
       HOLD: 0,
       Bed: "4204",
       Floor: "All",
       Section: "All",
-      UserName: "Banana",
-      TYPE: 1,
-      BedColor: 2,
+      UserName: "UMAP/REST/GREEN",
+      TYPE: 2,
+      BedColor: 0,
       constant: false,
       clickable: false,
     },
+    // UMAP / REST / YELLOW
     {
       STAT: 1,
-      POS: 0,
+      POS: 1,
       MAC: "A56",
       HOLD: 0,
       Bed: "4301",
       Floor: "All",
       Section: "All",
-      UserName: "Apple",
-      TYPE: 1,
-      BedColor: 0,
+      UserName: "UMAP/REST/YELLOW",
+      TYPE: 2,
+      BedColor: 2,
       constant: true,
       clickable: false,
     },
+    // UMAP / REST / RED
     {
       STAT: 1,
-      POS: 0,
+      POS: 1,
       MAC: "A7",
       HOLD: 0,
       Bed: "4302",
       Floor: "All",
       Section: "All",
-      UserName: "Apple",
-      TYPE: 1,
-      BedColor: 0,
+      UserName: "UMAP/REST/RED",
+      TYPE: 2,
+      BedColor: 1,
       constant: false,
       clickable: false,
     },
+    // UMAP / LEFT / GREEN
     {
       STAT: 1,
-      POS: 0,
+      POS: 6,
       MAC: "A8",
       HOLD: 0,
       Bed: "4303",
       Floor: "All",
       Section: "All",
-      UserName: "Apple",
-      TYPE: 1,
+      UserName: "UMAP/LEFT/GREEN",
+      TYPE: 2,
       BedColor: 0,
       constant: false,
       clickable: false,
     },
+    // UMAP / LEFT / YELLOW
     {
       STAT: 1,
-      POS: 0,
+      POS: 6,
       MAC: "A9",
       HOLD: 0,
       Bed: "4304",
       Floor: "All",
       Section: "All",
-      UserName: "Dolly",
-      TYPE: 1,
-      BedColor: 1,
+      UserName: "UMAP/LEFT/YELLOW",
+      TYPE: 2,
+      BedColor: 2,
       constant: false,
       clickable: false,
     },
+    // UMAP / LEFT / RED
     {
       STAT: 1,
-      POS: 0,
+      POS: 6,
       MAC: "A10",
-      HOLD: 0,
-      Bed: "4211",
-      Floor: "All",
-      Section: "All",
-      UserName: "  ",
-      TYPE: 1,
-      BedColor: 2,
-      constant: false,
-      clickable: false,
-    },
-    {
-      STAT: 1,
-      POS: 0,
-      MAC: "A11",
-      HOLD: 0,
-      Bed: "4212",
-      Floor: "All",
-      Section: "All",
-      UserName: "  ",
-      TYPE: 1,
-      BedColor: 0,
-      constant: true,
-      clickable: false,
-    },
-    {
-      STAT: 1,
-      POS: 0,
-      MAC: "A12",
-      HOLD: 0,
-      Bed: "4213",
-      Floor: "All",
-      Section: "All",
-      UserName: " ",
-      TYPE: 1,
-      BedColor: 1,
-      constant: false,
-      clickable: false,
-    },
-    {
-      STAT: 1,
-      POS: 0,
-      MAC: "A13",
-      HOLD: 0,
-      Bed: "4214",
-      Floor: "All",
-      Section: "All",
-      UserName: "  ",
-      TYPE: 1,
-      BedColor: 2,
-      constant: false,
-      clickable: false,
-    },
-    {
-      STAT: 1,
-      POS: 0,
-      MAC: "A14",
-      HOLD: 0,
-      Bed: "4221",
-      Floor: "All",
-      Section: "All",
-      UserName: "  ",
-      TYPE: 1,
-      BedColor: 0,
-      constant: true,
-      clickable: false,
-    },
-    {
-      STAT: 1,
-      POS: 0,
-      MAC: "A15",
-      HOLD: 0,
-      Bed: "4222",
-      Floor: "All",
-      Section: "All",
-      UserName: " ",
-      TYPE: 1,
-      BedColor: 1,
-      constant: false,
-      clickable: false,
-    },
-    {
-      STAT: 1,
-      POS: 0,
-      MAC: "A16",
-      HOLD: 0,
-      Bed: "4223",
-      Floor: "All",
-      Section: "All",
-      UserName: "  ",
-      TYPE: 1,
-      BedColor: 2,
-      constant: false,
-      clickable: false,
-    },
-    {
-      STAT: 1,
-      POS: 0,
-      MAC: "A17",
-      HOLD: 0,
-      Bed: "4224",
-      Floor: "All",
-      Section: "All",
-      UserName: "  ",
-      TYPE: 1,
-      BedColor: 0,
-      constant: true,
-      clickable: false,
-    },
-    // dont move
-    {
-      STAT: 1,
-      POS: 0,
-      MAC: "A18",
       HOLD: 0,
       Bed: "4401",
       Floor: "All",
       Section: "All",
-      UserName: "",
-      TYPE: 1,
-      BedColor: 0,
-      constant: true,
+      UserName: "UMAP/LEFT/RED",
+      TYPE: 2,
+      BedColor: 1,
+      constant: false,
       clickable: false,
     },
+    // UMAP / RIGHT / GREEN
     {
       STAT: 1,
-      POS: 0,
-      MAC: "A19",
+      POS: 7,
+      MAC: "A11",
       HOLD: 0,
       Bed: "4402",
       Floor: "All",
       Section: "All",
-      UserName: "",
-      TYPE: 1,
+      UserName: "UMAP/RIGHT/GREEN",
+      TYPE: 2,
       BedColor: 0,
       constant: true,
       clickable: false,
     },
+    // UMAP / RIGHT / YELLOW
     {
       STAT: 1,
-      POS: 0,
-      MAC: "A20",
+      POS: 7,
+      MAC: "A12",
       HOLD: 0,
       Bed: "4403",
       Floor: "All",
       Section: "All",
-      UserName: "",
-      TYPE: 1,
-      BedColor: 0,
-      constant: true,
+      UserName: "UMAP/RIGHT/YELLOW",
+      TYPE: 2,
+      BedColor: 2,
+      constant: false,
       clickable: false,
     },
+    // UMAP / RIGHT / RED
     {
       STAT: 1,
-      POS: 0,
-      MAC: "A21",
+      POS: 7,
+      MAC: "A13",
       HOLD: 0,
-      Bed: "4404",
+      Bed: "4501",
+      Floor: "All",
+      Section: "All",
+      UserName: "UMAP/RIGHT/RED",
+      TYPE: 2,
+      BedColor: 1,
+      constant: false,
+      clickable: false,
+    },
+    // UMAP / LEAVE / RED
+    {
+      STAT: 1,
+      POS: 4,
+      MAC: "A15",
+      HOLD: 0,
+      Bed: "4502",
+      Floor: "All",
+      Section: "All",
+      UserName: "UMAP/LEAVE/RED",
+      TYPE: 2,
+      BedColor: 1,
+      constant: false,
+      clickable: false,
+    },
+    // UEXT VACANT
+    {
+      STAT: 1,
+      POS: 4,
+      MAC: "A16",
+      HOLD: 0,
+      Bed: "4503",
       Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 1,
-      BedColor: 0,
+      BedColor: 2,
+      constant: false,
+      clickable: false,
+    },
+    // UMAP VACANT
+    {
+      STAT: 1,
+      POS: 7,
+      MAC: "A16",
+      HOLD: 0,
+      Bed: "4601",
+      Floor: "All",
+      Section: "All",
+      UserName: "",
+      TYPE: 2,
+      BedColor: 1,
+      constant: false,
+      clickable: false,
+    },
+    // UEXT DISCONNECT
+    {
+      STAT: 0,
+      POS: 3,
+      MAC: "A17",
+      HOLD: 0,
+      Bed: "4602",
+      Floor: "All",
+      Section: "All",
+      UserName: "",
+      TYPE: 1,
+      BedColor: 2,
       constant: true,
       clickable: false,
     },
+    // UMAP DISCONNECT
     {
       STAT: 0,
-      POS: 0,
-      MAC: "A22",
+      POS: 4,
+      MAC: "A17",
       HOLD: 0,
-      Bed: "4405",
+      Bed: "4603",
       Floor: "All",
       Section: "All",
       UserName: "",
-      TYPE: 1,
+      TYPE: 2,
       BedColor: 0,
       constant: true,
       clickable: false,
@@ -424,11 +385,11 @@ function Home() {
         if (import.meta.env.VITE_MODE === "dev") {
           // const response = await fetch("/api/7284/ss/SocketServer");
           // if (!response.ok) {
-            //   throw new Error(`HTTP error! status: ${response.status}`);
-            // }
-            // const data = await response.json();
-            const response = await api.get("/api/7284/ss/SocketServer");
-            const data = response.data;
+          //   throw new Error(`HTTP error! status: ${response.status}`);
+          // }
+          // const data = await response.json();
+          const response = await api.get("/api/7284/ss/SocketServer");
+          const data = response.data;
           //console.log("ss/SocketServer: ", data);
           const devicesNonHalow = data.filter((device) => device.TYPE !== 201);
           setDevices(devicesNonHalow || []);
@@ -439,8 +400,8 @@ function Home() {
           // }
           // const data = await response.json();
           // //console.log(data.DATA);
-            const response = await api8031.get("/api/8031/devices");
-            const data = response.data;
+          const response = await api8031.get("/api/8031/devices");
+          const data = response.data;
           const devicesNonHalow = data.DATA.filter(
             (device) => device.TYPE !== 201,
           );
@@ -457,6 +418,7 @@ function Home() {
         //console.log(data);
         setDevices(data || []);
       }
+      // setDevices(fakeList); // TEST
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -503,100 +465,34 @@ function Home() {
         );
       }
     } else if (STAT === 1) {
-      if (TYPE === 1) {
-        if (UserName === null || UserName === "") {
-          return (
-            <Bed_vacant
+      if (UserName === null || UserName === "") {
+        return (
+          <Bed_vacant
+            key={MAC}
+            macaddress={MAC}
+            bed={Bed}
+            floor={Floor}
+            section={Section}
+          />
+        );
+      } else {
+        return (
+          <Link
+            to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
+            key={MAC}
+            state={{ from: "/home" }}
+          >
+            <Bed_Online
               key={MAC}
               macaddress={MAC}
+              hold={formatSecondsToDHMS(HOLD)}
               bed={Bed}
-              floor={Floor}
-              section={Section}
+              username={UserName}
+              pos={POS}
+              color={BedColor}
             />
-          );
-        } else {
-          // return POS === 4 || POS === 5 || POS === 0 ? (
-          return BedColor == 1 ? (
-            <Link
-              to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
-              key={MAC}
-              state={{ from: "/home" }}
-            >
-              <Bed_alert
-                key={MAC}
-                macaddress={MAC}
-                hold={formatSecondsToDHMS(HOLD)}
-                bed={Bed}
-                floor={Floor}
-                section={Section}
-                username={UserName}
-              />
-            </Link>
-          ) : // ) : POS === 8 ? (
-          BedColor === 2 ? (
-            <Link
-              to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
-              key={MAC}
-              state={{ from: "/home" }}
-            >
-              <Bed_attention
-                key={MAC}
-                macaddress={MAC}
-                hold={formatSecondsToDHMS(HOLD)}
-                bed={Bed}
-                floor={Floor}
-                section={Section}
-                username={UserName}
-              />
-            </Link>
-          ) : (
-            <Link
-              to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
-              key={MAC}
-              state={{ from: "/home" }}
-            >
-              <Bed_default
-                key={MAC}
-                macaddress={MAC}
-                hold={formatSecondsToDHMS(HOLD)}
-                bed={Bed}
-                floor={Floor}
-                section={Section}
-                username={UserName}
-              />
-            </Link>
-          );
-        }
-      } else if (TYPE === 2) {
-        if (UserName === null || UserName === "") {
-          return (
-            <Bed_vacant
-              key={MAC}
-              macaddress={MAC}
-              bed={Bed}
-              floor={Floor}
-              section={Section}
-            />
-          );
-        } else {
-          return (
-            <Link
-              to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
-              key={MAC}
-              state={{ from: "/home" }}
-            >
-              <Bed_default
-                key={MAC}
-                macaddress={MAC}
-                hold={formatSecondsToDHMS(HOLD)}
-                bed={Bed}
-                floor={Floor}
-                section={Section}
-                username={UserName}
-              />
-            </Link>
-          );
-        }
+          </Link>
+        );
       }
     }
 
@@ -753,11 +649,10 @@ function Home() {
                 })
                 .some(
                   (device) =>
-                    device.TYPE === 1 &&
+                    (device.TYPE === 1 || device.TYPE === 2) &&
                     device.STAT === 1 &&
-                    !(device.UserName === null || device.UserName === "") &&
-                    // (device.POS === 4 || device.POS === 5 || device.POS === 0)
-                    device.BedColor === 1,
+                    device.BedColor === 1 &&
+                    !(device.UserName === null || device.UserName === ""),
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Alerts")}</div>
@@ -786,13 +681,10 @@ function Home() {
                       })
                       .filter(
                         (device) =>
-                          device.TYPE === 1 &&
+                          (device.TYPE === 1 || device.TYPE === 2) &&
                           device.STAT === 1 &&
-                          !(
-                            device.UserName === null || device.UserName === ""
-                          ) &&
-                          // (device.POS === 4 || device.POS === 5 || device.POS === 0)
-                          device.BedColor === 1,
+                          device.BedColor === 1 &&
+                          !(device.UserName === null || device.UserName === ""),
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
@@ -801,7 +693,7 @@ function Home() {
                           key={device.MAC}
                           state={{ from: "/home" }}
                         >
-                          <Bed_alert
+                          <Bed_Online
                             key={device.MAC}
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
@@ -809,6 +701,8 @@ function Home() {
                             floor={device.Floor}
                             section={device.Section}
                             username={device.UserName}
+                            pos={device.POS}
+                            color={device.BedColor}
                           />
                         </Link>
                       ))}
@@ -840,10 +734,9 @@ function Home() {
                 })
                 .some(
                   (device) =>
-                    device.TYPE === 1 &&
+                    (device.TYPE === 1 || device.TYPE === 2) &&
                     device.STAT === 1 &&
                     !(device.UserName === null || device.UserName === "") &&
-                    // device.POS === 8
                     device.BedColor === 2,
                 ) && (
                 <div className="status">
@@ -873,12 +766,11 @@ function Home() {
                       })
                       .filter(
                         (device) =>
-                          device.TYPE === 1 &&
+                          (device.TYPE === 1 || device.TYPE === 2) &&
                           device.STAT === 1 &&
                           !(
                             device.UserName === null || device.UserName === ""
                           ) &&
-                          // device.POS === 8
                           device.BedColor === 2,
                       )
                       .sort(sortAlphabet)
@@ -888,7 +780,7 @@ function Home() {
                           key={device.MAC}
                           state={{ from: "/home" }}
                         >
-                          <Bed_attention
+                          <Bed_Online
                             key={device.MAC}
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
@@ -896,6 +788,8 @@ function Home() {
                             floor={device.Floor}
                             section={device.Section}
                             username={device.UserName}
+                            pos={device.POS}
+                            color={device.BedColor}
                           />
                         </Link>
                       ))}
@@ -927,18 +821,10 @@ function Home() {
                 })
                 .some(
                   (device) =>
-                    (device.TYPE === 1 &&
-                      device.STAT === 1 &&
-                      !(device.UserName === null || device.UserName === "") &&
-                      // !(
-                      //   device.POS === 4 ||
-                      //   device.POS === 5 ||
-                      //   device.POS === 8 ||
-                      //   device.POS === 0
-                      device.BedColor === 0) ||
-                    (device.TYPE === 2 &&
-                      device.STAT === 1 &&
-                      !(device.UserName === null || device.UserName === "")),
+                    (device.TYPE === 1 || device.TYPE === 2) &&
+                    device.STAT === 1 &&
+                    !(device.UserName === null || device.UserName === "") &&
+                    device.BedColor === 0,
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Normal")}</div>
@@ -967,22 +853,12 @@ function Home() {
                       })
                       .filter(
                         (device) =>
-                          (device.TYPE === 1 &&
-                            device.STAT === 1 &&
-                            !(
-                              device.UserName === null || device.UserName === ""
-                            ) &&
-                            // !(
-                            // device.POS === 4 ||
-                            // device.POS === 5 ||
-                            // device.POS === 8 ||
-                            // device.POS === 0
-                            device.BedColor === 0) ||
-                          (device.TYPE === 2 &&
-                            device.STAT === 1 &&
-                            !(
-                              device.UserName === null || device.UserName === ""
-                            )),
+                          (device.TYPE === 1 || device.TYPE === 2) &&
+                          device.STAT === 1 &&
+                          !(
+                            device.UserName === null || device.UserName === ""
+                          ) &&
+                          device.BedColor === 0,
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
@@ -991,7 +867,7 @@ function Home() {
                           key={device.MAC}
                           state={{ from: "/home" }}
                         >
-                          <Bed_default
+                          <Bed_Online
                             key={device.MAC}
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
@@ -999,6 +875,8 @@ function Home() {
                             floor={device.Floor}
                             section={device.Section}
                             username={device.UserName}
+                            pos={device.POS}
+                            color={device.BedColor}
                           />
                         </Link>
                       ))}
@@ -1030,12 +908,9 @@ function Home() {
                 })
                 .some(
                   (device) =>
-                    (device.TYPE === 1 &&
-                      device.STAT === 1 &&
-                      (device.UserName === null || device.UserName === "")) ||
-                    (device.TYPE === 2 &&
-                      device.STAT === 1 &&
-                      (device.UserName === null || device.UserName === "")),
+                    (device.TYPE === 1 || device.TYPE === 2) &&
+                    device.STAT === 1 &&
+                    (device.UserName === null || device.UserName === ""),
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Vacant")}</div>
@@ -1064,14 +939,9 @@ function Home() {
                       })
                       .filter(
                         (device) =>
-                          (device.TYPE === 1 &&
-                            device.STAT === 1 &&
-                            (device.UserName === null ||
-                              device.UserName === "")) ||
-                          (device.TYPE === 2 &&
-                            device.STAT === 1 &&
-                            (device.UserName === null ||
-                              device.UserName === "")),
+                          (device.TYPE === 1 || device.TYPE === 2) &&
+                          device.STAT === 1 &&
+                          (device.UserName === null || device.UserName === ""),
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
@@ -1111,8 +981,8 @@ function Home() {
                 })
                 .some(
                   (device) =>
-                    (device.TYPE === 1 && device.STAT === 0) ||
-                    (device.TYPE === 2 && device.STAT === 0),
+                    (device.TYPE === 1 || device.TYPE === 2) &&
+                    device.STAT === 0,
                 ) && (
                 <div className="status">
                   <div className="title">{t("Home.Disconnected")}</div>
@@ -1141,8 +1011,8 @@ function Home() {
                       })
                       .filter(
                         (device) =>
-                          (device.TYPE === 1 && device.STAT === 0) ||
-                          (device.TYPE === 2 && device.STAT === 0),
+                          (device.TYPE === 1 || device.TYPE === 2) &&
+                          device.STAT === 0,
                       )
                       .sort(sortAlphabet)
                       .map((device) => (
