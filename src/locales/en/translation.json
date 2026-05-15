@@ -342,7 +342,7 @@
       "sleepTime": {
         "normal": {
           "summaryTitle": "Normal",
-          "summaryRange": "(Avg 7-9 hours per night)",
+          "summaryRange": "(Average 7-9 hours per night)",
           "details": [
             "Maintain about 7-9 hours of sleep per day to support physical recovery.",
             "Encourage a regular sleep schedule and avoid day-night reversal.",
@@ -351,7 +351,7 @@
         },
         "insufficient": {
           "summaryTitle": "Insufficient Sleep / Poor Quality",
-          "summaryRange": "(Avg less than 6 hours per night)",
+          "summaryRange": "(Average less than 6 hours per night)",
           "details": [
             "Resident has insufficient nighttime sleep; provide a quiet environment and reduce disturbances.",
             "Avoid stimulating activities before bed such as phone use or caffeinated drinks.",
@@ -360,7 +360,7 @@
         },
         "excessive": {
           "summaryTitle": "Excessive Sleep / Drowsiness",
-          "summaryRange": "(Avg more than 10 hours per night)",
+          "summaryRange": "(Average more than 10 hours per night)",
           "details": [
             "Resident shows notable drowsiness; encourage gentle awakening and daytime activity.",
             "Adjust daytime nap duration to avoid disrupting nighttime sleep.",
@@ -371,7 +371,7 @@
       "leaveBed": {
         "normal": {
           "summaryTitle": "Normal",
-          "summaryRange": "(Avg less than or equal to 2 times per night)",
+          "summaryRange": "(Average less than or equal to 2 times per night)",
           "details": [
             "Resident's nighttime out-of-bed frequency is acceptable; continue to observe activity at night.",
             "Maintain a safe bedside environment, such as safety rails and call bell.",
@@ -381,7 +381,7 @@
         },
         "warn": {
           "summaryTitle": "Excessive Out-of-Bed / Frequent Urination",
-          "summaryRange": "(Avg more than 2 times per night)",
+          "summaryRange": "(Average more than 2 times per night)",
           "details": [
             "Resident leaves bed frequently at night; strengthen fall prevention with call bell and lower bed height.",
             "Assess possible causes such as frequent urination, pain, or discomfort; notify the physician if necessary.",
@@ -394,7 +394,7 @@
       "turnOverUEXT": {
         "normal": {
           "summaryTitle": "Normal",
-          "summaryRange": "(Avg less than or equal to 40 times per night)",
+          "summaryRange": "(Average less than or equal to 40 times per night)",
           "details": [
             "Resident's nighttime turn-over count is acceptable; continue to observe activity at night.",
             "Continue providing proper positioning and support, such as pillows and pressure-relief mats.",
@@ -403,7 +403,7 @@
         },
         "warn": {
           "summaryTitle": "Excessive Turn-Over / Light Sleep",
-          "summaryRange": "(Avg more than 40 times per night)",
+          "summaryRange": "(Average more than 40 times per night)",
           "details": [
             "Resident turns over frequently at night; assess whether it is caused by pain, discomfort, or anxiety.",
             "Check whether the mattress is comfortable and positioning is appropriate.",
@@ -415,7 +415,7 @@
       "turnOverUMAP": {
         "normal": {
           "summaryTitle": "Normal",
-          "summaryRange": "(Avg greater than or equal to 12 times per day)",
+          "summaryRange": "(Average greater than or equal to 12 times per day)",
           "details": [
             "Resident's daily turn-over count is normal and meets pressure injury prevention principles; continue scheduled turning.",
             "Continue executing the turning plan along with skin assessment and pressure-relief aids."
@@ -423,7 +423,7 @@
         },
         "warn": {
           "summaryTitle": "Insufficient Turn-Over",
-          "summaryRange": "(Avg less than 12 times per day)",
+          "summaryRange": "(Average less than 12 times per day)",
           "details": [
             "Resident's daily turn-over count is too low; increase turning frequency to prevent pressure injuries.",
             "Execute the turning plan strictly and strengthen turning records.",

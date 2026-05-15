@@ -87,6 +87,9 @@ function BarChart({ labels, values, warns, title, yAxisLabel, yUnit = "" }) {
         maintainAspectRatio: false,
         plugins: {
           legend: { display: false },
+          // 關掉全域註冊的 chartjs-plugin-datalabels (來自 AlertGanttChart.jsx)
+          // 否則每根柱子中間會顯示 y 軸數值
+          datalabels: { display: false },
           title: {
             display: true,
             text: title,
