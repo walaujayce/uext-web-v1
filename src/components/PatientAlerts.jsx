@@ -535,7 +535,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       }
       const alertTurnOver = data.jlog.alert_turn_over;
       const alertPressureRisk = data.jlog.alert_pressure_risk;
-      if(alertTurnOver.enable_tat || alertPressureRisk.enable_pra){
+      if(data.jlog.alert_triggers.status &&( alertTurnOver.enable_tat || alertPressureRisk.enable_pra)){
         setTurnOverToggleState(true);
         setIsTurnOverHoldTimeChecked(alertTurnOver.enable_tat);
         setIsPressureRiskChecked(alertPressureRisk.enable_pra);

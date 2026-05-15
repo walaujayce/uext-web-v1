@@ -37,13 +37,13 @@ function RiskRegion({ data = [] }) {
   const getLevelChar = (level) => {
     switch (level) {
       case 2:
-        return "高";
+        return t('RiskRegion.High');
       case 1:
-        return "中";
+        return t('RiskRegion.Medium');
       case 0:
-        return "低";
+        return t('RiskRegion.Low');
       default:
-        return "異常";
+        return t('RiskRegion.Unusual');
     }
   };
 

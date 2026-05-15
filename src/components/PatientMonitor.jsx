@@ -38,6 +38,11 @@ function PatientMonitor() {
     { idx: 2, center_x: 24, center_y: 0, radius: 2, duration_sec: 5 },
     { idx: 3, center_x: 0, center_y: 62, radius: 2, duration_sec: 5 },
     { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
+    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:0 },
+    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:1 },
+    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:0 },
+    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:2 },
+    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
     { idx: 99, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
   ];
   const [riskRegionArray, setRiskRegionArray] = useState([]);
@@ -87,7 +92,9 @@ function PatientMonitor() {
             : next;
         });
 
-        setRiskRegionArray(data.RecordDatumJlog.RiskRegions);
+        // setRiskRegionArray(data.RecordDatumJlog.RiskRegions);
+        setRiskRegionArray(data.RecordDatumJlog.RiskRegions.filter((region)=>region.risk_level !== 0));
+
         // setRiskRegionArray(temp);
         console.log("risk regions: ", data.RecordDatumJlog.RiskRegions);
       } else {
@@ -127,8 +134,8 @@ function PatientMonitor() {
             : next;
         });
         // setRiskRegionArray(temp);
-        setRiskRegionArray(data.RecordDatumJlog.risk_regions);
-        // setRiskRegionArray(data.RecordDatumJlog.risk_regions.filter((region)=>region.risk_level !== 0));
+        // setRiskRegionArray(data.RecordDatumJlog.risk_regions);
+        setRiskRegionArray(data.RecordDatumJlog.risk_regions.filter((region)=>region.risk_level !== 0));
       }
     } catch (error) {
       console.error("Error making POST request:", error);
