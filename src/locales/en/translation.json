@@ -325,5 +325,12 @@
     "PressureArea":"Pressure Area",
     "Level":"Risk Level",
     "NaN":"No risk record"
+  },
+  "PatientRecord":{
+    "NotEnoughData":"Data is not enough for analysis.",
+    "SleepingTime":"Sleeping Time",
+    "LeaveBedCount":"Leave Bed Count",
+    "TurnOverCount":"Turn Over Count",
+    "TurnOverInterval":"Maximal Turn Over Time Interval"
   }
 }

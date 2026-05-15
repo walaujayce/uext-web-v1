@@ -23,115 +23,257 @@ const colorFromWarn = (warn) => (warn ? "#E53935" : "#43A047");
 
 /* -------------------- 護理建議模板 (參考 UBS 模板) -------------------- */
 const RECOMMENDATIONS = {
-  // 夜間睡眠時數 (UEXT)
-  sleepTime: {
-    normal: {
-      summary: ["一般狀況", "(平均每晚 7-9 小時)"],
-      details: [
-        "建議維持每日睡眠約 7-9 小時，以促進身體恢復。",
-        "鼓勵建立規律作息時間，避免日夜顛倒。",
-        "白天午睡時間不超過 30 分鐘，以利夜間入睡。",
-      ],
+  chinese: {
+    // 夜間睡眠時數 (UEXT)
+    sleepTime: {
+      normal: {
+        summary: ["一般狀況", "(平均每晚 7-9 小時)"],
+        details: [
+          "建議維持每日睡眠約 7-9 小時，以促進身體恢復。",
+          "鼓勵建立規律作息時間，避免日夜顛倒。",
+          "白天午睡時間不超過 30 分鐘，以利夜間入睡。",
+        ],
+      },
+      insufficient: {
+        summary: ["睡眠不足 / 品質不佳", "(平均每晚少於 6 小時)"],
+        details: [
+          "住民夜間睡眠時數不足，建議提供安靜環境並減少干擾。",
+          "睡前避免刺激性活動，如滑手機、飲用含咖啡因飲品。",
+          "可評估是否有疼痛、不適或焦慮影響睡眠，必要時通報醫師處理。",
+        ],
+      },
+      excessive: {
+        summary: ["睡眠過多 / 嗜睡", "(平均每晚大於 10 小時)"],
+        details: [
+          "住民嗜睡情形明顯，建議適度喚醒並鼓勵日間活動。",
+          "調整白天午睡休息時間，避免影響夜間睡眠。",
+          "評估是否與藥物副作用或病況相關。",
+        ],
+      },
     },
-    insufficient: {
-      summary: ["睡眠不足 / 品質不佳", "(平均每晚少於 6 小時)"],
-      details: [
-        "住民夜間睡眠時數不足，建議提供安靜環境並減少干擾。",
-        "睡前避免刺激性活動，如滑手機、飲用含咖啡因飲品。",
-        "可評估是否有疼痛、不適或焦慮影響睡眠，必要時通報醫師處理。",
-      ],
+
+    // 夜間離床次數 (UEXT)
+    leaveBed: {
+      normal: {
+        summary: ["一般狀況", "(平均每晚少於或等於 2 次)"],
+        details: [
+          "住民夜間離床次數可接受，持續觀察夜間活動狀況。",
+          "建議維持床邊環境安全，如安全床欄、呼叫鈴。",
+          "鼓勵睡前如廁，以減少夜間離床需求。",
+          "建議持續評估跌倒風險並提供必要輔助，如助行器。",
+        ],
+      },
+      warn: {
+        summary: ["離床次數太多 / 頻尿", "(平均每晚大於 2 次)"],
+        details: [
+          "住民夜間頻繁離床，建議加強跌倒預防措施，如呼叫鈴、降低床高。",
+          "建議評估頻尿、疼痛或不適等可能原因，必要時通報醫師。",
+          "建議安排規律如廁時間，如睡前及夜間定時如廁。",
+          "建議夜間提供適度照明，避免因視線不佳導致跌倒。",
+          "必要時評估是否需陪伴或增加巡視頻率。",
+        ],
+      },
     },
-    excessive: {
-      summary: ["睡眠過多 / 嗜睡", "(平均每晚大於 10 小時)"],
-      details: [
-        "住民嗜睡情形明顯，建議適度喚醒並鼓勵日間活動。",
-        "調整白天午睡休息時間，避免影響夜間睡眠。",
-        "評估是否與藥物副作用或病況相關。",
-      ],
+
+    // 夜間翻身次數 (UEXT, deviceType=1)
+    turnOverUEXT: {
+      normal: {
+        summary: ["一般狀況", "(平均每晚少於或等於 40 次)"],
+        details: [
+          "住民夜間翻身次數可接受，持續觀察夜間活動狀況。",
+          "持續提供適當擺位與支撐，如枕頭、減壓墊。",
+          "建議維持床邊環境安全，如安全床欄、呼叫鈴。",
+        ],
+      },
+      warn: {
+        summary: ["翻身次數太多 / 淺眠", "(平均每晚大於 40 次)"],
+        details: [
+          "住民夜間頻繁翻身，建議評估是否因疼痛、不適或焦慮所致。",
+          "建議檢查床墊舒適度及擺位是否適當。",
+          "必要時評估壓力點疼痛或皮膚問題。",
+          "建議夜間加強觀察，必要時通報醫師評估用藥或處置。",
+        ],
+      },
+    },
+
+    // 翻身次數 (UMAP, deviceType=2)
+    turnOverUMAP: {
+      normal: {
+        summary: ["一般狀況", "(平均每日大於等於 12 次)"],
+        details: [
+          "住民每日翻身次數正常，符合預防壓力性損傷原則，持續維持定時翻身措施。",
+          "建議持續依翻身計畫執行，並搭配皮膚評估與減壓輔具使用。",
+        ],
+      },
+      warn: {
+        summary: ["翻身次數太少", "(平均每日少於 12 次)"],
+        details: [
+          "住民每日翻身次數太少，建議加強翻身頻率以預防壓力性損傷。",
+          "建議確實執行翻身計畫並加強翻身紀錄。",
+          "評估是否因人力、病人狀況或照護安排影響翻身執行。",
+          "必要時調整照護計畫或增加巡視頻率。",
+        ],
+      },
+    },
+
+    // 翻身間隔時間 (UMAP, deviceType=2)
+    turnOverInterval: {
+      normal: {
+        summary: ["一般狀況", "(平均每日最長間隔小於等於 2 小時)"],
+        details: [
+          "住民翻身間隔時間正常，符合壓力性損傷預防原則，持續維持。",
+          "建議持續依翻身計畫執行，並搭配皮膚評估與減壓輔具使用。",
+        ],
+      },
+      warn: {
+        summary: ["間隔時間太長", "(平均每日最長間隔大於 2 小時)"],
+        details: [
+          "住民翻身間隔時間超時，建議縮短翻身間隔以降低壓力性損傷風險。",
+          "建議落實定時翻身計畫，並加強紀錄。",
+          "評估是否因夜間人力或照護流程影響翻身執行。",
+          "必要時調整照護安排以確保翻身頻率。",
+        ],
+      },
     },
   },
+  english: {
+    // Nighttime Sleep Duration (UEXT)
+    sleepTime: {
+      normal: {
+        summary: ["Normal Condition", "(Average 7–9 hours per night)"],
+        details: [
+          "It is recommended to maintain 7–9 hours of sleep daily to support physical recovery.",
+          "Encourage a regular sleep schedule and avoid reversing day and night routines.",
+          "Limit daytime naps to no more than 30 minutes to improve nighttime sleep quality.",
+        ],
+      },
+      insufficient: {
+        summary: [
+          "Insufficient Sleep / Poor Sleep Quality",
+          "(Average less than 6 hours per night)",
+        ],
+        details: [
+          "The resident has insufficient nighttime sleep duration. It is recommended to provide a quiet environment and minimize disturbances.",
+          "Avoid stimulating activities before bedtime, such as using mobile phones or consuming caffeinated beverages.",
+          "Assess whether pain, discomfort, or anxiety may be affecting sleep, and notify a physician if necessary.",
+        ],
+      },
+      excessive: {
+        summary: [
+          "Excessive Sleep / Drowsiness",
+          "(Average more than 10 hours per night)",
+        ],
+        details: [
+          "The resident shows significant drowsiness. It is recommended to wake them appropriately and encourage daytime activities.",
+          "Adjust daytime nap duration to avoid affecting nighttime sleep.",
+          "Assess whether the condition may be related to medication side effects or underlying medical conditions.",
+        ],
+      },
+    },
 
-  // 夜間離床次數 (UEXT)
-  leaveBed: {
-    normal: {
-      summary: ["一般狀況", "(平均每晚少於或等於 2 次)"],
-      details: [
-        "住民夜間離床次數可接受，持續觀察夜間活動狀況。",
-        "建議維持床邊環境安全，如安全床欄、呼叫鈴。",
-        "鼓勵睡前如廁，以減少夜間離床需求。",
-        "建議持續評估跌倒風險並提供必要輔助，如助行器。",
-      ],
+    // Nighttime Bed Exit Frequency (UEXT)
+    leaveBed: {
+      normal: {
+        summary: [
+          "Normal Condition",
+          "(Average less than or equal to 2 times per night)",
+        ],
+        details: [
+          "The resident’s nighttime bed exit frequency is acceptable. Continue monitoring nighttime activity.",
+          "Maintain a safe bedside environment, such as bed rails and a call bell.",
+          "Encourage toileting before bedtime to reduce nighttime bed exits.",
+          "Continue assessing fall risk and provide necessary assistance, such as a walker if needed.",
+        ],
+      },
+      warn: {
+        summary: [
+          "Frequent Bed Exits / Nocturia",
+          "(Average more than 2 times per night)",
+        ],
+        details: [
+          "The resident frequently gets out of bed at night. Strengthen fall prevention measures, such as using a call bell and lowering bed height.",
+          "Assess possible causes such as nocturia, pain, or discomfort, and notify a physician if necessary.",
+          "Arrange scheduled toileting times, such as before bedtime and at regular intervals during the night.",
+          "Provide adequate nighttime lighting to reduce fall risk caused by poor visibility.",
+          "Consider supervision or increased monitoring frequency if necessary.",
+        ],
+      },
     },
-    warn: {
-      summary: ["離床次數太多 / 頻尿", "(平均每晚大於 2 次)"],
-      details: [
-        "住民夜間頻繁離床，建議加強跌倒預防措施，如呼叫鈴、降低床高。",
-        "建議評估頻尿、疼痛或不適等可能原因，必要時通報醫師。",
-        "建議安排規律如廁時間，如睡前及夜間定時如廁。",
-        "建議夜間提供適度照明，避免因視線不佳導致跌倒。",
-        "必要時評估是否需陪伴或增加巡視頻率。",
-      ],
-    },
-  },
 
-  // 夜間翻身次數 (UEXT, deviceType=1)
-  turnOverUEXT: {
-    normal: {
-      summary: ["一般狀況", "(平均每晚少於或等於 40 次)"],
-      details: [
-        "住民夜間翻身次數可接受，持續觀察夜間活動狀況。",
-        "持續提供適當擺位與支撐，如枕頭、減壓墊。",
-        "建議維持床邊環境安全，如安全床欄、呼叫鈴。",
-      ],
+    // Nighttime Turning Frequency (UEXT, deviceType=1)
+    turnOverUEXT: {
+      normal: {
+        summary: [
+          "Normal Condition",
+          "(Average less than or equal to 40 times per night)",
+        ],
+        details: [
+          "The resident’s nighttime turning frequency is acceptable. Continue monitoring nighttime activity.",
+          "Continue providing proper positioning and support, such as pillows and pressure-relief cushions.",
+          "Maintain a safe bedside environment, such as bed rails and a call bell.",
+        ],
+      },
+      warn: {
+        summary: [
+          "Frequent Turning / Light Sleep",
+          "(Average more than 40 times per night)",
+        ],
+        details: [
+          "The resident turns frequently during the night. Assess whether pain, discomfort, or anxiety may be contributing factors.",
+          "Check whether the mattress comfort and positioning are appropriate.",
+          "Assess for pressure point pain or skin issues if necessary.",
+          "Increase nighttime observation and notify a physician for medication or treatment evaluation if needed.",
+        ],
+      },
     },
-    warn: {
-      summary: ["翻身次數太多 / 淺眠", "(平均每晚大於 40 次)"],
-      details: [
-        "住民夜間頻繁翻身，建議評估是否因疼痛、不適或焦慮所致。",
-        "建議檢查床墊舒適度及擺位是否適當。",
-        "必要時評估壓力點疼痛或皮膚問題。",
-        "建議夜間加強觀察，必要時通報醫師評估用藥或處置。",
-      ],
-    },
-  },
 
-  // 翻身次數 (UMAP, deviceType=2)
-  turnOverUMAP: {
-    normal: {
-      summary: ["一般狀況", "(平均每日大於等於 12 次)"],
-      details: [
-        "住民每日翻身次數正常，符合預防壓力性損傷原則，持續維持定時翻身措施。",
-        "建議持續依翻身計畫執行，並搭配皮膚評估與減壓輔具使用。",
-      ],
+    // Turning Frequency (UMAP, deviceType=2)
+    turnOverUMAP: {
+      normal: {
+        summary: ["Normal Condition", "(Average at least 12 times per day)"],
+        details: [
+          "The resident’s daily turning frequency is adequate and aligns with pressure injury prevention principles. Continue maintaining scheduled repositioning.",
+          "Continue following the repositioning plan along with skin assessments and pressure-relief device usage.",
+        ],
+      },
+      warn: {
+        summary: [
+          "Insufficient Turning Frequency",
+          "(Average less than 12 times per day)",
+        ],
+        details: [
+          "The resident’s daily turning frequency is too low. Increase repositioning frequency to prevent pressure injuries.",
+          "Ensure the repositioning plan is properly followed and strengthen repositioning documentation.",
+          "Assess whether staffing, resident condition, or care arrangements are affecting repositioning execution.",
+          "Adjust the care plan or increase monitoring frequency if necessary.",
+        ],
+      },
     },
-    warn: {
-      summary: ["翻身次數太少", "(平均每日少於 12 次)"],
-      details: [
-        "住民每日翻身次數太少，建議加強翻身頻率以預防壓力性損傷。",
-        "建議確實執行翻身計畫並加強翻身紀錄。",
-        "評估是否因人力、病人狀況或照護安排影響翻身執行。",
-        "必要時調整照護計畫或增加巡視頻率。",
-      ],
-    },
-  },
 
-  // 翻身間隔時間 (UMAP, deviceType=2)
-  turnOverInterval: {
-    normal: {
-      summary: ["一般狀況", "(平均每日最長間隔小於等於 2 小時)"],
-      details: [
-        "住民翻身間隔時間正常，符合壓力性損傷預防原則，持續維持。",
-        "建議持續依翻身計畫執行，並搭配皮膚評估與減壓輔具使用。",
-      ],
-    },
-    warn: {
-      summary: ["間隔時間太長", "(平均每日最長間隔大於 2 小時)"],
-      details: [
-        "住民翻身間隔時間超時，建議縮短翻身間隔以降低壓力性損傷風險。",
-        "建議落實定時翻身計畫，並加強紀錄。",
-        "評估是否因夜間人力或照護流程影響翻身執行。",
-        "必要時調整照護安排以確保翻身頻率。",
-      ],
+    // Repositioning Interval (UMAP, deviceType=2)
+    turnOverInterval: {
+      normal: {
+        summary: [
+          "Normal Condition",
+          "(Average maximum interval less than or equal to 2 hours per day)",
+        ],
+        details: [
+          "The resident’s repositioning interval is appropriate and aligns with pressure injury prevention principles. Continue maintaining current care.",
+          "Continue following the repositioning plan along with skin assessments and pressure-relief device usage.",
+        ],
+      },
+      warn: {
+        summary: [
+          "Excessive Repositioning Interval",
+          "(Average maximum interval greater than 2 hours per day)",
+        ],
+        details: [
+          "The resident’s repositioning interval exceeds the recommended duration. Shorten repositioning intervals to reduce pressure injury risk.",
+          "Ensure scheduled repositioning plans are properly implemented and documented.",
+          "Assess whether nighttime staffing or care workflows are affecting repositioning execution.",
+          "Adjust care arrangements if necessary to ensure adequate repositioning frequency.",
+        ],
+      },
     },
   },
 };
@@ -414,35 +556,37 @@ function PatientRecord() {
       <SimpleBackdrop open={loading} />
       <div style={{ padding: "16px 24px" }}>
         {!loading && !hasData && (
-          <div style={{ color: "#888", fontStyle: "italic" }}>分析資料不足</div>
+          <div style={{ color: "#888", fontStyle: "italic" }}>
+            {t("PatientRecord.NotEnoughData")}
+          </div>
         )}
 
         {hasData && deviceType === 1 && (
           <>
             <ChartSection
-              title="睡眠時數"
+              title={t("PatientRecord.SleepingTime")}
               labels={labels}
               values={sleepHours}
               warns={sleepWarns}
-              yAxisLabel="睡眠時數"
+              yAxisLabel={t("PatientRecord.SleepingTime")}
               yUnit="hr"
               recommendationKey="sleepTime"
             />
             <ChartSection
-              title="離床次數"
+              title={t("PatientRecord.LeaveBedCount")}
               labels={labels}
               values={leaveBedCounts}
               warns={leaveBedWarns}
-              yAxisLabel="離床次數"
+              yAxisLabel={t("PatientRecord.LeaveBedCount")}
               yUnit="times"
               recommendationKey="leaveBed"
             />
             <ChartSection
-              title="翻身次數"
+              title={t("PatientRecord.TurnOverCount")}
               labels={labels}
               values={turnOverCounts}
               warns={turnOverWarns}
-              yAxisLabel="翻身次數"
+              yAxisLabel={t("PatientRecord.TurnOverCount")}
               yUnit="times"
               recommendationKey="turnOverUEXT"
             />
@@ -452,20 +596,20 @@ function PatientRecord() {
         {hasData && deviceType === 2 && (
           <>
             <ChartSection
-              title="翻身次數"
+              title={t("PatientRecord.TurnOverCount")}
               labels={labels}
               values={turnOverCounts}
               warns={turnOverWarns}
-              yAxisLabel="翻身次數"
+              yAxisLabel={t("PatientRecord.TurnOverCount")}
               yUnit="times"
               recommendationKey="turnOverUMAP"
             />
             <ChartSection
-              title="最長翻身間隔時數"
+              title={t("PatientRecord.TurnOverInterval")}
               labels={labels}
               values={turnOverIntervals}
               warns={turnOverIntervalWarns}
-              yAxisLabel="最長翻身間隔時數"
+              yAxisLabel={t("PatientRecord.TurnOverInterval")}
               yUnit="hr"
               recommendationKey="turnOverInterval"
             />

@@ -326,5 +326,12 @@
     "PressureArea": "壓力範圍",
     "Level": "風險等級",
     "NaN": "無壓力風險"
+  },
+  "PatientRecord":{
+    "NotEnoughData":"目前資料不足以分析。",
+    "SleepingTime":"睡眠時數",
+    "LeaveBedCount":"翻身次數",
+    "TurnOverCount":"離床次數",
+    "TurnOverInterval":"最長翻身間隔時數"
   }
 }

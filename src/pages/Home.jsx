@@ -441,6 +441,7 @@ function Home() {
       UserName,
       TYPE,
       BedColor,
+      IsAlert
     } = device;
 
     // 先以STAT去區分on/off-line，再以TYPE區分UEXT/UMAP，最後以POS區分狀態
@@ -490,6 +491,8 @@ function Home() {
               username={UserName}
               pos={POS}
               color={BedColor}
+              deviceType={TYPE}
+              isAlertSet = {IsAlert}
             />
           </Link>
         );
@@ -703,6 +706,8 @@ function Home() {
                             username={device.UserName}
                             pos={device.POS}
                             color={device.BedColor}
+                            deviceType={device.TYPE}
+                            isAlertSet = {device.IsAlert}
                           />
                         </Link>
                       ))}
@@ -789,7 +794,9 @@ function Home() {
                             section={device.Section}
                             username={device.UserName}
                             pos={device.POS}
+                            deviceType={device.TYPE}
                             color={device.BedColor}
+                            isAlertSet = {device.IsAlert}
                           />
                         </Link>
                       ))}
@@ -877,6 +884,8 @@ function Home() {
                             username={device.UserName}
                             pos={device.POS}
                             color={device.BedColor}
+                            deviceType={device.TYPE}
+                            isAlertSet = {device.IsAlert}
                           />
                         </Link>
                       ))}

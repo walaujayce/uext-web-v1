@@ -11,9 +11,18 @@ export function Bed_disconnect({ hold, macaddress, username, bed }) {
     <div className="bed disconnect">
       <div className="b-num">{bed}&nbsp;</div>
       <div className="name">{username}&nbsp;</div>
-      <div className="tag">
-        <img src="" alt="" />
-        <p className="timer">{hold}</p>
+      <div
+        className="tag"
+        style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
       </div>
       <div className="dis-tag">
         <img src="/src/assets/link-off.svg" alt="" />
@@ -47,9 +56,18 @@ export function Bed_vacant({ bed, macaddress }) {
     <div className="bed vacant" onClick={handleAddPatientClick}>
       <div className="b-num">{bed}&nbsp;</div>
       <div className="name">{t("AddPatientModal.ClickToAddPatient")}</div>
-      <div className="tag">
-        <img src="" alt="" />
-        <p className="timer">02:14:42</p>
+      <div
+        className="tag"
+        style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">02:14:42</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">02:14:42</p>
+        </div>
       </div>
       <div className="dis-tag">
         <img src="/src/assets/link-off.svg" alt="" />
@@ -72,9 +90,18 @@ export function Bed_default({ hold, macaddress, username, bed }) {
     <div className="bed default">
       <div className="b-num">{bed}&nbsp;</div>
       <div className="name">{username}&nbsp;</div>
-      <div className="tag">
-        <img src="" alt="" />
-        <p className="timer">{hold}</p>
+      <div
+        className="tag"
+        style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
       </div>
       <div className="icon-tag">
         <img src="/src/assets/icon_homepage_rest.svg" alt="" />
@@ -93,9 +120,18 @@ export function Bed_attention({ hold, macaddress, username, bed }) {
     <div className="bed attention">
       <div className="b-num">{bed}&nbsp;</div>
       <div className="name">{username}&nbsp;</div>
-      <div className="tag">
-        <img src="" alt="" />
-        <p className="timer">{hold}</p>
+      <div
+        className="tag"
+        style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
       </div>
       <div className="icon-tag">
         <img src="/src/assets/icon_homepage_edge.svg" alt="" />
@@ -114,9 +150,18 @@ export function Bed_alert({ hold, macaddress, username, bed }) {
     <div className="bed alert">
       <div className="b-num">{bed}&nbsp;</div>
       <div className="name">{username}&nbsp;</div>
-      <div className="tag">
-        <img src="" alt="" />
-        <p className="timer">{hold}</p>
+      <div
+        className="tag"
+        style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
       </div>
       <div className="icon-tag">
         <img src="/src/assets/icon_homepage_exit.svg" alt="" />
@@ -129,7 +174,7 @@ export function Bed_alert({ hold, macaddress, username, bed }) {
     </div>
   );
 }
-export function Bed_Online({ hold, macaddress, username, bed, pos, color }) {
+export function Bed_Online({ hold, macaddress, username, bed, pos, color, deviceType, isAlertSet = false }) {
   // POS
   let imgURL = "";
   switch (pos || 0) {
@@ -170,9 +215,18 @@ export function Bed_Online({ hold, macaddress, username, bed, pos, color }) {
     <div className={`bed ${bedColor}`}>
       <div className="b-num">{bed}&nbsp;</div>
       <div className="name">{username}&nbsp;</div>
-      <div className="tag">
-        <img src="" alt="" />
-        <p className="timer">{hold}</p>
+      <div
+        className="tag"
+        style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}
+      >
+        <div className={`${isAlertSet ? "notification-on" : "notification-off"}`} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{deviceType === 1 ? "UEXT" : "UMAP"}</p>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+          <img src="" alt="" />
+          <p className="timer">{hold}</p>
+        </div>
       </div>
       <div className="icon-tag">
         <img src={imgURL} alt="" />
