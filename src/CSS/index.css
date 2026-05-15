@@ -160,10 +160,12 @@
     /* content: url(/src/assets/green-dot.svg); */
 }
 .bed .tag .notification-off img{
+    content: url(/src/assets/bell_transparent.svg);
     width: 12px;
     height: 12px;
 }
 .bed .tag .notification-on img{
+    content: url(/src/assets/bell.svg);
     width: 12px;
     height: 12px;
 }
@@ -463,12 +465,12 @@ html.dark .bed.vacant:hover{
         height: 8px;
     }
     .bed .tag .notification-off img{
-    width: 8px;
-    height: 8px;
+    width: 16px;
+    height: 16px;
     }
     .bed .tag .notification-on img{
-        width: 8px;
-        height: 8px;
+        width: 16px;
+        height: 16px;
     }
     .bed .dis-tag{
         padding: 10px;
@@ -606,12 +608,12 @@ html.dark .bed.vacant:hover{
         height: 6px;
     }
     .bed .tag .notification-off img{
-        width: 6px;
-        height: 6px;
+        width: 16px;
+        height: 16px;
     }
     .bed .tag .notification-on img{
-        width: 6px;
-        height: 6px;
+        width: 16px;
+        height: 16px;
     }
     .bed .dis-tag{
         padding: 10px;

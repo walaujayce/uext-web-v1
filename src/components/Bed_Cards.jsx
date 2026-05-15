@@ -221,7 +221,7 @@ export function Bed_Online({ hold, macaddress, username, bed, pos, color, device
       >
         <div className={`${isAlertSet ? "notification-on" : "notification-off"}`} style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
-          <p className="timer">{deviceType === 1 ? "UEXT" : "UMAP"}</p>
+          <p className="timer" style={{display: bedColor === "default" ? "block" : "", color:"white"}}>{deviceType === 1 ? "UEXT" : "UMAP"}</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
