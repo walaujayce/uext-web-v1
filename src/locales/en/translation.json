@@ -56,7 +56,9 @@
     "UnusualConditionAlert": "Abnormal Alert",
     "LeftAlert": "Left Side Alert",
     "RightAlert": "Right Side Alert",
-    "AttentionAlert": "Attention Alert"
+    "AttentionAlert": "Attention Alert",
+    "TurnOverAlert": "Turn Over Alert",
+    "RiskAlert": "Pressure Alert"
   },
   "ConfirmAlertModal": {
     "h1-NotSpecifiedAlert": "Not Specified Alert",
@@ -181,7 +183,12 @@
     "Sec": "sec",
     "HzMax": "Hz (Max.)",
     "HzMin": "Hz (Min.)",
-    "AddNewAlert": "Add time slot"
+    "AddNewAlert": "Add time slot",
+    "TurnOverAlert":"Turn Over Alert",
+    "TurnOverHoldTime":"Hold Time",
+    "TurnOverHoldTimeDescription":"Alert when current posture exceeds the specified hold time.",
+    "PressureRisk":"Pressure Risk",
+    "PressureRiskDescription":"Based on the multiple of pressure and duration values which is used as the threshold for pressure risk alert notifications. For example, if the settings are 30 mmHg and 120 minutes, the result is 3600. Therefore, when the pressure in a specific area reaches 100 mmHg and the duration reaches 36 minutes, the system will trigger an alert."
   },
   "Alert": {
     "AlertSettingList": "Alert Setting List",
@@ -311,5 +318,12 @@
   "AlertBatchSetting": {
     "Title": "Alert Setting",
     "Confirm": "Confirm"
+  },
+  "RiskRegion":{
+    "Id":"ID",
+    "HoldTime":"Hold Time(sec)",
+    "PressureArea":"Pressure Area",
+    "Level":"Risk Level",
+    "NaN":"No risk record"
   }
 }

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 function RiskRegion({ data = [] }) {
   // 依照 idx 排序 (不修改原 array)
+  const { t, i18n } = useTranslation();
 
   const sortedData = Array.isArray(data)
     ? [...data].sort((a, b) => a.idx - b.idx)
@@ -124,19 +126,19 @@ function RiskRegion({ data = [] }) {
         <table style={tableStyle}>
           <thead style={theadStyle}>
             <tr>
-              <th style={thStyle}>區域編號</th>
-              <th style={thStyle}>持續時間(秒)</th>
-              <th style={thStyle}>壓力範圍(cm&sup2;)</th>
+              <th style={thStyle}>{t("RiskRegion.Id")}</th>
+              <th style={thStyle}>{t("RiskRegion.HoldTime")}</th>
+              <th style={thStyle}>{t("RiskRegion.PressureArea")}(cm&sup2;)</th>
               {/* <th style={thStyle}>x</th>
               <th style={thStyle}>y</th> */}
-              <th style={thStyle}>風險等級</th>
+              <th style={thStyle}>{t("RiskRegion.Level")}</th>
             </tr>
           </thead>
           <tbody>
             {sortedData.length === 0 ? (
               <tr>
                 <td colSpan={4} style={emptyRowStyle}>
-                  無資料
+                  {t("RiskRegion.NaN")}
                 </td>
               </tr>
             ) : (

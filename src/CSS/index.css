@@ -576,10 +576,10 @@ html.dark .bed.vacant:hover{
     }
 
     .bed.attention .tag img{
-        display: none;
+        /* display: none; */
     }
     .bed.alert .tag img{
-        display: none;
+        /* display: none; */
     }
     .bed .tag .timer{
         font-size: 12px;

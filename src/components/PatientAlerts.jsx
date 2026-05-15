@@ -233,6 +233,8 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
     setNotificationToggleState((prev) => !prev);
     if(!notificationToggleState){
       setTurnOverToggleState(true);
+    }else{
+      setTurnOverToggleState(false);
     }
     // setSelectedNotification(1);
   };
@@ -1662,7 +1664,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       >
         {/* customize css */}
         <div className="alertHead">
-          <h1>翻身警報</h1>
+          <h1>{t("PatientAlert.TurnOverAlert")}</h1>
           <div
             className={`toggle ${turnOverToggleState ? "active" : ""}`}
             onClick={handleTurnOverToggleState}
@@ -1693,9 +1695,9 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
                     onClick={() => handleTurnOverHoldTimeCheckbox()}
                   />
                   <div className="desc-box">
-                    <p>維持時間</p>
+                    <p>{t("PatientAlert.TurnOverHoldTime")}</p>
                     <div className="desc">
-                      <p>當住民姿勢維持超過設定時間，系統會發送警報。</p>
+                      <p>{t("PatientAlert.TurnOverHoldTimeDescription")}</p>
                       <div className="desc-input">
                         <input
                           type="number"
@@ -1731,10 +1733,10 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
                     onClick={handlePressureRiskCheckbox}
                   />
                   <div className="desc-box">
-                    <p>壓力風險</p>
+                    <p>{t("PatientAlert.PressureRisk")}</p>
                     <div className="desc">
                       <p>
-                        依照所設定之壓力與時間相乘所得到之數值，作為壓力風險警報通知基準。例如設定值為30mmHg與120分鐘，所得到的乘積為3600，則當區域壓力達到100mmHg與持續時間達到36分鐘時，系統會發出警報。
+                        {t("PatientAlert.PressureRiskDescription")}
                       </p>
                       <div className="desc-input rpm max">
                         <input

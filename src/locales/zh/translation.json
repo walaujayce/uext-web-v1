@@ -56,7 +56,9 @@
     "UnusualConditionAlert": "異常警示通知",
     "LeftAlert": "左躺警示通知",
     "RightAlert": "右躺警示通知",
-    "AttentionAlert": "注意警示通知"
+    "AttentionAlert": "注意警示通知",
+    "TurnOverAlert": "翻身警示通知",
+    "RiskAlert": "壓力警示通知"
   },
   "ConfirmAlertModal": {
     "h1-NotSpecifiedAlert": "無法辨認通知",
@@ -183,8 +185,11 @@
     "HzMax": "赫茲 (最大)",
     "HzMin": "赫茲 (最小)",
     "AddNewAlert": "新增時段",
-    "TurnOverAlert": "翻身警報"
-
+    "TurnOverAlert": "翻身警報",
+    "TurnOverHoldTime":"維持時間",
+    "TurnOverHoldTimeDescription":"當住民姿勢維持超過設定時間，系統會發送警報。",
+    "PressureRisk":"壓力風險",
+    "PressureRiskDescription":"依照所設定之壓力與時間相乘所得到之數值，作為壓力風險警報通知基準。例如設定值為30mmHg與120分鐘，所得到的乘積為3600，則當區域壓力達到100mmHg與持續時間達到36分鐘時，系統會發出警報。"
   },
   "Alert": {
     "AlertSettingList": "警示設定列表",
@@ -314,5 +319,12 @@
   "AlertBatchSetting": {
     "Title": "警示設定",
     "Confirm": "確認"
+  },
+  "RiskRegion": {
+    "Id": "區域編號",
+    "HoldTime": "持續時間(秒)",
+    "PressureArea": "壓力範圍",
+    "Level": "風險等級",
+    "NaN": "無壓力風險"
   }
 }
