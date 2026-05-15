@@ -282,7 +282,7 @@
 }
 .bed.alert:hover{
     /* border: 2px solid var(--900,#FA3F2E); */
-    border: 2px solid var(--900,#851e1e);
+    border: 2px solid var(--900,#b51f1f);
 }
 .bed.alert .b-num,
 .bed.alert .name,
@@ -321,7 +321,7 @@
     color: #CCCCCC;
 }
 .bed.disconnect .tag{
-    display: none;
+    /* display: none; */
 }
 .bed.disconnect .dis-tag{
     display: flex;

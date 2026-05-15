@@ -461,6 +461,7 @@ function Home() {
               floor={Floor}
               section={Section}
               username={UserName}
+              deviceType={TYPE}
             />
           </Link>
         );
@@ -1038,6 +1039,7 @@ function Home() {
                             floor={device.Floor}
                             section={device.Section}
                             username={device.UserName}
+                            deviceType={device.TYPE}
                           />
                         </Link>
                       ))}

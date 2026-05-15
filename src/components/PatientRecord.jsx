@@ -57,6 +57,7 @@ const buildRecommendation = (t, metric, stateKey) => {
 
 /* --------------------------- BarChart 子元件 -------------------------- */
 function BarChart({ labels, values, warns, title, yAxisLabel, yUnit = "" }) {
+  const {t} = useTranslation();
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
   const { isDarkMode } = useAuth();
@@ -99,7 +100,7 @@ function BarChart({ labels, values, warns, title, yAxisLabel, yUnit = "" }) {
           tooltip: {
             displayColors: false,
             callbacks: {
-              title: (items) => (items.length ? `Date: ${items[0].label}` : ""),
+              title: (items) => (items.length ? `${t("PatientRecord.Date")}: ${items[0].label}` : ""),
               label: (item) => {
                 const v = item.parsed.y;
                 return `${yAxisLabel}: ${v}${yUnit ? " " + yUnit : ""}`;
@@ -109,7 +110,7 @@ function BarChart({ labels, values, warns, title, yAxisLabel, yUnit = "" }) {
         },
         scales: {
           x: {
-            title: { display: true, text: "Date (mm/dd)", font: { size: 14 } },
+            title: { display: true, text: `${t("PatientRecord.Date")} (mm/dd)`, font: { size: 14 } },
             grid: { display: false },
             border: {
               color: isDarkMode ? "#666666" : "#cbd5e1",
@@ -325,7 +326,7 @@ function PatientRecord() {
               values={sleepHours}
               warns={sleepWarns}
               yAxisLabel={t("PatientRecord.SleepingTime")}
-              yUnit="hr"
+              yUnit={t("PatientRecord.Hour")}
               recommendationKey="sleepTime"
             />
             <ChartSection
@@ -334,7 +335,7 @@ function PatientRecord() {
               values={leaveBedCounts}
               warns={leaveBedWarns}
               yAxisLabel={t("PatientRecord.LeaveBedCount")}
-              yUnit="times"
+              yUnit={t("PatientRecord.Times")}
               recommendationKey="leaveBed"
             />
             <ChartSection
@@ -343,7 +344,7 @@ function PatientRecord() {
               values={turnOverCounts}
               warns={turnOverWarns}
               yAxisLabel={t("PatientRecord.TurnOverCount")}
-              yUnit="times"
+              yUnit={t("PatientRecord.Times")}
               recommendationKey="turnOverUEXT"
             />
           </>
@@ -357,7 +358,7 @@ function PatientRecord() {
               values={turnOverCounts}
               warns={turnOverWarns}
               yAxisLabel={t("PatientRecord.TurnOverCount")}
-              yUnit="times"
+              yUnit={t("PatientRecord.Times")}
               recommendationKey="turnOverUMAP"
             />
             <ChartSection
@@ -366,7 +367,7 @@ function PatientRecord() {
               values={turnOverIntervals}
               warns={turnOverIntervalWarns}
               yAxisLabel={t("PatientRecord.TurnOverInterval")}
-              yUnit="hr"
+              yUnit={t("PatientRecord.Hour")}
               recommendationKey="turnOverInterval"
             />
           </>

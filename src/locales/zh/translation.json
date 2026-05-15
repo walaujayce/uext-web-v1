@@ -185,11 +185,11 @@
     "HzMax": "赫茲 (最大)",
     "HzMin": "赫茲 (最小)",
     "AddNewAlert": "新增時段",
-    "TurnOverAlert": "翻身警報",
-    "TurnOverHoldTime":"維持時間",
-    "TurnOverHoldTimeDescription":"當住民姿勢維持超過設定時間，系統會發送警報。",
-    "PressureRisk":"壓力風險",
-    "PressureRiskDescription":"依照所設定之壓力與時間相乘所得到之數值，作為壓力風險警報通知基準。例如設定值為30mmHg與120分鐘，所得到的乘積為3600，則當區域壓力達到100mmHg與持續時間達到36分鐘時，系統會發出警報。"
+    "TurnOverAlert": "翻身壓力警報",
+    "TurnOverHoldTime": "維持時間",
+    "TurnOverHoldTimeDescription": "當住民姿勢維持超過設定時間，系統會發送警報。",
+    "PressureRisk": "壓力風險",
+    "PressureRiskDescription": "依照所設定之壓力與時間相乘所得到之數值，作為壓力風險警報通知基準。例如設定值為30mmHg與120分鐘，所得到的乘積為3600，則當區域壓力達到100mmHg與持續時間達到36分鐘時，系統會發出警報。"
   },
   "Alert": {
     "AlertSettingList": "警示設定列表",
@@ -334,11 +334,14 @@
   "PatientRecord": {
     "NotEnoughData": "目前資料不足以分析。",
     "SleepingTime": "睡眠時數",
-    "LeaveBedCount": "翻身次數",
-    "TurnOverCount": "離床次數",
+    "LeaveBedCount": "離床次數",
+    "TurnOverCount": "翻身次數",
     "TurnOverInterval": "最長翻身間隔時數",
     "SummaryTitle": "分析總結",
     "DetailsTitle": "詳細建議",
+    "Date": "日期",
+    "Times": "次",
+    "Hour": "小時",
     "Recommendations": {
       "sleepTime": {
         "normal": {

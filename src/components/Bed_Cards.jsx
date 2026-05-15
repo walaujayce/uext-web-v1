@@ -6,18 +6,18 @@ import React, { useEffect, useState, useRef } from "react";
 import AddNewPatient from "./Modals/AddNewPatient";
 import { useTranslation } from "react-i18next";
 
-export function Bed_disconnect({ hold, macaddress, username, bed }) {
+export function Bed_disconnect({ hold, macaddress, username, bed, deviceType }) {
   return (
     <div className="bed disconnect">
       <div className="b-num">{bed}&nbsp;</div>
       <div className="name">{username}&nbsp;</div>
       <div
         className="tag"
-        style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}
+        style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div className="notification-off" style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
-          <p className="timer">{hold}</p>
+          <p className="timer" style={{display:"block", color:"white"}}>{deviceType === 1 ? "UEXT" : "UMAP"}</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />

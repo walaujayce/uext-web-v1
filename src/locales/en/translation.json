@@ -184,7 +184,7 @@
     "HzMax": "Hz (Max.)",
     "HzMin": "Hz (Min.)",
     "AddNewAlert": "Add time slot",
-    "TurnOverAlert": "Turn Over Alert",
+    "TurnOverAlert": "Turn Over and Pressure Alert",
     "TurnOverHoldTime": "Hold Time",
     "TurnOverHoldTimeDescription": "Alert when current posture exceeds the specified hold time.",
     "PressureRisk": "Pressure Risk",
@@ -338,6 +338,9 @@
     "TurnOverInterval": "Maximal Turn Over Time Interval",
     "SummaryTitle": "Analysis Summary",
     "DetailsTitle": "Detailed Recommendations",
+    "Date":"Date",
+    "Times":"times",
+    "Hour": "hr",
     "Recommendations": {
       "sleepTime": {
         "normal": {
