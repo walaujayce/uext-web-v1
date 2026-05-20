@@ -11,7 +11,7 @@ import React, { useEffect, useRef } from "react";
  *  - width:  data.WIDTH  (sensor 寬，用來與 OpenCVComponent 同步比例)
  *  - height: data.HEIGHT (sensor 高，用來與 OpenCVComponent 同步比例)
  *
- * 圓的半徑 = radius * 2.54 (px)
+ * 圓的半徑 = radius * 2.75 (px)
  * status === 1 → 黃色, status === 2 → 紅色, 其它 → 不畫
  *
  * 為了讓覆蓋層與 OpenCVComponent 的 canvas 完全對齊：
@@ -69,7 +69,7 @@ function RiskArea({ data = [], width, height }) {
       // else if (status === 2) color = "#FF2D2D"; // 紅
       // if (!color) return;
 
-      const r = (Number(radius) || 0) * 2.54;
+      const r = (Number(radius) || 0) * 2.75;
       if (r <= 0) return;
 
       const cx = (Number((sensor_width - 1 )- center_x) || 0) * ((canvas.width ) / (sensor_width-1)); // “sensor_width-1”是因爲旋轉180

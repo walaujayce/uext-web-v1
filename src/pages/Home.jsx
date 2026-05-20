@@ -107,7 +107,7 @@ function Home() {
     {
       STAT: 1,
       POS: 1,
-      MAC: "A56",
+      MAC: "A5",
       HOLD: 0,
       Bed: "4301",
       Floor: "All",
@@ -257,7 +257,7 @@ function Home() {
     {
       STAT: 1,
       POS: 7,
-      MAC: "A16",
+      MAC: "A17",
       HOLD: 0,
       Bed: "4601",
       Floor: "All",
@@ -272,7 +272,7 @@ function Home() {
     {
       STAT: 0,
       POS: 3,
-      MAC: "A17",
+      MAC: "A18",
       HOLD: 0,
       Bed: "4602",
       Floor: "All",
@@ -287,7 +287,7 @@ function Home() {
     {
       STAT: 0,
       POS: 4,
-      MAC: "A17",
+      MAC: "A19",
       HOLD: 0,
       Bed: "4603",
       Floor: "All",
@@ -418,7 +418,7 @@ function Home() {
         //console.log(data);
         setDevices(data || []);
       }
-      // setDevices(fakeList); // TEST
+      setDevices(fakeList); // TEST
     } catch (error) {
       console.error("Error fetching device data:", error);
     }

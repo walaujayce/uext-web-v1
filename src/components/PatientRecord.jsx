@@ -184,9 +184,9 @@ function RecommendationPanel({ summary, details, warn }) {
           alignContent: "center",
         }}
       >
-        <div style={{ fontSize: 15, lineHeight: 1.6, justifyItems: "center" }}>
+        <div style={{ fontSize: 15, lineHeight: 1.6, justifyItems: "center",justifySelf: "start" }}>
           {summary.map((line, i) => (
-            <div key={i} style={{ fontWeight: i === 0 ? 600 : 400 }}>
+            <div key={i} style={{ fontWeight: i === 0 ? 600 : 400, justifySelf: "start" }}>
               {line}
             </div>
           ))}

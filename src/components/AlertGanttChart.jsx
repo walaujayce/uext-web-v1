@@ -30,13 +30,31 @@ function AlertGanttChart() {
     /* Handle Overlay Visible */
   }
   const [isOverlayVisible, setOverlayVisible] = useState(false);
+  const [isUEXT, setIsUEXT] = useState(false);
 
   const handleModifyPatientAlert = (e) => {
     e.preventDefault();
+    console.log("selectedAlert: ", selectedAlert);
+    console.log("patient: ", patient);
     if (selectedAlert.length === 0) {
       alert("At least select a resident to set alert settings.");
       return;
     }
+    let deviceType = new Set();
+    if (selectedAlert.length > 1) {
+      selectedAlert.forEach((pateintId) => {
+        const matchingPatient = patient.find((p) => p.patientid === pateintId);
+        const matchingDevice = device.find((p) => p.deviceid === matchingPatient.deviceid);
+        deviceType.add(matchingDevice.devicetype);
+      });
+      if(deviceType.size > 1){
+        alert("批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(UEXT或UMAP)的多個裝置。");
+        return;
+      }
+    }
+    console.log("device type set length: ", deviceType);
+    console.log("deviceType.has(1): ", deviceType.has(1));
+    setIsUEXT(deviceType.has(1));
     setOverlayVisible(!isOverlayVisible);
     // console.log("selected patient: ", selectedAlert.length);
   };
@@ -223,13 +241,16 @@ function AlertGanttChart() {
   };
   const [result, setResult] = useState([]);
 
+  const [device, setDevice] = useState(null);
+  const [patient, setPatient] = useState(null);
+
   const fetchPatients = async () => {
     try {
       const [responsePatient, responseDevice, responseAlert] =
         await Promise.all([
           api.get(`/api/7284/db/Patient`),
           api.get(`/api/7284/db/Device`),
-          api.get(`/api/7284/db/Alert`)
+          api.get(`/api/7284/db/Alert`),
         ]);
       // if (!responsePatient.ok) {
       //   throw new Error(`HTTP error! status: ${responsePatient.status}`);
@@ -244,6 +265,9 @@ function AlertGanttChart() {
       const patientData = await responsePatient.data;
       const deviceData = await responseDevice.data;
       const alertData = await responseAlert.data;
+
+      setPatient(patientData);
+      setDevice(deviceData);
       // console.log("patients: ", patientData);
       // console.log("devices: ", deviceData);
       // console.log("alerts: ", alertData);
@@ -264,7 +288,7 @@ function AlertGanttChart() {
           section: patient.section,
           patient_name: patient.patientname,
           deviceId: patient.deviceid,
-          patientid:patient.patientid,
+          patientid: patient.patientid,
           type: matchingDevice.devicetype,
           alert_triggers:
             matchingAlert === undefined
@@ -510,6 +534,7 @@ function AlertGanttChart() {
             <AlertBatchSetting
               callback={handleModifyPatientAlert}
               patientIDs={selectedAlert}
+              isBatchUEXT={isUEXT}
             />
           )}
         </div>
@@ -546,7 +571,9 @@ function AlertGanttChart() {
                         key={item.patientid}
                         className="checkbox-row"
                         onClick={() => handleSelectAlert(item.patientid)}
-                        onMouseEnter={() => setSelectedHoverIndex(item.patientid)}
+                        onMouseEnter={() =>
+                          setSelectedHoverIndex(item.patientid)
+                        }
                         onMouseLeave={() => setSelectedHoverIndex(null)}
                       >
                         <div className="checkbox-row-header">

@@ -297,6 +297,7 @@ function PatientMonitor() {
                 className="disconnect"
                 src="/src/assets/disconnect.png"
                 alt=""
+                style={{alignSelf:"center"}}
               ></img>
             ))}
           <div className="bt-box">

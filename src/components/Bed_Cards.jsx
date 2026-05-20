@@ -17,7 +17,7 @@ export function Bed_disconnect({ hold, macaddress, username, bed, deviceType }) 
       >
         <div className="notification-off" style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
-          <p className="timer" style={{display:"block", color:"white"}}>{deviceType === 1 ? "UEXT" : "UMAP"}</p>
+          <p className="timer" style={{display:"block", color:"#CCCCCC"}}>{deviceType === 1 ? "UEXT" : "UMAP"}</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />

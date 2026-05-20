@@ -256,6 +256,65 @@ function AlertList() {
   */
   }
 
+  {/* FAKE NOTIFICATION */}
+  const fakeNotification = [
+    {
+        "id": "0737c54f-d709-48d5-8ed7-bf3962b3a79f1",
+        "deviceid": "A1",
+        "notifyBody": "{\"Id\":\"0737c54f-d709-48d5-8ed7-bf3962b3a79f1\",\"MAC\":\"A1\",\"UserName\":\"A1\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:13.438294Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":2,\"Topic\":\"uneo/notify/all/risk\"}",
+        "checkStatus": false,
+        "punchTime": "2026-05-19T05:45:13.438294",
+        "createDate": "2026-05-19T05:45:13.444847"
+    },
+    {
+        "id": "91da9389-5f39-4be6-badd-fbecc708b07f2",
+        "deviceid": "A2",
+        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f2\",\"MAC\":\"A2\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:12.4555981Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":1,\"DeviceType\":2,\"Topic\":\"uneo/notify/all/risk\"}",
+        "checkStatus": false,
+        "punchTime": "2026-05-19T05:45:12.455598",
+        "createDate": "2026-05-19T05:45:13.460101"
+    },
+    {
+        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
+        "deviceid": "A3",
+        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A3\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":1,\"DeviceType\":2,\"Topic\":\"uneo/notify/all/turnover\"}",
+        "checkStatus": false,
+        "punchTime": "2026-05-19T05:45:11.455598",
+        "createDate": "2026-05-19T05:45:11.460101"
+    },
+    {
+        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
+        "deviceid": "A4",
+        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A4\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":2,\"Topic\":\"uneo/notify/all/turnover\"}",
+        "checkStatus": false,
+        "punchTime": "2026-05-19T05:45:11.455598",
+        "createDate": "2026-05-19T05:45:11.460101"
+    },
+    {
+        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
+        "deviceid": "A41",
+        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A41\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":2,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":1,\"Topic\":\"uneo/notify/all\"}",
+        "checkStatus": false,
+        "punchTime": "2026-05-19T05:45:11.455598",
+        "createDate": "2026-05-19T05:45:11.460101"
+    },
+    {
+        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
+        "deviceid": "A21",
+        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A21\",\"UserName\":\"leave\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":3,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":1,\"Topic\":\"uneo/notify/all\"}",
+        "checkStatus": false,
+        "punchTime": "2026-05-19T05:45:10.455598",
+        "createDate": "2026-05-19T05:45:10.460101"
+    },
+    {
+        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
+        "deviceid": "A42",
+        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A42\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":2,\"Topic\":\"uneo/notify/all\"}",
+        "checkStatus": false,
+        "punchTime": "2026-05-19T05:45:10.455598",
+        "createDate": "2026-05-19T05:45:10.460101"
+    }
+]
   {
     /* GET NOTFICATION LIST */
   }
@@ -280,6 +339,7 @@ function AlertList() {
 
       // Group notifications by MAC address
       const groupedByMAC = notifications.reduce((acc, notification) => {
+      // const groupedByMAC = fakeNotification.reduce((acc, notification) => {
         const mac = notification.deviceid;
         if (!acc[mac]) {
           acc[mac] = [];

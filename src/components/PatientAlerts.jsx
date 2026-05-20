@@ -14,7 +14,7 @@ import { TimeScale } from "chart.js";
 import DatePicker from "react-datepicker";
 import { tr } from "date-fns/locale";
 
-function PatientAlerts({ patientIDs, isBatch = false }) {
+function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   const { t, i18n } = useTranslation();
 
   const [searchParams] = useSearchParams();
@@ -24,6 +24,8 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   const [currentState, setCurrentState] = useState([]);
 
   const [loading, setLoading] = useState(false); //loading screen
+
+  const [isUEXT, setIsUEXT] = useState(true);
 
   var timeSlotTemplate = [
     {
@@ -90,8 +92,9 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       const response = await api.get(`/api/7284/db/Patient`);
       const data = response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
+      // console.log("patient detail is ", matchingPatient);
+      if(!matchingPatient) return;
       setPatient(matchingPatient);
-      //console.log("patient detail is ", matchingPatient);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -103,7 +106,8 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       const response = await api.get(`/api/7284/db/Device/${mac}`);
       const data = response.data;
       setDevice(data);
-      console.log("device detail is ", data);
+      setIsUEXT(data.devicetype == 1); 
+      // console.log("device detail is ", data);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -611,16 +615,17 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           fetchAlertList(patientIDs[0]);
           fetchBatchAlertList(patientIDs[0]);
           setPatient({ patientid: patientIDs[0] });
+          setIsUEXT(isBatchUEXT);
         }
       } else {
         patientIDs.forEach((id) => fetchBatchAlertList(id));
       }
     }
-    // //console.log("patientAlert: ", patientIDs);
-  }, [patientIDs, isBatch]);
-  useEffect(() => {
-    //console.log("batchlist: ", batchAlertList);
-  }, [batchAlertList]);
+    console.log("patientalert: ", isBatchUEXT);
+  }, [patientIDs, isBatch, isBatchUEXT, isUEXT]);
+  // useEffect(() => {
+  //   //console.log("batchlist: ", batchAlertList);
+  // }, [batchAlertList]);
 
   useEffect(() => {
     if (alertList) {
@@ -1287,7 +1292,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       </div>
       <div
         className="alertSetting"
-        style={{ display: device?.devicetype === 1 ? "" : "none" }}
+        style={{ display: isUEXT ? "" : "none" }}
       >
         <div className="alertHead">
           <h1>{t("PatientAlert.BedExitAlert")}</h1>
@@ -1660,7 +1665,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       {/* 翻身警報 */}
       <div
         className="alertSetting"
-        style={{ borderBottom: turnOverToggleState ? "0px" : "", display: device?.devicetype === 1 ? "none" : "" }}
+        style={{ borderBottom: turnOverToggleState ? "0px" : "", display: isUEXT ? "none" : "" }}
       >
         {/* customize css */}
         <div className="alertHead">
@@ -1781,7 +1786,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
                   className="btn text-only outline"
                   id="reset"
                   onClick={handleResetAlertClicked}
-                  style={{ display: device?.devicetype === 2 ? "none" : "" }}
+                  style={{ display: isUEXT ? "" : "none" }}
                 >
                   <img src="" alt="" className="prefix" />
                   <p className="btn-text">{t("PatientAlert.ResetToDefault")}</p>
