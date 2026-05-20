@@ -180,6 +180,7 @@
     "PhysiologicalAlerts-description2": "Alert when heart rate exceeds the specified range.",
     "Save": "Save",
     "ResetToDefault": "Reset To Default",
+    "TurnOffAlert": "Turn Off Alert",
     "Sec": "sec",
     "HzMax": "Hz (Max.)",
     "HzMin": "Hz (Min.)",

@@ -41,17 +41,20 @@ function AlertGanttChart() {
       return;
     }
     let deviceType = new Set();
-    if (selectedAlert.length > 1) {
-      selectedAlert.forEach((pateintId) => {
-        const matchingPatient = patient.find((p) => p.patientid === pateintId);
-        const matchingDevice = device.find((p) => p.deviceid === matchingPatient.deviceid);
-        deviceType.add(matchingDevice.devicetype);
-      });
-      if(deviceType.size > 1){
-        alert("批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(UEXT或UMAP)的多個裝置。");
-        return;
-      }
+    selectedAlert.forEach((pateintId) => {
+      const matchingPatient = patient.find((p) => p.patientid === pateintId);
+      const matchingDevice = device.find(
+        (p) => p.deviceid === matchingPatient.deviceid,
+      );
+      deviceType.add(matchingDevice.devicetype);
+    });
+    if (deviceType.size > 1) {
+      alert(
+        "批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(UEXT或UMAP)的多個裝置。",
+      );
+      return;
     }
+
     console.log("device type set length: ", deviceType);
     console.log("deviceType.has(1): ", deviceType.has(1));
     setIsUEXT(deviceType.has(1));

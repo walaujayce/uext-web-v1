@@ -93,7 +93,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       const data = response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
       // console.log("patient detail is ", matchingPatient);
-      if(!matchingPatient) return;
+      if (!matchingPatient) return;
       setPatient(matchingPatient);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
@@ -106,7 +106,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       const response = await api.get(`/api/7284/db/Device/${mac}`);
       const data = response.data;
       setDevice(data);
-      setIsUEXT(data.devicetype == 1); 
+      setIsUEXT(data.devicetype == 1);
       // console.log("device detail is ", data);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
@@ -235,9 +235,9 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   const [notificationToggleState, setNotificationToggleState] = useState(false);
   const handleNotificationToggle = () => {
     setNotificationToggleState((prev) => !prev);
-    if(!notificationToggleState){
+    if (!notificationToggleState) {
       setTurnOverToggleState(true);
-    }else{
+    } else {
       setTurnOverToggleState(false);
     }
     // setSelectedNotification(1);
@@ -452,12 +452,12 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   const [turnOverToggleState, setTurnOverToggleState] = useState(false);
   const handleTurnOverToggleState = () => {
     setTurnOverToggleState((prev) => !prev);
-    if(turnOverToggleState){
+    if (turnOverToggleState) {
       setIsTurnOverHoldTimeChecked(false);
       setIsPressureRiskChecked(false);
       setNotificationToggleState(false);
     }
-    if(!turnOverToggleState){
+    if (!turnOverToggleState) {
       setNotificationToggleState(true);
     }
   };
@@ -539,14 +539,17 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       }
       const alertTurnOver = data.jlog.alert_turn_over;
       const alertPressureRisk = data.jlog.alert_pressure_risk;
-      if(data.jlog.alert_triggers.status &&( alertTurnOver.enable_tat || alertPressureRisk.enable_pra)){
+      if (
+        data.jlog.alert_triggers.status &&
+        (alertTurnOver.enable_tat || alertPressureRisk.enable_pra)
+      ) {
         setTurnOverToggleState(true);
         setIsTurnOverHoldTimeChecked(alertTurnOver.enable_tat);
         setIsPressureRiskChecked(alertPressureRisk.enable_pra);
         setTurnOverHoldTimeInput(alertTurnOver.turn_over_time);
         setPressureInput(alertPressureRisk.risk_mmhg);
         setPressureHoldTimeInput(alertPressureRisk.risk_time);
-      } else{        
+      } else {
         setTurnOverToggleState(false);
         setIsTurnOverHoldTimeChecked(false);
         setIsPressureRiskChecked(false);
@@ -560,8 +563,11 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
     // console.log("macaddress: ", macaddress);
     if (macaddress === "") return;
     fetchPatientProfile();
-    fetchDeviceInfo(macaddress);
-  }, [macaddress]);
+    // batch 模式下不要呼叫 fetchDeviceInfo，否則會用 device.devicetype 蓋掉 isBatchUEXT
+    if (!isBatch) {
+      fetchDeviceInfo(macaddress);
+    }
+  }, [macaddress, isBatch]);
 
   useEffect(() => {
     // if(patient.length === 0) return;
@@ -609,20 +615,22 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   };
 
   useEffect(() => {
-    if (Array.isArray(patientIDs)) {
-      if (patientIDs.length === 1) {
-        if (isBatch) {
-          fetchAlertList(patientIDs[0]);
-          fetchBatchAlertList(patientIDs[0]);
-          setPatient({ patientid: patientIDs[0] });
-          setIsUEXT(isBatchUEXT);
-        }
-      } else {
-        patientIDs.forEach((id) => fetchBatchAlertList(id));
+    if (!Array.isArray(patientIDs)) return;
+
+    // batch 模式時，無論 patientIDs 多少個，isUEXT 都要跟 isBatchUEXT 同步
+    setIsUEXT(isBatchUEXT);
+
+    if (patientIDs.length === 1) {
+      if (isBatch) {
+        fetchAlertList(patientIDs[0]);
+        fetchBatchAlertList(patientIDs[0]);
+        setPatient({ patientid: patientIDs[0] });
       }
+    } else {
+      patientIDs.forEach((id) => fetchBatchAlertList(id));
     }
     console.log("patientalert: ", isBatchUEXT);
-  }, [patientIDs, isBatch, isBatchUEXT, isUEXT]);
+  }, [patientIDs, isBatch, isBatchUEXT]);
   // useEffect(() => {
   //   //console.log("batchlist: ", batchAlertList);
   // }, [batchAlertList]);
@@ -768,11 +776,11 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   };
 
   const handleUpdateAlertClicked = () => {
-    if(selectedNotification!==0 && timeSlot.length === 0){
+    if (selectedNotification !== 0 && timeSlot.length === 0) {
       alert("At least one time interval need to be set!");
       return;
     }
-    
+
     if (isBatch) {
       if (
         isNewAlert &&
@@ -814,6 +822,31 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
         console.log("the input requestbody is ", requestBody_PUT);
         PUT_PatientAlert(alertList, patient.patientid);
       }
+    }
+  };
+  const handleTurnOffAllAlertClicked = () => {
+    if (isBatch) {
+      batchAlertList.forEach((alert) => {
+        if (alert.isNewAlert) {
+          return;
+        } else {
+          deletePatientAlert_API(alert.patientid);
+        }
+      });
+    } else {
+      if (isNewAlert) {
+        return;
+      } else {
+        deletePatientAlert_API(patient.patientid);
+      }
+    }
+    window.location.reload();
+  };
+  const deletePatientAlert_API = async (patientId) => {
+    try {
+      const response = await api.delete(`/api/7284/db/Alert/${patientId}`);
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
     }
   };
   {
@@ -1290,10 +1323,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
           </div>
         </div>
       </div>
-      <div
-        className="alertSetting"
-        style={{ display: isUEXT ? "" : "none" }}
-      >
+      <div className="alertSetting" style={{ display: isUEXT ? "" : "none" }}>
         <div className="alertHead">
           <h1>{t("PatientAlert.BedExitAlert")}</h1>
           <div
@@ -1665,7 +1695,10 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       {/* 翻身警報 */}
       <div
         className="alertSetting"
-        style={{ borderBottom: turnOverToggleState ? "0px" : "", display: isUEXT ? "none" : "" }}
+        style={{
+          borderBottom: turnOverToggleState ? "0px" : "",
+          display: isUEXT ? "none" : "",
+        }}
       >
         {/* customize css */}
         <div className="alertHead">
@@ -1740,9 +1773,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
                   <div className="desc-box">
                     <p>{t("PatientAlert.PressureRisk")}</p>
                     <div className="desc">
-                      <p>
-                        {t("PatientAlert.PressureRiskDescription")}
-                      </p>
+                      <p>{t("PatientAlert.PressureRiskDescription")}</p>
                       <div className="desc-input rpm max">
                         <input
                           type="number"
@@ -1790,6 +1821,16 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
                 >
                   <img src="" alt="" className="prefix" />
                   <p className="btn-text">{t("PatientAlert.ResetToDefault")}</p>
+                </div>
+              )}
+              {isBatch && (
+                <div
+                  className="btn text-only outline"
+                  id="reset"
+                  onClick={handleTurnOffAllAlertClicked}
+                >
+                  <img src="" alt="" className="prefix" />
+                  <p className="btn-text">{t("PatientAlert.TurnOffAlert")}</p>
                 </div>
               )}
             </div>

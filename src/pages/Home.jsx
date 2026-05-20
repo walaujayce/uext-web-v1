@@ -418,7 +418,7 @@ function Home() {
         //console.log(data);
         setDevices(data || []);
       }
-      setDevices(fakeList); // TEST
+      // setDevices(fakeList); // TEST
     } catch (error) {
       console.error("Error fetching device data:", error);
     }

@@ -181,6 +181,7 @@
     "PhysiologicalAlerts-description2": "當心率超出設定範圍時，會發送警報。",
     "Save": "儲存",
     "ResetToDefault": "重置設定",
+    "TurnOffAlert": "關閉警報",
     "Sec": "秒",
     "HzMax": "赫茲 (最大)",
     "HzMin": "赫茲 (最小)",
