@@ -58,7 +58,8 @@
     "RightAlert": "Right Side Alert",
     "AttentionAlert": "Attention Alert",
     "TurnOverAlert": "Turn Over Alert",
-    "RiskAlert": "Pressure Alert"
+    "RiskAlert": "Pressure Alert",
+    "LeavingAlert": "About to leave Alert"
   },
   "ConfirmAlertModal": {
     "h1-NotSpecifiedAlert": "Not Specified Alert",

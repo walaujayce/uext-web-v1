@@ -58,7 +58,8 @@
     "RightAlert": "右躺警示通知",
     "AttentionAlert": "注意警示通知",
     "TurnOverAlert": "翻身警示通知",
-    "RiskAlert": "壓力警示通知"
+    "RiskAlert": "壓力警示通知",
+    "LeavingAlert": "即將離床通知"
   },
   "ConfirmAlertModal": {
     "h1-NotSpecifiedAlert": "無法辨認通知",

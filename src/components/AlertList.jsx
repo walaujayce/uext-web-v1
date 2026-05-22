@@ -256,65 +256,74 @@ function AlertList() {
   */
   }
 
-  {/* FAKE NOTIFICATION */}
+  {
+    /* FAKE NOTIFICATION */
+  }
   const fakeNotification = [
     {
-        "id": "0737c54f-d709-48d5-8ed7-bf3962b3a79f1",
-        "deviceid": "A1",
-        "notifyBody": "{\"Id\":\"0737c54f-d709-48d5-8ed7-bf3962b3a79f1\",\"MAC\":\"A1\",\"UserName\":\"A1\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:13.438294Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":2,\"Topic\":\"uneo/notify/all/risk\"}",
-        "checkStatus": false,
-        "punchTime": "2026-05-19T05:45:13.438294",
-        "createDate": "2026-05-19T05:45:13.444847"
+      id: "0737c54f-d709-48d5-8ed7-bf3962b3a79f1",
+      deviceid: "A1",
+      notifyBody:
+        '{"Id":"0737c54f-d709-48d5-8ed7-bf3962b3a79f1","MAC":"A1","UserName":"A1","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:13.438294Z","Status":4,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":2,"Topic":"uneo/notify/all/risk"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:13.438294",
+      createDate: "2026-05-19T05:45:13.444847",
     },
     {
-        "id": "91da9389-5f39-4be6-badd-fbecc708b07f2",
-        "deviceid": "A2",
-        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f2\",\"MAC\":\"A2\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:12.4555981Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":1,\"DeviceType\":2,\"Topic\":\"uneo/notify/all/risk\"}",
-        "checkStatus": false,
-        "punchTime": "2026-05-19T05:45:12.455598",
-        "createDate": "2026-05-19T05:45:13.460101"
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f2",
+      deviceid: "A2",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f2","MAC":"A2","UserName":"A2","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:12.4555981Z","Status":4,"EventName":"Leaving out bed","AlertLevel":1,"DeviceType":2,"Topic":"uneo/notify/all/risk"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:12.455598",
+      createDate: "2026-05-19T05:45:13.460101",
     },
     {
-        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
-        "deviceid": "A3",
-        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A3\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":1,\"DeviceType\":2,\"Topic\":\"uneo/notify/all/turnover\"}",
-        "checkStatus": false,
-        "punchTime": "2026-05-19T05:45:11.455598",
-        "createDate": "2026-05-19T05:45:11.460101"
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A3",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A3","UserName":"A3","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":4,"EventName":"Leaving out bed","AlertLevel":1,"DeviceType":2,"Topic":"uneo/notify/all/turnover"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:11.455598",
+      createDate: "2026-05-19T05:45:11.460101",
     },
     {
-        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
-        "deviceid": "A4",
-        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A4\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":2,\"Topic\":\"uneo/notify/all/turnover\"}",
-        "checkStatus": false,
-        "punchTime": "2026-05-19T05:45:11.455598",
-        "createDate": "2026-05-19T05:45:11.460101"
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A4",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A4","UserName":"A4","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":4,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":2,"Topic":"uneo/notify/all/turnover"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:11.455598",
+      createDate: "2026-05-19T05:45:11.460101",
     },
     {
-        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
-        "deviceid": "A41",
-        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A41\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":2,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":1,\"Topic\":\"uneo/notify/all\"}",
-        "checkStatus": false,
-        "punchTime": "2026-05-19T05:45:11.455598",
-        "createDate": "2026-05-19T05:45:11.460101"
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A41",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A41","UserName":"A41","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":2,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":1,"Topic":"uneo/notify/all"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:11.455598",
+      createDate: "2026-05-19T05:45:11.460101",
     },
     {
-        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
-        "deviceid": "A21",
-        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A21\",\"UserName\":\"leave\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":3,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":1,\"Topic\":\"uneo/notify/all\"}",
-        "checkStatus": false,
-        "punchTime": "2026-05-19T05:45:10.455598",
-        "createDate": "2026-05-19T05:45:10.460101"
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A21",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A21","UserName":"A21","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":3,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":1,"Topic":"uneo/notify/all"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:10.455598",
+      createDate: "2026-05-19T05:45:10.460101",
     },
     {
-        "id": "91da9389-5f39-4be6-badd-fbecc708b07f23",
-        "deviceid": "A42",
-        "notifyBody": "{\"Id\":\"91da9389-5f39-4be6-badd-fbecc708b07f23\",\"MAC\":\"A42\",\"UserName\":\"A2\",\"Bed\":\"UMAP\",\"Floor\":\"--\",\"Section\":\"--\",\"AlertTime\":\"2026-05-19T05:45:11.4555981Z\",\"Status\":4,\"EventName\":\"Leaving out bed\",\"AlertLevel\":2,\"DeviceType\":2,\"Topic\":\"uneo/notify/all\"}",
-        "checkStatus": false,
-        "punchTime": "2026-05-19T05:45:10.455598",
-        "createDate": "2026-05-19T05:45:10.460101"
-    }
-]
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A42",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A42","UserName":"A42","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":4,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":2,"Topic":"uneo/notify/all"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:10.455598",
+      createDate: "2026-05-19T05:45:10.460101",
+    },
+  ];
   {
     /* GET NOTFICATION LIST */
   }
@@ -339,7 +348,7 @@ function AlertList() {
 
       // Group notifications by MAC address
       const groupedByMAC = notifications.reduce((acc, notification) => {
-      // const groupedByMAC = fakeNotification.reduce((acc, notification) => {
+        // const groupedByMAC = fakeNotification.reduce((acc, notification) => {
         const mac = notification.deviceid;
         if (!acc[mac]) {
           acc[mac] = [];
@@ -527,6 +536,23 @@ function AlertList() {
     deleteAlert(mac, notificationId);
   };
 
+  const IsLeaveBed = {
+    0: {
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
+      title: t("AlertList.LeavingAlert"),
+      containerColor: "in-progress",
+    },
+    1: {
+      imgUrl: isDarkMode
+        ? "/src/assets/alert-white.svg"
+        : "/src/assets/alert.svg",
+      containerColor: "",
+      title: t("AlertList.BedExitAlert"),
+    },
+  };
+
   const postureMap = {
     // 0 = Not specified
     // 1 = Resting on the bed
@@ -660,7 +686,10 @@ function AlertList() {
                   return (
                     <div
                       className={`container ${
-                        postureMap[alert.status].containerColor
+                        alert.status === 4
+                          ? IsLeaveBed[1].containerColor
+                          : IsLeaveBed[0].containerColor
+                        // postureMap[alert.status].containerColor
                       } new ${expandAlertList ? "min" : ""}`}
                       key={index}
                       onClick={() => handleAlertVisibleClick(alert.mac)}
@@ -673,16 +702,36 @@ function AlertList() {
                             handleConfirmAlertOverlay(alert.mac, alert.id)
                           }
                           alertDetail={alert}
-                          confirmTitle={postureMap[alert.status].title}
-                          imgUrl={postureMap[alert.status].imgUrl}
+                          confirmTitle={
+                            alert.status === 4
+                              ? IsLeaveBed[1].title
+                              : IsLeaveBed[0].title
+                          }
+                          imgUrl={
+                            alert.status === 4
+                              ? IsLeaveBed[1].imgUrl
+                              : IsLeaveBed[0].imgUrl
+                          }
+                          // confirmTitle={postureMap[alert.status].title}
+                          // imgUrl={postureMap[alert.status].imgUrl}
                         />
                       )}
                       <div className="title">
                         <img
-                          src={postureMap[alert.status].imgUrl}
+                          src={
+                            alert.status === 4
+                              ? IsLeaveBed[1].imgUrl
+                              : IsLeaveBed[0].imgUrl
+                          }
+                          // src={postureMap[alert.status].imgUrl}
                           alt="red rectangular alert icon"
                         />
-                        <h2>{postureMap[alert.status].title}</h2>
+                        <h2>
+                          {alert.status === 4
+                            ? IsLeaveBed[1].title
+                            : IsLeaveBed[0].title}
+                        </h2>
+                        {/* <h2>{postureMap[alert.status].title}</h2> */}
                       </div>
                       <div className="info">
                         <div className="item">
@@ -813,7 +862,10 @@ function AlertList() {
                   return (
                     <div
                       className={`container ${
-                        postureMap[alert.status].containerColor
+                        alert.status === 4
+                          ? IsLeaveBed[1].containerColor
+                          : IsLeaveBed[0].containerColor
+                        // postureMap[alert.status].containerColor
                       } new ${expandAlertList ? "min" : ""}`}
                       key={index}
                       onClick={() => handleAlertVisibleClick(alert.mac)}
@@ -826,13 +878,15 @@ function AlertList() {
                             handleConfirmAlertOverlay(alert.mac, alert.id)
                           }
                           alertDetail={alert}
-                          imgUrl={postureMap[alert.status].imgUrl}
+                          imgUrl={alert.status === 4 ? IsLeaveBed[1].imgUrl : IsLeaveBed[0].imgUrl}
+                          // imgUrl={postureMap[alert.status].imgUrl}
                           confirmTitle={t("AlertList.NotSpecifiedAlert")}
                         />
                       )}
                       <div className="title">
                         <img
-                          src={postureMap[alert.status].imgUrl}
+                          src={alert.status === 4 ? IsLeaveBed[1].imgUrl : IsLeaveBed[0].imgUrl}
+                          // src={postureMap[alert.status].imgUrl}
                           alt="red rectangular alert icon"
                         />
                         <h2>{t("AlertList.NotSpecifiedAlert")}</h2>

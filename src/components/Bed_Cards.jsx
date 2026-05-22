@@ -181,6 +181,9 @@ export function Bed_Online({ hold, macaddress, username, bed, pos, color, device
     case 1:
       imgURL = "/src/assets/icon_homepage_rest.svg";
       break;
+    case 2:
+      imgURL = "/src/assets/icon_homepage_sitting.svg";
+      break;
     case 3:
       imgURL = "/src/assets/icon_homepage_edge.svg";
       break;
@@ -194,7 +197,7 @@ export function Bed_Online({ hold, macaddress, username, bed, pos, color, device
       imgURL = "/src/assets/icon_homepage_right.svg";
       break;
     default:
-      imgURL = "/src/assets/icon_homepage_rest.svg";
+      imgURL = "/src/assets/icon_homepage_exit.svg";
   }
   // COLOR
   let bedColor = "";

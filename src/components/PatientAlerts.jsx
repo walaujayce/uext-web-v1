@@ -522,7 +522,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       // //console.log("Fetched data:", data);
       //console.log("json:", data.jlog.alert_triggers);
       // //console.log("typeof:", typeof data.jlog.alert_triggers);
-      const alertTrigger = data.jlog.alert_triggers.intervals;
+      let alertTrigger = data.jlog.alert_triggers.intervals;
       if (alertTrigger.length > 0) {
         if (
           alertTrigger.length === 1 &&
@@ -534,7 +534,14 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
           setSelectedNotification(0);
         } else {
           setSelectedNotification(1);
-          setTimeSlot(data.jlog.alert_triggers.intervals);
+          // console.log("alertTrigger: ", alertTrigger);
+          alertTrigger.forEach(a =>{
+            a.start.hour = toLocal(a.start.hour);
+            // console.log("start: ", a.start.hour);
+            a.end.hour = toLocal(a.end.hour);
+            // console.log("end: ", a.end.hour);
+          })
+          setTimeSlot(alertTrigger);
         }
       }
       const alertTurnOver = data.jlog.alert_turn_over;
@@ -1094,10 +1101,14 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
     // });
     // return temp;
   }
+  
+  const toLocal = (t) => (t + 8) % 24;
+  
   function sortIntervals(intervals) {
+    const toUTC = (t) => (t - 8 + 24) % 24;
     const toMinutes = (t) => t.hour * 60 + t.minute;
     const toTime = (m) => ({
-      hour: Math.floor(m / 60),
+      hour: toUTC(Math.floor(m / 60)),
       minute: m % 60,
     });
 
