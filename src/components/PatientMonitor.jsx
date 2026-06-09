@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useSearchParams } from "react-router-dom";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
@@ -11,7 +11,7 @@ import Example from "./HeartRateGraph";
 import HeartBeatGraph from "./HeartRateGraph";
 import RespirationChart from "./RespiratoryGraph";
 import api from "../api/apiClient";
-import api8031 from "../api/apiClient8031";
+import api8031, { isSkipped } from "../api/apiClient8031";
 import RiskRegion from "./RiskRegion";
 import RiskArea from "./RiskArea";
 
@@ -47,11 +47,30 @@ function PatientMonitor() {
   ];
   const [riskRegionArray, setRiskRegionArray] = useState([]);
 
+  // /rawdata health-check now lives in apiClient8031.js.
+  // Locally we only need:
+  //   - an AbortController to cancel the in-flight call on unmount
+  //   - the interval id so we can stop polling
+  const abortRef    = useRef(null);
+  const intervalRef = useRef(null);
+  const POLL_INTERVAL_MS = 1000; // poll every 1s
+
   const requestBody_Breathing = {
     deviceID: macaddress,
     count: 60,
   };
   const postData = async () => {
+    // Per-call AbortController so we can cancel the in-flight request on unmount.
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    // Common request options:
+    //   signal          — abort on unmount
+    //   skipIfPending   — apiClient8031 will reject (with isSkipped sentinel) if
+    //                      a previous call to the same URL is still pending
+    //   (timeout & latency logging are handled centrally in apiClient8031)
+    const reqOpts = { signal: controller.signal, skipIfPending: true };
+
     try {
       if (import.meta.env.VITE_MODE === "dev") {
         // const response8031API = await fetch(
@@ -67,6 +86,7 @@ function PatientMonitor() {
         // const data = await response8031API.json();
         const response8031API = await api.get(
           `/api/7284/ss/SocketServer/${macaddress}`,
+          { signal: controller.signal },
         );
 
         const data = response8031API.data;
@@ -108,6 +128,7 @@ function PatientMonitor() {
         // const data = await response8031API.json();
         const response8031API = await api8031.get(
           `/api/8031/rawdata/${macaddress}`,
+          reqOpts,
         );
 
         const data = response8031API.data;
@@ -138,7 +159,14 @@ function PatientMonitor() {
         setRiskRegionArray(data.RecordDatumJlog.risk_regions.filter((region)=>region.risk_level !== 0));
       }
     } catch (error) {
-      console.error("Error making POST request:", error);
+      // apiClient8031 already logs timing / timeout / cancel / generic errors
+      // centrally. Here we only need to silently ignore the "skipped because
+      // previous request still pending" sentinel so it doesn't pollute logs.
+      if (!isSkipped(error)) {
+        // (Optional) re-throw or handle UI fallback here. Default: no-op.
+      }
+    } finally {
+      if (abortRef.current === controller) abortRef.current = null;
     }
   };
 
@@ -160,8 +188,14 @@ function PatientMonitor() {
 
   useEffect(() => {
     postData();
-    const interval = setInterval(postData, 1000);
-    return () => clearInterval(interval);
+    intervalRef.current = setInterval(postData, POLL_INTERVAL_MS);
+    return () => {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+      // Cancel any in-flight /rawdata request so it doesn't try to
+      // setState after the component unmounts.
+      abortRef.current?.abort();
+    };
   }, []);
 
   {
