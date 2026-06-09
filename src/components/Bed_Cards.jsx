@@ -6,7 +6,13 @@ import React, { useEffect, useState, useRef } from "react";
 import AddNewPatient from "./Modals/AddNewPatient";
 import { useTranslation } from "react-i18next";
 
-export function Bed_disconnect({ hold, macaddress, username, bed, deviceType }) {
+export function Bed_disconnect({
+  hold,
+  macaddress,
+  username,
+  bed,
+  deviceType,
+}) {
   return (
     <div className="bed disconnect">
       <div className="b-num">{bed}&nbsp;</div>
@@ -15,9 +21,14 @@ export function Bed_disconnect({ hold, macaddress, username, bed, deviceType }) 
         className="tag"
         style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}
       >
-        <div className="notification-off" style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div
+          className="notification-off"
+          style={{ display: "flex", alignItems: "center", gap: 4 }}
+        >
           <img src="" alt="" />
-          <p className="timer" style={{display:"block", color:"#CCCCCC"}}>{deviceType === 1 ? "UEXT" : "UMAP"}</p>
+          <p className="timer" style={{ display: "block", color: "#CCCCCC" }}>
+            {deviceType === 1 ? "UEXT" : "UMAP"}
+          </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
@@ -174,31 +185,66 @@ export function Bed_alert({ hold, macaddress, username, bed }) {
     </div>
   );
 }
-export function Bed_Online({ hold, macaddress, username, bed, pos, color, deviceType, isAlertSet = false }) {
+export function Bed_Online({
+  hold,
+  macaddress,
+  username,
+  bed,
+  pos,
+  color,
+  deviceType,
+  isAlertSet = false,
+}) {
   // POS
   let imgURL = "";
-  switch (pos || 0) {
-    case 1:
-      imgURL = "/src/assets/icon_homepage_rest.svg";
-      break;
-    case 2:
-      imgURL = "/src/assets/icon_homepage_sitting.svg";
-      break;
-    case 3:
-      imgURL = "/src/assets/icon_homepage_edge.svg";
-      break;
-    case 4:
-      imgURL = "/src/assets/icon_homepage_exit.svg";
-      break;
-    case 6:
-      imgURL = "/src/assets/icon_homepage_left.svg";
-      break;
-    case 7:
-      imgURL = "/src/assets/icon_homepage_right.svg";
-      break;
-    default:
-      imgURL = "/src/assets/icon_homepage_exit.svg";
+  if (deviceType === 1) {
+    switch (pos || 0) {
+      case 1:
+        imgURL = "/src/assets/icon_homepage_rest.svg";
+        break;
+      case 2:
+        imgURL = "/src/assets/icon_homepage_sitting.svg";
+        break;
+      case 3:
+        imgURL = "/src/assets/icon_homepage_edge.svg";
+        break;
+      case 4:
+        imgURL = "/src/assets/icon_homepage_exit.svg";
+        break;
+      case 6:
+        imgURL = "/src/assets/icon_homepage_rest.svg";
+        break;
+      case 7:
+        imgURL = "/src/assets/icon_homepage_rest.svg";
+        break;
+      default:
+        imgURL = "/src/assets/icon_homepage_exit.svg";
+    }
+  } else {
+    switch (pos || 0) {
+      case 1:
+        imgURL = "/src/assets/icon_homepage_rest.svg";
+        break;
+      case 2:
+        imgURL = "/src/assets/icon_homepage_sitting.svg";
+        break;
+      case 3:
+        imgURL = "/src/assets/icon_homepage_edge.svg";
+        break;
+      case 4:
+        imgURL = "/src/assets/icon_homepage_exit.svg";
+        break;
+      case 6:
+        imgURL = "/src/assets/icon_homepage_left.svg";
+        break;
+      case 7:
+        imgURL = "/src/assets/icon_homepage_right.svg";
+        break;
+      default:
+        imgURL = "/src/assets/icon_homepage_exit.svg";
+    }
   }
+
   // COLOR
   let bedColor = "";
   switch (color) {
@@ -222,9 +268,20 @@ export function Bed_Online({ hold, macaddress, username, bed, pos, color, device
         className="tag"
         style={{ flexDirection: "column", alignItems: "flex-start", gap: 4 }}
       >
-        <div className={`${isAlertSet ? "notification-on" : "notification-off"}`} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div
+          className={`${isAlertSet ? "notification-on" : "notification-off"}`}
+          style={{ display: "flex", alignItems: "center", gap: 4 }}
+        >
           <img src="" alt="" />
-          <p className="timer" style={{display: bedColor === "default" ? "block" : "", color:"white"}}>{deviceType === 1 ? "UEXT" : "UMAP"}</p>
+          <p
+            className="timer"
+            style={{
+              display: bedColor === "default" ? "block" : "",
+              color: "white",
+            }}
+          >
+            {deviceType === 1 ? "UEXT" : "UMAP"}
+          </p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />

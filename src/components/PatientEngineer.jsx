@@ -532,7 +532,8 @@ function PatientEngineer() {
               <h3 className="fg1">POS</h3>
               <h3 className="fg1">HOLD</h3>
               <h3 className="fg1">ER</h3>
-              <h3 className="fg1">HR</h3>
+              {/* <h3 className="fg1">HR</h3> */}
+              <h3 className="fg1">Color</h3>
               <h3 className="fg1">RR</h3>
               <h3 className="fg1">WIDTH</h3>
               <h3 className="fg1">HEIGHT</h3>
@@ -544,7 +545,8 @@ function PatientEngineer() {
                 <h3 className="fg1">{rawData.POS}</h3>
                 <h3 className="fg1">{formatSecondsToDHMS(rawData.HOLD)}</h3>
                 <h3 className="fg1">{rawData.ER}</h3>
-                <h3 className="fg1">{heartValue}</h3>
+                {/* <h3 className="fg1">{heartValue}</h3> */}
+                <h3 className="fg1">{rawData.BedColor}</h3>
                 <h3 className="fg1">{respirationValue}</h3>
                 <h3 className="fg1">{rawData.WIDTH}</h3>
                 <h3 className="fg1">{rawData.HEIGHT}</h3>
