@@ -159,6 +159,16 @@
     height: 12px;
     /* content: url(/src/assets/green-dot.svg); */
 }
+.bed .tag .notification-off img{
+    content: url(/src/assets/bell_transparent.svg);
+    width: 12px;
+    height: 12px;
+}
+.bed .tag .notification-on img{
+    content: url(/src/assets/bell.svg);
+    width: 12px;
+    height: 12px;
+}
 
 .bed .tag .timer{
     display: none;
@@ -195,8 +205,8 @@
 }
 
 .bed .icon-tag img{
-    width: 110px;
-    height: 110px;
+    width: 100px;
+    height: 100px;
 }
 
 .bed .dis-tag p{
@@ -231,7 +241,6 @@
     /* background: var(--P-100, #FFF3E5); */
     background: var(--P-100, #FC9F2E);
     /* animation: blink 800ms ease-in-out infinite; 400ms for a full cycle (200ms up, 200ms down) */
-
 }
 .bed.attention:hover{
     /* border: 2px solid var(--900,#FF9D00); */
@@ -249,6 +258,16 @@
     width: 24px;
     height: 24px;
 }
+.bed.attention .tag .notification-off img{
+    content: url(/src/assets/bell_transparent.svg);
+    width: 24px;
+    height: 24px;
+}
+.bed.attention .tag .notification-on img{
+    content: url(/src/assets/bell.svg);
+    width: 24px;
+    height: 24px;
+}
 .bed.attention .tag .timer{
     display: block;
 }
@@ -263,7 +282,7 @@
 }
 .bed.alert:hover{
     /* border: 2px solid var(--900,#FA3F2E); */
-    border: 2px solid var(--900,#851e1e);
+    border: 2px solid var(--900,#b51f1f);
 }
 .bed.alert .b-num,
 .bed.alert .name,
@@ -274,6 +293,16 @@
 .bed.alert .tag img{
     /* content: url(/src/assets/alert-box.svg); */
     content: url(/src/assets/alert-box-white.svg);
+    width: 24px;
+    height: 24px;
+}
+.bed.alert .tag .notification-off img{
+    content: url(/src/assets/bell_transparent.svg);
+    width: 24px;
+    height: 24px;
+}
+.bed.alert .tag .notification-on img{
+    content: url(/src/assets/bell.svg);
     width: 24px;
     height: 24px;
 }
@@ -292,7 +321,7 @@
     color: #CCCCCC;
 }
 .bed.disconnect .tag{
-    display: none;
+    /* display: none; */
 }
 .bed.disconnect .dis-tag{
     display: flex;
@@ -415,7 +444,7 @@ html.dark .bed.vacant:hover{
     }
     .bed{
         padding: 12px;
-        gap: 8px;
+        gap: 24px;
         border: 2px solid transparent;
     }
     .bed .b-num{
@@ -428,12 +457,20 @@ html.dark .bed.vacant:hover{
     }
     .bed .tag{
         gap: 4px;
-        right: 8px;
-        top: 8px;
+        right: 4px;
+        top: 4px;
     }
     .bed .tag img{
         width: 8px;
         height: 8px;
+    }
+    .bed .tag .notification-off img{
+    width: 16px;
+    height: 16px;
+    }
+    .bed .tag .notification-on img{
+        width: 16px;
+        height: 16px;
     }
     .bed .dis-tag{
         padding: 10px;
@@ -447,12 +484,12 @@ html.dark .bed.vacant:hover{
         padding: 10px;
         gap: 8px;
         top: 70%;   
-        left: 75%;  
-        transform: translate(-40%, -50%);
+        left: 85%;  
+        transform: translate(-50%, -50%);
     }
     .bed .icon-tag img{
-        width: 70px;
-        height: 70px;
+        width: 60px;
+        height: 60px;
     }
     .bed.disconnect:hover{
         .dis-tag img{
@@ -473,10 +510,26 @@ html.dark .bed.vacant:hover{
         width: 16px;
         height: 16px;
     }
+    .bed.attention .tag .notification-off img{
+        width: 16px;
+        height: 16px;
+    }
+    .bed.attention .tag .notification-on img{
+        width: 16px;
+        height: 16px;
+    }    
     .bed.alert .tag img{
         width: 16px;
         height: 16px;
     }
+    .bed.alert .tag .notification-off img{
+        width: 16px;
+        height: 16px;
+    }
+    .bed.alert .tag .notification-on img{
+        width: 16px;
+        height: 16px;
+    }    
     .bed .tag .timer{
         font-size: 14px;
         line-height: 100%;
@@ -540,7 +593,7 @@ html.dark .bed.vacant:hover{
     }
     .bed{
         padding: 10px;
-        gap: 6px;
+        gap: 20px;
         border: 2px solid transparent;
     }
     .bed .b-num{
@@ -554,6 +607,14 @@ html.dark .bed.vacant:hover{
         width: 6px;
         height: 6px;
     }
+    .bed .tag .notification-off img{
+        width: 16px;
+        height: 16px;
+    }
+    .bed .tag .notification-on img{
+        width: 16px;
+        height: 16px;
+    }
     .bed .dis-tag{
         padding: 10px;
         gap: 8px;
@@ -561,12 +622,12 @@ html.dark .bed.vacant:hover{
     .bed .icon-tag{
         padding: 10px;
         gap: 8px;
-        top: 70%;   
-        left: 85%;  
+        top: 75%;   
+        left: 86%;  
         transform: translate(-50%, -50%);
     }
     .bed .icon-tag img{
-        height: 40px;
+        height: 35px;
     }
     .bed .add{
         width: 20px;
@@ -576,10 +637,10 @@ html.dark .bed.vacant:hover{
     }
 
     .bed.attention .tag img{
-        display: none;
+        /* display: none; */
     }
     .bed.alert .tag img{
-        display: none;
+        /* display: none; */
     }
     .bed .tag .timer{
         font-size: 12px;

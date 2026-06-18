@@ -6,7 +6,7 @@ import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import { useAuth } from "../JS/AuthContext";
 import { is } from "date-fns/locale";
-import api from "../api/apiClient"
+import api from "../api/apiClient";
 
 function AlertList() {
   const { t, i18n } = useTranslation();
@@ -14,7 +14,7 @@ function AlertList() {
   const [loading, setLoading] = useState(false); //loading screen
 
   const [expandAlertList, setExpandAlertList] = useState(
-    () => JSON.parse(localStorage.getItem("expandAlertList")) || false
+    () => JSON.parse(localStorage.getItem("expandAlertList")) || false,
   );
 
   const {
@@ -26,7 +26,7 @@ function AlertList() {
     playLeaveBedSound,
     stopSound,
     isUserInteracted,
-    isDarkMode
+    isDarkMode,
   } = useAuth(); // Access sound management
 
   const handleAlertListExpandClick = () => {
@@ -57,51 +57,70 @@ function AlertList() {
     const alertsArray = Array.from(map.values());
     localStorage.setItem("alerts", JSON.stringify(alertsArray));
   };
+  const topic_all = "uneo/notify/all";
+  const topic_risk = "uneo/notify/all/risk";
+  const topic_turn_over = "uneo/notify/all/turnover";
+  const topic_devices = "web/notify/devices";
+  const topic_allow_array = [topic_all, topic_risk, topic_turn_over];
 
   useEffect(() => {
     const initializeSignalR = async () => {
       await SignalRService.startConnection();
       SignalRService.onReceiveMessage((topic, message) => {
-        if (topic === "uneo/notify/all") {
+        // console.log("topic: ", topic);
+        // console.log("topic include: ", topic_allow_array.includes(topic));
+        if (topic_allow_array.includes(topic)) {
           const parsedMessage = JSON.parse(message);
-          const status = parsedMessage.Status;
+          console.log(
+            `${topic}: ${parsedMessage.MAC}|${parsedMessage.Status}|${parsedMessage.EventName}`,
+          );
           if (isUserInteracted) {
-            if (status === 3 && !isAboutToLeavePlaying) {
-              playAboutToLeaveSound();
-              //console.log("play about to leave inside alert list ");
-              if (isLeftBedPlaying) {
-                stopSound("leftBed", 0);
-                //console.log("stop all inside alert list ");
+            const status = parsedMessage.Status;
+            if (topic === topic_all) {
+              if (status === 3 && !isAboutToLeavePlaying) {
+                playAboutToLeaveSound();
+                if (isLeftBedPlaying) {
+                  stopSound("leftBed", 0);
+                }
+                if (isAboutToLeave2Playing) {
+                  stopSound("aboutToLeave2", 0);
+                }
+              } else if (status === 4 && !isLeftBedPlaying) {
+                playLeaveBedSound();
+                if (isAboutToLeavePlaying) {
+                  stopSound("aboutToLeave", 0);
+                }
+                if (isAboutToLeave2Playing) {
+                  stopSound("aboutToLeave2", 0);
+                }
+              } else if (status === 2 && !isAboutToLeave2Playing) {
+                playAboutToLeaveSound2();
+                if (isLeftBedPlaying) {
+                  stopSound("leftBed", 0);
+                }
+                if (isAboutToLeavePlaying) {
+                  stopSound("aboutToLeave", 0);
+                }
               }
-              if (isAboutToLeave2Playing) {
-                stopSound("aboutToLeave2", 0);
-                //console.log("stop all inside alert list ");
+            } else if (topic === topic_turn_over || topic === topic_risk) {
+              const alertLevel = parsedMessage.AlertLevel;
+              if (alertLevel === 1 && !isAboutToLeavePlaying) {
+                playAboutToLeaveSound();
+                if (isLeftBedPlaying) {
+                  stopSound("leftBed", 0);
+                }
+                if (isAboutToLeave2Playing) {
+                  stopSound("aboutToLeave2", 0);
+                }
+              } else if (status === 2 && !isLeftBedPlaying) {
+                playLeaveBedSound();
+                if (isAboutToLeavePlaying) {
+                  stopSound("aboutToLeave", 0);
+                }
+                if (isAboutToLeave2Playing) {
+                  stopSound("aboutToLeave2", 0);
+                }
               }
-              
-            } else if (status === 4 && !isLeftBedPlaying) {
-              playLeaveBedSound();
-              //console.log("play left bed inside alert list ");
-              if (isAboutToLeavePlaying) {
-                stopSound("aboutToLeave", 0);
-                //console.log("stop all inside alert list ");
-              }
-              if (isAboutToLeave2Playing) {
-                stopSound("aboutToLeave2", 0);
-                //console.log("stop all inside alert list ");
-              }
-            }
-            else if (status === 2 && !isAboutToLeave2Playing) {
-              playAboutToLeaveSound2();
-              //console.log("play about to leave 2 inside alert list ");
-              if (isLeftBedPlaying) {
-                stopSound("leftBed", 0);
-                //console.log("stop all inside alert list ");
-              }
-              if (isAboutToLeavePlaying) {
-                stopSound("aboutToLeave", 0);
-                //console.log("stop all inside alert list ");
-              }
-              
             }
           }
 
@@ -128,7 +147,6 @@ function AlertList() {
                 bedNo: parsedMessage.Bed || "",
                 floor: parsedMessage.Floor || "",
                 section: parsedMessage.Section || "",
-
                 alertTime:
                   new Date(parsedMessage.AlertTime).toLocaleString([], {
                     year: "numeric",
@@ -141,6 +159,9 @@ function AlertList() {
                   }) || "",
                 status: parsedMessage.Status,
                 eventName: parsedMessage.EventName || "",
+                alertLevel: parsedMessage.AlertLevel,
+                deviceType: parsedMessage.DeviceType,
+                topic: parsedMessage.Topic,
               });
             } else if (!existingAlertMessage) {
               newAlertsMap.set(mac, {
@@ -150,7 +171,6 @@ function AlertList() {
                 bedNo: parsedMessage.Bed || "",
                 floor: parsedMessage.Floor || "",
                 section: parsedMessage.Section || "",
-
                 alertTime:
                   new Date(parsedMessage.AlertTime).toLocaleString([], {
                     year: "numeric",
@@ -163,6 +183,9 @@ function AlertList() {
                   }) || "",
                 status: parsedMessage.Status,
                 eventName: parsedMessage.EventName || "",
+                alertLevel: parsedMessage.AlertLevel,
+                deviceType: parsedMessage.DeviceType,
+                topic: parsedMessage.Topic,
               });
             }
             return newAlertsMap;
@@ -181,7 +204,6 @@ function AlertList() {
                 break; // Exit the loop once the entry is found and deleted
               }
             }
-
             return newAlertsMap;
           });
         }
@@ -235,6 +257,74 @@ function AlertList() {
   }
 
   {
+    /* FAKE NOTIFICATION */
+  }
+  const fakeNotification = [
+    {
+      id: "0737c54f-d709-48d5-8ed7-bf3962b3a79f1",
+      deviceid: "A1",
+      notifyBody:
+        '{"Id":"0737c54f-d709-48d5-8ed7-bf3962b3a79f1","MAC":"A1","UserName":"A1","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:13.438294Z","Status":4,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":2,"Topic":"uneo/notify/all/risk"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:13.438294",
+      createDate: "2026-05-19T05:45:13.444847",
+    },
+    {
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f2",
+      deviceid: "A2",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f2","MAC":"A2","UserName":"A2","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:12.4555981Z","Status":4,"EventName":"Leaving out bed","AlertLevel":1,"DeviceType":2,"Topic":"uneo/notify/all/risk"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:12.455598",
+      createDate: "2026-05-19T05:45:13.460101",
+    },
+    {
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A3",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A3","UserName":"A3","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":4,"EventName":"Leaving out bed","AlertLevel":1,"DeviceType":2,"Topic":"uneo/notify/all/turnover"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:11.455598",
+      createDate: "2026-05-19T05:45:11.460101",
+    },
+    {
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A4",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A4","UserName":"A4","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":4,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":2,"Topic":"uneo/notify/all/turnover"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:11.455598",
+      createDate: "2026-05-19T05:45:11.460101",
+    },
+    {
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A41",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A41","UserName":"A41","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":2,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":1,"Topic":"uneo/notify/all"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:11.455598",
+      createDate: "2026-05-19T05:45:11.460101",
+    },
+    {
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A21",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A21","UserName":"A21","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":3,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":1,"Topic":"uneo/notify/all"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:10.455598",
+      createDate: "2026-05-19T05:45:10.460101",
+    },
+    {
+      id: "91da9389-5f39-4be6-badd-fbecc708b07f23",
+      deviceid: "A42",
+      notifyBody:
+        '{"Id":"91da9389-5f39-4be6-badd-fbecc708b07f23","MAC":"A42","UserName":"A42","Bed":"UMAP","Floor":"--","Section":"--","AlertTime":"2026-05-19T05:45:11.4555981Z","Status":4,"EventName":"Leaving out bed","AlertLevel":2,"DeviceType":2,"Topic":"uneo/notify/all"}',
+      checkStatus: false,
+      punchTime: "2026-05-19T05:45:10.455598",
+      createDate: "2026-05-19T05:45:10.460101",
+    },
+  ];
+  {
     /* GET NOTFICATION LIST */
   }
   const fetchNoticitionList = async () => {
@@ -258,6 +348,7 @@ function AlertList() {
 
       // Group notifications by MAC address
       const groupedByMAC = notifications.reduce((acc, notification) => {
+        // const groupedByMAC = fakeNotification.reduce((acc, notification) => {
         const mac = notification.deviceid;
         if (!acc[mac]) {
           acc[mac] = [];
@@ -269,14 +360,14 @@ function AlertList() {
       // Process each MAC group
       for (const [mac, macNotifications] of Object.entries(groupedByMAC)) {
         const uncheckedNotifications = macNotifications.filter(
-          (notification) => !notification.checkStatus
+          (notification) => !notification.checkStatus,
         );
 
         if (uncheckedNotifications.length > 0) {
           setLoading(true);
           // Sort unchecked notifications by punchTime in descending order
           uncheckedNotifications.sort(
-            (a, b) => new Date(b.punchTime) - new Date(a.punchTime)
+            (a, b) => new Date(b.punchTime) - new Date(a.punchTime),
           );
 
           // Log the latest notification for this MAC
@@ -287,7 +378,7 @@ function AlertList() {
           // );
 
           const parsedMessage = JSON.parse(
-            uncheckedNotifications[0].notifyBody
+            uncheckedNotifications[0].notifyBody,
           );
           //console.log(parsedMessage);
 
@@ -314,7 +405,6 @@ function AlertList() {
                 bedNo: parsedMessage.Bed || "",
                 floor: parsedMessage.Floor || "",
                 section: parsedMessage.Section || "",
-
                 alertTime:
                   new Date(parsedMessage.AlertTime).toLocaleString([], {
                     year: "numeric",
@@ -327,6 +417,9 @@ function AlertList() {
                   }) || "",
                 status: parsedMessage.Status,
                 eventName: parsedMessage.EventName || "",
+                alertLevel: parsedMessage.AlertLevel,
+                deviceType: parsedMessage.DeviceType,
+                topic: parsedMessage.Topic,
               });
             } else if (!existingAlertMessage) {
               newAlertsMap.set(mac, {
@@ -336,7 +429,6 @@ function AlertList() {
                 bedNo: parsedMessage.Bed || "",
                 floor: parsedMessage.Floor || "",
                 section: parsedMessage.Section || "",
-
                 alertTime:
                   new Date(parsedMessage.AlertTime).toLocaleString([], {
                     year: "numeric",
@@ -349,6 +441,9 @@ function AlertList() {
                   }) || "",
                 status: parsedMessage.Status,
                 eventName: parsedMessage.EventName || "",
+                alertLevel: parsedMessage.AlertLevel,
+                deviceType: parsedMessage.DeviceType,
+                topic: parsedMessage.Topic,
               });
             }
             return newAlertsMap;
@@ -393,8 +488,9 @@ function AlertList() {
       // }
       // const data = await response.json();
       const response = await api.put(
-        `/api/7284/db/Notification/${notification_Id}`,requestbody_PUT);
-
+        `/api/7284/db/Notification/${notification_Id}`,
+        requestbody_PUT,
+      );
 
       const data = response.data;
       if (data.code !== 0) {
@@ -440,7 +536,24 @@ function AlertList() {
     deleteAlert(mac, notificationId);
   };
 
-  const statusMap = {
+  const IsLeaveBed = {
+    0: {
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
+      title: t("AlertList.LeavingAlert"),
+      containerColor: "in-progress",
+    },
+    1: {
+      imgUrl: isDarkMode
+        ? "/src/assets/alert-white.svg"
+        : "/src/assets/alert.svg",
+      containerColor: "",
+      title: t("AlertList.BedExitAlert"),
+    },
+  };
+
+  const postureMap = {
     // 0 = Not specified
     // 1 = Resting on the bed
     // 2 = Sitting on the bed
@@ -451,49 +564,102 @@ function AlertList() {
     // 7 = Lying / Curled up on right side
     // 8 = Leaving out bed (bed exit rate)
     0: {
-      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
       title: t("AlertList.NotSpecifiedAlert"),
       containerColor: "in-progress",
     },
     1: {
-      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.RestOnBedAlert"),
     },
     2: {
-      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.SitOnBedAlert"),
     },
     3: {
-      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.SitOnBedEdgeAlert"),
     },
     4: {
-      imgUrl: isDarkMode ? "/src/assets/alert-white.svg" : "/src/assets/alert.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/alert-white.svg"
+        : "/src/assets/alert.svg",
       containerColor: "",
       title: t("AlertList.BedExitAlert"),
     },
     5: {
-      imgUrl: isDarkMode ? "/src/assets/alert-white.svg" : "/src/assets/alert.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/alert-white.svg"
+        : "/src/assets/alert.svg",
       containerColor: "",
       title: t("AlertList.UnusualConditionAlert"),
     },
     6: {
-      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.LeftAlert"),
     },
     7: {
-      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.RightAlert"),
     },
     8: {
-      imgUrl: isDarkMode ? "/src/assets/attention-white.svg" :"/src/assets/attention.svg",
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
       containerColor: "in-progress",
       title: t("AlertList.AttentionAlert"),
+    },
+  };
+
+  const turnOverMap = {
+    1: {
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
+      containerColor: "in-progress",
+      title: t("AlertList.TurnOverAlert"),
+    },
+
+    2: {
+      imgUrl: isDarkMode
+        ? "/src/assets/alert-white.svg"
+        : "/src/assets/alert.svg",
+      containerColor: "",
+      title: t("AlertList.TurnOverAlert"),
+    },
+  };
+  const PressureMap = {
+    1: {
+      imgUrl: isDarkMode
+        ? "/src/assets/attention-white.svg"
+        : "/src/assets/attention.svg",
+      containerColor: "in-progress",
+      title: t("AlertList.RiskAlert"),
+    },
+
+    2: {
+      imgUrl: isDarkMode
+        ? "/src/assets/alert-white.svg"
+        : "/src/assets/alert.svg",
+      containerColor: "",
+      title: t("AlertList.RiskAlert"),
     },
   };
 
@@ -515,64 +681,240 @@ function AlertList() {
             .slice()
             .sort((a, b) => new Date(b.alertTime) - new Date(a.alertTime))
             .map((alert, index) => {
-              return (
-                <div
-                  className={`container ${
-                    statusMap[alert.status].containerColor  
-                  } new ${expandAlertList ? "min" : ""}`}
-                  key={index}
-                  onClick={() => handleAlertVisibleClick(alert.mac)}
-                >
-                  {activeAlert === alert.mac && (
-                    <AlertConfirmOverlay
+              switch (alert.topic) {
+                case topic_all:
+                  return (
+                    <div
+                      className={`container ${
+                        alert.status === 4
+                          ? IsLeaveBed[1].containerColor
+                          : IsLeaveBed[0].containerColor
+                        // postureMap[alert.status].containerColor
+                      } new ${expandAlertList ? "min" : ""}`}
                       key={index}
-                      callback={() => handleAlertVisibleClick(alert.mac)}
-                      confirmAlert_callback={() =>
-                        handleConfirmAlertOverlay(alert.mac, alert.id)
-                      }
-                      alertDetail={alert}
-                    />
-                  )}
-                  <div className="title">
-                    <img
-                      src={
-                        statusMap[alert.status].imgUrl
-                        // alert.status === 3 || alert.status === 8
-                        //   ? "/src/assets/attention.svg"
-                        //   : "/src/assets/alert.svg"
-                      }
-                      alt="red rectangular alert icon"
-                    />
-                    <h2>
-                      {
-                        // alert.status === 3 || alert.status === 8
-                        //   ? t("AlertList.AttentionAlert")
-                        //   : t("AlertList.BedExitAlert")
-                        statusMap[alert.status].title
-                      }
-                    </h2>
-                  </div>
-                  <div className="info">
-                    <div className="item">
-                      <div className="caption">{t("AlertList.Section")}</div>
-                      <p>{`${alert.floor}-${alert.section
-                        .split(" ")
-                        .pop()}`}</p>
+                      onClick={() => handleAlertVisibleClick(alert.mac)}
+                    >
+                      {activeAlert === alert.mac && (
+                        <AlertConfirmOverlay
+                          key={index}
+                          callback={() => handleAlertVisibleClick(alert.mac)}
+                          confirmAlert_callback={() =>
+                            handleConfirmAlertOverlay(alert.mac, alert.id)
+                          }
+                          alertDetail={alert}
+                          confirmTitle={
+                            alert.status === 4
+                              ? IsLeaveBed[1].title
+                              : IsLeaveBed[0].title
+                          }
+                          imgUrl={
+                            alert.status === 4
+                              ? IsLeaveBed[1].imgUrl
+                              : IsLeaveBed[0].imgUrl
+                          }
+                          // confirmTitle={postureMap[alert.status].title}
+                          // imgUrl={postureMap[alert.status].imgUrl}
+                        />
+                      )}
+                      <div className="title">
+                        <img
+                          src={
+                            alert.status === 4
+                              ? IsLeaveBed[1].imgUrl
+                              : IsLeaveBed[0].imgUrl
+                          }
+                          // src={postureMap[alert.status].imgUrl}
+                          alt="red rectangular alert icon"
+                        />
+                        <h2>
+                          {alert.status === 4
+                            ? IsLeaveBed[1].title
+                            : IsLeaveBed[0].title}
+                        </h2>
+                        {/* <h2>{postureMap[alert.status].title}</h2> */}
+                      </div>
+                      <div className="info">
+                        <div className="item">
+                          <div className="caption">
+                            {t("AlertList.Section")}
+                          </div>
+                          <p>{`${alert.floor}-${alert.section
+                            .split(" ")
+                            .pop()}`}</p>
+                        </div>
+                        <div className="item">
+                          <div className="caption">{t("AlertList.Bed")}</div>
+                          <p>{alert.bedNo}</p>
+                        </div>
+                        <div className="item">
+                          <div className="caption">{t("AlertList.Name")}</div>
+                          <p>{alert.userName}</p>
+                        </div>
+                        <div className="time">
+                          {dayjs(alert.alertTime).format("HH:mm")}
+                        </div>
+                      </div>
                     </div>
-                    <div className="item">
-                      <div className="caption">{t("AlertList.Bed")}</div>
-                      <p>{alert.bedNo}</p>
+                  );
+                case topic_turn_over:
+                  return (
+                    <div
+                      className={`container ${
+                        turnOverMap[alert.alertLevel].containerColor
+                      } new ${expandAlertList ? "min" : ""}`}
+                      key={index}
+                      onClick={() => handleAlertVisibleClick(alert.mac)}
+                    >
+                      {activeAlert === alert.mac && (
+                        <AlertConfirmOverlay
+                          key={index}
+                          callback={() => handleAlertVisibleClick(alert.mac)}
+                          confirmAlert_callback={() =>
+                            handleConfirmAlertOverlay(alert.mac, alert.id)
+                          }
+                          alertDetail={alert}
+                          confirmTitle={turnOverMap[alert.alertLevel].title}
+                          imgUrl={turnOverMap[alert.alertLevel].imgUrl}
+                        />
+                      )}
+                      <div className="title">
+                        <img
+                          src={turnOverMap[alert.alertLevel].imgUrl}
+                          alt="red rectangular alert icon"
+                        />
+                        <h2>{turnOverMap[alert.alertLevel].title}</h2>
+                      </div>
+                      <div className="info">
+                        <div className="item">
+                          <div className="caption">
+                            {t("AlertList.Section")}
+                          </div>
+                          <p>{`${alert.floor}-${alert.section
+                            .split(" ")
+                            .pop()}`}</p>
+                        </div>
+                        <div className="item">
+                          <div className="caption">{t("AlertList.Bed")}</div>
+                          <p>{alert.bedNo}</p>
+                        </div>
+                        <div className="item">
+                          <div className="caption">{t("AlertList.Name")}</div>
+                          <p>{alert.userName}</p>
+                        </div>
+                        <div className="time">
+                          {dayjs(alert.alertTime).format("HH:mm")}
+                        </div>
+                      </div>
                     </div>
-                    <div className="item">
-                      <div className="caption">{t("AlertList.Name")}</div>
-                      <p>{alert.userName}</p>
+                  );
+                case topic_risk:
+                  return (
+                    <div
+                      className={`container ${
+                        PressureMap[alert.alertLevel].containerColor
+                      } new ${expandAlertList ? "min" : ""}`}
+                      key={index}
+                      onClick={() => handleAlertVisibleClick(alert.mac)}
+                    >
+                      {activeAlert === alert.mac && (
+                        <AlertConfirmOverlay
+                          key={index}
+                          callback={() => handleAlertVisibleClick(alert.mac)}
+                          confirmAlert_callback={() =>
+                            handleConfirmAlertOverlay(alert.mac, alert.id)
+                          }
+                          alertDetail={alert}
+                          confirmTitle={PressureMap[alert.alertLevel].title}
+                          imgUrl={PressureMap[alert.alertLevel].imgUrl}
+                        />
+                      )}
+                      <div className="title">
+                        <img
+                          src={PressureMap[alert.alertLevel].imgUrl}
+                          alt="red rectangular alert icon"
+                        />
+                        <h2>{PressureMap[alert.alertLevel].title}</h2>
+                      </div>
+                      <div className="info">
+                        <div className="item">
+                          <div className="caption">
+                            {t("AlertList.Section")}
+                          </div>
+                          <p>{`${alert.floor}-${alert.section
+                            .split(" ")
+                            .pop()}`}</p>
+                        </div>
+                        <div className="item">
+                          <div className="caption">{t("AlertList.Bed")}</div>
+                          <p>{alert.bedNo}</p>
+                        </div>
+                        <div className="item">
+                          <div className="caption">{t("AlertList.Name")}</div>
+                          <p>{alert.userName}</p>
+                        </div>
+                        <div className="time">
+                          {dayjs(alert.alertTime).format("HH:mm")}
+                        </div>
+                      </div>
                     </div>
-                    <div className="time">
-                      {dayjs(alert.alertTime).format("HH:mm")}
+                  );
+                default:
+                  return (
+                    <div
+                      className={`container ${
+                        alert.status === 4
+                          ? IsLeaveBed[1].containerColor
+                          : IsLeaveBed[0].containerColor
+                        // postureMap[alert.status].containerColor
+                      } new ${expandAlertList ? "min" : ""}`}
+                      key={index}
+                      onClick={() => handleAlertVisibleClick(alert.mac)}
+                    >
+                      {activeAlert === alert.mac && (
+                        <AlertConfirmOverlay
+                          key={index}
+                          callback={() => handleAlertVisibleClick(alert.mac)}
+                          confirmAlert_callback={() =>
+                            handleConfirmAlertOverlay(alert.mac, alert.id)
+                          }
+                          alertDetail={alert}
+                          imgUrl={alert.status === 4 ? IsLeaveBed[1].imgUrl : IsLeaveBed[0].imgUrl}
+                          // imgUrl={postureMap[alert.status].imgUrl}
+                          confirmTitle={t("AlertList.NotSpecifiedAlert")}
+                        />
+                      )}
+                      <div className="title">
+                        <img
+                          src={alert.status === 4 ? IsLeaveBed[1].imgUrl : IsLeaveBed[0].imgUrl}
+                          // src={postureMap[alert.status].imgUrl}
+                          alt="red rectangular alert icon"
+                        />
+                        <h2>{t("AlertList.NotSpecifiedAlert")}</h2>
+                      </div>
+                      <div className="info">
+                        <div className="item">
+                          <div className="caption">
+                            {t("AlertList.Section")}
+                          </div>
+                          <p>{`${alert.floor}-${alert.section
+                            .split(" ")
+                            .pop()}`}</p>
+                        </div>
+                        <div className="item">
+                          <div className="caption">{t("AlertList.Bed")}</div>
+                          <p>{alert.bedNo}</p>
+                        </div>
+                        <div className="item">
+                          <div className="caption">{t("AlertList.Name")}</div>
+                          <p>{alert.userName}</p>
+                        </div>
+                        <div className="time">
+                          {dayjs(alert.alertTime).format("HH:mm")}
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              );
+                  );
+              }
             })}
         </div>
       </div>

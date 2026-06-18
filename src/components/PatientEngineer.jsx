@@ -12,6 +12,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
+import RiskArea from "./RiskArea";
 
 function PatientEngineer() {
   const { t, i18n } = useTranslation();
@@ -24,8 +25,11 @@ function PatientEngineer() {
   const [duration, setDuration] = useState("");
   const [width, setWidth] = useState(null);
   const [height, setHeight] = useState(null);
+    const [isUMAP, setIsUMAP] = useState(false);
+  
   const [respirationValue, setRespirationValue] = useState(0);
   const [heartValue, setHeartValue] = useState(0);
+  const [riskRegionArray, setRiskRegionArray] = useState([]);
 
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
@@ -61,6 +65,9 @@ function PatientEngineer() {
         setHeight(data.HEIGHT);
         setRespirationValue(data.RR.value);
         setHeartValue(data.HR.value);
+        setIsUMAP(data.HEIGHT * data.WIDTH >= 1575);
+        setRiskRegionArray(data.RecordDatumJlog.RiskRegions.filter((region)=>region.risk_level !== 0));
+
       } else {
         // response = await fetch(`/api/8031/rawdata/${macaddress}`, {
         //   method: "GET",
@@ -88,6 +95,9 @@ function PatientEngineer() {
         setHeight(data.HEIGHT);
         setRespirationValue(data.RR.Value);
         setHeartValue(data.HR.Value);
+        setIsUMAP(data.HEIGHT * data.WIDTH >= 1575);
+        setRiskRegionArray(data.RecordDatumJlog.risk_regions.filter((region)=>region.risk_level !== 0));
+
       }
     } catch (error) {
       console.error("Error making POST request:", error);
@@ -482,13 +492,21 @@ function PatientEngineer() {
           {width &&
             height &&
             (rawdatum ? (
-              <OpenCVComponent
-                deviceid={macaddress}
-                rawdata={rawdatum}
-                width={width}
-                height={height}
-                className="connect"
-              />
+<>
+                <OpenCVComponent
+                  deviceid={macaddress}
+                  rawdata={rawdatum}
+                  width={width}
+                  height={height}
+                />
+                {isUMAP && (
+                  <RiskArea
+                    data={riskRegionArray}
+                    width={width}
+                    height={height}
+                  />
+                )}
+              </>
             ) : (
               <img
                 className="disconnect"
@@ -532,7 +550,8 @@ function PatientEngineer() {
               <h3 className="fg1">POS</h3>
               <h3 className="fg1">HOLD</h3>
               <h3 className="fg1">ER</h3>
-              <h3 className="fg1">HR</h3>
+              {/* <h3 className="fg1">HR</h3> */}
+              <h3 className="fg1">Color</h3>
               <h3 className="fg1">RR</h3>
               <h3 className="fg1">WIDTH</h3>
               <h3 className="fg1">HEIGHT</h3>
@@ -544,7 +563,8 @@ function PatientEngineer() {
                 <h3 className="fg1">{rawData.POS}</h3>
                 <h3 className="fg1">{formatSecondsToDHMS(rawData.HOLD)}</h3>
                 <h3 className="fg1">{rawData.ER}</h3>
-                <h3 className="fg1">{heartValue}</h3>
+                {/* <h3 className="fg1">{heartValue}</h3> */}
+                <h3 className="fg1">{rawData.BedColor}</h3>
                 <h3 className="fg1">{respirationValue}</h3>
                 <h3 className="fg1">{rawData.WIDTH}</h3>
                 <h3 className="fg1">{rawData.HEIGHT}</h3>

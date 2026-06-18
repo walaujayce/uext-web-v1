@@ -25,6 +25,7 @@ import ForgetPassword from "./components/ForgetPassword"
 import ResetPassword from "./components/ResetPassword";
 import DemoSD from "./pages/DemoSD";
 import Alert from "./pages/Alert";
+import PatientRecord from "./components/PatientRecord";
 
 function App() {
   const location = useLocation();
@@ -100,6 +101,14 @@ function App() {
           element={
             <PrivateRoute allowedRoles={["administrator"]}>
               <PatientAnalysis />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="patient-record"
+          element={
+            <PrivateRoute allowedRoles={["all"]}>
+              <PatientRecord/>
             </PrivateRoute>
           }
         />

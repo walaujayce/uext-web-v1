@@ -12,8 +12,9 @@ import SimpleBackdrop from "./LoadingOverlay";
 import api from "../api/apiClient";
 import { TimeScale } from "chart.js";
 import DatePicker from "react-datepicker";
+import { tr } from "date-fns/locale";
 
-function PatientAlerts({ patientIDs, isBatch = false }) {
+function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   const { t, i18n } = useTranslation();
 
   const [searchParams] = useSearchParams();
@@ -23,6 +24,8 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   const [currentState, setCurrentState] = useState([]);
 
   const [loading, setLoading] = useState(false); //loading screen
+
+  const [isUEXT, setIsUEXT] = useState(true);
 
   var timeSlotTemplate = [
     {
@@ -89,8 +92,22 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       const response = await api.get(`/api/7284/db/Patient`);
       const data = response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
+      // console.log("patient detail is ", matchingPatient);
+      if (!matchingPatient) return;
       setPatient(matchingPatient);
-      //console.log("patient detail is ", matchingPatient);
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
+    }
+  };
+
+  const [device, setDevice] = useState(null);
+  const fetchDeviceInfo = async (mac) => {
+    try {
+      const response = await api.get(`/api/7284/db/Device/${mac}`);
+      const data = response.data;
+      setDevice(data);
+      setIsUEXT(data.devicetype == 1);
+      // console.log("device detail is ", data);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -218,6 +235,11 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   const [notificationToggleState, setNotificationToggleState] = useState(false);
   const handleNotificationToggle = () => {
     setNotificationToggleState((prev) => !prev);
+    if (!notificationToggleState) {
+      setTurnOverToggleState(true);
+    } else {
+      setTurnOverToggleState(false);
+    }
     // setSelectedNotification(1);
   };
   // Alert Repeat Time
@@ -423,6 +445,48 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
 
     return parseInt(binaryStr, 2); // Convert binary string back to int32
   };
+
+  {
+    /* 翻身機制 */
+  }
+  const [turnOverToggleState, setTurnOverToggleState] = useState(false);
+  const handleTurnOverToggleState = () => {
+    setTurnOverToggleState((prev) => !prev);
+    if (turnOverToggleState) {
+      setIsTurnOverHoldTimeChecked(false);
+      setIsPressureRiskChecked(false);
+      setNotificationToggleState(false);
+    }
+    if (!turnOverToggleState) {
+      setNotificationToggleState(true);
+    }
+  };
+  // turn over hold time checkbox
+  const [isTurnOverHoldTimeChecked, setIsTurnOverHoldTimeChecked] =
+    useState(false);
+  const handleTurnOverHoldTimeCheckbox = () => {
+    setIsTurnOverHoldTimeChecked((prev) => !prev);
+  };
+  // turn over hold time input
+  const [turnOverHoldTimeInput, setTurnOverHoldTimeInput] = useState(120);
+  const handleTurnOverHoldTimeInputChange = (e) => {
+    setTurnOverHoldTimeInput(e.target.value);
+  };
+  // pressure risk checkbox
+  const [isPressureRiskChecked, setIsPressureRiskChecked] = useState(false);
+  const handlePressureRiskCheckbox = () => {
+    setIsPressureRiskChecked((prev) => !prev);
+  };
+  // pressure input
+  const [pressureInput, setPressureInput] = useState(30);
+  const handlePressureInputChange = (e) => {
+    setPressureInput(e.target.value);
+  };
+  // pressure hold time input
+  const [pressureHoldTimeInput, setPressureHoldTimeInput] = useState(120);
+  const handlePressureHoldTimeInputChange = (e) => {
+    setPressureHoldTimeInput(e.target.value);
+  };
   {
     /* GET API Patient Alert List */
   }
@@ -453,12 +517,12 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
         return;
       }
       //console.log("Fetched data:", data);
-      // //console.log("json:", data.jlog.alert_triggers);
+      console.log("json:", data.jlog);
       setAlertList(data); // Update state with filtered object
       // //console.log("Fetched data:", data);
       //console.log("json:", data.jlog.alert_triggers);
       // //console.log("typeof:", typeof data.jlog.alert_triggers);
-      const alertTrigger = data.jlog.alert_triggers.intervals;
+      let alertTrigger = data.jlog.alert_triggers.intervals;
       if (alertTrigger.length > 0) {
         if (
           alertTrigger.length === 1 &&
@@ -470,8 +534,32 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           setSelectedNotification(0);
         } else {
           setSelectedNotification(1);
-          setTimeSlot(data.jlog.alert_triggers.intervals);
+          // console.log("alertTrigger: ", alertTrigger);
+          alertTrigger.forEach(a =>{
+            a.start.hour = toLocal(a.start.hour);
+            // console.log("start: ", a.start.hour);
+            a.end.hour = toLocal(a.end.hour);
+            // console.log("end: ", a.end.hour);
+          })
+          setTimeSlot(alertTrigger);
         }
+      }
+      const alertTurnOver = data.jlog.alert_turn_over;
+      const alertPressureRisk = data.jlog.alert_pressure_risk;
+      if (
+        data.jlog.alert_triggers.status &&
+        (alertTurnOver.enable_tat || alertPressureRisk.enable_pra)
+      ) {
+        setTurnOverToggleState(true);
+        setIsTurnOverHoldTimeChecked(alertTurnOver.enable_tat);
+        setIsPressureRiskChecked(alertPressureRisk.enable_pra);
+        setTurnOverHoldTimeInput(alertTurnOver.turn_over_time);
+        setPressureInput(alertPressureRisk.risk_mmhg);
+        setPressureHoldTimeInput(alertPressureRisk.risk_time);
+      } else {
+        setTurnOverToggleState(false);
+        setIsTurnOverHoldTimeChecked(false);
+        setIsPressureRiskChecked(false);
       }
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
@@ -479,10 +567,14 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   };
 
   useEffect(() => {
-    //console.log("macaddress: ", macaddress);
+    // console.log("macaddress: ", macaddress);
     if (macaddress === "") return;
     fetchPatientProfile();
-  }, [macaddress]);
+    // batch 模式下不要呼叫 fetchDeviceInfo，否則會用 device.devicetype 蓋掉 isBatchUEXT
+    if (!isBatch) {
+      fetchDeviceInfo(macaddress);
+    }
+  }, [macaddress, isBatch]);
 
   useEffect(() => {
     // if(patient.length === 0) return;
@@ -530,22 +622,25 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
   };
 
   useEffect(() => {
-    if (Array.isArray(patientIDs)) {
-      if (patientIDs.length === 1) {
-        if (isBatch) {
-          fetchAlertList(patientIDs[0]);
-          fetchBatchAlertList(patientIDs[0]);
-          setPatient({ patientid: patientIDs[0] });
-        }
-      } else {
-        patientIDs.forEach((id) => fetchBatchAlertList(id));
+    if (!Array.isArray(patientIDs)) return;
+
+    // batch 模式時，無論 patientIDs 多少個，isUEXT 都要跟 isBatchUEXT 同步
+    setIsUEXT(isBatchUEXT);
+
+    if (patientIDs.length === 1) {
+      if (isBatch) {
+        fetchAlertList(patientIDs[0]);
+        fetchBatchAlertList(patientIDs[0]);
+        setPatient({ patientid: patientIDs[0] });
       }
+    } else {
+      patientIDs.forEach((id) => fetchBatchAlertList(id));
     }
-    // //console.log("patientAlert: ", patientIDs);
-  }, [patientIDs, isBatch]);
-  useEffect(() => {
-    //console.log("batchlist: ", batchAlertList);
-  }, [batchAlertList]);
+    console.log("patientalert: ", isBatchUEXT);
+  }, [patientIDs, isBatch, isBatchUEXT]);
+  // useEffect(() => {
+  //   //console.log("batchlist: ", batchAlertList);
+  // }, [batchAlertList]);
 
   useEffect(() => {
     if (alertList) {
@@ -629,6 +724,15 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
             ? default24HourNotification
             : sortTimeSlotByLabel(timeSlot),
       },
+      alert_turn_over: {
+        enable_tat: isTurnOverHoldTimeChecked,
+        turn_over_time: parseInt(turnOverHoldTimeInput, 10),
+      },
+      alert_pressure_risk: {
+        enable_pra: isPressureRiskChecked,
+        risk_mmhg: parseInt(pressureInput, 10),
+        risk_time: parseInt(pressureHoldTimeInput, 10),
+      },
     },
   };
 
@@ -666,10 +770,24 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
             ? default24HourNotification
             : sortTimeSlotByLabel(timeSlot),
       },
+      alert_turn_over: {
+        enable_tat: isTurnOverHoldTimeChecked,
+        turn_over_time: parseInt(turnOverHoldTimeInput, 10),
+      },
+      alert_pressure_risk: {
+        enable_pra: isPressureRiskChecked,
+        risk_mmhg: parseInt(pressureInput, 10),
+        risk_time: parseInt(pressureHoldTimeInput, 10),
+      },
     },
   };
 
   const handleUpdateAlertClicked = () => {
+    if (selectedNotification !== 0 && timeSlot.length === 0) {
+      alert("At least one time interval need to be set!");
+      return;
+    }
+
     if (isBatch) {
       if (
         isNewAlert &&
@@ -705,12 +823,37 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
         return;
       }
       if (isNewAlert) {
-        //console.log("the input requestbody is ", requestBody_POST);
+        console.log("the input requestbody is ", requestBody_POST);
         POST_PatientAlert();
       } else {
-        //console.log("the input requestbody is ", requestBody_PUT);
+        console.log("the input requestbody is ", requestBody_PUT);
         PUT_PatientAlert(alertList, patient.patientid);
       }
+    }
+  };
+  const handleTurnOffAllAlertClicked = () => {
+    if (isBatch) {
+      batchAlertList.forEach((alert) => {
+        if (alert.isNewAlert) {
+          return;
+        } else {
+          deletePatientAlert_API(alert.patientid);
+        }
+      });
+    } else {
+      if (isNewAlert) {
+        return;
+      } else {
+        deletePatientAlert_API(patient.patientid);
+      }
+    }
+    window.location.reload();
+  };
+  const deletePatientAlert_API = async (patientId) => {
+    try {
+      const response = await api.delete(`/api/7284/db/Alert/${patientId}`);
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
     }
   };
   {
@@ -824,6 +967,15 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
     respiratoryratelowlimit: 12,
     jlog: {
       alert_triggers: { status: true, intervals: default24HourNotification },
+      alert_turn_over: {
+        enable_tat: false,
+        turn_over_time: 120,
+      },
+      alert_pressure_risk: {
+        enable_pra: false,
+        risk_mmhg: 30,
+        risk_time: 120,
+      },
     },
   };
   const PUT_PatientAlert_RESET = async (alertList, patientid) => {
@@ -949,10 +1101,14 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
     // });
     // return temp;
   }
+  
+  const toLocal = (t) => (t + 8) % 24;
+  
   function sortIntervals(intervals) {
+    const toUTC = (t) => (t - 8 + 24) % 24;
     const toMinutes = (t) => t.hour * 60 + t.minute;
     const toTime = (m) => ({
-      hour: Math.floor(m / 60),
+      hour: toUTC(Math.floor(m / 60)),
       minute: m % 60,
     });
 
@@ -1178,7 +1334,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           </div>
         </div>
       </div>
-      <div className="alertSetting">
+      <div className="alertSetting" style={{ display: isUEXT ? "" : "none" }}>
         <div className="alertHead">
           <h1>{t("PatientAlert.BedExitAlert")}</h1>
           <div
@@ -1283,7 +1439,7 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           </div>
         </div>
       </div>
-      <div className="alertSetting">
+      <div className="alertSetting" style={{ display: "none" }}>
         <div className="alertHead">
           <h1>{t("PatientAlert.PostureAlerts")}</h1>
           <div
@@ -1419,7 +1575,10 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
       </div>
       <div
         className="alertSetting"
-        style={{ borderBottom: respHeartBeatToggleState ? "0px" : "" }}
+        style={{
+          borderBottom: respHeartBeatToggleState ? "0px" : "",
+          display: "none",
+        }}
       >
         {/* customize css */}
         <div className="alertHead">
@@ -1544,6 +1703,114 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
           </div>
         </div>
       </div>
+      {/* 翻身警報 */}
+      <div
+        className="alertSetting"
+        style={{
+          borderBottom: turnOverToggleState ? "0px" : "",
+          display: isUEXT ? "none" : "",
+        }}
+      >
+        {/* customize css */}
+        <div className="alertHead">
+          <h1>{t("PatientAlert.TurnOverAlert")}</h1>
+          <div
+            className={`toggle ${turnOverToggleState ? "active" : ""}`}
+            onClick={handleTurnOverToggleState}
+          >
+            <img
+              className="line"
+              src="/src/assets/toggle-line.svg"
+              alt="toggle button"
+            />
+            <img className="dot" src="/src/assets/toggle-dot.svg" alt="" />
+          </div>
+        </div>
+        <div
+          className="alertOpt"
+          style={{ display: turnOverToggleState ? "" : "none" }} // none
+        >
+          <div className="opt-list">
+            <div
+              className={`opt-grid turn-over ${turnOverToggleState ? "active" : ""}`}
+            >
+              <div className="opt-box">
+                <div
+                  className={`opt ${turnOverToggleState ? "on" : ""} ${isTurnOverHoldTimeChecked ? "active" : ""}`}
+                >
+                  <img
+                    src="/src/assets/checkbox-blank-outline.svg"
+                    alt=""
+                    onClick={() => handleTurnOverHoldTimeCheckbox()}
+                  />
+                  <div className="desc-box">
+                    <p>{t("PatientAlert.TurnOverHoldTime")}</p>
+                    <div className="desc">
+                      <p>{t("PatientAlert.TurnOverHoldTimeDescription")}</p>
+                      <div className="desc-input">
+                        <input
+                          type="number"
+                          value={
+                            isTurnOverHoldTimeChecked
+                              ? turnOverHoldTimeInput
+                              : ""
+                          }
+                          onChange={handleTurnOverHoldTimeInputChange}
+                          readOnly={!isTurnOverHoldTimeChecked}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="assistive-text">This is a line of text</div>
+              </div>
+            </div>
+            <div
+              className={`opt-grid turn-over ${
+                turnOverToggleState ? "active" : ""
+              }`}
+            >
+              <div className="opt-box">
+                <div
+                  className={`opt ${turnOverToggleState ? "on" : ""} ${
+                    isPressureRiskChecked ? "active" : ""
+                  } `}
+                >
+                  <img
+                    src="/src/assets/checkbox-blank-outline.svg"
+                    alt=""
+                    onClick={handlePressureRiskCheckbox}
+                  />
+                  <div className="desc-box">
+                    <p>{t("PatientAlert.PressureRisk")}</p>
+                    <div className="desc">
+                      <p>{t("PatientAlert.PressureRiskDescription")}</p>
+                      <div className="desc-input rpm max">
+                        <input
+                          type="number"
+                          value={isPressureRiskChecked ? pressureInput : ""}
+                          onChange={handlePressureInputChange}
+                          readOnly={!isPressureRiskChecked}
+                        />
+                      </div>
+                      <div className="desc-input rpm min">
+                        <input
+                          type="number"
+                          value={
+                            isPressureRiskChecked ? pressureHoldTimeInput : ""
+                          }
+                          onChange={handlePressureHoldTimeInputChange}
+                          readOnly={!isPressureRiskChecked}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
       <div className="alertSetting">
         <div className="alertOpt">
           <p className="alertDesc"></p>
@@ -1561,9 +1828,20 @@ function PatientAlerts({ patientIDs, isBatch = false }) {
                   className="btn text-only outline"
                   id="reset"
                   onClick={handleResetAlertClicked}
+                  style={{ display: isUEXT ? "" : "none" }}
                 >
                   <img src="" alt="" className="prefix" />
                   <p className="btn-text">{t("PatientAlert.ResetToDefault")}</p>
+                </div>
+              )}
+              {isBatch && (
+                <div
+                  className="btn text-only outline"
+                  id="reset"
+                  onClick={handleTurnOffAllAlertClicked}
+                >
+                  <img src="" alt="" className="prefix" />
+                  <p className="btn-text">{t("PatientAlert.TurnOffAlert")}</p>
                 </div>
               )}
             </div>

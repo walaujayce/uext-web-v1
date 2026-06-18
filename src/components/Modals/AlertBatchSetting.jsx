@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
 import PatientAlerts from "../PatientAlerts";
 
-const AlertBatchSetting = ({ callback, patientIDs }) => {
+const AlertBatchSetting = ({ callback, patientIDs, isBatchUEXT }) => {
   const { t, i18n } = useTranslation();
 
   const [loading, setLoading] = useState(false); //loading screen
@@ -20,9 +20,9 @@ const AlertBatchSetting = ({ callback, patientIDs }) => {
     // Prevent event propagation to the overlay
     e.stopPropagation();
   };
-  // useEffect(()=>{
-  //   console.log("alertbatchsetting: ", patientIDs);
-  // }, [patientIDs]);
+  useEffect(()=>{
+    console.log("alertbatchsetting: ", isBatchUEXT);
+  }, [isBatchUEXT]);
 
   return (
     <>
@@ -50,7 +50,7 @@ const AlertBatchSetting = ({ callback, patientIDs }) => {
           </div>
           {/* Device Profile */}
           <div className="" style={{ width: "100%" }}>
-            <PatientAlerts patientIDs={patientIDs} isBatch={true} />
+            <PatientAlerts patientIDs={patientIDs} isBatch={true} isBatchUEXT = {isBatchUEXT}/>
           </div>
         </div>
       </div>
