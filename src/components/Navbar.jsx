@@ -5,6 +5,7 @@ import { useAuth } from "../JS/AuthContext";
 import LogOut_Modal from "./Modals/LogOut";
 import { useTranslation } from "react-i18next";
 import ChangePasswordModal from "./Modals/ChangePassword";
+import MultiServerSetting from "./Modals/MultiServerSetting";
 import dayjs from "dayjs";
 import api from "../api/apiClient"
 
@@ -91,6 +92,17 @@ function Navbar() {
   const handleChangePasswordVisibleClick = (e) => {
     e.preventDefault();
     setChangePasswordOverlayVisible(!isChangePasswordOverlayVisible);
+    setActiveAccount(false);
+  };
+  {
+    /* Handle Multi-Server (IP / Floor / Section) Overlay Visible */
+  }
+  const [isMultiServerOverlayVisible, setMultiServerOverlayVisible] =
+    useState(false);
+
+  const handleMultiServerVisibleClick = (e) => {
+    e.preventDefault();
+    setMultiServerOverlayVisible(!isMultiServerOverlayVisible);
     setActiveAccount(false);
   };
   {
@@ -462,6 +474,25 @@ function Navbar() {
                 />
                 <p>{t("Navbar.ToggleLightDarkMode")}</p>
               </a>
+              {/* Multi-server */}
+              <a
+                href="#"
+                className={`option theme ${isDarkMode ? "dark" : ""}`}
+                id="multiServerSetting"
+                onClick={handleMultiServerVisibleClick}
+              >
+                <img
+                  src={
+                    isDarkMode
+                      ? "/src/assets/link.svg"
+                      : "/src/assets/link-active.svg"
+                  }
+                  className="setting-img"
+                  style={{ width: "34px", padding: "2px", height:"34px"}}
+                  alt=""
+                />
+                <p>樓層設定</p>
+              </a>
               {/* 登出 */}
               <a
                 className={`option logout ${isDarkMode ? "dark" : ""}`}
@@ -490,6 +521,9 @@ function Navbar() {
             callback={handleLogOutVisibleClick}
             logout_callback={logout}
           />
+        )}
+        {isMultiServerOverlayVisible && (
+          <MultiServerSetting callback={handleMultiServerVisibleClick} />
         )}
       </div>
     </>
