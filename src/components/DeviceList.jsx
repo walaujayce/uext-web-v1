@@ -156,18 +156,18 @@ const DeviceList = () => {
 
   const filteredDevices = devices
     .filter((device) => device.used === true) // Only used devices
-    .filter(
-      (device) =>
-        select_floor === "" ||
-        select_floor === "All" ||
-        device.floor === select_floor
-    ) // Filter by floor
-    .filter(
-      (device) =>
-        select_section === "" ||
-        select_section === "All" ||
-        device.section === select_section
-    ) // Filter by section
+    // .filter(
+    //   (device) =>
+    //     select_floor === "" ||
+    //     select_floor === "All" ||
+    //     device.floor === select_floor
+    // ) // Filter by floor
+    // .filter(
+    //   (device) =>
+    //     select_section === "" ||
+    //     select_section === "All" ||
+    //     device.section === select_section
+    // ) // Filter by section
     .filter(
       (device) =>
         select_deviceType === "" ||

@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import api from "../api/apiClient";
+import { setCurrentServerIp } from "../api/serverStore";
 
 // Source of truth: /api/7284/IpAddress/all
 //   每筆 { ip, floor, section }，同一個樓+層只會有 1 個 IP。
@@ -77,6 +78,12 @@ export const FloorSectionProvider = ({ children }) => {
       servers.find((s) => s.floor === floor && s.section === section) ?? null,
     [servers, floor, section],
   );
+
+  // 把目前選取的 IP 同步到 module store，讓 apiClient 的 interceptor 能直接讀取。
+  // 尚未選到時設為 null → apiClient 會維持相對路徑(走 Vite proxy 的 env 預設 IP)。
+  useEffect(() => {
+    setCurrentServerIp(selectedServer?.ip ?? null);
+  }, [selectedServer]);
 
   return (
     <FloorSectionContext.Provider
