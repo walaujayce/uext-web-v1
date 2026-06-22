@@ -609,20 +609,20 @@ function Home() {
                     device.TYPE === select_deviceType
                   );
                 })
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.Floor === select_floor
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.Section === select_section
-                  );
-                })
+                // .filter((device) => {
+                //   return (
+                //     select_floor === "" ||
+                //     select_floor === "All" ||
+                //     device.Floor === select_floor
+                //   );
+                // })
+                // .filter((device) => {
+                //   return (
+                //     select_section === "" ||
+                //     select_section === "All" ||
+                //     device.Section === select_section
+                //   );
+                // })
                 .sort(sortAlphabet)
                 .map((device) => renderDeviceComponent(device))}
             </div>
