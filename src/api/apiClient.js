@@ -29,7 +29,7 @@ const refreshClient = axios.create({
 const applyTargetHeader = (config) => {
   const ip = getCurrentServerIp();
   if (!ip || !config.url) return config; // 尚未選取 IP → 不帶 header，走 proxy 預設
-  if (!/^\/api\/(7284|8031|7285)(\/|$)/.test(config.url)) return config; // 其他路徑不動
+  if (!/^\/api\/(7284)(\/|$)/.test(config.url)) return config; // 其他路徑不動
 
   config.headers = config.headers || {};
   config.headers["X-Target-IP"] = ip;

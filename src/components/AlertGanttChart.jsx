@@ -329,20 +329,20 @@ function AlertGanttChart() {
     setSelectedAlert([]);
     setData(
       result
-        .filter((patient) => {
-          return (
-            select_floor === "" ||
-            select_floor === "All" ||
-            patient.floor === select_floor
-          );
-        })
-        .filter((patient) => {
-          return (
-            select_section === "" ||
-            select_section === "All" ||
-            patient.section === select_section
-          );
-        })
+        // .filter((patient) => {
+        //   return (
+        //     select_floor === "" ||
+        //     select_floor === "All" ||
+        //     patient.floor === select_floor
+        //   );
+        // })
+        // .filter((patient) => {
+        //   return (
+        //     select_section === "" ||
+        //     select_section === "All" ||
+        //     patient.section === select_section
+        //   );
+        // })
         .filter((patient) => {
           return (
             select_device === "" ||

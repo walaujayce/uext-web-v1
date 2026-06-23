@@ -63,7 +63,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
   {
     /* Port Dropdown Menu Logic */
   }
-  const ports = ["7284", "7285", "8031"];
+  const ports = ["7284", "8031"];
   const [isPortActive, setPortActive] = useState(false);
   const handlePortDropDownMenu = () => {
     setPortActive((prev) => !prev);
