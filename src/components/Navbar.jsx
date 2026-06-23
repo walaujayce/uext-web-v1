@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import "/src/CSS/index.css";
 import { useAuth } from "../JS/AuthContext";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import LogOut_Modal from "./Modals/LogOut";
 import { useTranslation } from "react-i18next";
 import ChangePasswordModal from "./Modals/ChangePassword";
@@ -13,6 +14,11 @@ function Navbar() {
   const { t, i18n } = useTranslation();
 
   const { logout, role, toggleThemeMode, isDarkMode } = useAuth();
+
+  // 目前選取樓層/區域對應的後端 IP；錯誤通知(Errorlog)會依此重抓
+  const { selectedServer } = useFloorSection();
+  const targetIp = selectedServer?.ip ?? null;
+  const errorlogRunIdRef = useRef(0); // 只讓最新一次 Errorlog fetch 能寫入
 
   const [currentLang, setCurrentLang] = useState("zh");
 
@@ -201,20 +207,13 @@ function Navbar() {
     }
   };
   useEffect(() => {
+    // 樓層/區域(IP)切換時重新抓該樓層的錯誤通知；runId 確保只有最新一次能寫入
+    const runId = ++errorlogRunIdRef.current;
     async function fetchErrorlog() {
       try {
-        // Get userid based on username in local storage
-        // const response = await fetch("/api/7284/db/Errorlog", {
-        //   method: "GET",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        // });
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-        // const data = await response.json();
-        const response = await api.get("/api/7284/db/Errorlog");
+        const response = await api.get("/api/7284/db/Errorlog", { targetIp });
+        // 期間又切了樓層 → 丟棄這次結果
+        if (runId !== errorlogRunIdRef.current) return;
         const data = response.data;
         //console.log("error log: ", data);
         setErrorlogs(data);
@@ -223,7 +222,7 @@ function Navbar() {
       }
     }
     fetchErrorlog();
-  }, []);
+  }, [targetIp]);
 
   {
     /* PUT API set Checkstatus */
@@ -244,7 +243,7 @@ function Navbar() {
       // if (!response.ok) {
       //   throw new Error(`HTTP error! status: ${response.status}`);
       // }
-      const response = await api.put(`/api/7284/db/Errorlog/${notification_Id}`,requestbody_PUT);
+      const response = await api.put(`/api/7284/db/Errorlog/${notification_Id}`, requestbody_PUT, { targetIp });
       const data = response.data;
       if (data.code !== 0) {
         //console.log(data.message);
