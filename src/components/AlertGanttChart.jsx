@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FloorSectionBar from "./FloorSectionBar";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import { Chart } from "chart.js";
 import "/src/CSS/alert.css";
 import ChartDataLabels from "chartjs-plugin-datalabels";
@@ -12,6 +13,11 @@ import api from "../api/apiClient";
 function AlertGanttChart() {
   const { t, i18n } = useTranslation();
   const { role, isDarkMode } = useAuth();
+
+  // 目前選取樓層/區域對應的後端 IP；變動時重新抓資料
+  const { selectedServer } = useFloorSection();
+  const targetIp = selectedServer?.ip ?? null;
+  const fetchRunIdRef = useRef(0); // 只讓最新一次 fetch 能寫入
 
   const [select_floor, setSelect_Floor] = useState("");
   const handleSelectFloor = (floor) => {
@@ -247,14 +253,16 @@ function AlertGanttChart() {
   const [device, setDevice] = useState(null);
   const [patient, setPatient] = useState(null);
 
-  const fetchPatients = async () => {
+  const fetchPatients = async (ip, runId) => {
     try {
       const [responsePatient, responseDevice, responseAlert] =
         await Promise.all([
-          api.get(`/api/7284/db/Patient`),
-          api.get(`/api/7284/db/Device`),
-          api.get(`/api/7284/db/Alert`),
+          api.get(`/api/7284/db/Patient`, { targetIp: ip }),
+          api.get(`/api/7284/db/Device`, { targetIp: ip }),
+          api.get(`/api/7284/db/Alert`, { targetIp: ip }),
         ]);
+      // 期間又切了樓層(有更新的 fetch) → 丟棄這次結果
+      if (runId !== fetchRunIdRef.current) return;
       // if (!responsePatient.ok) {
       //   throw new Error(`HTTP error! status: ${responsePatient.status}`);
       // }
@@ -309,8 +317,10 @@ function AlertGanttChart() {
     }
   };
   useEffect(() => {
-    fetchPatients();
-  }, []);
+    // 樓層/區域(IP)切換時重新抓資料；runId 確保只有最新一次能寫入
+    const runId = ++fetchRunIdRef.current;
+    fetchPatients(targetIp, runId);
+  }, [targetIp]);
   useEffect(() => {
     // console.log("result: ", result);
   }, [result]);
