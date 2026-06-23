@@ -6,18 +6,32 @@ import {
   useState,
 } from "react";
 import api from "../api/apiClient";
-import { setCurrentServerIp } from "../api/serverStore";
+import { getCurrentServerIp, setCurrentServerIp } from "../api/serverStore";
 
 // Source of truth: /api/7284/IpAddress/all
 //   每筆 { ip, floor, section }，同一個樓+層只會有 1 個 IP。
 const BASE = "/api/7284/IpAddress";
 
+// 把目前選取的 floor / section 存進 localStorage，讓瀏覽器重整後仍記得選取的樓層。
+const STORAGE_KEY = "floorSection";
+const readStoredFloorSection = () => {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return { floor: null, section: null };
+    const v = JSON.parse(raw);
+    return { floor: v.floor ?? null, section: v.section ?? null };
+  } catch {
+    return { floor: null, section: null };
+  }
+};
+
 const FloorSectionContext = createContext();
 
 export const FloorSectionProvider = ({ children }) => {
   const [servers, setServers] = useState([]); // [{ ip, floor, section }]
-  const [floor, setFloor] = useState(null); // 目前選取的樓層
-  const [section, setSection] = useState(null); // 目前選取的區域
+  // 初始值優先讀 localStorage，重整後維持上次選取；沒有才為 null(待載入後帶預設)
+  const [floor, setFloor] = useState(() => readStoredFloorSection().floor);
+  const [section, setSection] = useState(() => readStoredFloorSection().section);
 
   const fetchServers = async () => {
     try {
@@ -30,10 +44,21 @@ export const FloorSectionProvider = ({ children }) => {
       }));
       setServers(list);
 
-      // 預設 = response 陣列的第一筆 floor / section
       if (list.length > 0) {
-        setFloor((prev) => prev ?? list[0].floor);
-        setSection((prev) => prev ?? list[0].section);
+        // 優先沿用上次(localStorage)的選取；若該樓層/區域在最新清單中已不存在，
+        // 才 fallback 到 response 第一筆，避免停在無效的樓層。
+        const stored = readStoredFloorSection();
+        const floorValid = stored.floor && list.some((s) => s.floor === stored.floor);
+        const nextFloor = floorValid ? stored.floor : list[0].floor;
+        const sectionValid =
+          stored.section &&
+          list.some((s) => s.floor === nextFloor && s.section === stored.section);
+        const nextSection = sectionValid
+          ? stored.section
+          : (list.find((s) => s.floor === nextFloor)?.section ?? null);
+
+        setFloor(nextFloor);
+        setSection(nextSection);
       }
     } catch (err) {
       console.error("GET /IpAddress/all failed:", err);
@@ -43,6 +68,11 @@ export const FloorSectionProvider = ({ children }) => {
   useEffect(() => {
     fetchServers();
   }, []);
+
+  // 選取改變時持久化，供下次重整讀回
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({ floor, section }));
+  }, [floor, section]);
 
   // 去重後的樓層選項
   const floors = useMemo(
@@ -79,11 +109,14 @@ export const FloorSectionProvider = ({ children }) => {
     [servers, floor, section],
   );
 
-  // 把目前選取的 IP 同步到 module store，讓 apiClient 的 interceptor 能直接讀取。
-  // 尚未選到時設為 null → apiClient 會維持相對路徑(走 Vite proxy 的 env 預設 IP)。
-  useEffect(() => {
-    setCurrentServerIp(selectedServer?.ip ?? null);
-  }, [selectedServer]);
+  // 在 render 期間就同步更新 module store，讓 apiClient / SignalR 直接讀取。
+  // 用 render-time 寫入(而非 effect)，是為了避免「子元件 effect 先於父元件 effect 執行」
+  // 而讀到舊 IP：父元件 render 一定早於子元件 render/effect，所以這裡寫完最新值後，
+  // 任何子元件後續的 fetch 都會拿到正確 IP。尚未選到時為 null → apiClient 走 proxy 預設。
+  const currentIp = selectedServer?.ip ?? null;
+  if (getCurrentServerIp() !== currentIp) {
+    setCurrentServerIp(currentIp);
+  }
 
   return (
     <FloorSectionContext.Provider

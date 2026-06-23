@@ -5,6 +5,7 @@ import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import { useAuth } from "../JS/AuthContext";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import { is } from "date-fns/locale";
 import api from "../api/apiClient";
 
@@ -28,6 +29,10 @@ function AlertList() {
     isUserInteracted,
     isDarkMode,
   } = useAuth(); // Access sound management
+
+  // 目前選取樓層/區域對應的後端 IP；變動時 SignalR 會重新連線到新的 IP
+  const { selectedServer } = useFloorSection();
+  const signalrTargetIp = selectedServer?.ip ?? null;
 
   const handleAlertListExpandClick = () => {
     setExpandAlertList((prev) => {
@@ -65,7 +70,7 @@ function AlertList() {
 
   useEffect(() => {
     const initializeSignalR = async () => {
-      await SignalRService.startConnection();
+      await SignalRService.startConnection(signalrTargetIp);
       SignalRService.onReceiveMessage((topic, message) => {
         // console.log("topic: ", topic);
         // console.log("topic include: ", topic_allow_array.includes(topic));
@@ -225,6 +230,7 @@ function AlertList() {
     playAboutToLeaveSound2,
     playLeaveBedSound,
     isUserInteracted,
+    signalrTargetIp, // 切換樓層 IP 時重新連線
   ]);
 
   // useEffect(() => {
@@ -327,7 +333,11 @@ function AlertList() {
   {
     /* GET NOTFICATION LIST */
   }
-  const fetchNoticitionList = async () => {
+  // 用來辨識「最新一次 fetch」；切樓層會產生更新的 runId，
+  // 舊的 in-flight 請求 resolve 後會因 runId 不符而被丟棄，避免寫入到已切換的樓層。
+  const fetchRunIdRef = useRef(0);
+
+  const fetchNoticitionList = async (targetIp, runId) => {
     try {
       // const response = await fetch(`/api/7284/db/Notification`, {
       //   method: "GET",
@@ -342,7 +352,14 @@ function AlertList() {
       // }
 
       // const notifications = await response.json();
-      const response = await api.get(`/api/7284/db/Notification`);
+      console.log("[debug]targetip: ", targetIp);
+      console.log("[debug]runid: ", runId);
+      console.log("[debug]fetchRunIdRef: ", fetchRunIdRef);
+      const response = await api.get(`/api/7284/db/Notification`, { targetIp });
+      // 期間又切了樓層(有更新的 fetch) → 丟棄這次結果，不寫入畫面
+      if (runId !== fetchRunIdRef.current) return;
+      
+      console.log("[debug]response:", targetIp);
       const notifications = response.data;
       //console.log("Fetched notifications:", notifications);
 
@@ -359,6 +376,8 @@ function AlertList() {
 
       // Process each MAC group
       for (const [mac, macNotifications] of Object.entries(groupedByMAC)) {
+        // 迴圈中有多個 await，期間若切了樓層就停止，避免把舊樓層資料寫入/標記
+        if (runId !== fetchRunIdRef.current) return;
         const uncheckedNotifications = macNotifications.filter(
           (notification) => !notification.checkStatus,
         );
@@ -449,10 +468,10 @@ function AlertList() {
             return newAlertsMap;
           });
 
-          // Mark all other unchecked notifications as checked
+          // Mark all other unchecked notifications as checked（釘在同一台 IP）
           for (let i = 1; i < uncheckedNotifications.length; i++) {
             const notification = uncheckedNotifications[i];
-            await setNotificationChecked_PUT(notification.id);
+            await setNotificationChecked_PUT(notification.id, targetIp);
           }
         } else {
           //console.log(`No unchecked notifications for MAC: ${mac}`);
@@ -470,7 +489,7 @@ function AlertList() {
   const requestbody_PUT = {
     checkStatus: true,
   };
-  const setNotificationChecked_PUT = async (notification_Id) => {
+  const setNotificationChecked_PUT = async (notification_Id, targetIp) => {
     try {
       // const response = await fetch(
       //   `/api/7284/db/Notification/${notification_Id}`,
@@ -490,6 +509,7 @@ function AlertList() {
       const response = await api.put(
         `/api/7284/db/Notification/${notification_Id}`,
         requestbody_PUT,
+        { targetIp }, // 釘在指定 IP（未傳則 interceptor fallback 到目前選取的 IP）
       );
 
       const data = response.data;
@@ -505,8 +525,14 @@ function AlertList() {
   };
 
   useEffect(() => {
-    fetchNoticitionList();
-  }, []);
+    // 樓層/區域(IP)切換時：先清掉舊樓層殘留的警示，再重新抓目前樓層的通知清單。
+    // 用 runId + 釘住的 targetIp 確保：只有最新一次 fetch 能寫入，且整批請求都打同一台。
+    if(signalrTargetIp == null) return;
+    const runId = ++fetchRunIdRef.current;
+    const targetIp = signalrTargetIp;
+    setAlertsMap(new Map());
+    fetchNoticitionList(targetIp, runId);
+  }, [signalrTargetIp]);
 
   const deleteAlert = (mac, notificationId) => {
     setAlertsMap((prevAlertsMap) => {

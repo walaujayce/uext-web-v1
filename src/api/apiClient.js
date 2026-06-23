@@ -27,9 +27,13 @@ const refreshClient = axios.create({
 // 仍需後端 CORS 或佈署端反向代理。
 // ─────────────────────────────────────────────────────────
 const applyTargetHeader = (config) => {
-  const ip = getCurrentServerIp();
-  if (!ip || !config.url) return config; // 尚未選取 IP → 不帶 header，走 proxy 預設
+  if (!config.url) return config;
   if (!/^\/api\/(7284)(\/|$)/.test(config.url)) return config; // 其他路徑不動
+
+  // 明確指定的 config.targetIp 優先（讓呼叫端把整批請求釘在同一台，
+  // 不受期間使用者切換樓層影響）；否則才讀目前選取的 IP。
+  const ip = config.targetIp ?? getCurrentServerIp();
+  if (!ip) return config; // 尚未選取 → 不帶 header，走 proxy 預設
 
   config.headers = config.headers || {};
   config.headers["X-Target-IP"] = ip;

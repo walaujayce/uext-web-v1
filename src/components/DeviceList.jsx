@@ -459,7 +459,7 @@ const DeviceList = () => {
                     </div>
                   </Link>
                 ) : (
-                  <div className="item">
+                  <div className="item" key={device.macaddress}>
                     <h3 className="fg1">
                       {device.devicetype === 0
                         ? "Not Specified"
