@@ -11,6 +11,7 @@ import SignalRService from "../JS/SignalR";
 import { useTranslation } from "react-i18next";
 import AddNewUser from "../components/Modals/AddNewUser";
 import api from "../api/apiClient";
+import FloorSectionBar from "./FloorSectionBar";
 const AccountList = () => {
   const { t, i18n } = useTranslation();
 
@@ -205,9 +206,10 @@ if (sortDirection) {
       <div className="container">
         <div className="top-bar">
           {/* <FloorSectionBar/> */}
-          <div className="input dropdown floor suffix"></div>
-          <div className="input dropdown section suffix"></div>
-          <div className="input search"></div>
+          <FloorSectionBar
+            enableDeviceType={false}
+          />
+
           <div className="btn" id="addUser" onClick={handleAddUserClick}>
             <img src="" alt="" className="prefix" />
             <p className="btn-text">{t("AccountList.NewUser")}</p>
