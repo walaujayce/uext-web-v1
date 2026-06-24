@@ -7,6 +7,7 @@ import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
 import api from "../../api/apiClient";
+import { useAuth } from "../../JS/AuthContext";
 
 // Backend (IpAddressController.cs) routes:
 //   GET    /api/7284/IpAddress/all
@@ -17,6 +18,8 @@ const BASE = "/api/7284/IpAddress";
 
 const MultiServerSetting = ({ callback }) => {
   const { t } = useTranslation();
+
+  const {isDarkMode} = useAuth();
 
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]); // [{ ip, floor, section }]
@@ -370,7 +373,7 @@ const MultiServerSetting = ({ callback }) => {
           {/* ── Footer ───────────────────────────────────── */}
           <div className="btn-gp" style={{ marginTop: 20 }}>
             <div className="btn text-only outline sec" onClick={callback}>
-              <p className="btn-text sec-text">Close</p>
+              <p className="btn-text sec-text" style={{color:"black"}}>Close</p>
             </div>
           </div>
         </div>

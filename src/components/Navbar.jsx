@@ -474,24 +474,24 @@ function Navbar() {
                 <p>{t("Navbar.ToggleLightDarkMode")}</p>
               </a>
               {/* Multi-server */}
-              <a
+              {["administrator", "engineer"].includes(role) && (<a
                 href="#"
-                className={`option theme ${isDarkMode ? "dark" : ""}`}
+                className={`option floorsection ${isDarkMode ? "dark" : ""}`}
                 id="multiServerSetting"
                 onClick={handleMultiServerVisibleClick}
               >
                 <img
                   src={
                     isDarkMode
-                      ? "/src/assets/link.svg"
-                      : "/src/assets/link-active.svg"
+                      ? "/src/assets/building-grey.svg"
+                      : "/src/assets/building-grey.svg"
                   }
                   className="setting-img"
                   style={{ width: "34px", padding: "2px", height:"34px"}}
                   alt=""
                 />
-                <p>樓層設定</p>
-              </a>
+                <p>{t("Navbar.FloorSection")}</p>
+              </a>)}
               {/* 登出 */}
               <a
                 className={`option logout ${isDarkMode ? "dark" : ""}`}

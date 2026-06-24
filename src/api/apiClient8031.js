@@ -93,10 +93,10 @@ api8031.interceptors.response.use(
             `(slow ${counters.slow}/${counters.total})`,
         );
       } else if (counters.total % OK_LOG_SAMPLE_RATE === 0) {
-        console.log(
-          `[Health] ${key} ok   ${elapsed.toFixed(0)}ms ` +
-            `(slow ${counters.slow}/${counters.total})`,
-        );
+        // console.log(
+        //   `[Health] ${key} ok   ${elapsed.toFixed(0)}ms ` +
+        //     `(slow ${counters.slow}/${counters.total})`,
+        // );
       }
     }
     return response;

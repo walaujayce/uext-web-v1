@@ -468,6 +468,16 @@ header .list{
         content: url(/src/assets/dark-mode-white.svg);
     }
 }
+.setting .option.floorsection:hover{
+    img{
+        content: url(/src/assets/building-black.svg);
+    }
+}
+.setting .option.floorsection.dark:hover{
+    img{
+        content: url(/src/assets/building-white.svg);
+    }
+}
 .setting .option.logout:hover{
     img{
         content: url(/src/assets/logout-black.svg);

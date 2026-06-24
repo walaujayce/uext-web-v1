@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import "/src/CSS/device.css";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { useDropdownLogic, fetchList } from "../JS/GetFloorSectionAPI";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import Navbar from "./Navbar";
 import AlertList from "./AlertList";
 import SignalRService from "../JS/SignalR";
@@ -36,16 +36,14 @@ function DeviceSettings() {
   };
 
   {
-    /* Floor and Section Fetch API */
+    /* Floor 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext，去重後的清單）
+       Section 選項在下方依目前選取的 floor 連動過濾（cascade） */
   }
-  const [floors, setFloor] = useState([]);
-  useEffect(() => {
-    fetchList("/api/7284/Floor", setFloor);
-  }, []);
-  const [sections, setSection] = useState([]);
-  useEffect(() => {
-    fetchList("/api/7284/Section", setSection);
-  }, []);
+  const { servers } = useFloorSection();
+  const floors = useMemo(
+    () => [...new Set(servers.map((s) => s.floor).filter(Boolean))],
+    [servers],
+  );
 
   // Detect change value in input box then enable save buttons
   const [isDeviceInfoChanged, setIsDeviceInfoChanged] = useState(false);
@@ -205,6 +203,19 @@ function DeviceSettings() {
   const deviceBedInput = useSetLoactionInput("");
   const sectionDropdown = useLocationDropdown("");
   const floorDropdown = useLocationDropdown("");
+
+  // Section 選項：只顯示「目前選取 floor」底下的區域（依 floorDropdown 連動）
+  const sections = useMemo(
+    () => [
+      ...new Set(
+        servers
+          .filter((s) => s.floor === floorDropdown.placeholder)
+          .map((s) => s.section)
+          .filter(Boolean),
+      ),
+    ],
+    [servers, floorDropdown.placeholder],
+  );
 
   /// Device Configuration ///
   const PmioInput = useSetConfigInput("");
@@ -928,18 +939,15 @@ const handleDhcpItemClick = (dhcp) => {
                       {sections.map((section) => (
                         <div
                           className="item opt1"
-                          key={section.sectionid}
+                          key={section}
                           onClick={() => {
-                            sectionDropdown.selectItem(section.description);
-                            if (
-                              section.description !==
-                              sectionDropdown.placeholder
-                            ) {
+                            sectionDropdown.selectItem(section);
+                            if (section !== sectionDropdown.placeholder) {
                               setIsDeviceLocationChanged(true);
                             }
                           }}
                         >
-                          {section.description}
+                          {section}
                         </div>
                       ))}
                     </div>
@@ -983,17 +991,22 @@ const handleDhcpItemClick = (dhcp) => {
                       {floors.map((floor) => (
                         <div
                           className="item opt1"
-                          key={floor.floorid}
+                          key={floor}
                           onClick={() => {
-                            floorDropdown.selectItem(floor.description);
-                            if (
-                              floor.description !== floorDropdown.placeholder
-                            ) {
+                            if (floor !== floorDropdown.placeholder) {
                               setIsDeviceLocationChanged(true);
+                            }
+                            floorDropdown.selectItem(floor);
+                            // 切 floor 後，若目前選的 section 不在該 floor 底下就清空，避免存到無效組合
+                            const validSections = servers
+                              .filter((s) => s.floor === floor)
+                              .map((s) => s.section);
+                            if (!validSections.includes(sectionDropdown.placeholder)) {
+                              sectionDropdown.selectItem("");
                             }
                           }}
                         >
-                          {floor.description}
+                          {floor}
                         </div>
                       ))}
                     </div>
