@@ -352,14 +352,14 @@ function AlertList() {
       // }
 
       // const notifications = await response.json();
-      console.log("[debug]targetip: ", targetIp);
-      console.log("[debug]runid: ", runId);
-      console.log("[debug]fetchRunIdRef: ", fetchRunIdRef);
+      // console.log("[debug]targetip: ", targetIp);
+      // console.log("[debug]runid: ", runId);
+      // console.log("[debug]fetchRunIdRef: ", fetchRunIdRef);
       const response = await api.get(`/api/7284/db/Notification`, { targetIp });
       // 期間又切了樓層(有更新的 fetch) → 丟棄這次結果，不寫入畫面
       if (runId !== fetchRunIdRef.current) return;
       
-      console.log("[debug]response:", targetIp);
+      // console.log("[debug]response:", targetIp);
       const notifications = response.data;
       //console.log("Fetched notifications:", notifications);
 

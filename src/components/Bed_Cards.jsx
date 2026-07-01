@@ -30,7 +30,7 @@ export function Bed_disconnect({
             {deviceType === 1 ? "UEXT" : "UMAP"}
           </p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div style={{ display: "none", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
           <p className="timer">{hold}</p>
         </div>
@@ -283,7 +283,7 @@ export function Bed_Online({
             {deviceType === 1 ? "UEXT" : "UMAP"}
           </p>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <div style={{ display: bedColor === "default" ? "none" : "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
           <p className="timer">{hold}</p>
         </div>

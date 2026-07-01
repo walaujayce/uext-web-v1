@@ -50,8 +50,8 @@ function Login() {
         alert(error);
         return;
       }
+      // console.log("Click: ");
       const res = await login_auth(username, password);
-      //console.log("Result: ", res);
 
       // const res = api.get('/api/7284/User');
       // const response = await fetch("/api/7284/User", {
@@ -88,10 +88,11 @@ function Login() {
       }
     } catch (error) {
       if (error.response && error.response.status === 401) {
-        //console.log("Unauthorized: Access denied.");
+        console.log("Unauthorized: Access denied.");
         // Clear local storage or redirect user
       } else {
-        //console.log("An error occurred:", error.message);
+        console.log("An error occurred:", error.message);
+        // alert(error.response.status);
       }
       setError("An error occurred while logging in");
       console.error(error);
@@ -185,7 +186,7 @@ function Login() {
           </div>
           <div className="btn-gp">
             {/* login button */}
-            <button className="btn text-only pri" onClick={handleLogin} type="submit">
+            <button className="btn text-only pri" onClick = {()=>handleLogin} type="submit">
               <p className="btn-text pri-text">{t("Login.Login")}</p>
             </button>
 
