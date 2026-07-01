@@ -74,20 +74,20 @@ function Patient() {
 
   const filteredDevices = patients
     .slice()
-    .filter((patient) => {
-      return (
-        select_floor === "" ||
-        select_floor === "All" ||
-        patient.floor === select_floor
-      );
-    })
-    .filter((patient) => {
-      return (
-        select_section === "" ||
-        select_section === "All" ||
-        patient.section === select_section
-      );
-    })
+    // .filter((patient) => {
+    //   return (
+    //     select_floor === "" ||
+    //     select_floor === "All" ||
+    //     patient.floor === select_floor
+    //   );
+    // })
+    // .filter((patient) => {
+    //   return (
+    //     select_section === "" ||
+    //     select_section === "All" ||
+    //     patient.section === select_section
+    //   );
+    // })
     .sort((a, b) => {
       // const p_idA = a.patientid?.toUpperCase() || "";
       // const p_idB = b.patientid?.toUpperCase() || "";

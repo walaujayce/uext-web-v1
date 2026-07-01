@@ -1,5 +1,6 @@
 import axios from "axios";
 import { getAccessToken, setAccessToken, clearAccessToken } from "../auth/authStore";
+import { getCurrentServerIp } from "./serverStore";
 
 const api = axios.create({
 //   baseURL: import.meta.env.VITE_WEBAPI_URL || "/api",
@@ -10,6 +11,37 @@ const api = axios.create({
 const refreshClient = axios.create({
   withCredentials: true,
 });
+
+// ─────────────────────────────────────────────────────────
+// 依「目前選取樓層/區域的 IP」決定要打哪台後端。
+//
+// 為了避免瀏覽器直接跨來源打 IP 造成 CORS，這裡「不」改 baseURL，
+// 而是維持相對路徑 /api/<port>/*（瀏覽器仍只打 dev server，same-origin），
+// 只把目標 IP 放在 X-Target-IP header。實際轉發由 vite.config.js 的
+// dynamic-api-proxy middleware 在伺服器端完成（含 /api/<port> 的路徑改寫）。
+//
+// 若尚未選取 IP（getCurrentServerIp() 為 null）→ 不帶 header，
+// proxy 會 fallback 到 env 預設 IP（例如登入前抓 /api/7284/IpAddress/all）。
+//
+// 注意：此機制僅在 dev（vite dev server）有效；production build 沒有這個 middleware，
+// 仍需後端 CORS 或佈署端反向代理。
+// ─────────────────────────────────────────────────────────
+const applyTargetHeader = (config) => {
+  if (!config.url) return config;
+  if (!/^\/api\/(7284)(\/|$)/.test(config.url)) return config; // 其他路徑不動
+
+  // 明確指定的 config.targetIp 優先（讓呼叫端把整批請求釘在同一台，
+  // 不受期間使用者切換樓層影響）；否則才讀目前選取的 IP。
+  const ip = config.targetIp ?? getCurrentServerIp();
+  if (!ip) return config; // 尚未選取 → 不帶 header，走 proxy 預設
+
+  config.headers = config.headers || {};
+  config.headers["X-Target-IP"] = ip;
+  return config;
+};
+
+// refresh 請求也帶上目前選取的 IP
+refreshClient.interceptors.request.use(applyTargetHeader);
 
 const REFRESH_URL = "/api/7284/auth/refresh";
 
@@ -39,7 +71,8 @@ api.interceptors.request.use((config) => {
   }
   // console.log("config: ", config);
 
-  return config;
+  // 依目前選取的樓層/區域 IP，帶上 X-Target-IP header 給 dev proxy 用
+  return applyTargetHeader(config);
 });
 
 let isRefreshing = false;

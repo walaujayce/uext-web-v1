@@ -609,20 +609,20 @@ function Home() {
                     device.TYPE === select_deviceType
                   );
                 })
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.Floor === select_floor
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.Section === select_section
-                  );
-                })
+                // .filter((device) => {
+                //   return (
+                //     select_floor === "" ||
+                //     select_floor === "All" ||
+                //     device.Floor === select_floor
+                //   );
+                // })
+                // .filter((device) => {
+                //   return (
+                //     select_section === "" ||
+                //     select_section === "All" ||
+                //     device.Section === select_section
+                //   );
+                // })
                 .sort(sortAlphabet)
                 .map((device) => renderDeviceComponent(device))}
             </div>
@@ -630,20 +630,20 @@ function Home() {
             <div className={`by-status ${sortBy === "bed" ? "" : "active"}`}>
               {/* Alert Status */}
               {devices
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.Floor === select_floor
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.Section === select_section
-                  );
-                })
+                // .filter((device) => {
+                //   return (
+                //     select_floor === "" ||
+                //     select_floor === "All" ||
+                //     device.Floor === select_floor
+                //   );
+                // })
+                // .filter((device) => {
+                //   return (
+                //     select_section === "" ||
+                //     select_section === "All" ||
+                //     device.Section === select_section
+                //   );
+                // })
                 .filter((device) => {
                   return (
                     select_deviceType === "" ||
@@ -662,20 +662,20 @@ function Home() {
                   <div className="title">{t("Home.Alerts")}</div>
                   <div className="status-grid">
                     {devices
-                      .filter((device) => {
-                        return (
-                          select_floor === "" ||
-                          select_floor === "All" ||
-                          device.Floor === select_floor
-                        );
-                      })
-                      .filter((device) => {
-                        return (
-                          select_section === "" ||
-                          select_section === "All" ||
-                          device.Section === select_section
-                        );
-                      })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_floor === "" ||
+                      //     select_floor === "All" ||
+                      //     device.Floor === select_floor
+                      //   );
+                      // })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_section === "" ||
+                      //     select_section === "All" ||
+                      //     device.Section === select_section
+                      //   );
+                      // })
                       .filter((device) => {
                         return (
                           select_deviceType === "" ||
@@ -717,20 +717,20 @@ function Home() {
               )}
               {/* Attention Status */}
               {devices
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.Floor === select_floor
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.Section === select_section
-                  );
-                })
+                // .filter((device) => {
+                //   return (
+                //     select_floor === "" ||
+                //     select_floor === "All" ||
+                //     device.Floor === select_floor
+                //   );
+                // })
+                // .filter((device) => {
+                //   return (
+                //     select_section === "" ||
+                //     select_section === "All" ||
+                //     device.Section === select_section
+                //   );
+                // })
                 .filter((device) => {
                   return (
                     select_deviceType === "" ||
@@ -749,20 +749,20 @@ function Home() {
                   <div className="title">{t("Home.Attention")}</div>
                   <div className="status-grid">
                     {devices
-                      .filter((device) => {
-                        return (
-                          select_floor === "" ||
-                          select_floor === "All" ||
-                          device.Floor === select_floor
-                        );
-                      })
-                      .filter((device) => {
-                        return (
-                          select_section === "" ||
-                          select_section === "All" ||
-                          device.Section === select_section
-                        );
-                      })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_floor === "" ||
+                      //     select_floor === "All" ||
+                      //     device.Floor === select_floor
+                      //   );
+                      // })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_section === "" ||
+                      //     select_section === "All" ||
+                      //     device.Section === select_section
+                      //   );
+                      // })
                       .filter((device) => {
                         return (
                           select_deviceType === "" ||
@@ -806,25 +806,25 @@ function Home() {
               )}
               {/* Default Status */}
               {devices
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.Floor === select_floor
-                  );
-                })
+                // .filter((device) => {
+                //   return (
+                //     select_floor === "" ||
+                //     select_floor === "All" ||
+                //     device.Floor === select_floor
+                //   );
+                // })
+                // .filter((device) => {
+                //   return (
+                //     select_section === "" ||
+                //     select_section === "All" ||
+                //     device.Section === select_section
+                //   );
+                // })
                 .filter((device) => {
                   return (
                     select_deviceType === "" ||
                     select_deviceType === "All" ||
                     device.TYPE === select_deviceType
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.Section === select_section
                   );
                 })
                 .some(
@@ -838,20 +838,20 @@ function Home() {
                   <div className="title">{t("Home.Normal")}</div>
                   <div className="status-grid">
                     {devices
-                      .filter((device) => {
-                        return (
-                          select_floor === "" ||
-                          select_floor === "All" ||
-                          device.Floor === select_floor
-                        );
-                      })
-                      .filter((device) => {
-                        return (
-                          select_section === "" ||
-                          select_section === "All" ||
-                          device.Section === select_section
-                        );
-                      })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_floor === "" ||
+                      //     select_floor === "All" ||
+                      //     device.Floor === select_floor
+                      //   );
+                      // })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_section === "" ||
+                      //     select_section === "All" ||
+                      //     device.Section === select_section
+                      //   );
+                      // })
                       .filter((device) => {
                         return (
                           select_deviceType === "" ||
@@ -895,20 +895,20 @@ function Home() {
               )}
               {/* Vacant Status */}
               {devices
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.Floor === select_floor
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.Section === select_section
-                  );
-                })
+                // .filter((device) => {
+                //   return (
+                //     select_floor === "" ||
+                //     select_floor === "All" ||
+                //     device.Floor === select_floor
+                //   );
+                // })
+                // .filter((device) => {
+                //   return (
+                //     select_section === "" ||
+                //     select_section === "All" ||
+                //     device.Section === select_section
+                //   );
+                // })
                 .filter((device) => {
                   return (
                     select_deviceType === "" ||
@@ -926,20 +926,20 @@ function Home() {
                   <div className="title">{t("Home.Vacant")}</div>
                   <div className="status-grid">
                     {devices
-                      .filter((device) => {
-                        return (
-                          select_floor === "" ||
-                          select_floor === "All" ||
-                          device.Floor === select_floor
-                        );
-                      })
-                      .filter((device) => {
-                        return (
-                          select_section === "" ||
-                          select_section === "All" ||
-                          device.Section === select_section
-                        );
-                      })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_floor === "" ||
+                      //     select_floor === "All" ||
+                      //     device.Floor === select_floor
+                      //   );
+                      // })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_section === "" ||
+                      //     select_section === "All" ||
+                      //     device.Section === select_section
+                      //   );
+                      // })
                       .filter((device) => {
                         return (
                           select_deviceType === "" ||
@@ -968,20 +968,20 @@ function Home() {
               )}
               {/* Disconnected Status */}
               {devices
-                .filter((device) => {
-                  return (
-                    select_floor === "" ||
-                    select_floor === "All" ||
-                    device.Floor === select_floor
-                  );
-                })
-                .filter((device) => {
-                  return (
-                    select_section === "" ||
-                    select_section === "All" ||
-                    device.Section === select_section
-                  );
-                })
+                // .filter((device) => {
+                //   return (
+                //     select_floor === "" ||
+                //     select_floor === "All" ||
+                //     device.Floor === select_floor
+                //   );
+                // })
+                // .filter((device) => {
+                //   return (
+                //     select_section === "" ||
+                //     select_section === "All" ||
+                //     device.Section === select_section
+                //   );
+                // })
                 .filter((device) => {
                   return (
                     select_deviceType === "" ||
@@ -998,20 +998,20 @@ function Home() {
                   <div className="title">{t("Home.Disconnected")}</div>
                   <div className="status-grid">
                     {devices
-                      .filter((device) => {
-                        return (
-                          select_floor === "" ||
-                          select_floor === "All" ||
-                          device.Floor === select_floor
-                        );
-                      })
-                      .filter((device) => {
-                        return (
-                          select_section === "" ||
-                          select_section === "All" ||
-                          device.Section === select_section
-                        );
-                      })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_floor === "" ||
+                      //     select_floor === "All" ||
+                      //     device.Floor === select_floor
+                      //   );
+                      // })
+                      // .filter((device) => {
+                      //   return (
+                      //     select_section === "" ||
+                      //     select_section === "All" ||
+                      //     device.Section === select_section
+                      //   );
+                      // })
                       .filter((device) => {
                         return (
                           select_deviceType === "" ||

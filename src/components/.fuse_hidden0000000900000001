@@ -11,11 +11,9 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
       const { t, i18n } = useTranslation();
 
   {
-    /* Floor / Section data from global context (來源: /api/7284/IpAddress/all)
-       section 會依照目前選取的 floor 連動 (cascade) */
+    /* Floor / Section data from global context (來源: /api/7284/IpAddress/all) */
   }
-  const { floors, sections, floor, section, setSection, chooseFloor } =
-    useFloorSection();
+  const { floors, sections, floor, section } = useFloorSection();
 
   {
     /* Floor Dropdown Menu Logic */
@@ -24,13 +22,11 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
   const handleFloorDropDownMenu = () => {
     setFloorActive((prev) => !prev);
   };
+  const [placeholderFloor, setPlaceholderFloor] = useState(""); // Input placeholder
 
-  const handleFloorItemClick = (nextFloor) => {
-    // 換樓層時，context 會把 section 重設成該樓層的第一個區域
-    const firstSection = chooseFloor(nextFloor);
-    selectFloor?.(nextFloor); // call back to list filter
-    selectSection?.(firstSection);
-    // setFloorActive(false);
+  const handleFloorItemClick = (floor) => {
+    setPlaceholderFloor(floor);
+    selectFloor(floor); //call back to list filter
     handleFloorDropDownMenu;
   };
 
@@ -42,28 +38,34 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
     setSectionActive((prev) => !prev);
   };
 
-  const handleSectionItemClick = (nextSection) => {
-    setSection(nextSection);
-    selectSection?.(nextSection);
-    // setSectionActive(false);
+  const [placeholderSection, setPlaceholderSection] = useState(""); // Input placeholder
+
+  const handleSectionItemClick = (section) => {
+    setPlaceholderSection(section);
+    selectSection(section);
     handleSectionDropDownMenu;
   };
 
   {
-    /* 初次載入時，把 context 預設的第一個 floor / section 通知父層做篩選（只觸發一次） */
+    /* 預設帶入 context 的第一個 floor / section（只在尚未手動選取時） */
   }
-  const didInitDefaults = useRef(false);
   useEffect(() => {
-    if (!didInitDefaults.current && floor && section) {
-      didInitDefaults.current = true;
+    if (floor && !placeholderFloor) {
+      setPlaceholderFloor(floor);
       selectFloor?.(floor);
+    }
+  }, [floor]);
+
+  useEffect(() => {
+    if (section && !placeholderSection) {
+      setPlaceholderSection(section);
       selectSection?.(section);
     }
-  }, [floor, section]);
+  }, [section]);
   {
     /* Port Dropdown Menu Logic */
   }
-  const ports = ["7284", "8031"];
+  const ports = ["7284", "7285", "8031"];
   const [isPortActive, setPortActive] = useState(false);
   const handlePortDropDownMenu = () => {
     setPortActive((prev) => !prev);
@@ -80,7 +82,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
     /* DeviceType Dropdown Menu Logic */
   }
   const deviceTypes = ["All", "Not specified", "UEXT", "UMAP", "UNC", "HaLow-R"];
-
+  
   const deviceTypeToIndex = (deviceType) =>{
     switch(deviceType) {
       case "Not specified":
@@ -97,7 +99,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
         return 'All'; // Not found or not specified
       }
     };
-
+  
   const [isDeviceTypeActive, setDeviceTypeActive] = useState(false);
   const handleDeviceTypeDropDownMenu = () => {
     setDeviceTypeActive((prev) => !prev);
@@ -150,7 +152,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
             (acc, item) => acc + item.offsetHeight,
             0
           );
-
+  
           // Set the height dynamically
           ref.current.style.height = `${totalHeight}px`;
         } else {
@@ -190,7 +192,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
             className="placeholder"
             id="floor"
             name="name"
-            placeholder={floor || ""}
+            placeholder={placeholderFloor}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
@@ -227,7 +229,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
             className="placeholder"
             id="section"
             name="name"
-            placeholder={section || ""}
+            placeholder={placeholderSection}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
@@ -282,7 +284,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
             </div>
           ))}
         </div>
-      </div>)}
+      </div>)}            
       {/* <div
         className="input dropdown port suffix"
         onClick={handlePortDropDownMenu}

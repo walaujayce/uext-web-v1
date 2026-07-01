@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getCurrentServerIp } from "./serverStore";
 
 // ─────────────────────────────────────────────────────────
 // Health-check configuration
@@ -14,13 +15,21 @@ const api8031 = axios.create({
   withCredentials: true,            // refresh token cookie
   timeout: REQUEST_TIMEOUT_MS,      // default timeout for ALL calls on this client
 });
+const applyTargetHeader = (config) => {
+  const ip = getCurrentServerIp();
+  if (!ip || !config.url) return config; // 尚未選取 IP → 不帶 header，走 proxy 預設
+  if (!/^\/api\/(8031)(\/|$)/.test(config.url)) return config; // 其他路徑不動
 
+  config.headers = config.headers || {};
+  config.headers["X-Target-IP"] = ip;
+  return config;
+};
 // ─────────────────────────────────────────────────────────
 // Auth header (unchanged behaviour)
 // ─────────────────────────────────────────────────────────
 api8031.interceptors.request.use((config) => {
   config.headers.Authorization = `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4iLCJSb2xlIjoiQWRtaW4iLCJpc3MiOiJVTW9uaXRvclNlcnZlciIsImF1ZCI6IlVNb25pdG9yQ2xpZW50In0.JpQvxBC197LaFVrBFdjZnF-Lk_nDUd5lWL_OaybpYpc`;
-  return config;
+  return applyTargetHeader(config);
 });
 
 // ─────────────────────────────────────────────────────────
@@ -63,7 +72,7 @@ api8031.interceptors.request.use((config) => {
 
   config.metadata = { startedAt: performance.now(), key };
   inFlight.set(key, config.metadata);
-  return config;
+  return applyTargetHeader(config);
 });
 
 // ─────────────────────────────────────────────────────────
@@ -84,10 +93,10 @@ api8031.interceptors.response.use(
             `(slow ${counters.slow}/${counters.total})`,
         );
       } else if (counters.total % OK_LOG_SAMPLE_RATE === 0) {
-        console.log(
-          `[Health] ${key} ok   ${elapsed.toFixed(0)}ms ` +
-            `(slow ${counters.slow}/${counters.total})`,
-        );
+        // console.log(
+        //   `[Health] ${key} ok   ${elapsed.toFixed(0)}ms ` +
+        //     `(slow ${counters.slow}/${counters.total})`,
+        // );
       }
     }
     return response;

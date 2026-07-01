@@ -111,7 +111,7 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ Play Alert Sound(About to leave Bed)
   const playAboutToLeaveSound = () => {
-    //console.log("play about to leave");
+    console.log("play about to leave");
     if (!isAboutToLeavePlaying) {
       setIsAboutToLeavePlaying(true);
       audioAboutToLeaveRef.current.loop = false;
@@ -125,7 +125,7 @@ export const AuthProvider = ({ children }) => {
   };
   // ✅ Play Alert Sound(About to leave Bed)
   const playAboutToLeaveSound2 = () => {
-    //console.log("play about to leave 2");
+    console.log("play about to leave 2");
     if (!isAboutToLeave2Playing) {
       setIsAboutToLeave2Playing(true);
       audioAboutToLeaveRef2.current.loop = false;
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }) => {
   };
   // ✅ Play Alert Sound(Leave Bed)
   const playLeaveBedSound = () => {
-    //console.log("play left bed");
+    console.log("play left bed");
 
     if (!isLeftBedPlaying) {
       setIsLeftBedPlaying(true);
@@ -159,17 +159,19 @@ export const AuthProvider = ({ children }) => {
           audioAboutToLeaveRef.current.pause();
           audioAboutToLeaveRef.current.currentTime = 0;
           setIsAboutToLeavePlaying(false);
+          console.log("stop leave bed");
           break;
         case "aboutToLeave2":
           audioAboutToLeaveRef2.current.pause();
           audioAboutToLeaveRef2.current.currentTime = 0;
           setIsAboutToLeave2Playing(false);
+          console.log("stop leave bed 2");
           break;
         case "leftBed":
           audioLeftBedRef.current.pause();
           audioLeftBedRef.current.currentTime = 0;
           setIsLeftBedPlaying(false);
-          // //console.log("stop left bed");
+          console.log("stop left bed");
           break;
         default:
           audioLeftBedRef.current.pause();
@@ -181,7 +183,7 @@ export const AuthProvider = ({ children }) => {
           audioAboutToLeaveRef2.current.pause();
           audioAboutToLeaveRef2.current.currentTime = 0;
           setIsAboutToLeave2Playing(false);
-        // //console.log("stop all");
+        console.log("stop all");
       }
     }, timeLapse || 0);
   };
