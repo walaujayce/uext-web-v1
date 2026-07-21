@@ -157,22 +157,23 @@
 .bed .tag img{
     width: 12px;
     height: 12px;
-    /* content: url(/src/assets/green-dot.svg); */
+    content: url(/src/assets/green-dot.svg);
 }
 .bed .tag .notification-off img{
     content: url(/src/assets/bell_transparent.svg);
-    width: 12px;
-    height: 12px;
+    width: 24px;
+    height: 24px;
 }
 .bed .tag .notification-on img{
     content: url(/src/assets/bell.svg);
-    width: 12px;
-    height: 12px;
+    width: 24px;
+    height: 24px;
 }
 
 .bed .tag .timer{
-    display: none;
+    display: flex;
     font-size: 20px;
+    color: #ffffff;
 }
 
 .bed .dis-tag{
@@ -604,8 +605,8 @@ html.dark .bed.vacant:hover{
         font-size: 14px;
     }
     .bed .tag img{
-        width: 6px;
-        height: 6px;
+        width: 10px;
+        height: 10px;
     }
     .bed .tag .notification-off img{
         width: 16px;

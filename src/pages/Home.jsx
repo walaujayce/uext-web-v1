@@ -234,7 +234,7 @@ function Home() {
       Section: "All",
       UserName: "UMAP/LEAVE/RED",
       TYPE: 2,
-      BedColor: 1,
+      BedColor: 0,
       constant: false,
       clickable: false,
     },
