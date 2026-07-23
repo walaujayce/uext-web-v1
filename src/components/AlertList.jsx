@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import SignalRService from "../JS/SignalR";
 import AlertConfirmOverlay from "./Modals/AlertConfirmOverlay";
 import dayjs from "dayjs";
@@ -31,8 +31,32 @@ function AlertList() {
   } = useAuth(); // Access sound management
 
   // 目前選取樓層/區域對應的後端 IP；變動時 SignalR 會重新連線到新的 IP
-  const { selectedServer } = useFloorSection();
+  const { selectedServer, servers, floor, section } = useFloorSection();
   const signalrTargetIp = selectedServer?.ip ?? null;
+
+  // 選 "All" 樓層或 "All" 區域時 → 涵蓋多台後端
+  const isAllMode = floor === "All" || section === "All";
+
+  // 要涵蓋的後端 IP 清單（單一模式=1 台；All 模式=多台）。與 Home 的規則一致：
+  //   floor === "All"   → 所有 server
+  //   section === "All" → 該樓層底下所有 server
+  //   其他              → 目前選取的單一 server
+  const alertTargetIps = useMemo(() => {
+    if (floor === "All") {
+      return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
+    }
+    if (section === "All") {
+      return [
+        ...new Set(
+          servers
+            .filter((s) => s.floor === floor)
+            .map((s) => s.ip)
+            .filter(Boolean),
+        ),
+      ];
+    }
+    return signalrTargetIp ? [signalrTargetIp] : [];
+  }, [servers, floor, section, signalrTargetIp]);
 
   const handleAlertListExpandClick = () => {
     setExpandAlertList((prev) => {
@@ -68,10 +92,9 @@ function AlertList() {
   const topic_devices = "web/notify/devices";
   const topic_allow_array = [topic_all, topic_risk, topic_turn_over];
 
-  useEffect(() => {
-    const initializeSignalR = async () => {
-      await SignalRService.startConnection(signalrTargetIp);
-      SignalRService.onReceiveMessage((topic, message) => {
+  // SignalR 收到訊息的處理邏輯，抽成共用 handler 給「單一連線」與「多台連線」共用
+  const handleSignalRMessage = useCallback(
+    (topic, message) => {
         // console.log("topic: ", topic);
         // console.log("topic include: ", topic_allow_array.includes(topic));
         if (topic_allow_array.includes(topic)) {
@@ -212,7 +235,24 @@ function AlertList() {
             return newAlertsMap;
           });
         }
-      });
+    },
+    [
+      isAboutToLeavePlaying,
+      isAboutToLeave2Playing,
+      isLeftBedPlaying,
+      playAboutToLeaveSound,
+      playAboutToLeaveSound2,
+      playLeaveBedSound,
+      isUserInteracted,
+    ],
+  );
+
+  // 單一 server 模式：連一條 primary 連線（維持原本行為，sendMessage 也靠這條）
+  useEffect(() => {
+    if (isAllMode) return;
+    const initializeSignalR = async () => {
+      await SignalRService.startConnection(signalrTargetIp);
+      SignalRService.onReceiveMessage(handleSignalRMessage);
     };
     initializeSignalR();
 
@@ -222,16 +262,21 @@ function AlertList() {
         SignalRService.connection.stop();
       }
     };
-  }, [
-    isAboutToLeavePlaying,
-    isAboutToLeave2Playing,
-    isLeftBedPlaying,
-    playAboutToLeaveSound,
-    playAboutToLeaveSound2,
-    playLeaveBedSound,
-    isUserInteracted,
-    signalrTargetIp, // 切換樓層 IP 時重新連線
-  ]);
+  }, [isAllMode, signalrTargetIp, handleSignalRMessage]);
+
+  // All 模式：對每台後端各連一條，realtime 訊息全部匯入同一份 alertsMap
+  useEffect(() => {
+    if (!isAllMode) return;
+    const initializeMulti = async () => {
+      await SignalRService.startConnections(alertTargetIps);
+      SignalRService.onReceiveMessageMulti(handleSignalRMessage);
+    };
+    initializeMulti();
+
+    return () => {
+      SignalRService.stopConnections();
+    };
+  }, [isAllMode, alertTargetIps, handleSignalRMessage]);
 
   // useEffect(() => {
   //   const storedAlerts = localStorage.getItem("alerts");
@@ -525,14 +570,14 @@ function AlertList() {
   };
 
   useEffect(() => {
-    // 樓層/區域(IP)切換時：先清掉舊樓層殘留的警示，再重新抓目前樓層的通知清單。
-    // 用 runId + 釘住的 targetIp 確保：只有最新一次 fetch 能寫入，且整批請求都打同一台。
-    if(signalrTargetIp == null) return;
+    // 樓層/區域(IP)切換時：先清掉舊樓層殘留的警示，再重新抓目前涵蓋範圍的通知清單。
+    // 用 runId + 釘住的 targetIp 確保：只有最新一次 fetch 能寫入，且各請求都釘在對應那台。
+    // All 模式會逐台抓取後匯入同一份 alertsMap。
+    if (!alertTargetIps.length) return;
     const runId = ++fetchRunIdRef.current;
-    const targetIp = signalrTargetIp;
     setAlertsMap(new Map());
-    fetchNoticitionList(targetIp, runId);
-  }, [signalrTargetIp]);
+    alertTargetIps.forEach((targetIp) => fetchNoticitionList(targetIp, runId));
+  }, [alertTargetIps]);
 
   const deleteAlert = (mac, notificationId) => {
     setAlertsMap((prevAlertsMap) => {

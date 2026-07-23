@@ -30,6 +30,8 @@ const buildHubUrl = (ipArg) => {
 class SignalRService {
   constructor() {
     this.connection = null;
+    // 「All」模式：每台後端各一條連線，key = ip
+    this.connections = new Map();
   }
 
   async startConnection(ipOverride) {
@@ -69,6 +71,44 @@ class SignalRService {
     } else {
       console.error("SignalR connection not established.");
     }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // 多台連線（All 模式）：同時連到多個後端 IP，各自收 realtime 訊息。
+  // 不動用 this.connection（primary），避免影響 sendMessage / 其他頁面。
+  // ─────────────────────────────────────────────────────────
+  async startConnections(ips) {
+    await this.stopConnections();
+    const uniqueIps = [...new Set((ips || []).filter(Boolean))];
+    await Promise.all(
+      uniqueIps.map(async (ip) => {
+        const conn = new HubConnectionBuilder()
+          .withUrl(buildHubUrl(ip)) // 每台各自帶自己的 targetIp
+          .configureLogging(LogLevel.Information)
+          .build();
+        try {
+          await conn.start();
+          this.connections.set(ip, conn);
+        } catch (error) {
+          console.error(`Error establishing SignalR connection (${ip}):`, error);
+        }
+      }),
+    );
+  }
+
+  // 對所有多台連線註冊同一個 ReceiveMessage handler
+  onReceiveMessageMulti(callback) {
+    this.connections.forEach((conn) => {
+      conn.on("ReceiveMessage", (topic, message) => {
+        if (callback) callback(topic, message);
+      });
+    });
+  }
+
+  async stopConnections() {
+    const conns = Array.from(this.connections.values());
+    this.connections.clear();
+    await Promise.all(conns.map((c) => c.stop().catch(() => {})));
   }
 
   async sendMessage(topic, message) {
