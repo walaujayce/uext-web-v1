@@ -613,9 +613,10 @@ const handleDhcpItemClick = (dhcp) => {
   const rawdataDate = useSelectDate();
   const recordData = useSelectDate();
   const errorLog = useSelectDate();
+  const alarmLog = useSelectDate();
 
   {
-    /* handle download device rawdata/recorddata/errorlog */
+    /* handle download device rawdata/recorddata/errorlog/alarmLog */
   }
   function convertToLocal(date) {
     const utcDate = new Date(date.getTime() + 60 * 60 * 8000); // Convert to UTC
@@ -1876,6 +1877,81 @@ const handleDhcpItemClick = (dhcp) => {
                         "Errorlog",
                         errorLog.selectedStartDate,
                         errorLog.selectedEndDate
+                      )
+                    }
+                  >
+                    <p className="btn-text">{t("DeviceSettings.Download")}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="deviceSetting">
+              <h2>{t("DeviceSettings.AlarmLog")}</h2>
+              <div className="opt-list">
+                <div className="opt-grid">
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
+                    <label htmlFor="d-id" className="label-container">
+                      <p>{t("DeviceSettings.StartTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={alarmLog.selectedStartDate}
+                        onChange={alarmLog.handleStartDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
+                    <label htmlFor="mac" className="label-container">
+                      <p>{t("DeviceSettings.EndTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={alarmLog.selectedEndDate}
+                        onChange={alarmLog.handleEndDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                </div>
+                <div className="btn-gp">
+                  <div
+                    className="btn text-only"
+                    onClick={() =>
+                      handleDownload(
+                        "Notification",
+                        alarmLog.selectedStartDate,
+                        alarmLog.selectedEndDate
                       )
                     }
                   >

@@ -283,7 +283,8 @@ export function Bed_Online({
             {deviceType === 1 ? "UEXT" : "UMAP"}
           </p>
         </div>
-        <div style={{ display: bedColor === "default" ? "none" : "flex", alignItems: "center", gap: 4 }}>
+        {/* <div style={{ display: "flex", alignItems: "center", gap: 4 }}> */}
+        <div style={{ display: (bedColor === "default" && deviceType === 1) ? "none" : "flex", alignItems: "center", gap: 4, paddingLeft: bedColor === "default" ? "3px" : "0px" }}>
           <img src="" alt="" />
           <p className="timer">{hold}</p>
         </div>

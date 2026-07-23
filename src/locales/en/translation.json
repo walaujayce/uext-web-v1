@@ -233,6 +233,7 @@
     "RecordData-p": "Download record data to local storage.",
     "ErrorLog": "Error Log",
     "ErrorLog-p": "Download error log to local storage.",
+    "AlarmLog": "Alarm Log",
     "StartTime": "Start Time",
     "EndTime": "End Time",
     "DeviceRemove": "Device Remove",
