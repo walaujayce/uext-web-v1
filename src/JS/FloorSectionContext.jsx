@@ -89,11 +89,12 @@ export const FloorSectionProvider = ({ children }) => {
   );
 
   // 區域選項：只顯示「目前選取樓層」底下的區域（cascade）
+  // 當 floor 為 "All" 時，顯示所有樓層的區域。
   const sections = useMemo(
     () => [
       ...new Set(
         servers
-          .filter((s) => (floor ? s.floor === floor : true))
+          .filter((s) => (floor && floor !== "All" ? s.floor === floor : true))
           .map((s) => s.section)
           .filter(Boolean),
       ),
@@ -102,8 +103,13 @@ export const FloorSectionProvider = ({ children }) => {
   );
 
   // 切換樓層：同時把區域重設成該樓層的第一個區域
+  // 選 "All" 樓層時，區域一併設為 "All"（代表跨所有樓層/區域）。
   const chooseFloor = (nextFloor) => {
     setFloor(nextFloor);
+    if (nextFloor === "All") {
+      setSection("All");
+      return "All";
+    }
     const firstSection =
       servers.find((s) => s.floor === nextFloor)?.section ?? null;
     setSection(firstSection);

@@ -197,7 +197,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
         </div>
         <div className="assistive-text">this is a line of assistive text</div>
         <div className={`list ${isFloorActive ? "active" : ""}`} ref={dropdownFloorStyleRef}>
-          {floors.map((floor) => (
+          {["All", ...floors].map((floor) => (
             <div
               className="item"
               key={floor}
@@ -234,7 +234,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
         </div>
         <div className="assistive-text">this is a line of assistive text</div>
         <div className={`list ${isSectionActive ? "active" : ""}`} ref={dropdownSectionStyleRef}>
-          {sections.map((section) => (
+          {["All", ...sections].map((section) => (
             <div
               className="item"
               key={section}

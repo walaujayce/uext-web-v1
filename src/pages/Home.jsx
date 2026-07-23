@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
@@ -20,9 +20,14 @@ import {
 import { useTranslation } from "react-i18next";
 import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
+import { useFloorSection } from "../JS/FloorSectionContext";
 
 function Home() {
   const { t, i18n } = useTranslation();
+
+  // 所有樓層/區域對應的後端清單（每筆 { ip, floor, section }），
+  // 供「All」模式逐台抓取所有 device。
+  const { servers } = useFloorSection();
 
   const [port, setPort] = useState("8031");
   const handleSelectPort = (port) => {
@@ -379,46 +384,69 @@ function Home() {
 
   const [devices, setDevices] = useState([]);
 
+  // 依 select_floor / select_section 決定要抓哪些後端：
+  //   - floor === "All"            → 抓「所有」server 的 device
+  //   - section === "All"          → 抓該樓層底下「所有」區域的 server
+  //   - 其他（指定 floor + section）→ null，維持原本走目前選取單一 server 的行為
+  const targetIps = useMemo(() => {
+    if (select_floor === "All") {
+      return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
+    }
+    if (select_section === "All") {
+      return [
+        ...new Set(
+          servers
+            .filter((s) => s.floor === select_floor)
+            .map((s) => s.ip)
+            .filter(Boolean),
+        ),
+      ];
+    }
+    return null;
+  }, [servers, select_floor, select_section]);
+
+  // 從「單一」server 抓 device 清單。傳入 targetIp 時，用 header 把請求釘在該台；
+  // 不傳時走目前選取的 server（原本行為）。
+  const fetchDevicesFrom = async (targetIp) => {
+    const cfg = targetIp ? { targetIp } : undefined;
+    if (port === "8031") {
+      if (import.meta.env.VITE_MODE === "dev") {
+        const response = await api.get("/api/7284/ss/SocketServer", cfg);
+        const data = response.data || [];
+        return data.filter((device) => device.TYPE !== 201);
+      } else {
+        const response = await api8031.get("/api/8031/devices", cfg);
+        const data = response.data?.DATA || [];
+        return data.filter((device) => device.TYPE !== 201);
+      }
+    } else if (port === "7284") {
+      const response = await api.get("/api/7284/db/Device", cfg);
+      return response.data || [];
+    }
+    return [];
+  };
+
   const fetchDeviceList = async () => {
     try {
-      if (port === "8031") {
-        if (import.meta.env.VITE_MODE === "dev") {
-          // const response = await fetch("/api/7284/ss/SocketServer");
-          // if (!response.ok) {
-          //   throw new Error(`HTTP error! status: ${response.status}`);
-          // }
-          // const data = await response.json();
-          const response = await api.get("/api/7284/ss/SocketServer");
-          const data = response.data;
-          //console.log("ss/SocketServer: ", data);
-          const devicesNonHalow = data.filter((device) => device.TYPE !== 201);
-          setDevices(devicesNonHalow || []);
-        } else {
-          // const response = await fetch("/api/8031/devices");
-          // if (!response.ok) {
-          //   throw new Error(`HTTP error! status: ${response.status}`);
-          // }
-          // const data = await response.json();
-          // //console.log(data.DATA);
-          const response = await api8031.get("/api/8031/devices");
-          const data = response.data;
-          const devicesNonHalow = data.DATA.filter(
-            (device) => device.TYPE !== 201,
-          );
-          setDevices(devicesNonHalow || []);
-        }
-        // //console.log("the current is ", getServerIp());
-      } else if (port === "7284") {
-        const response = await api.get("/api/7284/db/Device");
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-        // const data = await response.json();
-        const data = response.data;
-        //console.log(data);
-        setDevices(data || []);
+      if (targetIps) {
+        // 「All」模式：逐台抓取後合併。單台失敗不影響其他台。
+        // 把來源 IP 標在每筆 device 上（__srcIp），這樣：
+        //   1. 不同 server 之間即使 MAC / 床號重複，也不會互相覆蓋而被吃掉，
+        //   2. React key 可用 __srcIp+MAC 保證唯一，避免重複 key 讓第二台的裝置不顯示。
+        const results = await Promise.all(
+          targetIps.map((ip) =>
+            fetchDevicesFrom(ip)
+              .then((list) => list.map((d) => ({ ...d, __srcIp: ip })))
+              .catch((err) => {
+                console.error(`Error fetching devices from ${ip}:`, err);
+                return [];
+              }),
+          ),
+        );
+        setDevices(results.flat());
+      } else {
+        setDevices(await fetchDevicesFrom());
       }
-      // setDevices(fakeList); // TEST
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -427,7 +455,7 @@ function Home() {
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, [port]);
+  }, [port, select_floor, select_section, servers]);
 
   const renderDeviceComponent = (device) => {
     const {
@@ -443,6 +471,8 @@ function Home() {
       BedColor,
       IsAlert
     } = device;
+    // 「All」模式下不同 server 可能有相同 MAC，用來源 IP 前綴保證 React key 唯一
+    const rowKey = deviceKey(device);
 
     // 先以STAT去區分on/off-line，再以TYPE區分UEXT/UMAP，最後以POS區分狀態
     if (STAT === 0) {
@@ -450,7 +480,7 @@ function Home() {
         return (
           <Link
             to={`/device/device-settings?macaddress=${MAC}`}
-            key={MAC}
+            key={rowKey}
             state={{ from: "/home" }}
           >
             <Bed_disconnect
@@ -470,7 +500,7 @@ function Home() {
       if (UserName === null || UserName === "") {
         return (
           <Bed_vacant
-            key={MAC}
+            key={rowKey}
             macaddress={MAC}
             bed={Bed}
             floor={Floor}
@@ -481,7 +511,7 @@ function Home() {
         return (
           <Link
             to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
-            key={MAC}
+            key={rowKey}
             state={{ from: "/home" }}
           >
             <Bed_Online
@@ -502,6 +532,10 @@ function Home() {
 
     return null; // Handle any unexpected case if necessary
   };
+
+  // React key / 唯一識別：「All」模式下同 MAC 可能來自不同 server，前綴來源 IP 以避免衝突
+  const deviceKey = (device) =>
+    device.__srcIp ? `${device.__srcIp}-${device.MAC}` : device.MAC;
 
   const formatSecondsToDHMS = (seconds) => {
     const days = Math.floor(seconds / (24 * 3600));
@@ -694,7 +728,7 @@ function Home() {
                       .map((device) => (
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
-                          key={device.MAC}
+                          key={deviceKey(device)}
                           state={{ from: "/home" }}
                         >
                           <Bed_Online
@@ -783,7 +817,7 @@ function Home() {
                       .map((device) => (
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
-                          key={device.MAC}
+                          key={deviceKey(device)}
                           state={{ from: "/home" }}
                         >
                           <Bed_Online
@@ -872,7 +906,7 @@ function Home() {
                       .map((device) => (
                         <Link
                           to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
-                          key={device.MAC}
+                          key={deviceKey(device)}
                           state={{ from: "/home" }}
                         >
                           <Bed_Online
@@ -956,7 +990,7 @@ function Home() {
                       .sort(sortAlphabet)
                       .map((device) => (
                         <Bed_vacant
-                          key={device.MAC}
+                          key={deviceKey(device)}
                           macaddress={device.MAC}
                           bed={device.Bed}
                           floor={device.Floor}
@@ -1028,7 +1062,7 @@ function Home() {
                       .map((device) => (
                         <Link
                           to={`/device/device-settings?macaddress=${device.MAC}`}
-                          key={device.MAC}
+                          key={deviceKey(device)}
                           state={{ from: "/home" }}
                         >
                           <Bed_disconnect
