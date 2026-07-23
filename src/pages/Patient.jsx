@@ -365,7 +365,9 @@ function Patient() {
               <div className="item-list">
                 {filteredDevices.map((patient) => (
                   <Link
-                    to={`/patient/patient-detail/patient-monitor?macaddress=${patient.deviceid}`}
+                    to={`/patient/patient-detail/patient-monitor?macaddress=${patient.deviceid}${
+                      patient.__srcIp ? `&ip=${patient.__srcIp}` : ""
+                    }`}
                     key={patientKey(patient)}
                     state={{ from: "/patient" }}
                   >

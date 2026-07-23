@@ -13,6 +13,7 @@ import dayjs from "dayjs";
 import PatientMonitor from "./PatientMonitor";
 import { useAuth } from "../JS/AuthContext";
 import api from "../api/apiClient"
+import { getCurrentServerIp, setCurrentServerIp } from "../api/serverStore";
 
 function DeviceSettings() {
   const { t, i18n } = useTranslation();
@@ -24,6 +25,13 @@ function DeviceSettings() {
   const [searchParams] = useSearchParams();
 
   const macaddress = searchParams.get("macaddress") || "";
+
+  // 「All」模式下從 Home 帶進來的 ?ip=，代表這台裝置所屬的後端。
+  // render 期間就同步到 module store，確保本頁請求都釘在正確那台。
+  const ipParam = searchParams.get("ip");
+  if (ipParam && getCurrentServerIp() !== ipParam) {
+    setCurrentServerIp(ipParam);
+  }
 
   {
     /* Handle Back Button */

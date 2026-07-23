@@ -10,6 +10,7 @@ import PatientProfile from "../components/PatientProfile";
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
+import { getCurrentServerIp, setCurrentServerIp } from "../api/serverStore";
 
 function PatientDetail() {
   const { t, i18n } = useTranslation();
@@ -18,6 +19,14 @@ function PatientDetail() {
   const location = useLocation();
   const searchParams = location.search;
   const navigate = useNavigate();
+
+  // 「All」模式下從 Home/Patient 帶進來的 ?ip=，代表這台裝置所屬的後端。
+  // 在 render 期間就同步到 module store，確保底下各分頁(Profile/Monitor/discharge…)
+  // 的請求都釘在正確那台（子元件的 effect 會晚於這裡執行，所以第一次 fetch 就會拿到正確 IP）。
+  const ipParam = new URLSearchParams(location.search).get("ip");
+  if (ipParam && getCurrentServerIp() !== ipParam) {
+    setCurrentServerIp(ipParam);
+  }
 
   const handleBackBtnClick = () => {
     navigate(location.state?.from || "/home");

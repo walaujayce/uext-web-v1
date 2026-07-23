@@ -479,7 +479,7 @@ function Home() {
       if (TYPE !== 0) {
         return (
           <Link
-            to={`/device/device-settings?macaddress=${MAC}`}
+            to={`/device/device-settings?macaddress=${MAC}${ipQuery(device)}`}
             key={rowKey}
             state={{ from: "/home" }}
           >
@@ -510,7 +510,7 @@ function Home() {
       } else {
         return (
           <Link
-            to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}`}
+            to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}${ipQuery(device)}`}
             key={rowKey}
             state={{ from: "/home" }}
           >
@@ -536,6 +536,10 @@ function Home() {
   // React key / 唯一識別：「All」模式下同 MAC 可能來自不同 server，前綴來源 IP 以避免衝突
   const deviceKey = (device) =>
     device.__srcIp ? `${device.__srcIp}-${device.MAC}` : device.MAC;
+
+  // 「All」模式下，把裝置所屬 server 的 IP 帶進詳情頁網址，
+  // 讓 PatientDetail / DeviceSettings 能把後續請求釘在正確那台（否則會 fallback 到預設台）。
+  const ipQuery = (device) => (device.__srcIp ? `&ip=${device.__srcIp}` : "");
 
   const formatSecondsToDHMS = (seconds) => {
     const days = Math.floor(seconds / (24 * 3600));
@@ -727,7 +731,7 @@ function Home() {
                       .sort(sortAlphabet)
                       .map((device) => (
                         <Link
-                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}${ipQuery(device)}`}
                           key={deviceKey(device)}
                           state={{ from: "/home" }}
                         >
@@ -816,7 +820,7 @@ function Home() {
                       .sort(sortAlphabet)
                       .map((device) => (
                         <Link
-                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}${ipQuery(device)}`}
                           key={deviceKey(device)}
                           state={{ from: "/home" }}
                         >
@@ -905,7 +909,7 @@ function Home() {
                       .sort(sortAlphabet)
                       .map((device) => (
                         <Link
-                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}`}
+                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}${ipQuery(device)}`}
                           key={deviceKey(device)}
                           state={{ from: "/home" }}
                         >
@@ -1061,7 +1065,7 @@ function Home() {
                       .sort(sortAlphabet)
                       .map((device) => (
                         <Link
-                          to={`/device/device-settings?macaddress=${device.MAC}`}
+                          to={`/device/device-settings?macaddress=${device.MAC}${ipQuery(device)}`}
                           key={deviceKey(device)}
                           state={{ from: "/home" }}
                         >
