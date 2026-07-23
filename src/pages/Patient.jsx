@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Outlet, Link } from "react-router-dom";
 import dayjs from "dayjs";
 import "/src/CSS/btn.css";
@@ -12,10 +12,14 @@ import Navbar from "../components/Navbar";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewPatient from "../components/Modals/AddNewPatient";
 import { useTranslation } from "react-i18next";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 
 function Patient() {
   const { t, i18n } = useTranslation();
+
+  // 所有樓層/區域對應的後端清單，供「All」模式逐台抓取所有病患
+  const { servers } = useFloorSection();
 
   const [select_floor, setSelect_Floor] = useState("");
   const handleSelectFloor = (floor) => {
@@ -28,17 +32,55 @@ function Patient() {
 
   const [patients, setPatients] = useState([]);
 
+  // 決定要抓哪些後端（與 Home 規則一致）：
+  //   floor === "All"   → 所有 server
+  //   section === "All" → 該樓層底下所有 server
+  //   其他              → null，走目前選取的單一 server
+  const targetIps = useMemo(() => {
+    if (select_floor === "All") {
+      return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
+    }
+    if (select_section === "All") {
+      return [
+        ...new Set(
+          servers
+            .filter((s) => s.floor === select_floor)
+            .map((s) => s.ip)
+            .filter(Boolean),
+        ),
+      ];
+    }
+    return null;
+  }, [servers, select_floor, select_section]);
+
+  // React key：All 模式下不同 server 可能有相同 deviceid，用來源 IP 前綴保證唯一
+  const patientKey = (patient) =>
+    patient.__srcIp ? `${patient.__srcIp}-${patient.deviceid}` : patient.deviceid;
+
+  const fetchPatientsFrom = async (targetIp) => {
+    const cfg = targetIp ? { targetIp } : undefined;
+    const response = await api.get("/api/7284/db/Patient", cfg);
+    return response.data || [];
+  };
+
   const fetchPatients = async () => {
     try {
-      // const response = await fetch("/api/7284/db/Patient");
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-      // const data = await response.json();
-      const response = await api.get("/api/7284/db/Patient");
-      const data = response.data;
-      //console.log(data);
-      setPatients(data);
+      if (targetIps) {
+        // 「All」模式：逐台抓取後合併，並標上來源 IP，避免跨 server 資料互相覆蓋
+        const results = await Promise.all(
+          targetIps.map((ip) =>
+            fetchPatientsFrom(ip)
+              .then((list) => list.map((p) => ({ ...p, __srcIp: ip })))
+              .catch((err) => {
+                console.error(`Error fetching patients from ${ip}:`, err);
+                return [];
+              }),
+          ),
+        );
+        setPatients(results.flat());
+      } else {
+        setPatients(await fetchPatientsFrom());
+      }
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -47,7 +89,7 @@ function Patient() {
     fetchPatients();
     const interval = setInterval(fetchPatients, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [targetIps]);
 
   {
     /* sort logic */
@@ -324,7 +366,7 @@ function Patient() {
                 {filteredDevices.map((patient) => (
                   <Link
                     to={`/patient/patient-detail/patient-monitor?macaddress=${patient.deviceid}`}
-                    key={patient.deviceid}
+                    key={patientKey(patient)}
                     state={{ from: "/patient" }}
                   >
                     <a className="item">
