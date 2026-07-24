@@ -96,11 +96,12 @@ class SignalRService {
     );
   }
 
-  // 對所有多台連線註冊同一個 ReceiveMessage handler
+  // 對所有多台連線註冊同一個 ReceiveMessage handler；
+  // 第三個參數帶上「這條連線的來源 IP」，讓上層知道訊息來自哪一台。
   onReceiveMessageMulti(callback) {
-    this.connections.forEach((conn) => {
+    this.connections.forEach((conn, ip) => {
       conn.on("ReceiveMessage", (topic, message) => {
-        if (callback) callback(topic, message);
+        if (callback) callback(topic, message, ip);
       });
     });
   }

@@ -92,9 +92,47 @@ function AlertList() {
   const topic_devices = "web/notify/devices";
   const topic_allow_array = [topic_all, topic_risk, topic_turn_over];
 
+  // 從通知訊息組出 alert 物件；srcIp 記錄「這筆通知來自哪一台後端」，
+  // 之後點擊要 PUT checkStatus 時就用它把請求釘回同一台（All 模式多台時很重要）。
+  const buildAlertEntry = (parsedMessage, srcIp) => ({
+    id: parsedMessage.Id,
+    mac: parsedMessage.MAC,
+    userName: parsedMessage.UserName || "",
+    bedNo: parsedMessage.Bed || "",
+    floor: parsedMessage.Floor || "",
+    section: parsedMessage.Section || "",
+    alertTime:
+      new Date(parsedMessage.AlertTime).toLocaleString([], {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      }) || "",
+    status: parsedMessage.Status,
+    eventName: parsedMessage.EventName || "",
+    alertLevel: parsedMessage.AlertLevel,
+    deviceType: parsedMessage.DeviceType,
+    topic: parsedMessage.Topic,
+    srcIp: srcIp,
+  });
+
+  // 找出某筆 alert 該打哪一台後端：優先用記錄的 srcIp；
+  // 若沒有(舊資料/單一模式)，退而用 floor+section 反查 servers（同一樓+層唯一對應一台）。
+  const ipForAlert = (alert) => {
+    if (!alert) return undefined;
+    if (alert.srcIp) return alert.srcIp;
+    const match = servers.find(
+      (s) => s.floor === alert.floor && s.section === alert.section,
+    );
+    return match?.ip;
+  };
+
   // SignalR 收到訊息的處理邏輯，抽成共用 handler 給「單一連線」與「多台連線」共用
   const handleSignalRMessage = useCallback(
-    (topic, message) => {
+    (topic, message, sourceIp) => {
         // console.log("topic: ", topic);
         // console.log("topic include: ", topic_allow_array.includes(topic));
         if (topic_allow_array.includes(topic)) {
@@ -166,55 +204,14 @@ function AlertList() {
               // //console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
               // //console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
               // //console.log("existingAlertMessage ID is ", existingAlertMessage.id);
-              setNotificationChecked_PUT(existingAlertMessage.id); // CHECK TRUE old message in database
+              setNotificationChecked_PUT(
+                existingAlertMessage.id,
+                ipForAlert(existingAlertMessage),
+              ); // CHECK TRUE old message in database（釘回該筆通知的來源後端）
               //save new message to alert list
-              newAlertsMap.set(mac, {
-                id: parsedMessage.Id,
-                mac: mac,
-                userName: parsedMessage.UserName || "",
-                bedNo: parsedMessage.Bed || "",
-                floor: parsedMessage.Floor || "",
-                section: parsedMessage.Section || "",
-                alertTime:
-                  new Date(parsedMessage.AlertTime).toLocaleString([], {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    hour12: false,
-                  }) || "",
-                status: parsedMessage.Status,
-                eventName: parsedMessage.EventName || "",
-                alertLevel: parsedMessage.AlertLevel,
-                deviceType: parsedMessage.DeviceType,
-                topic: parsedMessage.Topic,
-              });
+              newAlertsMap.set(mac, buildAlertEntry(parsedMessage, sourceIp));
             } else if (!existingAlertMessage) {
-              newAlertsMap.set(mac, {
-                id: parsedMessage.Id,
-                mac: mac,
-                userName: parsedMessage.UserName || "",
-                bedNo: parsedMessage.Bed || "",
-                floor: parsedMessage.Floor || "",
-                section: parsedMessage.Section || "",
-                alertTime:
-                  new Date(parsedMessage.AlertTime).toLocaleString([], {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    hour12: false,
-                  }) || "",
-                status: parsedMessage.Status,
-                eventName: parsedMessage.EventName || "",
-                alertLevel: parsedMessage.AlertLevel,
-                deviceType: parsedMessage.DeviceType,
-                topic: parsedMessage.Topic,
-              });
+              newAlertsMap.set(mac, buildAlertEntry(parsedMessage, sourceIp));
             }
             return newAlertsMap;
           });
@@ -252,7 +249,10 @@ function AlertList() {
     if (isAllMode) return;
     const initializeSignalR = async () => {
       await SignalRService.startConnection(signalrTargetIp);
-      SignalRService.onReceiveMessage(handleSignalRMessage);
+      // 單一模式：訊息一律來自 signalrTargetIp
+      SignalRService.onReceiveMessage((topic, message) =>
+        handleSignalRMessage(topic, message, signalrTargetIp),
+      );
     };
     initializeSignalR();
 
@@ -383,6 +383,8 @@ function AlertList() {
   const fetchRunIdRef = useRef(0);
 
   const fetchNoticitionList = async (targetIp, runId) => {
+    // 這批通知都來自 targetIp，寫進 alert 物件的 srcIp，供之後 PUT 釘回同一台
+    const sourceIp = targetIp;
     try {
       // const response = await fetch(`/api/7284/db/Notification`, {
       //   method: "GET",
@@ -462,53 +464,9 @@ function AlertList() {
               // //console.log("existingAlertMessage ID is ", existingAlertMessage.id);
               //setNotificationChecked_PUT(existingAlertMessage.id); // CHECK TRUE old message in database
               //save new message to alert list
-              newAlertsMap.set(mac, {
-                id: parsedMessage.Id,
-                mac: mac,
-                userName: parsedMessage.UserName || "",
-                bedNo: parsedMessage.Bed || "",
-                floor: parsedMessage.Floor || "",
-                section: parsedMessage.Section || "",
-                alertTime:
-                  new Date(parsedMessage.AlertTime).toLocaleString([], {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    hour12: false,
-                  }) || "",
-                status: parsedMessage.Status,
-                eventName: parsedMessage.EventName || "",
-                alertLevel: parsedMessage.AlertLevel,
-                deviceType: parsedMessage.DeviceType,
-                topic: parsedMessage.Topic,
-              });
+              newAlertsMap.set(mac, buildAlertEntry(parsedMessage, sourceIp));
             } else if (!existingAlertMessage) {
-              newAlertsMap.set(mac, {
-                id: parsedMessage.Id,
-                mac: mac,
-                userName: parsedMessage.UserName || "",
-                bedNo: parsedMessage.Bed || "",
-                floor: parsedMessage.Floor || "",
-                section: parsedMessage.Section || "",
-                alertTime:
-                  new Date(parsedMessage.AlertTime).toLocaleString([], {
-                    year: "numeric",
-                    month: "2-digit",
-                    day: "2-digit",
-                    hour: "2-digit",
-                    minute: "2-digit",
-                    second: "2-digit",
-                    hour12: false,
-                  }) || "",
-                status: parsedMessage.Status,
-                eventName: parsedMessage.EventName || "",
-                alertLevel: parsedMessage.AlertLevel,
-                deviceType: parsedMessage.DeviceType,
-                topic: parsedMessage.Topic,
-              });
+              newAlertsMap.set(mac, buildAlertEntry(parsedMessage, sourceIp));
             }
             return newAlertsMap;
           });
@@ -582,11 +540,12 @@ function AlertList() {
   const deleteAlert = (mac, notificationId) => {
     setAlertsMap((prevAlertsMap) => {
       const newAlertsMap = new Map(prevAlertsMap);
+      const alert = newAlertsMap.get(mac); // 取得該筆 alert 以查出來源後端 IP
       newAlertsMap.delete(mac);
       // Save updated map to localStorage
       //saveToLocalStorage(newAlertsMap);
-      // PUT API to database
-      setNotificationChecked_PUT(notificationId);
+      // PUT API to database（釘回該筆通知的來源後端，否則 All 模式會打錯台而失敗）
+      setNotificationChecked_PUT(notificationId, ipForAlert(alert));
       stopSound();
       //console.log(notificationId);
       return newAlertsMap;
