@@ -442,7 +442,10 @@ const handleDhcpItemClick = (dhcp) => {
       // });
 
       // const contentType = response.headers.get("Content-Type");
-      const response = await api.delete(`/api/7284/db/Device/${deviceId}`);
+      const response = await api.delete(
+        `/api/7284/db/Device/${deviceId}`,
+        targetIp ? { targetIp } : undefined,
+      );
 
 
       if (response.status === 200) {
@@ -541,7 +544,8 @@ const handleDhcpItemClick = (dhcp) => {
       //   "the input requestbody is device location ",
       //   print_inputvalue
       // );
-      PUT_DeivceInfo(macaddress, print_inputvalue);
+      // 樓層/區域可能跨後端 → 用專責的搬移邏輯處理
+      saveDeviceLocation();
     } else if (
       isDeviceConfigChanged &&
       print_inputvalue === requestBody_DeviceLConfiguration
@@ -578,7 +582,11 @@ const handleDhcpItemClick = (dhcp) => {
       // }
 
       // const data = await response.json();
-      const response = await api.put(`/api/7284/db/Device/${macaddress}`,updatedData);
+      const response = await api.put(
+        `/api/7284/db/Device/${macaddress}`,
+        updatedData,
+        targetIp ? { targetIp } : undefined,
+      );
 
       const data = response.data;
       //console.log("Device updated successfully:", data);
@@ -587,6 +595,44 @@ const handleDhcpItemClick = (dhcp) => {
       return data; // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 變更樓層/區域時：若新的 floor+section 對應到「不同的後端」（同一樓+層唯一對應一台），
+  // 代表要把裝置搬到那台 → 在新後端建立、並從原後端刪除；仍是同一台就一般更新。
+  const saveDeviceLocation = async () => {
+    const newFloor = floorDropdown.placeholder;
+    const newSection = sectionDropdown.placeholder;
+    const oldIp = targetIp; // 裝置目前所在的後端
+    const newIp =
+      servers.find((s) => s.floor === newFloor && s.section === newSection)
+        ?.ip ?? null;
+    // 保留裝置原本所有設定，只覆蓋 bed/floor/section
+    const updatedData = { ...deviceInfo, ...requestBody_DeviceLocation };
+    try {
+      setLoading(true);
+      if (newIp && oldIp && newIp !== oldIp) {
+        // 跨後端搬移：先在新後端建立，再從原後端刪除
+        await api.post(`/api/7284/db/Device`, updatedData, { targetIp: newIp });
+        await api.delete(`/api/7284/db/Device/${macaddress}`, {
+          targetIp: oldIp,
+        });
+        alert("Update Successfully!");
+        navigate("/device"); // 已搬離原本網址對應的後端，導回列表避免抓到已刪除的資料
+      } else {
+        // 同一後端：一般更新
+        await api.put(
+          `/api/7284/db/Device/${macaddress}`,
+          updatedData,
+          oldIp ? { targetIp: oldIp } : undefined,
+        );
+        alert("Update Successfully!");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error updating device location:", error.message);
     } finally {
       setLoading(false);
     }
@@ -921,7 +967,65 @@ const handleDhcpItemClick = (dhcp) => {
                     <div className="assistive-text">
                       this is a line of assistive text
                     </div>
-                  </div>)}                 
+                  </div>)} 
+                  <div
+                    className="input dropdown floor g-col-3 suffix"
+                    onClick={floorDropdown.toggleActive}
+                    ref={addDropdownRef}
+                  >
+                    <label htmlFor="floor" className="label-container">
+                      <p>{t("DeviceSettings.Floor")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="input-gp">
+                      <input
+                        type="text"
+                        className="placeholder"
+                        id="floor"
+                        placeholder={floorDropdown.placeholder}
+                        readOnly
+                      />
+                      <img
+                        className="suffix active"
+                        src=""
+                        alt="dropdown icon"
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                    <div
+                      className={`list ${
+                        floorDropdown.isActive ? "active" : ""
+                      }`}
+                      ref={dropdownFloorStyleRef}
+                    >
+                      {floors.map((floor) => (
+                        <div
+                          className="item opt1"
+                          key={floor}
+                          onClick={() => {
+                            const changed = floor !== floorDropdown.placeholder;
+                            floorDropdown.selectItem(floor);
+                            if (changed) {
+                              setIsDeviceLocationChanged(true);
+                              // 切 floor 後，section 自動選該 floor 底下的第一個區域
+                              const firstSection =
+                                servers.find((s) => s.floor === floor)
+                                  ?.section ?? "";
+                              sectionDropdown.selectItem(firstSection);
+                            }
+                          }}
+                        >
+                          {floor}
+                        </div>
+                      ))}
+                    </div>
+                  </div>                
                   <div
                     className="input dropdown section g-col-3 suffix"
                     onClick={sectionDropdown.toggleActive}
@@ -973,66 +1077,7 @@ const handleDhcpItemClick = (dhcp) => {
                         </div>
                       ))}
                     </div>
-                  </div>
-                  <div
-                    className="input dropdown floor g-col-3 suffix"
-                    onClick={floorDropdown.toggleActive}
-                    ref={addDropdownRef}
-                  >
-                    <label htmlFor="floor" className="label-container">
-                      <p>{t("DeviceSettings.Floor")}</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="floor"
-                        placeholder={floorDropdown.placeholder}
-                        readOnly
-                      />
-                      <img
-                        className="suffix active"
-                        src=""
-                        alt="dropdown icon"
-                      />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                    <div
-                      className={`list ${
-                        floorDropdown.isActive ? "active" : ""
-                      }`}
-                      ref={dropdownFloorStyleRef}
-                    >
-                      {floors.map((floor) => (
-                        <div
-                          className="item opt1"
-                          key={floor}
-                          onClick={() => {
-                            if (floor !== floorDropdown.placeholder) {
-                              setIsDeviceLocationChanged(true);
-                            }
-                            floorDropdown.selectItem(floor);
-                            // 切 floor 後，若目前選的 section 不在該 floor 底下就清空，避免存到無效組合
-                            const validSections = servers
-                              .filter((s) => s.floor === floor)
-                              .map((s) => s.section);
-                            if (!validSections.includes(sectionDropdown.placeholder)) {
-                              sectionDropdown.selectItem("");
-                            }
-                          }}
-                        >
-                          {floor}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  </div>                  
                 </div>
                 <div className="btn-gp">
                   <div
