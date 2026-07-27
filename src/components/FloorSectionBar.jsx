@@ -102,13 +102,30 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
   const handleDeviceTypeDropDownMenu = () => {
     setDeviceTypeActive((prev) => !prev);
   };
-  const [placeholderDeviceType, setPlaceholderDeviceType] = useState(deviceTypes[0]); // Input placeholder
+
+  // DeviceType 也比照 floor/section 存進 localStorage，重整後維持上次選取。
+  const DEVICE_TYPE_KEY = "deviceType";
+  const [placeholderDeviceType, setPlaceholderDeviceType] = useState(() => {
+    const stored = localStorage.getItem(DEVICE_TYPE_KEY);
+    // 只接受合法值，否則 fallback 到預設 "All"
+    return stored && deviceTypes.includes(stored) ? stored : deviceTypes[0];
+  }); // Input placeholder
 
   const handleDeviceTypeItemClick = (deviceType) => {
     setPlaceholderDeviceType(deviceType);
-    selectDeviceType(deviceTypeToIndex(deviceType));
+    localStorage.setItem(DEVICE_TYPE_KEY, deviceType);
+    selectDeviceType?.(deviceTypeToIndex(deviceType));
     handleDeviceTypeDropDownMenu;
   };
+
+  // 初次載入時，把 localStorage 還原的 deviceType 通知父層做篩選（只觸發一次）
+  const didInitDeviceType = useRef(false);
+  useEffect(() => {
+    if (!didInitDeviceType.current && enableDeviceType) {
+      didInitDeviceType.current = true;
+      selectDeviceType?.(deviceTypeToIndex(placeholderDeviceType));
+    }
+  }, [enableDeviceType]);
   {
     /* useRef Logic */
   }
