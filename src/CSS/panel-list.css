@@ -221,9 +221,26 @@
     }
 }
 
+/* DeviceList：欄位內容一律靠左，並讓 header 與每列的欄寬一致。
+   關鍵是 min-width:0 — 預設 flex item 的 min-width 是 auto，會被長字串（MAC/IP）
+   撐開，導致 header（短字）與資料列（長字）欄寬不同而看起來歪掉。改成 0 後兩者
+   都依 flex 比例對齊；過長內容以 ... 省略，維持單行整齊。 */
+.pl.device-list .head h3,
+.pl.device-list .item h3 {
+    min-width: 0;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.pl.device-list .head .connection,
+.pl.device-list .item .connection {
+    justify-content: flex-start;
+}
+
 @media (max-width:1536px) {
 
     .pl .fg3{
         flex: 2 1 0;
-    } 
+    }
 }

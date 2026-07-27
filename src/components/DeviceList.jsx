@@ -354,7 +354,7 @@ const DeviceList = () => {
             <AddNewDevice callback={handleAddDeviceClick} />
           )}
         </div>
-        <div className="pl">
+        <div className="pl device-list">
           <div className="head">
             <h3
               className={`fg1 ${sortType === sortTypes[0] ? "selected" : ""}`}
