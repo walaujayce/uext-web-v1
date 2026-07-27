@@ -139,7 +139,7 @@ const DeviceList = () => {
       if (macSet.has(device.MAC)) {
         matchedMap[mapKey(ip, device.MAC)] = {
           rssi: device.RSSI,
-          ping: device.Ping,
+          // ping: device.Ping,
         };
       }
     });
@@ -420,7 +420,7 @@ const DeviceList = () => {
               {sortType === sortTypes[7] &&
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
-            <h3 className="fg3">PING(ms)</h3>
+            {/* <h3 className="fg3">PING(ms)</h3> */}
             <h3 className="fg3">RSSI(dBm)</h3>
             <div className="connection fg2" onClick={() => SortType(8)}>
               <h3 className={`${sortType === sortTypes[8] ? "selected" : ""}`}>
@@ -462,9 +462,9 @@ const DeviceList = () => {
                       <h3 className="fg1">
                         {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                       </h3>
-                      <h3 className="fg3">
+                      {/* <h3 className="fg3">
                         {deviceMap[mapKey(device.__srcIp, device.macaddress)]?.ping ?? "----"}
-                      </h3>
+                      </h3> */}
                       <h3 className="fg3">
                         {deviceMap[mapKey(device.__srcIp, device.macaddress)]?.rssi ?? "----"}
                       </h3>
@@ -504,9 +504,9 @@ const DeviceList = () => {
                     <h3 className="fg1">
                       {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                     </h3>
-                    <h3 className="fg3">
+                    {/* <h3 className="fg3">
                       {deviceMap[device.macaddress]?.ping ?? "----"}
-                    </h3>
+                    </h3> */}
                     <h3 className="fg3">
                       {deviceMap[device.macaddress]?.rssi ?? "----"}
                     </h3>

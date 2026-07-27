@@ -47,7 +47,16 @@ function DeviceSettings() {
     /* Floor 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext，去重後的清單）
        Section 選項在下方依目前選取的 floor 連動過濾（cascade） */
   }
-  const { servers } = useFloorSection();
+  const { servers, selectedServer } = useFloorSection();
+
+  // 這頁要打哪一台後端：
+  //   All 模式 → 用網址帶進來的 ?ip=（該裝置所屬 server）
+  //   單一模式 → 用目前選取的 server
+  // 重整時 servers 是非同步載入的，selectedServer 一開始為 null，
+  // 所以底下 fetch 會等到 targetIp 有值再抓，並在它出現後自動重抓，
+  // 避免在 IP 還沒確定前就打到預設台而抓不到資料。
+  const targetIp = ipParam ?? selectedServer?.ip ?? null;
+
   const floors = useMemo(
     () => [...new Set(servers.map((s) => s.floor).filter(Boolean))],
     [servers],
@@ -345,7 +354,7 @@ const handleDhcpItemClick = (dhcp) => {
     /* Fetch Get Device Information API */
   }
 
-  const fetchDeviceInfo = async (macaddress) => {
+  const fetchDeviceInfo = async (macaddress, targetIp) => {
     try {
       // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
       //   method: "GET",
@@ -358,7 +367,10 @@ const handleDhcpItemClick = (dhcp) => {
       // if (!response.ok || !contentType?.includes("application/json")) {
       //   throw new Error(`Expected JSON, got: ${contentType}`);
       // }
-      const response = await api.get(`/api/7284/db/Device/${macaddress}`);
+      const response = await api.get(
+        `/api/7284/db/Device/${macaddress}`,
+        targetIp ? { targetIp } : undefined,
+      );
 
       const data = response.data;
       //console.log(data);
@@ -410,8 +422,9 @@ const handleDhcpItemClick = (dhcp) => {
     }
   };
   useEffect(() => {
-    fetchDeviceInfo(macaddress);
-  }, []);
+    if (!targetIp) return; // 還不知道要打哪台 → 等 targetIp 出現再抓
+    fetchDeviceInfo(macaddress, targetIp);
+  }, [macaddress, targetIp]);
 
   {
     /* DELETE Device BUT USE PUT API */

@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import CalibrationConfirmOverlay from "./Modals/CalibrationConfirmOverlay";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 import api8031 from "../api/apiClient8031";
 
@@ -32,6 +33,13 @@ function PatientProfile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
+
+  // 這頁該打哪台後端：All 模式用網址帶進來的 ?ip=（該裝置所屬 server）；
+  // 單一模式用目前選取的 server。重整時 selectedServer 一開始為 null（servers 非同步載入），
+  // 所以底下 fetch 會等 targetIp 有值再抓、並在它出現後自動重抓，避免打到預設台而抓不到。
+  const { selectedServer } = useFloorSection();
+  const ipParam = searchParams.get("ip");
+  const targetIp = ipParam ?? selectedServer?.ip ?? null;
 
   {
     /* SEX  */
@@ -143,7 +151,10 @@ function PatientProfile() {
       // }
 
       // const data = await response.json();
-      const response = await api.get(`/api/7284/db/Patient`);
+      const response = await api.get(
+        `/api/7284/db/Patient`,
+        targetIp ? { targetIp } : undefined,
+      );
 
       const data = response.data;
       const matchingPatient = data.find(
@@ -185,8 +196,9 @@ function PatientProfile() {
     }
   };
   useEffect(() => {
+    if (!targetIp) return; // 還不知道要打哪台 → 等 targetIp 出現再抓
     fetchPatientProfile();
-  }, []);
+  }, [targetIp, macaddress]);
 
   const formatDOB = (birthday) => {
     if (!birthday) {
@@ -227,7 +239,11 @@ function PatientProfile() {
       // }
 
       // const data = await response.json();
-      const response = await api.put(`/api/7284/db/Patient/${patientid}`, requestBody);
+      const response = await api.put(
+        `/api/7284/db/Patient/${patientid}`,
+        requestBody,
+        targetIp ? { targetIp } : undefined,
+      );
       const data = response.data;
       if (data.code !== 0) {
         //console.log("Patient fail to update:", data);
@@ -277,7 +293,10 @@ function PatientProfile() {
       //   throw new Error(`Expected JSON, got: ${contentType}`);
       // }
       // const data = await response.json();
-      const response = await api.delete(`/api/7284/db/Patient/${patientId}`);
+      const response = await api.delete(
+        `/api/7284/db/Patient/${patientId}`,
+        targetIp ? { targetIp } : undefined,
+      );
 
       const data = response.data;
       //console.log("Delete successfully!:", data);
@@ -298,7 +317,10 @@ function PatientProfile() {
       //     "Content-Type": "application/json",
       //   },
       // });
-      const response = await api.delete(`/api/7284/db/Alert/${patientId}`);
+      const response = await api.delete(
+        `/api/7284/db/Alert/${patientId}`,
+        targetIp ? { targetIp } : undefined,
+      );
 
       // const contentType = response.headers.get("Content-Type");
       // if (!response.ok || !contentType?.includes("application/json")) {
@@ -336,7 +358,11 @@ function PatientProfile() {
       //   },
       //   body: JSON.stringify(requestBody),
       // });
-      const response = await api8031.post("/api/8031/ucb/denoise", requestBody);
+      const response = await api8031.post(
+        "/api/8031/ucb/denoise",
+        requestBody,
+        targetIp ? { targetIp } : undefined,
+      );
     } catch (error) {
       console.error("Error while submitting data:", error);
       alert("Error: Unable to connect to the server.");

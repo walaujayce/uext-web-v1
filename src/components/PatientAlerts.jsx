@@ -9,6 +9,7 @@ import { useSearchParams } from "react-router-dom";
 import useSessionStorageState from "../JS/PatientAlertSessionStorage";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient";
 import { TimeScale } from "chart.js";
 import DatePicker from "react-datepicker";
@@ -20,6 +21,13 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   const [searchParams] = useSearchParams();
 
   const macaddress = searchParams.get("macaddress") || "";
+
+  // 這頁該打哪台後端：All 模式用網址帶進來的 ?ip=；單一模式用目前選取的 server。
+  // 重整時 selectedServer 一開始為 null（servers 非同步載入），所以 route 分頁的 fetch
+  // 會等 targetIp 有值再抓、並在它出現後自動重抓，避免打到預設台而抓不到資料。
+  const { selectedServer } = useFloorSection();
+  const ipParam = searchParams.get("ip");
+  const targetIp = ipParam ?? selectedServer?.ip ?? null;
 
   const [currentState, setCurrentState] = useState([]);
 
@@ -89,7 +97,10 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       // }
 
       // const data = await response.json();
-      const response = await api.get(`/api/7284/db/Patient`);
+      const response = await api.get(
+        `/api/7284/db/Patient`,
+        targetIp ? { targetIp } : undefined,
+      );
       const data = response.data;
       const matchingPatient = data.find((item) => item.deviceid === macaddress);
       // console.log("patient detail is ", matchingPatient);
@@ -103,7 +114,10 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   const [device, setDevice] = useState(null);
   const fetchDeviceInfo = async (mac) => {
     try {
-      const response = await api.get(`/api/7284/db/Device/${mac}`);
+      const response = await api.get(
+        `/api/7284/db/Device/${mac}`,
+        targetIp ? { targetIp } : undefined,
+      );
       const data = response.data;
       setDevice(data);
       setIsUEXT(data.devicetype == 1);
@@ -509,7 +523,10 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       // }
 
       // const data = await response.json();
-      const response = await api.get(`/api/7284/db/Alert/${patientid}`);
+      const response = await api.get(
+        `/api/7284/db/Alert/${patientid}`,
+        targetIp ? { targetIp } : undefined,
+      );
       const data = response.data;
       if (data.code === -1) {
         //console.log(data.message);
@@ -569,12 +586,13 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   useEffect(() => {
     // console.log("macaddress: ", macaddress);
     if (macaddress === "") return;
+    if (!targetIp) return; // 還不知道要打哪台 → 等 targetIp 出現再抓
     fetchPatientProfile();
     // batch 模式下不要呼叫 fetchDeviceInfo，否則會用 device.devicetype 蓋掉 isBatchUEXT
     if (!isBatch) {
       fetchDeviceInfo(macaddress);
     }
-  }, [macaddress, isBatch]);
+  }, [macaddress, isBatch, targetIp]);
 
   useEffect(() => {
     // if(patient.length === 0) return;
@@ -587,7 +605,10 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
 
   const fetchBatchAlertList = async (patientid) => {
     try {
-      const response = await api.get(`/api/7284/db/Alert/${patientid}`);
+      const response = await api.get(
+        `/api/7284/db/Alert/${patientid}`,
+        targetIp ? { targetIp } : undefined,
+      );
 
       // const contentType = response.headers.get("Content-Type");
       // if (!response.ok || !contentType?.includes("application/json")) {
@@ -851,7 +872,10 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   };
   const deletePatientAlert_API = async (patientId) => {
     try {
-      const response = await api.delete(`/api/7284/db/Alert/${patientId}`);
+      const response = await api.delete(
+        `/api/7284/db/Alert/${patientId}`,
+        targetIp ? { targetIp } : undefined,
+      );
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -878,7 +902,11 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       // const data = await response.json();
 
       //TODO
-      const response = await api.post(`/api/7284/db/Alert`, requestBody_POST);
+      const response = await api.post(
+        `/api/7284/db/Alert`,
+        requestBody_POST,
+        targetIp ? { targetIp } : undefined,
+      );
       const data = response.data;
       if (data.code !== 0) {
         //console.log(data.message);
@@ -928,6 +956,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       const response = await api.put(
         `/api/7284/db/Alert/${patientid}`,
         updatedData,
+        targetIp ? { targetIp } : undefined,
       );
       const data = response.data;
       if (data.code !== 0) {
@@ -1003,6 +1032,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       const response = await api.put(
         `/api/7284/db/Alert/${patientid}`,
         updatedData,
+        targetIp ? { targetIp } : undefined,
       );
 
       const data = response.data;
