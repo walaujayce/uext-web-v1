@@ -15,7 +15,7 @@ import { TimeScale } from "chart.js";
 import DatePicker from "react-datepicker";
 import { tr } from "date-fns/locale";
 
-function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
+function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT, patientIpMap }) {
   const { t, i18n } = useTranslation();
 
   const [searchParams] = useSearchParams();
@@ -28,6 +28,10 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   const { selectedServer } = useFloorSection();
   const ipParam = searchParams.get("ip");
   const targetIp = ipParam ?? selectedServer?.ip ?? null;
+
+  // 批次模式下每個病患可能來自不同後端：用上層傳進來的 patientid → 來源 IP 對照表，
+  // 讓每個病患的抓取/更新都打回它自己的那台；查不到就退回 targetIp（單一模式/目前選取）。
+  const ipForPatient = (pid) => (patientIpMap && patientIpMap[pid]) || targetIp;
 
   const [currentState, setCurrentState] = useState([]);
 
@@ -604,10 +608,11 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   const [batchAlertList, setBatchAlertList] = useState([]);
 
   const fetchBatchAlertList = async (patientid) => {
+    const ip = ipForPatient(patientid); // 這個病患所屬的後端
     try {
       const response = await api.get(
         `/api/7284/db/Alert/${patientid}`,
-        targetIp ? { targetIp } : undefined,
+        ip ? { targetIp: ip } : undefined,
       );
 
       // const contentType = response.headers.get("Content-Type");
@@ -624,6 +629,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
             {
               patientid: patientid,
               isNewAlert: true,
+              srcIp: ip, // 記錄來源後端，供存檔時打回同一台
             },
           ];
         } else {
@@ -633,6 +639,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
               patientid: patientid,
               isNewAlert: false,
               alertList: data,
+              srcIp: ip, // 記錄來源後端，供存檔時打回同一台
             },
           ];
         }
@@ -825,9 +832,9 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       batchAlertList.forEach((alert) => {
         if (alert.isNewAlert) {
           requestBody_POST.patientid = alert.patientid;
-          POST_PatientAlert();
+          POST_PatientAlert(alert.srcIp); // 打回該病患所屬的後端
         } else {
-          PUT_PatientAlert(alert.alertList, alert.patientid);
+          PUT_PatientAlert(alert.alertList, alert.patientid, alert.srcIp);
         }
       });
     } else {
@@ -858,7 +865,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
         if (alert.isNewAlert) {
           return;
         } else {
-          deletePatientAlert_API(alert.patientid);
+          deletePatientAlert_API(alert.patientid, alert.srcIp); // 打回該病患所屬的後端
         }
       });
     } else {
@@ -870,11 +877,12 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
     }
     window.location.reload();
   };
-  const deletePatientAlert_API = async (patientId) => {
+  const deletePatientAlert_API = async (patientId, overrideIp) => {
+    const ip = overrideIp ?? targetIp;
     try {
       const response = await api.delete(
         `/api/7284/db/Alert/${patientId}`,
-        targetIp ? { targetIp } : undefined,
+        ip ? { targetIp: ip } : undefined,
       );
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
@@ -883,7 +891,8 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   {
     /* POST API Update Toggle State */
   }
-  const POST_PatientAlert = async () => {
+  const POST_PatientAlert = async (overrideIp) => {
+    const ip = overrideIp ?? targetIp;
     try {
       setLoading(true);
       //console.log("requestBody_POST: ", requestBody_POST.jlog.alert_triggers.intervals);
@@ -905,7 +914,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       const response = await api.post(
         `/api/7284/db/Alert`,
         requestBody_POST,
-        targetIp ? { targetIp } : undefined,
+        ip ? { targetIp: ip } : undefined,
       );
       const data = response.data;
       if (data.code !== 0) {
@@ -928,7 +937,8 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
   {
     /* PUT API Update Toggle State */
   }
-  const PUT_PatientAlert = async (alertList, patientid) => {
+  const PUT_PatientAlert = async (alertList, patientid, overrideIp) => {
+    const ip = overrideIp ?? targetIp;
     try {
       // Remove 'alertguid' from the alertList
       const { alertguid, ...filteredAlertList } = alertList; // Destructure to exclude alertguid
@@ -956,7 +966,7 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       const response = await api.put(
         `/api/7284/db/Alert/${patientid}`,
         updatedData,
-        targetIp ? { targetIp } : undefined,
+        ip ? { targetIp: ip } : undefined,
       );
       const data = response.data;
       if (data.code !== 0) {

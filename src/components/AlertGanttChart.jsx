@@ -354,6 +354,15 @@ function AlertGanttChart() {
   const ganttKey = (item) =>
     item.__srcIp ? `${item.__srcIp}-${item.patientid}` : item.patientid;
 
+  // 批次設定 alert 時，每個病患要打回自己所屬的後端 → 建 patientid → 來源 IP 對照表
+  const patientIpMap = useMemo(() => {
+    const m = {};
+    result.forEach((item) => {
+      if (item.patientid) m[item.patientid] = item.__srcIp;
+    });
+    return m;
+  }, [result]);
+
   const toDecimal = (t) => t.hour + t.minute / 60;
 
   // Helper function to format decimal hours back to HH:mm for tooltips
@@ -577,6 +586,7 @@ function AlertGanttChart() {
               callback={handleModifyPatientAlert}
               patientIDs={selectedAlert}
               isBatchUEXT={isUEXT}
+              patientIpMap={patientIpMap}
             />
           )}
         </div>
