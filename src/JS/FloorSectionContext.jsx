@@ -52,13 +52,22 @@ export const FloorSectionProvider = ({ children }) => {
         // 優先沿用上次(localStorage)的選取；若該樓層/區域在最新清單中已不存在，
         // 才 fallback 到 response 第一筆，避免停在無效的樓層。
         const stored = readStoredFloorSection();
-        const floorValid = stored.floor && list.some((s) => s.floor === stored.floor);
+        // "All" 是合法的選取值（代表跨所有樓層/區域），重整後要保留，不能因為
+        // 清單中找不到 floor === "All" 就 fallback 到第一台。
+        const floorValid =
+          stored.floor &&
+          (stored.floor === "All" || list.some((s) => s.floor === stored.floor));
         const nextFloor = floorValid ? stored.floor : list[0].floor;
+        // section 同理：stored 為 "All" 或 nextFloor 為 "All" 時都視為合法。
         const sectionValid =
           stored.section &&
-          list.some((s) => s.floor === nextFloor && s.section === stored.section);
+          (stored.section === "All" ||
+            nextFloor === "All" ||
+            list.some((s) => s.floor === nextFloor && s.section === stored.section));
         const nextSection = sectionValid
           ? stored.section
+          : nextFloor === "All"
+          ? "All"
           : (list.find((s) => s.floor === nextFloor)?.section ?? null);
 
         setFloor(nextFloor);
