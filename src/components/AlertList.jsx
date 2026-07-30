@@ -111,6 +111,9 @@ function AlertList() {
         second: "2-digit",
         hour12: false,
       }) || "",
+    // 保留原始(含毫秒)時間字串供比較用；顯示用的 alertTime 已被格式化且截掉毫秒，
+    // 直接拿它比較會誤判成「較舊」而觸發不必要的 PUT。
+    alertTimeRaw: parsedMessage.AlertTime,
     status: parsedMessage.Status,
     eventName: parsedMessage.EventName || "",
     alertLevel: parsedMessage.AlertLevel,
@@ -195,15 +198,18 @@ function AlertList() {
             const mac = parsedMessage.MAC;
             const existingAlertMessage = newAlertsMap.get(mac);
             ////console.log("existingAlertsMap:", Array.from(newAlertsMap.entries()));
+            // 只有在「同一 MAC 收到一筆『不同的、且較新的』通知」時，才把舊那筆標記 checked
+            // 並換成新的。若是同一筆通知(同 Id)重送(REST 已載入後 SignalR 又推同一筆)，
+            // 不可再 PUT，否則會把目前顯示中的這筆立刻標成已讀。
+            // 比較時間用原始(含毫秒)字串，避免顯示用字串截掉毫秒造成誤判。
+            const existingTimeRaw =
+              existingAlertMessage?.alertTimeRaw ??
+              existingAlertMessage?.alertTime;
             if (
               existingAlertMessage &&
-              new Date(existingAlertMessage.alertTime) <
-                new Date(parsedMessage.AlertTime)
+              existingAlertMessage.id !== parsedMessage.Id &&
+              new Date(existingTimeRaw) < new Date(parsedMessage.AlertTime)
             ) {
-              // //console.log("existingAlert for MAC:", mac, existingAlertMessage);
-              // //console.log("existingAlert Time for MAC:", mac, existingAlertMessage.alertTime);
-              // //console.log("newAlert Time for MAC:", mac, parsedMessage.AlertTime);
-              // //console.log("existingAlertMessage ID is ", existingAlertMessage.id);
               setNotificationChecked_PUT(
                 existingAlertMessage.id,
                 ipForAlert(existingAlertMessage),
