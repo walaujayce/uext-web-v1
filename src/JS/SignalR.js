@@ -27,7 +27,7 @@ const buildHubUrl = (ipArg) => {
     : `/signalR/${HUB_PORT}`;
 };
 
-class SignalRService {
+export class SignalRService {
   constructor() {
     this.connection = null;
     // 「All」模式：每台後端各一條連線，key = ip

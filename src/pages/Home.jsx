@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
@@ -9,6 +9,7 @@ import "../components/Modals/overlay.css";
 import Navbar from "/src/components/Navbar.jsx";
 import AlertList from "/src/components/AlertList.jsx";
 import FloorSectionBar from "../components/FloorSectionBar";
+import SignalRService, { SignalRService as SignalRServiceClass } from '../JS/SignalR.js'
 import {
   Bed_disconnect,
   Bed_alert,
@@ -22,12 +23,21 @@ import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
 import { useFloorSection } from "../JS/FloorSectionContext";
 
+// ─────────────────────────────────────────────────────────
+// 取得裝置列表的方式切換（開發時手動改這裡）：
+//   false → 原本的 GET /api/8031/devices 輪詢（預設）
+//   true  → 改用 SignalR 推播（topic: "web/notify/devices"，訊息內容與 GET response 相同）
+// 兩種方式都支援指定樓層或選 All（All 會逐台連線/抓取後合併）。
+// ─────────────────────────────────────────────────────────
+const USE_SIGNALR_DEVICES = import.meta.env.VITE_SIGNALR_ENABLE === 'true' ? true : false;
+const DEVICE_TOPIC = "web/notify/devices";
+
 function Home() {
   const { t, i18n } = useTranslation();
 
   // 所有樓層/區域對應的後端清單（每筆 { ip, floor, section }），
   // 供「All」模式逐台抓取所有 device。
-  const { servers } = useFloorSection();
+  const { servers, selectedServer } = useFloorSection();
 
   const [port, setPort] = useState("8031");
   const handleSelectPort = (port) => {
@@ -451,11 +461,66 @@ function Home() {
       console.error("Error fetching device data:", error);
     }
   };
+  // ── 方式 A：GET API 輪詢（USE_SIGNALR_DEVICES = false 時啟用，維持原本行為）──
   useEffect(() => {
+    if (USE_SIGNALR_DEVICES) return; // 改用 SignalR 時不跑 GET 輪詢
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
   }, [port, select_floor, select_section, servers]);
+
+  // ── 方式 B：SignalR 推播（USE_SIGNALR_DEVICES = true 時啟用）──
+  // 要連線/訂閱的後端 IP：All 模式用 targetIps（多台）；單一模式用目前選取的 server。
+  const deviceSignalrIps = useMemo(() => {
+    if (targetIps) return targetIps; // All 模式
+    return selectedServer?.ip ? [selectedServer.ip] : [];
+  }, [targetIps, selectedServer]);
+
+  // 專用的 SignalR 實例（與 AlertList 的連線隔離，避免互相蓋掉）
+  const deviceSignalRRef = useRef(null);
+  if (!deviceSignalRRef.current) deviceSignalRRef.current = new SignalRServiceClass();
+  // 各台推來的最新裝置清單，key = 來源 IP；合併後即為畫面上的 devices
+  const deviceListByIpRef = useRef({});
+
+  useEffect(() => {
+    if (!USE_SIGNALR_DEVICES) return;
+    if (!deviceSignalrIps.length) return;
+    const svc = deviceSignalRRef.current;
+    // 切換樓層/區域(涵蓋 IP 改變)時，先清掉舊資料再重新訂閱
+    deviceListByIpRef.current = {};
+    setDevices([]);
+
+    const handleDeviceMessage = (topic, message, ip) => {
+      if (topic !== DEVICE_TOPIC) return; // 只處理裝置列表推播
+      // console.log(`[${new Date().toLocaleTimeString()}] | ${message}`);
+      let data;
+      try {
+        data = typeof message === "string" ? JSON.parse(message) : message;
+      } catch {
+        return;
+      }
+      // 訊息內容與 GET response 相同：可能是陣列，或 { DATA: [...] }
+      const rawList = Array.isArray(data) ? data : data?.DATA || [];
+      const list = rawList
+        .filter((d) => d.TYPE !== 201)
+        .map((d) => ({ ...d, __srcIp: ip })); // 標來源 IP，避免跨台 MAC 重複互相覆蓋
+      deviceListByIpRef.current = {
+        ...deviceListByIpRef.current,
+        [ip ?? "default"]: list,
+      };
+      setDevices(Object.values(deviceListByIpRef.current).flat());
+    };
+
+    const init = async () => {
+      await svc.startConnections(deviceSignalrIps);
+      svc.onReceiveMessageMulti(handleDeviceMessage);
+    };
+    init();
+
+    return () => {
+      svc.stopConnections();
+    };
+  }, [deviceSignalrIps]);
 
   const renderDeviceComponent = (device) => {
     const {
