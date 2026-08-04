@@ -7,14 +7,14 @@ const WebAPI =
     ? process.env.VITE_WEBAPI_URL === "localhost"
       ? window.location.hostname
       : process.env.VITE_WEBAPI_URL
-    : "192.168.100.201";
+    : "192.168.100.200";
 
 const SocketServer =
   process.env.npm_lifecycle_event === "start:dev"
     ? process.env.VITE_SOCKETSERVER_URL === "localhost"
       ? window.location.hostname
       : process.env.VITE_SOCKETSERVER_URL
-    : "192.168.100.201";
+    : "192.168.100.200";
 
 // 每個 port 在「沒有指定目標 IP」時要 fallback 的預設主機（沿用原本 env 行為）
 const DEFAULT_HOST_BY_PORT = {

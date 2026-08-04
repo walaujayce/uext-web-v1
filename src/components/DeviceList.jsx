@@ -376,7 +376,7 @@ const DeviceList = () => {
               className={`fg2 ${sortType === sortTypes[2] ? "selected" : ""}`}
               onClick={() => SortType(2)}
             >
-              {t("DeviceList.MACAddress")}{" "}({filteredDevices.length})
+              {t("DeviceList.MACAddress")}{" "}
               {sortType === sortTypes[2] &&
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
@@ -425,7 +425,7 @@ const DeviceList = () => {
             <div className="connection fg2" onClick={() => SortType(8)}>
               <h3 className={`${sortType === sortTypes[8] ? "selected" : ""}`}>
                 {t("DeviceList.DeviceStatus")}
-                {`(${connectedDevicesCount})`}
+                {`(${connectedDevicesCount}/${filteredDevices.length})`}
                 {sortType === sortTypes[8] &&
                   (sortDirection ? "\u25BC" : "\u25B2")}
               </h3>

@@ -453,6 +453,7 @@ function Home() {
               }),
           ),
         );
+        // setDevices([...fakeList,results.flat()]);
         setDevices(results.flat());
       } else {
         setDevices(await fetchDevicesFrom());
@@ -663,6 +664,52 @@ function Home() {
     }
   }, []);
 
+  {
+    /* 依目前 deviceType 篩選後，各狀態的裝置數量（顯示在 status 分類標題旁）。
+       每個判斷式與下方各狀態 grid 的 filter 條件一致。 */
+  }
+  const matchesDeviceType = (device) =>
+    select_deviceType === "" ||
+    select_deviceType === "All" ||
+    device.TYPE === select_deviceType;
+
+  const isBedType = (device) => device.TYPE === 1 || device.TYPE === 2;
+  const hasUser = (device) =>
+    !(device.UserName === null || device.UserName === "");
+
+  const statusCounts = {
+    alerts: devices.filter(
+      (d) =>
+        matchesDeviceType(d) &&
+        isBedType(d) &&
+        d.STAT === 1 &&
+        d.BedColor === 1 &&
+        hasUser(d),
+    ).length,
+    attention: devices.filter(
+      (d) =>
+        matchesDeviceType(d) &&
+        isBedType(d) &&
+        d.STAT === 1 &&
+        hasUser(d) &&
+        d.BedColor === 2,
+    ).length,
+    normal: devices.filter(
+      (d) =>
+        matchesDeviceType(d) &&
+        isBedType(d) &&
+        d.STAT === 1 &&
+        hasUser(d) &&
+        d.BedColor === 0,
+    ).length,
+    vacant: devices.filter(
+      (d) => matchesDeviceType(d) && isBedType(d) && d.STAT === 1 && !hasUser(d),
+    ).length,
+    disconnected: devices.filter(
+      (d) => matchesDeviceType(d) && isBedType(d) && d.STAT === 0,
+    ).length,
+  };
+
   return (
     <>
       <Navbar />
@@ -762,7 +809,9 @@ function Home() {
                     !(device.UserName === null || device.UserName === ""),
                 ) && (
                 <div className="status">
-                  <div className="title">{t("Home.Alerts")}</div>
+                  <div className="title">
+                    {t("Home.Alerts")} ({statusCounts.alerts})
+                  </div>
                   <div className="status-grid">
                     {devices
                       // .filter((device) => {
@@ -849,7 +898,9 @@ function Home() {
                     device.BedColor === 2,
                 ) && (
                 <div className="status">
-                  <div className="title">{t("Home.Attention")}</div>
+                  <div className="title">
+                    {t("Home.Attention")} ({statusCounts.attention})
+                  </div>
                   <div className="status-grid">
                     {devices
                       // .filter((device) => {
@@ -938,7 +989,9 @@ function Home() {
                     device.BedColor === 0,
                 ) && (
                 <div className="status">
-                  <div className="title">{t("Home.Normal")}</div>
+                  <div className="title">
+                    {t("Home.Normal")} ({statusCounts.normal})
+                  </div>
                   <div className="status-grid">
                     {devices
                       // .filter((device) => {
@@ -1026,7 +1079,9 @@ function Home() {
                     (device.UserName === null || device.UserName === ""),
                 ) && (
                 <div className="status">
-                  <div className="title">{t("Home.Vacant")}</div>
+                  <div className="title">
+                    {t("Home.Vacant")} ({statusCounts.vacant})
+                  </div>
                   <div className="status-grid">
                     {devices
                       // .filter((device) => {
@@ -1098,7 +1153,9 @@ function Home() {
                     device.STAT === 0,
                 ) && (
                 <div className="status">
-                  <div className="title">{t("Home.Disconnected")}</div>
+                  <div className="title">
+                    {t("Home.Disconnected")} ({statusCounts.disconnected})
+                  </div>
                   <div className="status-grid">
                     {devices
                       // .filter((device) => {

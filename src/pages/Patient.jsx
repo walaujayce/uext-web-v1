@@ -355,7 +355,7 @@ function Patient() {
                     className={`${sortType === sortTypes[7] ? "selected" : ""}`}
                   >
                     {t("PatientList.DeviceStatus")}
-                    {`(${connectedDevicesCount})`}{" "}
+                    {`(${connectedDevicesCount}/${filteredDevices.length})`}{" "}
                     {sortType === sortTypes[7] &&
                       (sortDirection ? "\u25BC" : "\u25B2")}
                   </h3>
