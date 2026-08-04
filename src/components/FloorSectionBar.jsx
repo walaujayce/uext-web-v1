@@ -17,6 +17,10 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
   const { floors, sections, floor, section, setSection, chooseFloor } =
     useFloorSection();
 
+  // 只有一個 floor / section 時，指定單一與 "All" 效果相同 → 下拉只顯示 "All"，簡化 UI
+  const onlyOneFloor = floors.length === 1;
+  const onlyOneSection = sections.length === 1;
+
   {
     /* Floor Dropdown Menu Logic */
   }
@@ -54,12 +58,19 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
   }
   const didInitDefaults = useRef(false);
   useEffect(() => {
-    if (!didInitDefaults.current && floor && section) {
-      didInitDefaults.current = true;
+    // 等 servers 載入（floors 有值）才決定預設
+    if (didInitDefaults.current || floors.length === 0) return;
+    didInitDefaults.current = true;
+    if (onlyOneFloor && onlyOneSection) {
+      // 只有一個 floor 且一個 section → 預設就用 "All"
+      chooseFloor("All");
+      selectFloor?.("All");
+      selectSection?.("All");
+    } else if (floor && section) {
       selectFloor?.(floor);
       selectSection?.(section);
     }
-  }, [floor, section]);
+  }, [floors, sections, floor, section]);
   {
     /* Port Dropdown Menu Logic */
   }
@@ -207,14 +218,14 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
             className="placeholder"
             id="floor"
             name="name"
-            placeholder={floor || ""}
+            placeholder={onlyOneFloor ? "All" : floor || ""}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
         </div>
         <div className="assistive-text">this is a line of assistive text</div>
         <div className={`list ${isFloorActive ? "active" : ""}`} ref={dropdownFloorStyleRef}>
-          {["All", ...floors].map((floor) => (
+          {(onlyOneFloor ? ["All"] : ["All", ...floors]).map((floor) => (
             <div
               className="item"
               key={floor}
@@ -244,14 +255,14 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
             className="placeholder"
             id="section"
             name="name"
-            placeholder={section || ""}
+            placeholder={onlyOneSection ? "All" : section || ""}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
         </div>
         <div className="assistive-text">this is a line of assistive text</div>
         <div className={`list ${isSectionActive ? "active" : ""}`} ref={dropdownSectionStyleRef}>
-          {["All", ...sections].map((section) => (
+          {(onlyOneSection ? ["All"] : ["All", ...sections]).map((section) => (
             <div
               className="item"
               key={section}

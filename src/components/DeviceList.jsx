@@ -376,7 +376,7 @@ const DeviceList = () => {
               className={`fg2 ${sortType === sortTypes[2] ? "selected" : ""}`}
               onClick={() => SortType(2)}
             >
-              {t("DeviceList.MACAddress")}{" "}
+              {t("DeviceList.MACAddress")}{" "}({filteredDevices.length})
               {sortType === sortTypes[2] &&
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
