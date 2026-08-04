@@ -5,7 +5,7 @@
     justify-content: center;
     align-items: center;
     gap: 8px;
-    background: var(--800, #333);
+    background: var(--800, var(--btn-color));
     border: 2px solid transparent;
     margin-bottom: 6px;
 }
@@ -13,23 +13,29 @@
 .btn:hover{
     cursor: pointer;
     background: var(--950, #0D0D0D);
+    .prefix{
+        content: url(/src/assets/btn-add.svg);
+    }
 }
 
 .btn .prefix{
     display: block;
     width: 24px;
     height: 24px;
-    content: url(/src/assets/btn-add.svg);
+    content: var(--add-button-img);
 }
 
 .btn .btn-text{
     display: inline;
-    color: var(--0, #FFF);
+    color: var(--0, var(--bg-color));
+    /* color: var(--0, red); */
     font-size: 24px;
     font-weight: 400;
     line-height: 100%; /* 24px */
 }
-
+.btn:hover .btn-text{
+    color: var(--0, var(--btn-text-color));
+}
 .btn.inactive{
     cursor: default;
     background: var(--100, #E6E6E6);
@@ -72,7 +78,10 @@
 }
 
 .btn.outline .btn-text{
-    color: #4D4D4D;
+    color: var(--primary-color);
+}
+.btn.outline .btn-text.pri-text{
+    color: var(--btn-text-color);
 }
 
 .btn.outline .prefix{
@@ -80,9 +89,9 @@
 }
 
 .btn.outline:hover{
-    border: 2px solid var(--950, #0D0D0D);
+    border: 2px solid var(--950, var(--primary-color));
     .btn-text{
-        color: var(--950, #0D0D0D);
+        color: var(--950, var(--primary-color));
         font-weight: 500;
     }
 }
@@ -147,7 +156,7 @@
         border: 1.5px solid var(--700, #4D4D4D);
     }
     .btn.outline:hover{
-        border: 1.5px solid var(--950, #0D0D0D);
+        border: 1.5px solid var(--950, var(--primary-color));
     }
     .btn.outline.inactive{
         border: 1.5px solid var(--200, #CCC);

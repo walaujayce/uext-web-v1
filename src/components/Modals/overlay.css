@@ -21,7 +21,7 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: var(--0, #FFF);
+    background: var(--0, var(--bg-color));
     cursor: default;
     position: fixed;
     left: 50%;
@@ -36,7 +36,7 @@
 }
 
 .overlay .warn .title{
-    color: var(--1000, #000);
+    color: var(--1000, var(--primary-color));
     text-align: center;
     font-size: 48px;
     font-style: normal;
@@ -118,7 +118,7 @@
     padding: 40px 80px 80px;
     flex-direction: column;
     align-items: center;
-    background: var(--0, #FFF);
+    background: var(--0, var(--bg-color));
     cursor: default;
     position: fixed;
     left: 50%;
@@ -134,7 +134,7 @@
 }
 
 .addPatient .title-add{
-    color: var(--1000, #000);
+    color: var(--1000, var(--primary-color));
     text-align: center;
     font-size: 48px;
     font-style: normal;
@@ -168,9 +168,9 @@
 }
 
 .addPatient .tab.active{
-    color: var(--850, #262626);
+    color: var(--850, var(--primary-text-color));
     font-weight: 500;
-    border-bottom: 3px solid var(--850, #262626);
+    border-bottom: 3px solid var(--850, var(--primary-text-color));
 }
 
 .addPatient .tab.completed{
@@ -197,9 +197,9 @@
 }
 
 .react-date-picker{
-    background-color: red !important;
+    /* background-color: red !important; */
     color: white; /* Ensure text is readable */
-    width: 50px;
+    /* width: 50px; */
 }
 .addPatient .btn-gp{
     display: flex;
@@ -290,7 +290,7 @@
     gap: 48px;
     flex-direction: column;
     align-items: center;
-    background: var(--0, #FFF);
+    background: var(--0, var(--bg-color));
     cursor: default;
     position: fixed;
     left: 50%;
@@ -305,7 +305,7 @@
 }
 
 .addDevice .title{
-    color: var(--1000, #000);
+    color: var(--1000, var(--primary-color));
     text-align: center;
     font-size: 48px;
     font-style: normal;
@@ -337,9 +337,9 @@
 }
 
 .addDevice .tab.active{
-    color: var(--850, #262626);
+    color: var(--850, var(--primary-text-color));
     font-weight: 500;
-    border-bottom: 3px solid var(--850, #262626);
+    border-bottom: 3px solid var(--850, var(--primary-text-color));
 }
 
 .addDevice .tab.completed{

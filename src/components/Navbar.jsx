@@ -1,20 +1,30 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import "/src/CSS/index.css";
 import { useAuth } from "../JS/AuthContext";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import LogOut_Modal from "./Modals/LogOut";
 import { useTranslation } from "react-i18next";
 import ChangePasswordModal from "./Modals/ChangePassword";
+import MultiServerSetting from "./Modals/MultiServerSetting";
 import dayjs from "dayjs";
+import api from "../api/apiClient"
 
 function Navbar() {
   const { t, i18n } = useTranslation();
 
-  const { logout, role } = useAuth();
+  const { logout, role, toggleThemeMode, isDarkMode } = useAuth();
+
+  // 目前選取樓層/區域對應的後端 IP；錯誤通知(Errorlog)會依此重抓
+  const { selectedServer } = useFloorSection();
+  const targetIp = selectedServer?.ip ?? null;
+  const errorlogRunIdRef = useRef(0); // 只讓最新一次 Errorlog fetch 能寫入
 
   const [currentLang, setCurrentLang] = useState("zh");
 
   const [userName, setUserName] = useState("");
+
+  const [theme, setTheme] = useState("");
 
   const changeLanguage = (lng) => {
     i18n.changeLanguage(lng); // Change the active language
@@ -30,6 +40,13 @@ function Navbar() {
       changeLanguage("zh");
     }
     setUserName(JSON.parse(localStorage.getItem("username")));
+
+    //   const theme = localStorage.getItem("theme");
+    //   if(theme){
+    //     toggleThemeMode(theme);
+    //   }else{
+    //     toggleThemeMode("dark");
+    //   }
   }, []);
   {
     /* nav link 字體反黑 */
@@ -84,6 +101,17 @@ function Navbar() {
     setActiveAccount(false);
   };
   {
+    /* Handle Multi-Server (IP / Floor / Section) Overlay Visible */
+  }
+  const [isMultiServerOverlayVisible, setMultiServerOverlayVisible] =
+    useState(false);
+
+  const handleMultiServerVisibleClick = (e) => {
+    e.preventDefault();
+    setMultiServerOverlayVisible(!isMultiServerOverlayVisible);
+    setActiveAccount(false);
+  };
+  {
     /* Get User ID for account setting */
   }
   const [selected_user_id, setSelectedUserId] = useState("");
@@ -91,19 +119,21 @@ function Navbar() {
     async function fetchData() {
       try {
         // Get userid based on username in local storage
-        const response = await fetch("/api/7284/User", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
+        const response = await api.get("/api/7284/User");
+        const data = response.data;
+        // const response = await fetch("/api/7284/User", {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
+        // const data = await response.json();
         const stored_username = JSON.parse(localStorage.getItem("username"));
         const selected_user = data.find(
-          (user) => user.username == stored_username
+          (user) => user.username == stored_username,
         );
         setSelectedUserId(selected_user.userid);
       } catch (error) {
@@ -177,27 +207,22 @@ function Navbar() {
     }
   };
   useEffect(() => {
+    // 樓層/區域(IP)切換時重新抓該樓層的錯誤通知；runId 確保只有最新一次能寫入
+    const runId = ++errorlogRunIdRef.current;
     async function fetchErrorlog() {
       try {
-        // Get userid based on username in local storage
-        const response = await fetch("/api/7284/db/Errorlog", {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        const data = await response.json();
-        console.log("error log: ", data);
+        const response = await api.get("/api/7284/db/Errorlog", { targetIp });
+        // 期間又切了樓層 → 丟棄這次結果
+        if (runId !== errorlogRunIdRef.current) return;
+        const data = response.data;
+        //console.log("error log: ", data);
         setErrorlogs(data);
       } catch (error) {
         console.error("Error :", error.message);
       }
     }
     fetchErrorlog();
-  }, []);
+  }, [targetIp]);
 
   {
     /* PUT API set Checkstatus */
@@ -207,27 +232,28 @@ function Navbar() {
   };
   const setNotificationChecked_PUT = async (notification_Id) => {
     try {
-      const response = await fetch(`/api/7284/db/Errorlog/${notification_Id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestbody_PUT), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Errorlog/${notification_Id}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestbody_PUT), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      const response = await api.put(`/api/7284/db/Errorlog/${notification_Id}`, requestbody_PUT, { targetIp });
+      const data = response.data;
       if (data.code !== 0) {
-        console.log(data.message);
+        //console.log(data.message);
         return;
       }
-      console.log("Notification is set CHECKED successfully:", data);
+      //console.log("Notification is set CHECKED successfully:", data);
 
       // Remove the dismissed notification from state
       setErrorlogs((prevLogs) =>
-        prevLogs.filter((errorlog) => errorlog.guid !== notification_Id)
+        prevLogs.filter((errorlog) => errorlog.guid !== notification_Id),
       );
     } catch (error) {
       console.error("Error updating device:", error.message);
@@ -265,6 +291,15 @@ function Navbar() {
             {t("Navbar.Patient")}
           </Link>
           <Link
+            to="/alert"
+            state={{ reload: true }}
+            className={`nav-link ${
+              location.pathname.includes("/alert") ? "active" : ""
+            }`}
+          >
+            {t("Navbar.Alert")}
+          </Link>
+          <Link
             to="/device"
             state={{ reload: true }}
             className={`nav-link ${
@@ -288,23 +323,27 @@ function Navbar() {
         {/* Settings */}
         <div className="other">
           <div
-            className={`lang ${isActiveLang ? "" : ""}`}
+            className="lang"
             onMouseEnter={handleMouseEnterLang}
             onMouseLeave={handleMouseLeaveLang}
           >
             <img
-              src="/src/assets/lang.svg"
+              src={
+                isDarkMode
+                  ? "/src/assets/lang-white.svg"
+                  : "/src/assets/lang.svg"
+              }
               alt="language button"
               className="langBtn"
             />
             <div className={`list ${isActiveLang ? "active" : ""}`}>
               <a
                 href="#"
-                className="option"
+                className={`option ${isDarkMode ? "dark" : ""}`}
                 onClick={() => changeLanguage("en")}
               >
                 <img
-                  src="/src/assets/check.svg"
+                  src="/src/assets/check-grey.svg"
                   alt=""
                   style={{ display: currentLang === "en" ? "flex" : "none" }}
                 />
@@ -312,11 +351,11 @@ function Navbar() {
               </a>
               <a
                 href="#"
-                className="option"
+                className={`option ${isDarkMode ? "dark" : ""}`}
                 onClick={() => changeLanguage("zh")}
               >
                 <img
-                  src="/src/assets/check.svg"
+                  src="/src/assets/check-grey.svg"
                   alt=""
                   style={{ display: currentLang === "en" ? "none" : "flex" }}
                 />
@@ -329,7 +368,15 @@ function Navbar() {
             onMouseEnter={handleMouseEnterNotification}
             onMouseLeave={handleMouseLeaveNotification}
           >
-            <img src="/src/assets/notice.svg" alt="" className="notiBtn" />
+            <img
+              src={
+                isDarkMode
+                  ? "/src/assets/notice-white.svg"
+                  : "/src/assets/notice.svg"
+              }
+              alt=""
+              className="notiBtn"
+            />
             <div className={`list ${isActiveNotification ? "active" : ""}`}>
               {errorlogs
                 .filter((errorlog) => /connected|offline/i.test(errorlog.log))
@@ -363,11 +410,15 @@ function Navbar() {
             onMouseLeave={handleMouseLeave}
           >
             <img
-              src="/src/assets/account-active.svg"
+              src={
+                isDarkMode
+                  ? "/src/assets/account-white.svg"
+                  : "/src/assets/account-active.svg"
+              }
               alt=""
               className="settingBtn"
             />
-            <div className={`list ${isActiveAccount ? "active" : ""}`}>
+            <div className={`list ${isDarkMode ? "dark":""} ${isActiveAccount ? "active" : ""}`}>
               <div className="profile">
                 <img src="/src/assets/account-active.svg" alt="" />
                 <p>{userName}</p>
@@ -376,36 +427,81 @@ function Navbar() {
                 to={`/account/account-settings?userid=${selected_user_id}`}
                 key={selected_user_id}
               >
-                <a href="#" className="option setting">
+                <a
+                  href="#"
+                  className={`option setting ${isDarkMode ? "dark" : ""}`}
+                >
                   <img
-                    src="/src/assets/setting.svg"
+                    src="/src/assets/setting-grey.svg"
                     alt=""
                     className="setting-img"
-                    style={{ width: "34px" }}
+                    style={{ width: "34px", padding: "2px", height:"34px"}}
                   />
                   <p>{t("Navbar.AccountSettings")}</p>
                 </a>
               </Link>
               <a
                 href="#"
-                className="option pw"
+                className={`option pw ${isDarkMode ? "dark" : ""}`}
                 id="changePassword"
                 onClick={handleChangePasswordVisibleClick}
               >
                 <img
-                  src="/src/assets/lock.svg"
+                  src="/src/assets/lock-grey.svg"
                   className="setting-img"
-                  style={{ width: "34px" }}
+                  style={{ width: "34px", padding: "2px"  ,height:"34px"}}
                   alt=""
                 />
                 <p>{t("Navbar.ChangePassword")}</p>
               </a>
-              <a className="option logout" onClick={handleLogOutVisibleClick}>
+              {/* toggle light/dark mode */}
+              <a
+                href="#"
+                className={`option theme ${isDarkMode ? "dark" : ""}`}
+                id="toggleTheme"
+                onClick={toggleThemeMode}
+              >
                 <img
-                  src="/src/assets/logout.svg"
+                  src={
+                    isDarkMode
+                      ? "/src/assets/dark-mode-grey.svg"
+                      : "/src/assets/light-mode-grey.svg"
+                  }
+                  className="setting-img"
+                  style={{ width: "34px", padding: "2px", height:"34px"}}
+                  alt=""
+                />
+                <p>{t("Navbar.ToggleLightDarkMode")}</p>
+              </a>
+              {/* Multi-server */}
+              {["administrator", "engineer"].includes(role) && (<a
+                href="#"
+                className={`option floorsection ${isDarkMode ? "dark" : ""}`}
+                id="multiServerSetting"
+                onClick={handleMultiServerVisibleClick}
+              >
+                <img
+                  src={
+                    isDarkMode
+                      ? "/src/assets/building-grey.svg"
+                      : "/src/assets/building-grey.svg"
+                  }
+                  className="setting-img"
+                  style={{ width: "34px", padding: "2px", height:"34px"}}
+                  alt=""
+                />
+                <p>{t("Navbar.FloorSection")}</p>
+              </a>)}
+              {/* 登出 */}
+              <a
+                className={`option logout ${isDarkMode ? "dark" : ""}`}
+                onClick={handleLogOutVisibleClick}
+              >
+                <img
+                  src="/src/assets/logout-grey.svg"
                   alt=""
                   className="setting-img"
-                  style={{ width: "34px" }}
+                  style={{ width: "34px", padding: "3px" ,  height:"34px"}}
                 />
                 <p>{t("Navbar.Logout")}</p>
               </a>
@@ -425,9 +521,14 @@ function Navbar() {
             logout_callback={logout}
           />
         )}
+        {isMultiServerOverlayVisible && (
+          <MultiServerSetting callback={handleMultiServerVisibleClick} />
+        )}
       </div>
     </>
   );
 }
 
 export default Navbar;
+
+//TODO: icon size 

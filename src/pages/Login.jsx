@@ -8,6 +8,9 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import { useAuth } from "../JS/AuthContext";
 import { useTranslation } from "react-i18next";
+import { login_auth } from "../auth/authService";
+import api from "../api/apiClient";
+import { getAccessToken } from "../auth/authStore";
 
 function Login() {
   const { t, i18n } = useTranslation();
@@ -22,13 +25,13 @@ function Login() {
   };
 
   const handleKeyPress = (event) => {
-    if (event.key === "Enter") {
+    event.preventDefault(); // Prevents the page from reloading
       handleLogin();
-    }
   };
 
+
   const navigate = useNavigate();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, toggleThemeMode, isDarkMode } = useAuth();
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -38,7 +41,7 @@ function Login() {
 
   const loginRequest = {
     userid: username,
-    password: password
+    password: password,
   };
   const handleLogin = async () => {
     try {
@@ -47,62 +50,55 @@ function Login() {
         alert(error);
         return;
       }
-      const user_login = await fetch("/api/7284/User/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(loginRequest)
-      });
-      if (!user_login.ok) {
-        throw new Error(`HTTP error! status: ${user_login.status}`);
-      }
-      const result = await user_login.json();
-      console.log(result);
+      // console.log("Click: ");
+      const res = await login_auth(username, password);
 
-      const response = await fetch("/api/7284/User", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      //console.log(data);
-      // Assuming `data.password` contains the stored password
-      const user = data.find((user) => user.userid === username);
+      // const res = api.get('/api/7284/User');
+      // const response = await fetch("/api/7284/User", {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      // const data = await response.json();
+      // const user = data.find((user) => user.userid === username);
 
-      if (user) {
-        //console.log("Password:", user.password);
-        if (result.code===0) {
-          localStorage.setItem("username", JSON.stringify(user.username)); // Save user to localStorage
+      if (res.code === 200) {
+        ////console.log("Password:", user.password);
+        localStorage.setItem("username", JSON.stringify(username)); // Save user to localStorage
 
-          switch (user.role) {
-            case 0:
-              login("administrator");
-              break;
-            case 1:
-              login("engineer");
-              break;
-            case 2:
-              login("user");
-              break;
-          }
-          navigate("/home");
-        } else {
-          setError("Incorrect password");
-          alert("Invalid User account or Password!");
+        switch (res.data.role) {
+          case 0:
+            login("administrator");
+            break;
+          case 1:
+            login("engineer");
+            break;
+          case 2:
+            login("user");
+            break;
         }
+        navigate("/home");
+      } else {
+        setError("Incorrect password");
+        alert("Invalid User account or Password!");
       }
     } catch (error) {
+      if (error.response && error.response.status === 401) {
+        console.log("Unauthorized: Access denied.");
+        // Clear local storage or redirect user
+      } else {
+        console.log("An error occurred:", error.message);
+        // alert(error.response.status);
+      }
       setError("An error occurred while logging in");
       console.error(error);
     }
-
   };
-  
+
   {
     /* Navigate to forget password Page */
   }
@@ -112,12 +108,13 @@ function Login() {
 
   return (
     <>
-      <img className="background" src="/src/assets/login-bg.svg" alt="" />
+      <img className={`background ${isDarkMode ? "dark" : ""}`} src="/src/assets/login-bg.svg" alt="" />
+      <div className={`toggle-btn ${isDarkMode ? "dark" : ""}`} onClick={toggleThemeMode}><img className="img" src="/src/assets/light-mode-grey.svg" alt="" /></div>
       <div className="login">
         <img className="uextLogo" src="/src/assets/uneo-logo.svg" alt="" />
         {/* <div className="title">{t("Login.title")}</div> */}
         {/* Login Page */}
-        <form className="st2 active">
+        <form className="st2 active" onSubmit={handleKeyPress} noValidate>
           {/* login input box */}
           <div className="input g-c-6">
             <label htmlFor="login" className="label-container">
@@ -130,11 +127,11 @@ function Login() {
             </label>
             <div className="input-gp">
               <input
-                type="email"
+                type="text"
                 pattern=""
                 className="placeholder"
                 name="login"
-                placeholder={t('Login.InputboxPlaceholder')}
+                placeholder={t("Login.InputboxPlaceholder")}
                 required
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
@@ -166,7 +163,7 @@ function Login() {
                 type={showPassword ? "text" : "password"}
                 className="placeholder"
                 name="pw"
-                placeholder={t('Login.InputboxPlaceholder')}
+                placeholder={t("Login.InputboxPlaceholder")}
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -189,9 +186,9 @@ function Login() {
           </div>
           <div className="btn-gp">
             {/* login button */}
-            <a className="btn text-only pri" onClick={handleLogin}>
+            <button className="btn text-only pri" onClick = {()=>handleLogin} type="submit">
               <p className="btn-text pri-text">{t("Login.Login")}</p>
-            </a>
+            </button>
 
             {/* forget password button */}
             <div

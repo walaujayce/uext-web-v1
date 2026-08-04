@@ -18,12 +18,15 @@
   "Navbar": {
     "Home": "Home",
     "Patient": "Resident",
+    "Alert": "Alert",
     "Device": "Device",
     "Account": "Account",
     "AccountSettings": "Account Settings",
     "ChangePassword": "Change Password",
+    "ToggleLightDarkMode": "Toggle Dark/Light Mode",
+    "FloorSection": "Floor/Section",
     "Logout": "Logout",
-    "Notification-date-today":"Today"
+    "Notification-date-today": "Today"
   },
   "Home": {
     "Monitor": "Monitors List",
@@ -38,22 +41,40 @@
   },
   "FloorSection": {
     "Floor": "Floor",
-    "Section": "Section"
+    "Section": "Section",
+    "DeviceType": "Device Type"
   },
   "AlertList": {
     "Alerts": "Alerts List",
-    "BedExitAlert": "Bed Exit Alert",
-    "AttentionAlert": "Attention Alert",
     "Section": "Section",
     "Bed": "Bed",
-    "Name": "Name"
+    "Name": "Name",
+    "NotSpecifiedAlert": "Not Specified Alert",
+    "RestOnBedAlert": "Lying Alert",
+    "SitOnBedAlert": "Sit Up Alert",
+    "SitOnBedEdgeAlert": "Edge of Bed Alert",
+    "BedExitAlert": "Bed Exit Alert",
+    "UnusualConditionAlert": "Abnormal Alert",
+    "LeftAlert": "Left Side Alert",
+    "RightAlert": "Right Side Alert",
+    "AttentionAlert": "Attention Alert",
+    "TurnOverAlert": "Turn Over Alert",
+    "RiskAlert": "Pressure Alert",
+    "LeavingAlert": "About to leave Alert"
   },
   "ConfirmAlertModal": {
-    "h1-alert": "Bed Exit Alert",
-    "h1-attention": "Attention Alert",
-    "description-alert-p1": "{{PatientName}} (Bed {{BedNo}}) has left the bed.",
+    "h1-NotSpecifiedAlert": "Not Specified Alert",
+    "h1-RestOnBedAlert": "Lying Alert",
+    "h1-SitOnBedAlert": "Sit Up Alert",
+    "h1-SitOnBedEdgeAlert": "Edge of Bed Alert",
+    "h1-BedExitAlert": "Bed Exit Alert",
+    "h1-UnusualConditionAlert": "Abnormal Alert",
+    "h1-LeftAlert": "Left Side Alert",
+    "h1-RightAlert": "Right Side Alert",
+    "h1-AttentionAlert": "Attention Alert",
+    "description-alert-p1": "{{PatientName}} (Bed {{BedNo}})",
+    "description-attention-p1": "{{PatientName}} (Bed {{BedNo}})",
     "description-alert-p2": "Please follow up immediately.",
-    "description-attention-p1": "{{PatientName}} (Bed {{BedNo}}) is attempting to left the bed.",
     "description-attention-p2": "Please follow up immediately.",
     "GotIt": "Got it",
     "Cancel": "Cancel"
@@ -73,6 +94,8 @@
     "Monitor": "Monitor",
     "Alerts": "Alerts",
     "Debug": "Debug",
+    "Analysis": "Analysis",
+    "Record": "Record",
     "Back": "Back"
   },
   "PatientProfile": {
@@ -89,7 +112,8 @@
     "DeviceID": "Device ID",
     "DeviceStatus": "Connection Status",
     "Save": "Save",
-    "Discharge": "Discharge"
+    "Discharge": "Discharge",
+    "Calibration": "Calibration"
   },
   "AddPatientModal": {
     "ClickToAddPatient": "Click to add resident",
@@ -108,6 +132,11 @@
   "DischargeModal": {
     "description": "Confirm to discharge the resident?",
     "Discharge": "Discharge",
+    "Cancel": "Cancel"
+  },
+  "CalibrationModal": {
+    "description": "Confirm to proceed calibration?",
+    "Confirm": "Confirm",
     "Cancel": "Cancel"
   },
   "PatientMonitor": {
@@ -153,17 +182,31 @@
     "PhysiologicalAlerts-description2": "Alert when heart rate exceeds the specified range.",
     "Save": "Save",
     "ResetToDefault": "Reset To Default",
+    "TurnOffAlert": "Turn Off Alert",
     "Sec": "sec",
     "HzMax": "Hz (Max.)",
-    "HzMin": "Hz (Min.)"
+    "HzMin": "Hz (Min.)",
+    "AddNewAlert": "Add time slot",
+    "TurnOverAlert": "Turn Over and Pressure Alert",
+    "TurnOverHoldTime": "Hold Time",
+    "TurnOverHoldTimeDescription": "Alert when current posture exceeds the specified hold time.",
+    "PressureRisk": "Pressure Risk",
+    "PressureRiskDescription": "Based on the multiple of pressure and duration values which is used as the threshold for pressure risk alert notifications. For example, if the settings are 30 mmHg and 120 minutes, the result is 3600. Therefore, when the pressure in a specific area reaches 100 mmHg and the duration reaches 36 minutes, the system will trigger an alert."
+  },
+  "Alert": {
+    "AlertSettingList": "Alert Setting List",
+    "Setting": "Setting",
+    "BedID": "Bed ID",
+    "PatientID": "Resident",
+    "NoResident": "No resident"
   },
   "DeviceList": {
     "NewDevice": "New Device",
     "DeviceList": "Device List",
     "DeviceType": "Type",
     "DeviceID": "Device ID",
-    "MACAddress": "MAC Address",
-    "IPAddress": "IP Address",
+    "MACAddress": "MAC",
+    "IPAddress": "IP",
     "Bed": "Bed",
     "Section": "Section",
     "Floor": "Floor",
@@ -190,6 +233,7 @@
     "RecordData-p": "Download record data to local storage.",
     "ErrorLog": "Error Log",
     "ErrorLog-p": "Download error log to local storage.",
+    "AlarmLog": "Alarm Log",
     "StartTime": "Start Time",
     "EndTime": "End Time",
     "DeviceRemove": "Device Remove",
@@ -237,7 +281,8 @@
     "Role": "Role",
     "UsernameAndPassword": "Password Setting",
     "LoginUserName": "Login Username",
-    "Password": "Password",
+    "CurrentPassword": "Current Password",
+    "NewPassword": "New Password",
     "Save": "Save",
     "ChangePassword": "Change Password",
     "DeleteUser": "Delete User",
@@ -273,5 +318,147 @@
     "Okay": "Okay",
     "OkayMessageTitle": "New password has been updated",
     "OkayMessageH1": "Remember to use the new password when you login next time."
+  },
+  "AlertBatchSetting": {
+    "Title": "Alert Setting",
+    "Confirm": "Confirm"
+  },
+  "RiskRegion": {
+    "Id": "ID",
+    "HoldTime": "Hold Time(sec)",
+    "PressureArea": "Pressure Area",
+    "Level": "Risk Level",
+    "High": "High",
+    "Medium": "Medium",
+    "Low": "Low",
+    "Unusual": "Unusual",
+    "NaN": "No risk record"
+  },
+  "PatientRecord": {
+    "NotEnoughData": "Data is not enough for analysis.",
+    "SleepingTime": "Sleeping Time",
+    "LeaveBedCount": "Leave Bed Count",
+    "TurnOverCount": "Turn Over Count",
+    "TurnOverInterval": "Maximal Turn Over Time Interval",
+    "SummaryTitle": "Analysis Summary",
+    "DetailsTitle": "Detailed Recommendations",
+    "Date":"Date",
+    "Times":"times",
+    "Hour": "hr",
+    "Recommendations": {
+      "sleepTime": {
+        "normal": {
+          "summaryTitle": "Normal",
+          "summaryRange": "(Average 7-9 hours per night)",
+          "details": [
+            "Maintain about 7-9 hours of sleep per day to support physical recovery.",
+            "Encourage a regular sleep schedule and avoid day-night reversal.",
+            "Limit daytime naps to less than 30 minutes so nighttime sleep is not affected."
+          ]
+        },
+        "insufficient": {
+          "summaryTitle": "Insufficient Sleep / Poor Quality",
+          "summaryRange": "(Average less than 6 hours per night)",
+          "details": [
+            "Resident has insufficient nighttime sleep; provide a quiet environment and reduce disturbances.",
+            "Avoid stimulating activities before bed such as phone use or caffeinated drinks.",
+            "Assess for pain, discomfort, or anxiety affecting sleep; notify the physician if necessary."
+          ]
+        },
+        "excessive": {
+          "summaryTitle": "Excessive Sleep / Drowsiness",
+          "summaryRange": "(Average more than 10 hours per night)",
+          "details": [
+            "Resident shows notable drowsiness; encourage gentle awakening and daytime activity.",
+            "Adjust daytime nap duration to avoid disrupting nighttime sleep.",
+            "Assess whether it is related to medication side effects or underlying conditions."
+          ]
+        }
+      },
+      "leaveBed": {
+        "normal": {
+          "summaryTitle": "Normal",
+          "summaryRange": "(Average less than or equal to 2 times per night)",
+          "details": [
+            "Resident's nighttime out-of-bed frequency is acceptable; continue to observe activity at night.",
+            "Maintain a safe bedside environment, such as safety rails and call bell.",
+            "Encourage toileting before bed to reduce nighttime out-of-bed needs.",
+            "Continue to assess fall risk and provide necessary aids such as walkers."
+          ]
+        },
+        "warn": {
+          "summaryTitle": "Excessive Out-of-Bed / Frequent Urination",
+          "summaryRange": "(Average more than 2 times per night)",
+          "details": [
+            "Resident leaves bed frequently at night; strengthen fall prevention with call bell and lower bed height.",
+            "Assess possible causes such as frequent urination, pain, or discomfort; notify the physician if necessary.",
+            "Schedule regular toileting times, such as before bed and at fixed intervals at night.",
+            "Provide moderate nighttime lighting to reduce falls due to poor visibility.",
+            "Assess whether companionship or more frequent rounds are needed."
+          ]
+        }
+      },
+      "turnOverUEXT": {
+        "normal": {
+          "summaryTitle": "Normal",
+          "summaryRange": "(Average less than or equal to 40 times per night)",
+          "details": [
+            "Resident's nighttime turn-over count is acceptable; continue to observe activity at night.",
+            "Continue providing proper positioning and support, such as pillows and pressure-relief mats.",
+            "Maintain a safe bedside environment, such as safety rails and call bell."
+          ]
+        },
+        "warn": {
+          "summaryTitle": "Excessive Turn-Over / Light Sleep",
+          "summaryRange": "(Average more than 40 times per night)",
+          "details": [
+            "Resident turns over frequently at night; assess whether it is caused by pain, discomfort, or anxiety.",
+            "Check whether the mattress is comfortable and positioning is appropriate.",
+            "Assess pressure-point pain or skin issues if necessary.",
+            "Reinforce nighttime observation; notify the physician for medication or treatment review if necessary."
+          ]
+        }
+      },
+      "turnOverUMAP": {
+        "normal": {
+          "summaryTitle": "Normal",
+          "summaryRange": "(Average greater than or equal to 12 times per day)",
+          "details": [
+            "Resident's daily turn-over count is normal and meets pressure injury prevention principles; continue scheduled turning.",
+            "Continue executing the turning plan along with skin assessment and pressure-relief aids."
+          ]
+        },
+        "warn": {
+          "summaryTitle": "Insufficient Turn-Over",
+          "summaryRange": "(Average less than 12 times per day)",
+          "details": [
+            "Resident's daily turn-over count is too low; increase turning frequency to prevent pressure injuries.",
+            "Execute the turning plan strictly and strengthen turning records.",
+            "Assess whether staffing, patient condition, or care arrangements affect turning execution.",
+            "Adjust the care plan or increase rounding frequency if necessary."
+          ]
+        }
+      },
+      "turnOverInterval": {
+        "normal": {
+          "summaryTitle": "Normal",
+          "summaryRange": "(Max interval less than or equal to 2 hours per day)",
+          "details": [
+            "Resident's turn-over interval is normal and meets pressure injury prevention principles; continue current practice.",
+            "Continue executing the turning plan along with skin assessment and pressure-relief aids."
+          ]
+        },
+        "warn": {
+          "summaryTitle": "Excessively Long Interval",
+          "summaryRange": "(Max interval more than 2 hours per day)",
+          "details": [
+            "Resident's turn-over interval exceeds the recommendation; shorten the interval to reduce pressure injury risk.",
+            "Implement scheduled turning and strengthen documentation.",
+            "Assess whether nighttime staffing or care workflow affects turning execution.",
+            "Adjust care arrangements to ensure proper turning frequency."
+          ]
+        }
+      }
+    }
   }
 }

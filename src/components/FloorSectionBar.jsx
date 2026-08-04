@@ -5,40 +5,17 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
+import { useFloorSection } from "../JS/FloorSectionContext";
 
-function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
+function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceType, enableDeviceType }) {
       const { t, i18n } = useTranslation();
-  
-  {
-    /* Fetch Floors API */
-  }
-  const [floors, setFloors] = useState([]);
 
-  const fetchFloorList = async () => {
-    try {
-      const response = await fetch("/api/7284/Floor", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log(data);
-      setFloors(data);
-      const floorToSet = data.find((floor) => floor.floorid === 0);
-      if (floorToSet) {
-        setPlaceholderFloor(floorToSet.description);
-      }
-    } catch (error) {
-      console.error("Error fetching device data:", error);
-    }
-  };
-  useEffect(() => {
-    fetchFloorList();
-  }, []);
+  {
+    /* Floor / Section data from global context (來源: /api/7284/IpAddress/all)
+       section 會依照目前選取的 floor 連動 (cascade) */
+  }
+  const { floors, sections, floor, section, setSection, chooseFloor } =
+    useFloorSection();
 
   {
     /* Floor Dropdown Menu Logic */
@@ -47,38 +24,15 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
   const handleFloorDropDownMenu = () => {
     setFloorActive((prev) => !prev);
   };
-  const [placeholderFloor, setPlaceholderFloor] = useState(""); // Input placeholder
 
-  const handleFloorItemClick = (floor) => {
-    setPlaceholderFloor(floor);
-    selectFloor(floor); //call back to list filter
+  const handleFloorItemClick = (nextFloor) => {
+    // 換樓層時，context 會把 section 重設成該樓層的第一個區域
+    const firstSection = chooseFloor(nextFloor);
+    selectFloor?.(nextFloor); // call back to list filter
+    selectSection?.(firstSection);
+    // setFloorActive(false);
     handleFloorDropDownMenu;
   };
-  {
-    /* Fetch Section API */
-  }
-  const [sections, setSections] = useState([]);
-
-  const fetchSectionList = async () => {
-    try {
-      const response = await fetch("/api/7284/Section");
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
-      console.log(data);
-      setSections(data);
-      const sectionToSet = data.find((section) => section.sectionid === 0);
-      if (sectionToSet) {
-        setPlaceholderSection(sectionToSet.description);
-      }
-    } catch (error) {
-      console.error("Error fetching device data:", error);
-    }
-  };
-  useEffect(() => {
-    fetchSectionList();
-  }, []);
 
   {
     /* Section Dropdown Menu Logic */
@@ -88,17 +42,28 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
     setSectionActive((prev) => !prev);
   };
 
-  const [placeholderSection, setPlaceholderSection] = useState(""); // Input placeholder
-
-  const handleSectionItemClick = (section) => {
-    setPlaceholderSection(section);
-    selectSection(section);
+  const handleSectionItemClick = (nextSection) => {
+    setSection(nextSection);
+    selectSection?.(nextSection);
+    // setSectionActive(false);
     handleSectionDropDownMenu;
   };
+
+  {
+    /* 初次載入時，把 context 預設的第一個 floor / section 通知父層做篩選（只觸發一次） */
+  }
+  const didInitDefaults = useRef(false);
+  useEffect(() => {
+    if (!didInitDefaults.current && floor && section) {
+      didInitDefaults.current = true;
+      selectFloor?.(floor);
+      selectSection?.(section);
+    }
+  }, [floor, section]);
   {
     /* Port Dropdown Menu Logic */
   }
-  const ports = ["7284", "7285", "8031"];
+  const ports = ["7284", "8031"];
   const [isPortActive, setPortActive] = useState(false);
   const handlePortDropDownMenu = () => {
     setPortActive((prev) => !prev);
@@ -111,7 +76,39 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
     setPortActive;
     selectPort(port);
   };
+    {
+    /* DeviceType Dropdown Menu Logic */
+  }
+  const deviceTypes = ["All", "Not specified", "UEXT", "UMAP", "UNC", "HaLow-R"];
 
+  const deviceTypeToIndex = (deviceType) =>{
+    switch(deviceType) {
+      case "Not specified":
+        return 0;
+      case "UEXT":
+        return 1;
+      case "UMAP":
+        return 2;
+      case "UNC":
+        return 3;
+      case "HaLow-R":
+        return 201;
+      default:
+        return 'All'; // Not found or not specified
+      }
+    };
+
+  const [isDeviceTypeActive, setDeviceTypeActive] = useState(false);
+  const handleDeviceTypeDropDownMenu = () => {
+    setDeviceTypeActive((prev) => !prev);
+  };
+  const [placeholderDeviceType, setPlaceholderDeviceType] = useState(deviceTypes[0]); // Input placeholder
+
+  const handleDeviceTypeItemClick = (deviceType) => {
+    setPlaceholderDeviceType(deviceType);
+    selectDeviceType(deviceTypeToIndex(deviceType));
+    handleDeviceTypeDropDownMenu;
+  };
   {
     /* useRef Logic */
   }
@@ -133,6 +130,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
         setFloorActive(false);
         setSectionActive(false);
         setPortActive(false);
+        setDeviceTypeActive(false);
       }
     };
 
@@ -152,7 +150,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
             (acc, item) => acc + item.offsetHeight,
             0
           );
-  
+
           // Set the height dynamically
           ref.current.style.height = `${totalHeight}px`;
         } else {
@@ -164,10 +162,12 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
   };
   const dropdownFloorStyleRef = useRef(null);
   const dropdownSectionStyleRef = useRef(null);
+  const dropdownDeviceTypeStyleRef = useRef(null);
 
   // Use the custom hook for both dropdowns
   useDynamicDropdownHeight(dropdownFloorStyleRef, isFloorActive);
   useDynamicDropdownHeight(dropdownSectionStyleRef, isSectionActive);
+  useDynamicDropdownHeight(dropdownDeviceTypeStyleRef, isDeviceTypeActive );
 
   return (
     <>
@@ -190,7 +190,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
             className="placeholder"
             id="floor"
             name="name"
-            placeholder={placeholderFloor}
+            placeholder={floor || ""}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
@@ -200,10 +200,10 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
           {floors.map((floor) => (
             <div
               className="item"
-              key={floor.floorid}
-              onClick={() => handleFloorItemClick(floor.description)}
+              key={floor}
+              onClick={() => handleFloorItemClick(floor)}
             >
-              {floor.description}
+              {floor}
             </div>
           ))}
         </div>
@@ -227,7 +227,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
             className="placeholder"
             id="section"
             name="name"
-            placeholder={placeholderSection}
+            placeholder={section || ""}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
@@ -237,14 +237,52 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection }) {
           {sections.map((section) => (
             <div
               className="item"
-              key={section.sectionid}
-              onClick={() => handleSectionItemClick(section.description)}
+              key={section}
+              onClick={() => handleSectionItemClick(section)}
             >
-              {section.description}
+              {section}
             </div>
           ))}
         </div>
       </div>
+      {enableDeviceType && (
+      <div
+        className="input dropdown floor suffix"
+        onClick={handleDeviceTypeDropDownMenu}
+        ref={addDropdownRef}
+      >
+        <label htmlFor="deviceType" className="label-container">
+          <p>{t('FloorSection.DeviceType')}</p>
+          <img
+            className="info"
+            src="/src/assets/information-outline.svg"
+            alt="gray outline information icon"
+          />
+        </label>
+        <div className="input-gp">
+          <input
+            type="text"
+            className="placeholder"
+            id="deviceType"
+            name="name"
+            placeholder={placeholderDeviceType}
+            readOnly
+          />
+          <img className="suffix active" src="" alt="dropdown icon" />
+        </div>
+        <div className="assistive-text">this is a line of assistive text</div>
+        <div className={`list ${isDeviceTypeActive ? "active" : ""}`} ref={dropdownDeviceTypeStyleRef}>
+          {deviceTypes.map((deviceType) => (
+            <div
+              className="item"
+              key={deviceType}
+              onClick={() => handleDeviceTypeItemClick(deviceType)}
+            >
+              {deviceType}
+            </div>
+          ))}
+        </div>
+      </div>)}
       {/* <div
         className="input dropdown port suffix"
         onClick={handlePortDropDownMenu}

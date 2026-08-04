@@ -9,21 +9,24 @@
     "send-me-reset-link": "發送重置密碼鏈接",
     "reset-link-send": "密碼重置鏈接已發送至該電郵 ",
     "back-to-login": "返回登入",
-    "ResetPassword":"重置密碼",
-    "NewPassword":"新密碼：",
-    "ConfirmYourNewPassword":"確認新密碼：",
-    "ConfirmChangePassword":"確認更新密碼",
-    "InputboxPlaceholder":"輸入欄位"
+    "ResetPassword": "重置密碼",
+    "NewPassword": "新密碼：",
+    "ConfirmYourNewPassword": "確認新密碼：",
+    "ConfirmChangePassword": "確認更新密碼",
+    "InputboxPlaceholder": "輸入欄位"
   },
   "Navbar": {
     "Home": "首頁",
     "Patient": "住民",
+    "Alert": "警示",
     "Device": "裝置",
     "Account": "帳戶",
     "AccountSettings": "帳戶設定",
     "ChangePassword": "更改密碼",
+    "ToggleLightDarkMode": "切換深/淺模式",
+    "FloorSection": "樓層設定",
     "Logout": "登出",
-    "Notification-date-today":"今日"
+    "Notification-date-today": "今日"
   },
   "Home": {
     "Monitor": "監控列表",
@@ -38,22 +41,40 @@
   },
   "FloorSection": {
     "Floor": "樓層",
-    "Section": "區域"
+    "Section": "區域",
+    "DeviceType": "裝置種類"
   },
   "AlertList": {
     "Alerts": "警示列表",
-    "BedExitAlert": "離床警示通知",
-    "AttentionAlert": "注意警示通知",
     "Section": "位置",
     "Bed": "床號",
-    "Name": "姓名"
+    "Name": "姓名",
+    "NotSpecifiedAlert": "無法辨認通知",
+    "RestOnBedAlert": "躺床警示通知",
+    "SitOnBedAlert": "坐床警示通知",
+    "SitOnBedEdgeAlert": "床緣警示通知",
+    "BedExitAlert": "離床警示通知",
+    "UnusualConditionAlert": "異常警示通知",
+    "LeftAlert": "左躺警示通知",
+    "RightAlert": "右躺警示通知",
+    "AttentionAlert": "注意警示通知",
+    "TurnOverAlert": "翻身警示通知",
+    "RiskAlert": "壓力警示通知",
+    "LeavingAlert": "即將離床通知"
   },
   "ConfirmAlertModal": {
-    "h1-alert": "離床警示通知",
-    "h1-attention": "注意警示通知",
-    "description-alert-p1": "{{PatientName}} (床號{{BedNo}}) 已離開床位。",
+    "h1-NotSpecifiedAlert": "無法辨認通知",
+    "h1-RestOnBedAlert": "躺床警示通知",
+    "h1-SitOnBedAlert": "坐床警示通知",
+    "h1-SitOnBedEdgeAlert": "床緣警示通知",
+    "h1-BedExitAlert": "離床警示通知",
+    "h1-UnusualConditionAlert": "異常警示通知",
+    "h1-LeftAlert": "左躺警示通知",
+    "h1-RightAlert": "右躺警示通知",
+    "h1-AttentionAlert": "注意警示通知",
+    "description-alert-p1": "{{PatientName}} (床號{{BedNo}})",
     "description-alert-p2": "請儘快確認。",
-    "description-attention-p1": "{{PatientName}} (床號{{BedNo}}) 正在嘗試離開床位。",
+    "description-attention-p1": "{{PatientName}} (床號{{BedNo}})",
     "description-attention-p2": "請儘快確認。",
     "GotIt": "好的",
     "Cancel": "取消"
@@ -73,6 +94,8 @@
     "Monitor": "即時監控",
     "Alerts": "警示設定",
     "Debug": "除錯模式",
+    "Analysis": "分析數據",
+    "Record": "記錄分析",
     "Back": "返回列表"
   },
   "PatientProfile": {
@@ -89,7 +112,8 @@
     "DeviceID": "裝置編號",
     "DeviceStatus": "連線狀態",
     "Save": "儲存",
-    "Discharge": "出院確認"
+    "Discharge": "出院確認",
+    "Calibration": "校正"
   },
   "AddPatientModal": {
     "ClickToAddPatient": "點擊以新增住民",
@@ -108,6 +132,11 @@
   "DischargeModal": {
     "description": "確定住民出院？",
     "Discharge": "出院確認",
+    "Cancel": "取消"
+  },
+  "CalibrationModal": {
+    "description": "確認執行校正?",
+    "Confirm": "確認",
     "Cancel": "取消"
   },
   "PatientMonitor": {
@@ -154,9 +183,23 @@
     "PhysiologicalAlerts-description2": "當心率超出設定範圍時，會發送警報。",
     "Save": "儲存",
     "ResetToDefault": "重置設定",
+    "TurnOffAlert": "關閉警報",
     "Sec": "秒",
     "HzMax": "赫茲 (最大)",
-    "HzMin": "赫茲 (最小)"
+    "HzMin": "赫茲 (最小)",
+    "AddNewAlert": "新增時段",
+    "TurnOverAlert": "翻身壓力警報",
+    "TurnOverHoldTime": "維持時間",
+    "TurnOverHoldTimeDescription": "當住民姿勢維持超過設定時間，系統會發送警報。",
+    "PressureRisk": "壓力風險",
+    "PressureRiskDescription": "依照所設定之壓力與時間相乘所得到之數值，作為壓力風險警報通知基準。例如設定值為30mmHg與120分鐘，所得到的乘積為3600，則當區域壓力達到100mmHg與持續時間達到36分鐘時，系統會發出警報。"
+  },
+  "Alert": {
+    "AlertSettingList": "警示設定列表",
+    "Setting": "設定",
+    "BedID": "床號",
+    "PatientID": "住民",
+    "NoResident": "目前沒有任何住民資料"
   },
   "DeviceList": {
     "NewDevice": "新增裝置",
@@ -186,22 +229,23 @@
     "DeviceVersion": "裝置版本",
     "DeviceVersion-p": "目前版本 - ",
     "DeviceRemove": "裝置移除",
-    "DeviceRemove-p": "將裝置從監控列表中移除",    
+    "DeviceRemove-p": "將裝置從監控列表中移除",
     "RawData": "原始數據",
     "RawData-p": "下載原始數據至本地端",
     "RecordData": "裝置數據",
     "RecordData-p": "下載裝置數據至本地端",
     "ErrorLog": "狀態記錄",
     "ErrorLog-p": "下載裝置狀態記錄至本地端",
+    "AlarmLog": "警報記錄",
     "StartTime": "起始時間",
     "EndTime": "結束時間",
     "Save": "儲存",
     "Reconnect": "重新連線",
     "Reset": "重置設定",
-    "Update": "更新",
+    "Update": "更新日期",
     "Delete": "移除",
     "Back": "返回列表",
-    "Download":"下載"
+    "Download": "下載"
   },
   "AddDeviceModal": {
     "AddDevice": "新增裝置",
@@ -238,7 +282,8 @@
     "Role": "權限",
     "UsernameAndPassword": "密碼變更",
     "LoginUserName": "帳戶名稱",
-    "Password": "密碼",
+    "CurrentPassword": "目前密碼",
+    "NewPassword": "新密碼",
     "Save": "儲存",
     "ChangePassword": "更改密碼",
     "DeleteUser": "刪除帳戶",
@@ -264,16 +309,157 @@
     "Cancel": "取消",
     "Okay": "好的"
   },
-  "ChangePassword":{
-    "EnterHere" : "輸入欄位",
-    "CurrentPw" : "目前密碼",
-    "NewPw" : "新密碼",
-    "ConfirmNewPw" : "再次確認新密碼",
-    "Confirm" : "確認",
-    "Back" : "返回",
-    "Okay" : "好的",
-    "OkayMessageTitle":"新密碼已更新",
-    "OkayMessageH1" : "下次登入請記得使用新密碼。"
-
+  "ChangePassword": {
+    "EnterHere": "輸入欄位",
+    "CurrentPw": "目前密碼",
+    "NewPw": "新密碼",
+    "ConfirmNewPw": "再次確認新密碼",
+    "Confirm": "確認",
+    "Back": "返回",
+    "Okay": "好的",
+    "OkayMessageTitle": "新密碼已更新",
+    "OkayMessageH1": "下次登入請記得使用新密碼。"
+  },
+  "AlertBatchSetting": {
+    "Title": "警示設定",
+    "Confirm": "確認"
+  },
+  "RiskRegion": {
+    "Id": "區域編號",
+    "HoldTime": "持續時間(秒)",
+    "PressureArea": "壓力範圍",
+    "Level": "風險等級",
+    "High": "高",
+    "Medium": "中",
+    "Low": "低",
+    "Unusual": "異常",
+    "NaN": "無壓力風險"
+  },
+  "PatientRecord": {
+    "NotEnoughData": "目前資料不足以分析。",
+    "SleepingTime": "睡眠時數",
+    "LeaveBedCount": "離床次數",
+    "TurnOverCount": "翻身次數",
+    "TurnOverInterval": "最長翻身間隔時數",
+    "SummaryTitle": "分析總結",
+    "DetailsTitle": "詳細建議",
+    "Date": "日期",
+    "Times": "次",
+    "Hour": "小時",
+    "Recommendations": {
+      "sleepTime": {
+        "normal": {
+          "summaryTitle": "一般狀況",
+          "summaryRange": "(平均每晚 7-9 小時)",
+          "details": [
+            "建議維持每日睡眠約 7-9 小時，以促進身體恢復。",
+            "鼓勵建立規律作息時間，避免日夜顛倒。",
+            "白天午睡時間不超過 30 分鐘，以利夜間入睡。"
+          ]
+        },
+        "insufficient": {
+          "summaryTitle": "睡眠不足 / 品質不佳",
+          "summaryRange": "(平均每晚少於 6 小時)",
+          "details": [
+            "住民夜間睡眠時數不足，建議提供安靜環境並減少干擾。",
+            "睡前避免刺激性活動，如滑手機、飲用含咖啡因飲品。",
+            "可評估是否有疼痛、不適或焦慮影響睡眠，必要時通報醫師處理。"
+          ]
+        },
+        "excessive": {
+          "summaryTitle": "睡眠過多 / 嗜睡",
+          "summaryRange": "(平均每晚大於 10 小時)",
+          "details": [
+            "住民嗜睡情形明顯，建議適度喚醒並鼓勵日間活動。",
+            "調整白天午睡休息時間，避免影響夜間睡眠。",
+            "評估是否與藥物副作用或病況相關。"
+          ]
+        }
+      },
+      "leaveBed": {
+        "normal": {
+          "summaryTitle": "一般狀況",
+          "summaryRange": "(平均每晚少於或等於 2 次)",
+          "details": [
+            "住民夜間離床次數可接受，持續觀察夜間活動狀況。",
+            "建議維持床邊環境安全，如安全床欄、呼叫鈴。",
+            "鼓勵睡前如廁，以減少夜間離床需求。",
+            "建議持續評估跌倒風險並提供必要輔助，如助行器。"
+          ]
+        },
+        "warn": {
+          "summaryTitle": "離床次數太多 / 頻尿",
+          "summaryRange": "(平均每晚大於 2 次)",
+          "details": [
+            "住民夜間頻繁離床，建議加強跌倒預防措施，如呼叫鈴、降低床高。",
+            "建議評估頻尿、疼痛或不適等可能原因，必要時通報醫師。",
+            "建議安排規律如廁時間，如睡前及夜間定時如廁。",
+            "建議夜間提供適度照明，避免因視線不佳導致跌倒。",
+            "必要時評估是否需陪伴或增加巡視頻率。"
+          ]
+        }
+      },
+      "turnOverUEXT": {
+        "normal": {
+          "summaryTitle": "一般狀況",
+          "summaryRange": "(平均每晚少於或等於 40 次)",
+          "details": [
+            "住民夜間翻身次數可接受，持續觀察夜間活動狀況。",
+            "持續提供適當擺位與支撐，如枕頭、減壓墊。",
+            "建議維持床邊環境安全，如安全床欄、呼叫鈴。"
+          ]
+        },
+        "warn": {
+          "summaryTitle": "翻身次數太多 / 淺眠",
+          "summaryRange": "(平均每晚大於 40 次)",
+          "details": [
+            "住民夜間頻繁翻身，建議評估是否因疼痛、不適或焦慮所致。",
+            "建議檢查床墊舒適度及擺位是否適當。",
+            "必要時評估壓力點疼痛或皮膚問題。",
+            "建議夜間加強觀察，必要時通報醫師評估用藥或處置。"
+          ]
+        }
+      },
+      "turnOverUMAP": {
+        "normal": {
+          "summaryTitle": "一般狀況",
+          "summaryRange": "(平均每日大於等於 12 次)",
+          "details": [
+            "住民每日翻身次數正常，符合預防壓力性損傷原則，持續維持定時翻身措施。",
+            "建議持續依翻身計畫執行，並搭配皮膚評估與減壓輔具使用。"
+          ]
+        },
+        "warn": {
+          "summaryTitle": "翻身次數太少",
+          "summaryRange": "(平均每日少於 12 次)",
+          "details": [
+            "住民每日翻身次數太少，建議加強翻身頻率以預防壓力性損傷。",
+            "建議確實執行翻身計畫並加強翻身紀錄。",
+            "評估是否因人力、病人狀況或照護安排影響翻身執行。",
+            "必要時調整照護計畫或增加巡視頻率。"
+          ]
+        }
+      },
+      "turnOverInterval": {
+        "normal": {
+          "summaryTitle": "一般狀況",
+          "summaryRange": "(平均每日最長間隔小於等於 2 小時)",
+          "details": [
+            "住民翻身間隔時間正常，符合壓力性損傷預防原則，持續維持。",
+            "建議持續依翻身計畫執行，並搭配皮膚評估與減壓輔具使用。"
+          ]
+        },
+        "warn": {
+          "summaryTitle": "間隔時間太長",
+          "summaryRange": "(平均每日最長間隔大於 2 小時)",
+          "details": [
+            "住民翻身間隔時間超時，建議縮短翻身間隔以降低壓力性損傷風險。",
+            "建議落實定時翻身計畫，並加強紀錄。",
+            "評估是否因夜間人力或照護流程影響翻身執行。",
+            "必要時調整照護安排以確保翻身頻率。"
+          ]
+        }
+      }
+    }
   }
 }

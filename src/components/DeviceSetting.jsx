@@ -1,7 +1,7 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import "/src/CSS/device.css";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
-import { useDropdownLogic, fetchList } from "../JS/GetFloorSectionAPI";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import Navbar from "./Navbar";
 import AlertList from "./AlertList";
 import SignalRService from "../JS/SignalR";
@@ -11,11 +11,15 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import dayjs from "dayjs";
 import PatientMonitor from "./PatientMonitor";
+import { useAuth } from "../JS/AuthContext";
+import api from "../api/apiClient"
 
 function DeviceSettings() {
   const { t, i18n } = useTranslation();
 
   const [loading, setLoading] = useState(false); //loading screen
+
+  const { role } = useAuth();
 
   const [searchParams] = useSearchParams();
 
@@ -32,16 +36,14 @@ function DeviceSettings() {
   };
 
   {
-    /* Floor and Section Fetch API */
+    /* Floor 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext，去重後的清單）
+       Section 選項在下方依目前選取的 floor 連動過濾（cascade） */
   }
-  const [floors, setFloor] = useState([]);
-  useEffect(() => {
-    fetchList("/api/7284/Floor", setFloor);
-  }, []);
-  const [sections, setSection] = useState([]);
-  useEffect(() => {
-    fetchList("/api/7284/Section", setSection);
-  }, []);
+  const { servers } = useFloorSection();
+  const floors = useMemo(
+    () => [...new Set(servers.map((s) => s.floor).filter(Boolean))],
+    [servers],
+  );
 
   // Detect change value in input box then enable save buttons
   const [isDeviceInfoChanged, setIsDeviceInfoChanged] = useState(false);
@@ -202,6 +204,19 @@ function DeviceSettings() {
   const sectionDropdown = useLocationDropdown("");
   const floorDropdown = useLocationDropdown("");
 
+  // Section 選項：只顯示「目前選取 floor」底下的區域（依 floorDropdown 連動）
+  const sections = useMemo(
+    () => [
+      ...new Set(
+        servers
+          .filter((s) => s.floor === floorDropdown.placeholder)
+          .map((s) => s.section)
+          .filter(Boolean),
+      ),
+    ],
+    [servers, floorDropdown.placeholder],
+  );
+
   /// Device Configuration ///
   const PmioInput = useSetConfigInput("");
   const VmaxInput = useSetConfigInput("");
@@ -324,20 +339,21 @@ const handleDhcpItemClick = (dhcp) => {
 
   const fetchDeviceInfo = async (macaddress) => {
     try {
-      const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
+      const response = await api.get(`/api/7284/db/Device/${macaddress}`);
 
-      const data = await response.json();
-      console.log(data);
+      const data = response.data;
+      //console.log(data);
       setDeviceInfo(data);
 
       setDeviceType(data.devicetype);
@@ -397,14 +413,16 @@ const handleDhcpItemClick = (dhcp) => {
   const deleteDevice = async (deviceId) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/7284/db/Device/${deviceId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Device/${deviceId}`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
+      // const contentType = response.headers.get("Content-Type");
+      const response = await api.delete(`/api/7284/db/Device/${deviceId}`);
+
 
       if (response.status === 200) {
         alert("Device delete successfully!");
@@ -498,22 +516,22 @@ const handleDhcpItemClick = (dhcp) => {
       isDeviceLocationChanged &&
       print_inputvalue === requestBody_DeviceLocation
     ) {
-      console.log(
-        "the input requestbody is device location ",
-        print_inputvalue
-      );
+      //console.log(
+      //   "the input requestbody is device location ",
+      //   print_inputvalue
+      // );
       PUT_DeivceInfo(macaddress, print_inputvalue);
     } else if (
       isDeviceConfigChanged &&
       print_inputvalue === requestBody_DeviceLConfiguration
     ) {
-      console.log(
-        "the input requestbody is device configuration",
-        print_inputvalue
-      );
+      //console.log(
+      //   "the input requestbody is device configuration",
+      //   print_inputvalue
+      // );
       PUT_DeivceInfo(macaddress, print_inputvalue);
     } else if (print_inputvalue === requestBody_PUT_RESET) {
-      console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
+      //console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
       PUT_DeivceInfo(macaddress, print_inputvalue);
     } else if (print_inputvalue === requestBody_delete) {
       PUT_DeivceInfo(macaddress, print_inputvalue);
@@ -526,20 +544,23 @@ const handleDhcpItemClick = (dhcp) => {
 
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
 
-      const data = await response.json();
-      console.log("Device updated successfully:", data);
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/db/Device/${macaddress}`,updatedData);
+
+      const data = response.data;
+      //console.log("Device updated successfully:", data);
       alert("Update Successfully!");
       window.location.reload();
       return data; // Return the response data if needed
@@ -592,9 +613,10 @@ const handleDhcpItemClick = (dhcp) => {
   const rawdataDate = useSelectDate();
   const recordData = useSelectDate();
   const errorLog = useSelectDate();
+  const alarmLog = useSelectDate();
 
   {
-    /* handle download device rawdata/recorddata/errorlog */
+    /* handle download device rawdata/recorddata/errorlog/alarmLog */
   }
   function convertToLocal(date) {
     const utcDate = new Date(date.getTime() + 60 * 60 * 8000); // Convert to UTC
@@ -619,29 +641,30 @@ const handleDhcpItemClick = (dhcp) => {
         // EndTime: endTime.toISOString().split(".")[0],
       };
 
-      console.log("the filter requestbody startTime", startTime.toISOString().split(".")[0]);
-      console.log("the filter requestbody endTime ", endTime.toISOString().split(".")[0]);
-      console.log("the filter requestbody", JSON.stringify(filterRequest));
+      //console.log("the filter requestbody startTime", startTime.toISOString().split(".")[0]);
+      //console.log("the filter requestbody endTime ", endTime.toISOString().split(".")[0]);
+      //console.log("the filter requestbody", JSON.stringify(filterRequest));
 
-      // const response = await fetch(`/api/7284/db/${downloadtype}/filter`, {
-      const response = await fetch(`/api/7284/db/${downloadtype}/filter?timezone=Asia_Taipei`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(filterRequest),
-      });
+      // const response = await fetch(`/api/7284/db/${downloadtype}/filter?timezone=Asia_Taipei`, {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(filterRequest),
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (contentType && contentType.includes("application/json")) {
-        const jsonData = await response.json();
-        if (jsonData.code === -1) {
-          alert(jsonData.messages || "Error: No raw data found");
-          return;
-        }
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (contentType && contentType.includes("application/json")) {
+      //   const jsonData = await response.json();
+      //   if (jsonData.code === -1) {
+      //     alert(jsonData.messages || "Error: No raw data found");
+      //     return;
+      //   }
+      // }
+      const response = await api.post(`/api/7284/db/${downloadtype}/filter?timezone=Asia_Taipei`, filterRequest, { responseType: "blob"} );
+
       // Get file data
-      const blob = await response.blob();
+      const blob = response.data;
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement("a");
 
@@ -917,18 +940,15 @@ const handleDhcpItemClick = (dhcp) => {
                       {sections.map((section) => (
                         <div
                           className="item opt1"
-                          key={section.sectionid}
+                          key={section}
                           onClick={() => {
-                            sectionDropdown.selectItem(section.description);
-                            if (
-                              section.description !==
-                              sectionDropdown.placeholder
-                            ) {
+                            sectionDropdown.selectItem(section);
+                            if (section !== sectionDropdown.placeholder) {
                               setIsDeviceLocationChanged(true);
                             }
                           }}
                         >
-                          {section.description}
+                          {section}
                         </div>
                       ))}
                     </div>
@@ -972,17 +992,22 @@ const handleDhcpItemClick = (dhcp) => {
                       {floors.map((floor) => (
                         <div
                           className="item opt1"
-                          key={floor.floorid}
+                          key={floor}
                           onClick={() => {
-                            floorDropdown.selectItem(floor.description);
-                            if (
-                              floor.description !== floorDropdown.placeholder
-                            ) {
+                            if (floor !== floorDropdown.placeholder) {
                               setIsDeviceLocationChanged(true);
+                            }
+                            floorDropdown.selectItem(floor);
+                            // 切 floor 後，若目前選的 section 不在該 floor 底下就清空，避免存到無效組合
+                            const validSections = servers
+                              .filter((s) => s.floor === floor)
+                              .map((s) => s.section);
+                            if (!validSections.includes(sectionDropdown.placeholder)) {
+                              sectionDropdown.selectItem("");
                             }
                           }}
                         >
-                          {floor.description}
+                          {floor}
                         </div>
                       ))}
                     </div>
@@ -1001,7 +1026,7 @@ const handleDhcpItemClick = (dhcp) => {
                 </div>
               </div>
             </div>
-            {deviceType !== 201 &&(
+            {deviceType !== 201 && ["administrator"].includes(role) && (
             <div className="deviceSetting">
               <h2>{t("DeviceSettings.DeviceConfiguration")}</h2>
               <div className="opt-list">
@@ -1861,6 +1886,81 @@ const handleDhcpItemClick = (dhcp) => {
               </div>
             </div>
             <div className="deviceSetting">
+              <h2>{t("DeviceSettings.AlarmLog")}</h2>
+              <div className="opt-list">
+                <div className="opt-grid">
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
+                    <label htmlFor="d-id" className="label-container">
+                      <p>{t("DeviceSettings.StartTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={alarmLog.selectedStartDate}
+                        onChange={alarmLog.handleStartDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                  <div className="g-col-1" style={{ minWidth: "max-content" }}>
+                    <label htmlFor="mac" className="label-container">
+                      <p>{t("DeviceSettings.EndTime")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="">
+                      <DatePicker
+                        selected={alarmLog.selectedEndDate}
+                        onChange={alarmLog.handleEndDateSelect}
+                        showTimeSelect
+                        timeFormat="HH:mm"
+                        timeIntervals={15}
+                        timeCaption="time"
+                        dateFormat="yyyy/MM/dd hh:mm aa"
+                        peekNextMonth
+                        showMonthDropdown
+                        showYearDropdown
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                  </div>
+                </div>
+                <div className="btn-gp">
+                  <div
+                    className="btn text-only"
+                    onClick={() =>
+                      handleDownload(
+                        "Notification",
+                        alarmLog.selectedStartDate,
+                        alarmLog.selectedEndDate
+                      )
+                    }
+                  >
+                    <p className="btn-text">{t("DeviceSettings.Download")}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="deviceSetting">
               <h2>{t("DeviceSettings.DeviceRemove")}</h2>
               <div className="opt-list">
                 <div className="ver-stat">
@@ -1881,7 +1981,7 @@ const handleDhcpItemClick = (dhcp) => {
                     onClick={() => handleDeleteDevice()}
                   >
                     {/* <img src="" alt="" className="prefix" /> */}
-                    <p className="btn-text">{t("DeviceSettings.Delete")}</p>
+                    <p className="btn-text" style={{color:"white"}}>{t("DeviceSettings.Delete")}</p>
                   </div>
                 </div>
             {/* <PatientMonitor/> */}

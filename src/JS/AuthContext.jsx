@@ -1,7 +1,13 @@
-import React, { createContext, useState, useContext, useEffect, useRef } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  useRef,
+} from "react";
 import { useNavigate } from "react-router-dom";
-import alertSound from "/src/assets/alert.mp3"; // Import MP3 file
-
+import alertLeftBedSound from "/src/assets/AlertLeftBed.mp3"; // Import MP3 file
+import AlertAboutToLeaveSound from "/src/assets/AlertAboutToLeave.mp3"; // Import MP3 file
 const isDevMode = false;
 const AuthContext = createContext();
 
@@ -16,8 +22,12 @@ export const AuthProvider = ({ children }) => {
   });
 
   const navigate = useNavigate();
-  const audioRef = useRef(new Audio(alertSound));
-  const [isPlaying, setIsPlaying] = useState(false);
+  const audioLeftBedRef = useRef(new Audio(alertLeftBedSound));
+  const audioAboutToLeaveRef = useRef(new Audio(AlertAboutToLeaveSound));
+  const audioAboutToLeaveRef2 = useRef(new Audio(AlertAboutToLeaveSound));
+  const [isAboutToLeavePlaying, setIsAboutToLeavePlaying] = useState(false);
+  const [isAboutToLeave2Playing, setIsAboutToLeave2Playing] = useState(false);
+  const [isLeftBedPlaying, setIsLeftBedPlaying] = useState(false);
   const [isUserInteracted, setIsUserInteracted] = useState(false);
   const [isAudioAllowed, setIsAudioAllowed] = useState(false);
 
@@ -69,17 +79,17 @@ export const AuthProvider = ({ children }) => {
     const requestAudioPermission = async () => {
       try {
         // ✅ Try playing audio silently to check permission
-        audioRef.current.volume = 0;
-        await audioRef.current.play();
-        audioRef.current.pause();
-        audioRef.current.currentTime = 0;
-        audioRef.current.volume = 1;
+        audioLeftBedRef.current.volume = 0;
+        await audioLeftBedRef.current.play();
+        audioLeftBedRef.current.pause();
+        audioLeftBedRef.current.currentTime = 0;
+        audioLeftBedRef.current.volume = 1;
         setIsAudioAllowed(true);
       } catch (error) {
         console.warn("Audio playback blocked:", error);
-        window.alert(
-          "🔊 Your browser has blocked autoplay audio. \n\nTo enable sound:\n1️⃣ Click the 🔒 lock icon in the address bar.\n2️⃣ Go to 'Site Settings'.\n3️⃣ Find 'Sound' and set it to 'Allow'.\n4️⃣ Reload this page."
-        );
+        //window.alert(
+        //   "🔊 Your browser has blocked autoplay audio. \n\nTo enable sound:\n1️⃣ Click the 🔒 lock icon in the address bar.\n2️⃣ Go to 'Site Settings'.\n3️⃣ Find 'Sound' and set it to 'Allow'.\n4️⃣ Reload this page."
+        // );
       }
     };
 
@@ -91,33 +101,114 @@ export const AuthProvider = ({ children }) => {
     const fakeClick = () => {
       document.body.click(); // Simulate user click
       setIsUserInteracted(true);
-      console.log("Fake Click Executed! Audio permission should now be granted.");
+      //console.log(
+      //   "Fake Click Executed! Audio permission should now be granted.",
+      // );
     };
 
     setTimeout(fakeClick, 500);
   }, []);
 
-  // ✅ Play Alert Sound
-  const playSound = () => {
+  // ✅ Play Alert Sound(About to leave Bed)
+  const playAboutToLeaveSound = () => {
+    console.log("play about to leave");
+    if (!isAboutToLeavePlaying) {
+      setIsAboutToLeavePlaying(true);
+      audioAboutToLeaveRef.current.loop = false;
+      audioAboutToLeaveRef.current.volume = 1;
+      audioAboutToLeaveRef.current
+        .play()
+        .catch((error) => console.error("Error playing sound:", error));
 
+      stopSound("aboutToLeave", 6000);
+    }
+  };
+  // ✅ Play Alert Sound(About to leave Bed)
+  const playAboutToLeaveSound2 = () => {
+    console.log("play about to leave 2");
+    if (!isAboutToLeave2Playing) {
+      setIsAboutToLeave2Playing(true);
+      audioAboutToLeaveRef2.current.loop = false;
+      audioAboutToLeaveRef2.current.volume = 1;
+      audioAboutToLeaveRef2.current
+        .play()
+        .catch((error) => console.error("Error playing sound:", error));
+      stopSound("aboutToLeave2", 6000);
+    }
+  };
+  // ✅ Play Alert Sound(Leave Bed)
+  const playLeaveBedSound = () => {
+    console.log("play left bed");
 
-    if (!isPlaying) {
-      setIsPlaying(true);
-      audioRef.current.loop = false;
-      audioRef.current.volume = 1;
-      audioRef.current.play().catch((error) => console.error("Error playing sound:", error));
-
-      setTimeout(() => {
-        stopSound();
-      }, 4000);
+    if (!isLeftBedPlaying) {
+      setIsLeftBedPlaying(true);
+      audioLeftBedRef.current.loop = false;
+      audioLeftBedRef.current.volume = 1;
+      audioLeftBedRef.current
+        .play()
+        .catch((error) => console.error("Error playing sound:", error));
+      stopSound("leftBed", 5000);
     }
   };
 
   // ✅ Stop Alert Sound
-  const stopSound = () => {
-    audioRef.current.pause();
-    audioRef.current.currentTime = 0;
-    setIsPlaying(false);
+  const stopSound = (sound, timeLapse) => {
+    setTimeout(() => {
+      switch (sound) {
+        case "aboutToLeave":
+          audioAboutToLeaveRef.current.pause();
+          audioAboutToLeaveRef.current.currentTime = 0;
+          setIsAboutToLeavePlaying(false);
+          console.log("stop leave bed");
+          break;
+        case "aboutToLeave2":
+          audioAboutToLeaveRef2.current.pause();
+          audioAboutToLeaveRef2.current.currentTime = 0;
+          setIsAboutToLeave2Playing(false);
+          console.log("stop leave bed 2");
+          break;
+        case "leftBed":
+          audioLeftBedRef.current.pause();
+          audioLeftBedRef.current.currentTime = 0;
+          setIsLeftBedPlaying(false);
+          console.log("stop left bed");
+          break;
+        default:
+          audioLeftBedRef.current.pause();
+          audioLeftBedRef.current.currentTime = 0;
+          setIsLeftBedPlaying(false);
+          audioAboutToLeaveRef.current.pause();
+          audioAboutToLeaveRef.current.currentTime = 0;
+          setIsAboutToLeavePlaying(false);
+          audioAboutToLeaveRef2.current.pause();
+          audioAboutToLeaveRef2.current.currentTime = 0;
+          setIsAboutToLeave2Playing(false);
+        console.log("stop all");
+      }
+    }, timeLapse || 0);
+  };
+
+  // toggle light/dark mode
+const [isDarkMode, setDarkMode] = useState(() => {
+  // const root = document.documentElement;
+  // return root.classList.contains("dark");
+    return localStorage.getItem("theme") === "dark";
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+
+    if (isDarkMode) {
+      root.classList.add("dark");
+      localStorage.setItem("theme", "dark");  
+    } else {
+      root.classList.remove("dark");
+      localStorage.removeItem("theme");
+    }
+  }, [isDarkMode]);
+
+  const toggleThemeMode = () => {
+    setDarkMode(prev => !prev);
   };
 
   return (
@@ -128,10 +219,16 @@ export const AuthProvider = ({ children }) => {
         logout,
         isDevMode,
         role,
-        isPlaying,
-        playSound,
+        isLeftBedPlaying,
+        isAboutToLeavePlaying,
+        isAboutToLeave2Playing,
+        playAboutToLeaveSound,
+        playAboutToLeaveSound2,
+        playLeaveBedSound,
         stopSound,
         isUserInteracted,
+        toggleThemeMode,
+        isDarkMode,
       }}
     >
       {children}

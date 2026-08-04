@@ -12,11 +12,22 @@ import DisChargePatient from "./Modals/DisChargePatient";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import CalibrationConfirmOverlay from "./Modals/CalibrationConfirmOverlay";
+import api from "../api/apiClient"
+import api8031 from "../api/apiClient8031";
 
 function PatientProfile() {
   const { t, i18n } = useTranslation();
 
   const [loading, setLoading] = useState(false); //loading screen
+
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  useEffect(() => {
+    //console.log("Window width:", windowWidth);
+    setWindowWidth(window.innerWidth);
+  }, [window.innerWidth]);
+
 
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -119,26 +130,29 @@ function PatientProfile() {
   const [patient, setPatient] = useState([]);
   const fetchPatientProfile = async () => {
     try {
-      const response = await fetch(`/api/7284/db/Patient`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Patient`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/db/Patient`);
+
+      const data = response.data;
       const matchingPatient = data.find(
         (item) => item.deviceid === macaddress
       ) || {
         patientname: "",
         patientid: "",
         sex: "",
-        birthday: "",
+        birthday: "1999-01-01T00:00:00",
         height: "",
         weight: "",
         bed: "",
@@ -149,7 +163,7 @@ function PatientProfile() {
       };
 
       setPatient(matchingPatient);
-      console.log("patient detail is ", matchingPatient);
+      //console.log("patient detail is ", matchingPatient);
 
       patientIDInput.setInputValue(matchingPatient.patientid);
       patientNameInput.setInputValue(matchingPatient.patientname);
@@ -193,32 +207,34 @@ function PatientProfile() {
   };
 
   const handlePut_API = (print_inputvalue) => {
-    console.log("the input requestbody is ", print_inputvalue);
+    //console.log("the input requestbody is ", print_inputvalue);
     PUT_PatientInfo(patientIDInput.inputValue, print_inputvalue);
   };
 
   const PUT_PatientInfo = async (patientid, requestBody) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(requestBody), // Convert the requestBody to JSON
-      });
+      // const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
 
-      const data = await response.json();
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/db/Patient/${patientid}`, requestBody);
+      const data = response.data;
       if (data.code !== 0) {
-        console.log("Patient fail to update:", data);
+        //console.log("Patient fail to update:", data);
         alert("Patient fail to update!");
         setIsChanged(false);
       } else {
-        console.log("Patient updated successfully:", data);
+        //console.log("Patient updated successfully:", data);
         alert("Update Successfully!");
         window.location.reload();
         setIsChanged(false);
@@ -241,26 +257,30 @@ function PatientProfile() {
 
   const handleDischargePatient = (patientid) => {
     patientid = patient.patientid;
-    console.log("delete patient ", patientid);
+    //console.log("delete patient ", patientid);
+    deletePatientAlert_API(patientid);
     deletePatient_API(patientid);
   };
 
   const deletePatient_API = async (patientId) => {
     try {
       setLoading(true);
-      const response = await fetch(`/api/7284/db/Patient/${patientId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Patient/${patientId}`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
-      const data = await response.json();
-      console.log("Delete successfully!:", data);
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
+      // const data = await response.json();
+      const response = await api.delete(`/api/7284/db/Patient/${patientId}`);
+
+      const data = response.data;
+      //console.log("Delete successfully!:", data);
       alert("Delete successfully!");
       navigate("/home");
     } catch (error) {
@@ -269,10 +289,69 @@ function PatientProfile() {
       setLoading(false);
     }
   };
+  const deletePatientAlert_API = async (patientId) => {
+    try {
+      setLoading(true);
+      // const response = await fetch(`/api/7284/db/Alert/${patientId}`, {
+      //   method: "DELETE",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+      const response = await api.delete(`/api/7284/db/Alert/${patientId}`);
+
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
+      // const data = await response.json();
+      // //console.log("Delete successfully!:", data);
+      // alert("Delete successfully!");
+      // navigate("/home");
+    } catch (error) {
+      console.error("Error fetching device data:", error.message, error);
+    } finally {
+      // setLoading(false);
+    }
+  };
+
+  const [isCalibrationOverlayVisible, setCalibrationOverlayVisible] =
+    useState(false);
+  const handleCalibrationOverlay = () => {
+    setCalibrationOverlayVisible(!isCalibrationOverlayVisible);
+  };
+
+  const handleCalibration = async () => {
+    //console.log("calibration clicked");
+    const requestBody = {
+      MAC: macaddress,
+    };
+    try {
+      setLoading(true);
+
+      // const response = await fetch("/api/8031/ucb/denoise", {
+      //   method: "POST",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(requestBody),
+      // });
+      const response = await api8031.post("/api/8031/ucb/denoise", requestBody);
+    } catch (error) {
+      console.error("Error while submitting data:", error);
+      alert("Error: Unable to connect to the server.");
+    } finally {
+      handleCalibrationOverlay();
+      setTimeout(() => {
+        setLoading(false);
+        window.location.reload();
+      }, 15000);
+    }
+  };
 
   return (
     <div className="pp">
-      <h1  style={{zIndex:"1"}}>{t("PatientProfile.PatientProfile")}</h1>
+      <h1 className="pp-title" style={{ zIndex: "1" }}>{t("PatientProfile.PatientProfile")}</h1>
       <div className="pfl">
         {/* Patient ID */}
         <div className="input g-c-6">
@@ -453,7 +532,7 @@ function PatientProfile() {
               name="p-id"
               placeholder={patientBedInput.inputValue}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               tabIndex="-1"
               onFocus={(e) => e.target.blur()}
             />
@@ -479,7 +558,7 @@ function PatientProfile() {
               name="section"
               placeholder={patientSectionInput.inputValue}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               tabIndex="-1"
               onFocus={(e) => e.target.blur()}
             />
@@ -505,7 +584,7 @@ function PatientProfile() {
               name="floor"
               placeholder={patientFloorInput.inputValue}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               tabIndex="-1"
               onFocus={(e) => e.target.blur()}
             />
@@ -532,7 +611,7 @@ function PatientProfile() {
               placeholder={macaddress}
               value={macaddress}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               disabled
             />
             <img className="suffix" src="" alt="dropdown icon" />
@@ -557,7 +636,7 @@ function PatientProfile() {
               name="connection"
               value={patient.devicestatus === 1 ? "Connected" : "Disconnect"}
               readOnly
-              style={{cursor:"default"}}
+              style={{ cursor: "default" }}
               disabled
             />
             <img className="suffix active" src="" alt="dropdown icon" />
@@ -593,6 +672,38 @@ function PatientProfile() {
             />
           )}
         </div>
+              <div className="btn-gp calibration-display">
+        <div
+          className="btn text-only outline"
+          id="calibration"
+          onClick={handleCalibrationOverlay}
+        >
+          <img src="" alt="" className="prefix" />
+          <p className="btn-text">{t("PatientProfile.Calibration")}</p>
+        </div>
+        {isCalibrationOverlayVisible && (
+          <CalibrationConfirmOverlay
+            callback={handleCalibrationOverlay}
+            calibrationbtn_click={handleCalibration}
+          />
+        )}
+      </div>
+      </div>
+      <div className="btn-gp calibration-display-below">
+        <div
+          className="btn text-only outline"
+          id="calibration"
+          onClick={handleCalibrationOverlay}
+        >
+          <img src="" alt="" className="prefix" />
+          <p className="btn-text">{t("PatientProfile.Calibration")}</p>
+        </div>
+        {isCalibrationOverlayVisible && (
+          <CalibrationConfirmOverlay
+            callback={handleCalibrationOverlay}
+            calibrationbtn_click={handleCalibration}
+          />
+        )}
       </div>
     </div>
   );

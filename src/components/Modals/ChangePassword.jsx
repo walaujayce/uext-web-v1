@@ -6,6 +6,7 @@ import "../Modals/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
+import api from "../../api/apiClient";
 
 const ChangePasswordModal = ({ callback }) => {
   const { t, i18n } = useTranslation();
@@ -85,56 +86,60 @@ const ChangePasswordModal = ({ callback }) => {
     handlePUT_API();
   };
   const requestBody_PUT_Password = {
-    password: NewPw.input,
+    currentPassword: currentPw.input,
+    NewPassword: NewPw.input,
   };
   const handlePUT_API = async () => {
     try {
       setLoading(true);
       // Get userid based on username in local storage
-      const response = await fetch("/api/7284/User", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-      const data = await response.json();
+      // const response = await fetch("/api/7284/User", {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
+      const response = await api.get("/api/7284/User");
+      const data = response.data;
       const stored_username = JSON.parse(localStorage.getItem("username"));
       const selected_user = data.find((user)=>(user.username == stored_username));
       //check current password with database password
-      if(selected_user.password!==currentPw.input){
-        alert("Current Password is not correct!");
-        return;
-      }else{
+      // if(selected_user.password!==currentPw.input){
+      //   alert("Current Password is not correct!");
+      //   return;
+      // }else{
         //update new password
-        console.log("userInfo data is :", selected_user);
+        //console.log("userInfo data is :", selected_user);
 
         const { lastlogin, userid, ...filteredUserInfo } = selected_user; // Destructure to exclude alertguid
 
         const updatedData = { ...filteredUserInfo, ...requestBody_PUT_Password };
-        console.log("updated data is :", updatedData);
+        //console.log("updated data is :", updatedData);
   
-        const response = await fetch(`/api/7284/User/${selected_user.userid}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-        });
+        // const response = await fetch(`/api/7284/User/${selected_user.userid}`, {
+        //   method: "PUT",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+        // });
   
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        // if (!response.ok) {
+        //   throw new Error(`HTTP error! status: ${response.status}`);
+        // }
   
-        const data = await response.json();
-        if(response.status!==200){
+        // const data = await response.json();
+  
+        const changePwdResponse = await api.put(`/api/7284/User/${selected_user.userid}`, updatedData);
+        if(changePwdResponse.status!==200){
             alert("Failed to update password!");
         }else{
             setActiveStage2(true);
         }
-      }
+      // }
     } catch (error) {
       console.error("Error updating password:", error.message);
     } finally {

@@ -11,7 +11,8 @@
     display: flex;
     justify-content: space-between;
     padding-bottom: 12px;
-    border-bottom: 1.5px solid var(--850, #262626);
+    /* border-bottom: 1.5px solid var(--850, #262626); */
+    border-bottom: 11.5px solid var(--850, #ffffff);
 }
 
 .monitors{
@@ -28,7 +29,7 @@
 }
 
 .sort .label{
-    color: var(--600, #666);
+    color: var(--600, var(--label-color));
     font-size: 20px;
     font-weight: 400;
     line-height: 100%; /* 20px */
@@ -38,7 +39,7 @@
 .sort .opt-box{
     display: flex;
     padding: 8px;
-    background: var(--50, #F7F7F7);
+    background: var(--50, var(--optbox-bg-color));
     position: relative;
 }
 
@@ -60,7 +61,7 @@
 }
 
 .sort .opt.active{
-    color: var(--850, #262626);
+    color: var(--850, var(--primary-text-color));
     font-weight: 500;
 }
 
@@ -69,7 +70,7 @@
     top: 8px;
     width: 192px;
     height: 48px;
-    background: var(--0, #FFF);
+    background: var(--0, var(--bg-color));
     transition: all ease-out 300ms;
 }
 
@@ -91,6 +92,8 @@
     overflow: hidden;
     overflow-y: scroll;
     padding-bottom: 50px;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .monitors .grid.active{
@@ -104,19 +107,29 @@
     gap: 12px;
     flex: 1 0 0;
     border: 2px solid transparent;
-    background: #FAFAFA;
+    /* background: #FAFAFA; */
+    background: #07794f;
     position: relative;
     height: 100%;
 }
 
 .bed:hover{
+    /* border: 2px solid var(--900, #1A1A1A);
+    background: var(--50, #F2F2F2); */
+    border: 2px solid var(--900, #2ba46c);
+    background: var(--50, #07794f);
+    cursor: pointer;
+}
+.bed.disconnect:hover{
+    /* border: 2px solid var(--900, #1A1A1A);
+    background: var(--50, #F2F2F2); */
     border: 2px solid var(--900, #1A1A1A);
-    background: var(--50, #F2F2F2);
     cursor: pointer;
 }
 
 .bed .b-num{
-    color: var(--700, #4D4D4D);
+    /* color: var(--700, #4D4D4D); */
+    color: var(--700, #ffffff);
     font-size: 48px;
     font-weight: 600;
     line-height: 100%; /* 48px */
@@ -124,7 +137,8 @@
 }
 
 .bed .name{
-    color: var(--500, #808080);
+    /* color: var(--500, #808080); */
+    color: var(--500, #fffefe);
     font-size: 24px;
     font-weight: 400;
     line-height: 150%;
@@ -145,10 +159,21 @@
     height: 12px;
     content: url(/src/assets/green-dot.svg);
 }
+.bed .tag .notification-off img{
+    content: url(/src/assets/bell_transparent.svg);
+    width: 24px;
+    height: 24px;
+}
+.bed .tag .notification-on img{
+    content: url(/src/assets/bell.svg);
+    width: 24px;
+    height: 24px;
+}
 
 .bed .tag .timer{
-    display: none;
+    display: flex;
     font-size: 20px;
+    color: #ffffff;
 }
 
 .bed .dis-tag{
@@ -167,6 +192,22 @@
 .bed .dis-tag img{
     width: 24px;
     height: 24px;
+}
+.bed .icon-tag{
+    padding: 10px 16px 10px 10px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    position: absolute;
+    top: 70%;   
+    left: 75%;  
+    transform: translate(-50%, -50%);
+    /* background: var(--800, #333); */
+}
+
+.bed .icon-tag img{
+    width: 100px;
+    height: 100px;
 }
 
 .bed .dis-tag p{
@@ -198,20 +239,33 @@
 
 /* Bed Attention Status */
 .bed.attention{
-    background: var(--P-100, #FFF3E5);
+    /* background: var(--P-100, #FFF3E5); */
+    background: var(--P-100, #FC9F2E);
     /* animation: blink 800ms ease-in-out infinite; 400ms for a full cycle (200ms up, 200ms down) */
-
 }
 .bed.attention:hover{
-    border: 2px solid var(--900,#FF9D00);
+    /* border: 2px solid var(--900,#FF9D00); */
+    border: 2px solid var(--900,#c97c01);
 }
 .bed.attention .b-num,
 .bed.attention .name,
 .bed.attention .tag .timer{
-    color: #FF9D00;
+    /* color: #FF9D00; */
+    color: #ffffff;
 }
 .bed.attention .tag img{
-    content: url(/src/assets/duration-attention.svg);
+    /* content: url(/src/assets/duration-attention.svg); */
+    content: url(/src/assets/duration-attention-white.svg);
+    width: 24px;
+    height: 24px;
+}
+.bed.attention .tag .notification-off img{
+    content: url(/src/assets/bell_transparent.svg);
+    width: 24px;
+    height: 24px;
+}
+.bed.attention .tag .notification-on img{
+    content: url(/src/assets/bell.svg);
     width: 24px;
     height: 24px;
 }
@@ -222,20 +276,34 @@
 
 /* Bed Alert Status */
 .bed.alert{
-    background: var(--P-100, #FFF0F0);
+    /* background: var(--P-100, #FFF0F0); */
+    background: var(--P-100, #FA3D40);
     /* animation: blink 800ms ease-in-out infinite; 400ms for a full cycle (200ms up, 200ms down) */
 
 }
 .bed.alert:hover{
-    border: 2px solid var(--900,#FA3F2E);
+    /* border: 2px solid var(--900,#FA3F2E); */
+    border: 2px solid var(--900,#b51f1f);
 }
 .bed.alert .b-num,
 .bed.alert .name,
 .bed.alert .tag .timer{
-    color: #FA3F2E;
+    /* color: #FA3F2E; */
+    color: #ffffff;
 }
 .bed.alert .tag img{
-    content: url(/src/assets/alert-box.svg);
+    /* content: url(/src/assets/alert-box.svg); */
+    content: url(/src/assets/alert-box-white.svg);
+    width: 24px;
+    height: 24px;
+}
+.bed.alert .tag .notification-off img{
+    content: url(/src/assets/bell_transparent.svg);
+    width: 24px;
+    height: 24px;
+}
+.bed.alert .tag .notification-on img{
+    content: url(/src/assets/bell.svg);
     width: 24px;
     height: 24px;
 }
@@ -245,7 +313,8 @@
 
 /* Bed Disconnecterd Status */
 .bed.disconnect{
-    background: var(--P-100, #E6E6E6);
+    /* background: var(--P-100, #E6E6E6); */
+    background: var(--P-100, var(--grey-secondary));
 }
 .bed.disconnect .b-num,
 .bed.disconnect .name,
@@ -253,7 +322,7 @@
     color: #CCCCCC;
 }
 .bed.disconnect .tag{
-    display: none;
+    /* display: none; */
 }
 .bed.disconnect .dis-tag{
     display: flex;
@@ -266,14 +335,22 @@
     border: 2px solid var(--300, #B3B3B3);
 }
 .bed.vacant:hover{
-    border: 2px solid var(--900, #1A1A1A);
+    border: 2px solid var(--900, var(--bed-vacant-hover-color));
     .b-num,
     .name,
     .tag .timer{
-    color: var(--300, #1A1A1A);
+    color: var(--300, var(--bed-vacant-hover-color));
     }
     .add{
-        content: url(/src/assets/add-active.svg);
+        content: var(--bed-vacant-how-add-img);
+    }
+}
+html.dark .bed.vacant:hover{
+    .add{
+        width: 12px;
+        height: 12px;
+        bottom: 14px;
+        right: 14px;
     }
 }
 .bed.vacant .b-num,
@@ -298,6 +375,7 @@
     overflow: hidden;
     overflow-y: scroll;
     padding-bottom: 20px;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 
 .by-status.active{
@@ -317,12 +395,11 @@
 }
 
 .by-status .status .title{
-    color: var(--300, #B3B3B3);
+    color: var(--300, var(--status-title-color));
     font-size: 24px;
     font-weight: 400;
     line-height: 110%;
 }
-
 
 @media (max-width:1920px) {
     .main{
@@ -330,7 +407,8 @@
     }
     .main .box{
         padding-bottom: 8px;
-        border-bottom: 1.5px solid var(--850, #262626);
+        /* border-bottom: 1.5px solid var(--850, #262626); */
+        border-bottom: 1.5px solid var(--850, #ffffff);
     }
     .monitors{
         row-gap: 24px;
@@ -367,7 +445,7 @@
     }
     .bed{
         padding: 12px;
-        gap: 8px;
+        gap: 24px;
         border: 2px solid transparent;
     }
     .bed .b-num{
@@ -380,12 +458,20 @@
     }
     .bed .tag{
         gap: 4px;
-        right: 8px;
-        top: 8px;
+        right: 4px;
+        top: 4px;
     }
     .bed .tag img{
         width: 8px;
         height: 8px;
+    }
+    .bed .tag .notification-off img{
+    width: 16px;
+    height: 16px;
+    }
+    .bed .tag .notification-on img{
+        width: 16px;
+        height: 16px;
     }
     .bed .dis-tag{
         padding: 10px;
@@ -395,11 +481,23 @@
         width: 16px;
         height: 16px;
     }
+    .bed .icon-tag{
+        padding: 10px;
+        gap: 8px;
+        top: 70%;   
+        left: 85%;  
+        transform: translate(-50%, -50%);
+    }
+    .bed .icon-tag img{
+        width: 60px;
+        height: 60px;
+    }
     .bed.disconnect:hover{
         .dis-tag img{
             content: url(/src/assets/link.svg);
         }
     }
+    
     .bed .dis-tag p{
         display: none;
     }
@@ -413,10 +511,26 @@
         width: 16px;
         height: 16px;
     }
+    .bed.attention .tag .notification-off img{
+        width: 16px;
+        height: 16px;
+    }
+    .bed.attention .tag .notification-on img{
+        width: 16px;
+        height: 16px;
+    }    
     .bed.alert .tag img{
         width: 16px;
         height: 16px;
     }
+    .bed.alert .tag .notification-off img{
+        width: 16px;
+        height: 16px;
+    }
+    .bed.alert .tag .notification-on img{
+        width: 16px;
+        height: 16px;
+    }    
     .bed .tag .timer{
         font-size: 14px;
         line-height: 100%;
@@ -435,6 +549,14 @@
     .by-status .status .title{
         font-size: 16px;
     }
+    html.dark .bed.vacant:hover{
+    .add{
+        width: 14px;
+        height: 14px;
+        bottom: 17px;
+        right: 17px;
+    }
+}
 }
 
 @media (max-width:1366px) {
@@ -472,8 +594,8 @@
     }
     .bed{
         padding: 10px;
-        gap: 6px;
-        border: 1.5px solid transparent;
+        gap: 20px;
+        border: 2px solid transparent;
     }
     .bed .b-num{
         font-size: 22px;
@@ -483,12 +605,30 @@
         font-size: 14px;
     }
     .bed .tag img{
-        width: 6px;
-        height: 6px;
+        width: 10px;
+        height: 10px;
+    }
+    .bed .tag .notification-off img{
+        width: 16px;
+        height: 16px;
+    }
+    .bed .tag .notification-on img{
+        width: 16px;
+        height: 16px;
     }
     .bed .dis-tag{
         padding: 10px;
         gap: 8px;
+    }
+    .bed .icon-tag{
+        padding: 10px;
+        gap: 8px;
+        top: 75%;   
+        left: 86%;  
+        transform: translate(-50%, -50%);
+    }
+    .bed .icon-tag img{
+        height: 35px;
     }
     .bed .add{
         width: 20px;
@@ -496,11 +636,12 @@
         bottom: 10px;
         right: 10px;
     }
+
     .bed.attention .tag img{
-        display: none;
+        /* display: none; */
     }
     .bed.alert .tag img{
-        display: none;
+        /* display: none; */
     }
     .bed .tag .timer{
         font-size: 12px;
@@ -515,4 +656,12 @@
     .by-status .status .title{
         font-size: 12px;
     }
+    html.dark .bed.vacant:hover{
+    .add{
+        width: 12px;
+        height: 12px;
+        bottom: 14px;
+        right: 14px;
+    }
+}
 }

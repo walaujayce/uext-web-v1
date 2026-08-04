@@ -76,6 +76,37 @@ function PatientDetail() {
                 </span>
               </Link>
             )}
+            {["administrator"].includes(role) && (
+              <Link
+                to={`/patient/patient-detail/patient-analysis${searchParams}`}
+              >
+                <span
+                  className={`opt opt-2 
+                    ${
+                      location.pathname ===
+                      "/patient/patient-detail/patient-analysis"
+                        ? "active"
+                        : ""
+                    }`}
+                >
+                  {t("PatientDetail.Analysis")}
+                </span>
+              </Link>
+            )}
+
+            <Link to={`/patient/patient-detail/patient-record${searchParams}`}>
+              <span
+                className={`opt opt-2 
+                    ${
+                      location.pathname ===
+                      "/patient/patient-detail/patient-record"
+                        ? "active"
+                        : ""
+                    }`}
+              >
+                {t("PatientDetail.Record")}
+              </span>
+            </Link>
 
             {/* <a  className="opt opt-3">Analysis</a>
                         <a  className="opt opt-4">Logs</a> */}

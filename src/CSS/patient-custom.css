@@ -9,7 +9,7 @@
 
 .pp h1{
     padding-bottom: 12px;
-    border-bottom: 1.5px solid var(--850, #262626);
+    border-bottom: 1.5px solid var(--850, var(--primary-text-color));
 }
 
 .pp .pfl{
@@ -39,6 +39,9 @@
     column-gap: 24px;
     padding-top: 24px;
 }
+.btn-gp.calibration-display-below{
+    display: none;
+}
 
 @media (max-width:1920px){
     .pp{
@@ -46,6 +49,8 @@
         max-width: 360px;
         overflow: hidden;
         overflow-y: scroll;
+            scrollbar-color: var(--scrollbar-thumb) transparent;
+
         height: 80vh;
     }
     .pp h1{
@@ -53,9 +58,9 @@
         position: -webkit-sticky;
         top: 0;
         z-index: 97;
-        background-color: #FFF;
+        background-color: var(--bg-color);
         padding-bottom: 8px;
-        border-bottom: 1.5px solid var(--850, #262626);
+        border-bottom: 1.5px solid var(--850, var(--primary-text-color));
     }
     .pp .pfl{
         display: grid;
@@ -80,8 +85,11 @@
     .pp .btn-gp{
         display: flex;
         column-gap: 16px;
-        padding-top: 16px;
-        padding-bottom: 24px;
+        padding-top: 1px;
+        padding-bottom: 1px;
+    }
+    .pp .btn-gp.calibration-display{
+        display: none;
     }
     .pp h1{
         font-size: 16px;
@@ -101,7 +109,7 @@
     align-items: flex-end;
     column-gap: 40px;
     padding-bottom: 12px;
-    border-bottom: 1.5px solid var(--850, #262626);
+    border-bottom: 1.5px solid var(--850, var(--primary-text-color));
 }
 .tab .opt{
     font-size: 32px;
@@ -112,8 +120,8 @@
     cursor: pointer;
 }
 .tab .opt.active{
-    color: var(--850, #262626);
-    font-weight: 500;
+    color: var(--850, var(--primary-text-color));
+    font-weight: 600;
 }
 .tab .btn.frameless{
     margin-left: auto;
@@ -135,7 +143,7 @@
     .main .tab{
         column-gap: 24px;
         padding-bottom: 8px;
-        border-bottom: 1.5px solid var(--850, #262626);
+        border-bottom: 1.5px solid var(--850, var(--primary-text-color));
     }
     .tab .opt{
         font-size: 20px;
@@ -149,7 +157,7 @@
     .main .tab{
         column-gap: 16px;
         padding-bottom: 8px;
-        border-bottom: 1.5px solid var(--850, #262626);
+        border-bottom: 1.5px solid var(--850, var(--primary-text-color));
     }
     .tab .opt{
         font-size: 16px;
@@ -165,6 +173,8 @@
     height: 100%;
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .monitor .pressure{
@@ -188,7 +198,7 @@
 }
 
 .monitor .title{
-    color: var(--600, #666);
+    color: var(--600, var(--label-color));
     font-size: 24px;
     font-style: normal;
     font-weight: 400;
@@ -249,7 +259,7 @@
     gap: 12px;
     color: var(--1000, #000);
     text-align: center;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
     font-size: 20px;
     font-style: normal;
     font-weight: 600;
@@ -270,6 +280,25 @@
     width: 33%;
 }
 
+.monitor .date-selection{
+    /* grid ratio */
+    grid-column: span 6;
+    grid-row: span 1;
+    display: flex;
+    flex-direction: column;
+    row-gap: 12px;
+    position: relative;
+}
+.monitor .chart{
+    /* grid ratio */
+    grid-column: span 6;
+    grid-row: span 1;
+    display: flex;
+    flex-direction: column;
+    row-gap: 12px;
+    position: relative;    
+    /* Optional: prevent content overflow */
+}
 
 .monitor .h-rate, .monitor .respiration{
     /* grid ratio */
@@ -413,6 +442,8 @@
     max-height: calc(100vh - 20vh);
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .alertSetting{
@@ -491,7 +522,7 @@
     display: grid;
     row-gap: 24px;
     column-gap: 24px;
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: repeat(1, 0.5fr);
     opacity: 0.5;
     padding-right: 10px;
 }
@@ -507,7 +538,7 @@
     align-items: flex-start;
     padding: 20px;
     gap: 40px;
-    background: #FAFAFA;
+    background: var(--alert-opt-bg-color);
     border-bottom: 3px solid transparent;
     width: 40vw;
 }
@@ -595,14 +626,25 @@
 .alertOpt.chi .opt-grid2 .opt .desc .desc-input::after{
     content: "分";
 }
-/* Custom CSS for Respiration and Heart Beat */
+/* Custom CSS for Respiration */
 .alertOpt .opt-grid2 .opt .desc .desc-input.rpm.max::after{
-    content: "Hz (Max.)";
+    content: "/min (Max.)";
     white-space: nowrap;
     padding-left: 5px;
 }
 .alertOpt .opt-grid2 .opt .desc .desc-input.rpm.min::after{
-    content: "Hz (Min.)";
+    content: "/min (Min.)";
+    white-space: nowrap;
+    padding-left: 5px;
+}
+/* Custom CSS for Heart Beat */
+.alertOpt .opt-grid2 .opt .desc .desc-input.hbm.max::after{
+    content: "bpm (Max.)";
+    white-space: nowrap;
+    padding-left: 5px;
+}
+.alertOpt .opt-grid2 .opt .desc .desc-input.hbm.min::after{
+    content: "bpm (Min.)";
     white-space: nowrap;
     padding-left: 5px;
 }
@@ -624,7 +666,7 @@
 
 .alertOpt .opt-grid2 .opt.on:hover{
     cursor: pointer;
-    background: var(--50, #F2F2F2);
+    background: var(--50, var(--alert-opt-bg-color));
 }
 
 .alertOpt .opt-grid2.active{
@@ -633,7 +675,7 @@
 
 .alertOpt .opt-grid2 .opt.on.active{
     border-bottom: 3px solid var(--850, #262626);
-    background: var(--50, #F2F2F2);
+    background: var(--50, var(--alert-opt-active-bg-color));
     img{
         content: url(/src/assets/checkbox-filled-outline.svg);
     }
@@ -780,6 +822,8 @@
     overflow: hidden;
     overflow-y: scroll;
     padding-bottom: 80px;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 
 .ct{
@@ -1182,7 +1226,7 @@
 }
 .ll .head h3{
     color: var(--600, #666);
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
 }
 .ll .fg1{
     flex: 1 1 0;
@@ -1199,6 +1243,8 @@
     max-height: calc(100vh - 20vh - 260px);
     overflow: hidden;
     overflow-y: scroll;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+
 }
 .ll .item{
     display: flex;

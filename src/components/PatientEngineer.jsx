@@ -8,6 +8,11 @@ import "/src/CSS/patient.css";
 import OpenCVComponent from "../components/OpenCVComponent";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import api from "../api/apiClient";
+import api8031 from "../api/apiClient8031";
+import RiskArea from "./RiskArea";
 
 function PatientEngineer() {
   const { t, i18n } = useTranslation();
@@ -20,35 +25,80 @@ function PatientEngineer() {
   const [duration, setDuration] = useState("");
   const [width, setWidth] = useState(null);
   const [height, setHeight] = useState(null);
+    const [isUMAP, setIsUMAP] = useState(false);
+  
+  const [respirationValue, setRespirationValue] = useState(0);
+  const [heartValue, setHeartValue] = useState(0);
+  const [riskRegionArray, setRiskRegionArray] = useState([]);
 
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
   const postData = async () => {
     try {
-      const response = await fetch(`/api/8031/rawdata/${macaddress}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      let response;
+      if (import.meta.env.VITE_MODE === "dev") {
+        // response = await fetch(`/api/7284/ss/SocketServer/${macaddress}`, {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
+        // const contentType = response.headers.get("Content-Type");
+        // if (!response.ok || !contentType?.includes("application/json")) {
+        //   throw new Error(`Expected JSON, got: ${contentType}`);
+        // }
+        // const data = await response.json();
+        response = await api.get(`/api/7284/ss/SocketServer/${macaddress}`);
+
+        const data = response.data;
+        setRawData(data);
+        //console.log("RawData:", data);
+        setRawdatum(data.IMAGE);
+        //console.log("Rawdatum:", data.IMAGE);
+        setPosition(data.POS);
+        ////console.log("Position:", data.POS);
+        setDuration(formatSecondsToDHMS(data.HOLD));
+        ////console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+        setRespirationValue(data.RR.value);
+        setHeartValue(data.HR.value);
+        setIsUMAP(data.HEIGHT * data.WIDTH >= 1575);
+        setRiskRegionArray(data.RecordDatumJlog.RiskRegions.filter((region)=>region.risk_level !== 0));
+
+      } else {
+        // response = await fetch(`/api/8031/rawdata/${macaddress}`, {
+        //   method: "GET",
+        //   headers: {
+        //     "Content-Type": "application/json",
+        //   },
+        // });
+
+        // const contentType = response.headers.get("Content-Type");
+        // if (!response.ok || !contentType?.includes("application/json")) {
+        //   throw new Error(`Expected JSON, got: ${contentType}`);
+        // }
+        // const data = await response.json();
+        response = await api8031.get(`/api/8031/rawdata/${macaddress}`);
+        const data = response.data;
+        setRawData(data);
+        //console.log("RawData:", data);
+        setRawdatum(data.IMAGE);
+        //console.log("Rawdatum:", data.IMAGE);
+        setPosition(data.POS);
+        ////console.log("Position:", data.POS);
+        setDuration(formatSecondsToDHMS(data.HOLD));
+        ////console.log("Duration:", formatSecondsToDHMS(data.HOLD));
+        setWidth(data.WIDTH);
+        setHeight(data.HEIGHT);
+        setRespirationValue(data.RR.Value);
+        setHeartValue(data.HR.Value);
+        setIsUMAP(data.HEIGHT * data.WIDTH >= 1575);
+        setRiskRegionArray(data.RecordDatumJlog.risk_regions.filter((region)=>region.risk_level !== 0));
+
       }
-
-      const data = await response.json();
-      setRawData(data);
-      console.log("RawData:", data);
-      setRawdatum(data.IMAGE);
-      console.log("Rawdatum:", data.IMAGE);
-      setPosition(data.POS);
-      //console.log("Position:", data.POS);
-      setDuration(formatSecondsToDHMS(data.HOLD));
-      //console.log("Duration:", formatSecondsToDHMS(data.HOLD));
-      setWidth(data.WIDTH);
-      setHeight(data.HEIGHT);
     } catch (error) {
       console.error("Error making POST request:", error);
     }
@@ -273,20 +323,23 @@ function PatientEngineer() {
 
   const fetchDeviceInfo = async (macaddress) => {
     try {
-      const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
+      // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
+      //   method: "GET",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      // });
 
-      const contentType = response.headers.get("Content-Type");
-      if (!response.ok || !contentType?.includes("application/json")) {
-        throw new Error(`Expected JSON, got: ${contentType}`);
-      }
+      // const contentType = response.headers.get("Content-Type");
+      // if (!response.ok || !contentType?.includes("application/json")) {
+      //   throw new Error(`Expected JSON, got: ${contentType}`);
+      // }
 
-      const data = await response.json();
-      console.log(data);
+      // const data = await response.json();
+      const response = await api.get(`/api/7284/db/Device/${macaddress}`);
+
+      const data = response.data;
+      //console.log(data);
       setDeviceInfo(data);
 
       PmioInput.setInputValue(data.pmio);
@@ -374,13 +427,13 @@ function PatientEngineer() {
       isDeviceConfigChanged &&
       print_inputvalue === requestBody_DeviceLConfiguration
     ) {
-      console.log(
-        "the input requestbody is device configuration",
-        print_inputvalue
-      );
+      //console.log(
+      //   "the input requestbody is device configuration",
+      //   print_inputvalue
+      // );
       PUT_DeivceInfo(macaddress, print_inputvalue);
     } else if (print_inputvalue === requestBody_PUT_RESET) {
-      console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
+      //console.log("the input requestbody is SET to DEFAULT", print_inputvalue);
       PUT_DeivceInfo(macaddress, print_inputvalue);
     }
   };
@@ -391,20 +444,22 @@ function PatientEngineer() {
 
       setLoading(true);
 
-      const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      });
+      // //console.log("Device updated successfully:", data);
+      // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
+      //   method: "PUT",
+      //   headers: {
+      //     "Content-Type": "application/json",
+      //   },
+      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
+      // });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`HTTP error! status: ${response.status}`);
+      // }
 
-      const data = await response.json();
-      console.log("Device updated successfully:", data);
+      // const data = await response.json();
+      const response = await api.put(`/api/7284/db/Device/${macaddress}`, updatedData);
+      const data = response.data;
       alert("Update Successfully!");
       window.location.reload();
       return data; // Return the response data if needed
@@ -418,7 +473,7 @@ function PatientEngineer() {
     /* compare input value to default value */
   }
   const compareDefaultValueReturnBorderStyle = (currentValue, defaultValue) => {
-    if(currentValue === "" || currentValue === null) return;
+    if (currentValue === "" || currentValue === null) return;
     const numericCurrent = parseFloat(currentValue);
     const numericReset = parseFloat(defaultValue);
     const isChanged =
@@ -437,12 +492,21 @@ function PatientEngineer() {
           {width &&
             height &&
             (rawdatum ? (
-              <OpenCVComponent
-                deviceid={macaddress}
-                rawdata={rawdatum}
-                width={width}
-                height={height}
-              />
+<>
+                <OpenCVComponent
+                  deviceid={macaddress}
+                  rawdata={rawdatum}
+                  width={width}
+                  height={height}
+                />
+                {isUMAP && (
+                  <RiskArea
+                    data={riskRegionArray}
+                    width={width}
+                    height={height}
+                  />
+                )}
+              </>
             ) : (
               <img
                 className="disconnect"
@@ -450,7 +514,6 @@ function PatientEngineer() {
                 alt=""
               ></img>
             ))}
-
           <div className="bt-box">
             {/* <div className="spec col">
               <p className="tag">Position</p>
@@ -487,7 +550,8 @@ function PatientEngineer() {
               <h3 className="fg1">POS</h3>
               <h3 className="fg1">HOLD</h3>
               <h3 className="fg1">ER</h3>
-              <h3 className="fg1">HR</h3>
+              {/* <h3 className="fg1">HR</h3> */}
+              <h3 className="fg1">Color</h3>
               <h3 className="fg1">RR</h3>
               <h3 className="fg1">WIDTH</h3>
               <h3 className="fg1">HEIGHT</h3>
@@ -499,8 +563,9 @@ function PatientEngineer() {
                 <h3 className="fg1">{rawData.POS}</h3>
                 <h3 className="fg1">{formatSecondsToDHMS(rawData.HOLD)}</h3>
                 <h3 className="fg1">{rawData.ER}</h3>
-                <h3 className="fg1">{rawData.HR}</h3>
-                <h3 className="fg1">{rawData.RR}</h3>
+                {/* <h3 className="fg1">{heartValue}</h3> */}
+                <h3 className="fg1">{rawData.BedColor}</h3>
+                <h3 className="fg1">{respirationValue}</h3>
                 <h3 className="fg1">{rawData.WIDTH}</h3>
                 <h3 className="fg1">{rawData.HEIGHT}</h3>
               </a>
@@ -508,6 +573,7 @@ function PatientEngineer() {
           </div>
         </div>
       </div>
+
       {/* Parameters Settings */}
       <div className="respiration">
         <div className="deviceSetting">
@@ -530,7 +596,10 @@ function PatientEngineer() {
                     placeholder={PmioInput.inputValue}
                     value={PmioInput.inputValue}
                     onChange={PmioInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(PmioInput.inputValue, requestBody_PUT_RESET.pmio)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      PmioInput.inputValue,
+                      requestBody_PUT_RESET.pmio
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -555,7 +624,10 @@ function PatientEngineer() {
                     placeholder={VmaxInput.inputValue}
                     value={VmaxInput.inputValue}
                     onChange={VmaxInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(VmaxInput.inputValue, requestBody_PUT_RESET.vmax)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      VmaxInput.inputValue,
+                      requestBody_PUT_RESET.vmax
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -580,7 +652,10 @@ function PatientEngineer() {
                     placeholder={VminInput.inputValue}
                     value={VminInput.inputValue}
                     onChange={VminInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(VminInput.inputValue, requestBody_PUT_RESET.vmin)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      VminInput.inputValue,
+                      requestBody_PUT_RESET.vmin
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -605,7 +680,10 @@ function PatientEngineer() {
                     placeholder={DebTstInput.inputValue}
                     value={DebTstInput.inputValue}
                     onChange={DebTstInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(DebTstInput.inputValue, requestBody_PUT_RESET.debTst)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      DebTstInput.inputValue,
+                      requestBody_PUT_RESET.debTst
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -630,7 +708,10 @@ function PatientEngineer() {
                     placeholder={DebFpsInput.inputValue}
                     value={DebFpsInput.inputValue}
                     onChange={DebFpsInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(DebFpsInput.inputValue, requestBody_PUT_RESET.debFps)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      DebFpsInput.inputValue,
+                      requestBody_PUT_RESET.debFps
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -658,7 +739,10 @@ function PatientEngineer() {
                     id="judgemethod"
                     placeholder={placeholderJudgeMethod}
                     readOnly
-                    style={compareDefaultValueReturnBorderStyle(placeholderJudgeMethod === "by size" ? 1 : 0, requestBody_PUT_RESET.judgemethod)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      placeholderJudgeMethod === "by size" ? 1 : 0,
+                      requestBody_PUT_RESET.judgemethod
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -703,7 +787,10 @@ function PatientEngineer() {
                     id="edgepar"
                     placeholder={edgeparDropdown.placeholder}
                     readOnly
-                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(edgeparDropdown.placeholder), requestBody_PUT_RESET.edgepar)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      getLevel_Int(edgeparDropdown.placeholder),
+                      requestBody_PUT_RESET.edgepar
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -748,7 +835,10 @@ function PatientEngineer() {
                     id="edgebox"
                     placeholder={edgeboxDropdown.placeholder}
                     readOnly
-                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(edgeboxDropdown.placeholder), requestBody_PUT_RESET.edgebox)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      getLevel_Int(edgeboxDropdown.placeholder),
+                      requestBody_PUT_RESET.edgebox
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -793,8 +883,10 @@ function PatientEngineer() {
                     id="sitpar"
                     placeholder={sitparDropdown.placeholder}
                     readOnly
-                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(sitparDropdown.placeholder), requestBody_PUT_RESET.sitpar)}
-
+                    style={compareDefaultValueReturnBorderStyle(
+                      getLevel_Int(sitparDropdown.placeholder),
+                      requestBody_PUT_RESET.sitpar
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -839,7 +931,10 @@ function PatientEngineer() {
                     id="sitbox"
                     placeholder={sitboxDropdown.placeholder}
                     readOnly
-                    style={compareDefaultValueReturnBorderStyle(getLevel_Int(sitboxDropdown.placeholder), requestBody_PUT_RESET.sitbox)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      getLevel_Int(sitboxDropdown.placeholder),
+                      requestBody_PUT_RESET.sitbox
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -881,7 +976,10 @@ function PatientEngineer() {
                     placeholder={HeightThInput.inputValue}
                     value={HeightThInput.inputValue}
                     onChange={HeightThInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(HeightThInput.inputValue, requestBody_PUT_RESET.heightTh)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      HeightThInput.inputValue,
+                      requestBody_PUT_RESET.heightTh
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -906,7 +1004,10 @@ function PatientEngineer() {
                     placeholder={BoxYStartInput.inputValue}
                     value={BoxYStartInput.inputValue}
                     onChange={BoxYStartInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(BoxYStartInput.inputValue,requestBody_PUT_RESET.boxYStart)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      BoxYStartInput.inputValue,
+                      requestBody_PUT_RESET.boxYStart
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -931,7 +1032,10 @@ function PatientEngineer() {
                     placeholder={ErmapInput.inputValue}
                     value={ErmapInput.inputValue}
                     onChange={ErmapInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(ErmapInput.inputValue, requestBody_PUT_RESET.erMap)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      ErmapInput.inputValue,
+                      requestBody_PUT_RESET.erMap
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -956,7 +1060,10 @@ function PatientEngineer() {
                     placeholder={EdgeSitPointInput.inputValue}
                     value={EdgeSitPointInput.inputValue}
                     onChange={EdgeSitPointInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(EdgeSitPointInput.inputValue, requestBody_PUT_RESET.edgeSitPoint)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      EdgeSitPointInput.inputValue,
+                      requestBody_PUT_RESET.edgeSitPoint
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -981,7 +1088,10 @@ function PatientEngineer() {
                     placeholder={EmasizeInput.inputValue}
                     value={EmasizeInput.inputValue}
                     onChange={EmasizeInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(EmasizeInput.inputValue, requestBody_PUT_RESET.emasize)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      EmasizeInput.inputValue,
+                      requestBody_PUT_RESET.emasize
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -1006,7 +1116,10 @@ function PatientEngineer() {
                     placeholder={EmaThresInput.inputValue}
                     value={EmaThresInput.inputValue}
                     onChange={EmaThresInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(EmaThresInput.inputValue, requestBody_PUT_RESET.emathres)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      EmaThresInput.inputValue,
+                      requestBody_PUT_RESET.emathres
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -1031,7 +1144,10 @@ function PatientEngineer() {
                     placeholder={NoiseThresInput.inputValue}
                     value={NoiseThresInput.inputValue}
                     onChange={NoiseThresInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(NoiseThresInput.inputValue, requestBody_PUT_RESET.noisethres)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      NoiseThresInput.inputValue,
+                      requestBody_PUT_RESET.noisethres
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -1056,7 +1172,10 @@ function PatientEngineer() {
                     placeholder={UprtothresInput.inputValue}
                     value={UprtothresInput.inputValue}
                     onChange={UprtothresInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(UprtothresInput.inputValue, requestBody_PUT_RESET.uprtothres)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      UprtothresInput.inputValue,
+                      requestBody_PUT_RESET.uprtothres
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>
@@ -1081,7 +1200,10 @@ function PatientEngineer() {
                     placeholder={XyrtothresInput.inputValue}
                     value={XyrtothresInput.inputValue}
                     onChange={XyrtothresInput.handleInputChange}
-                    style={compareDefaultValueReturnBorderStyle(XyrtothresInput.inputValue, requestBody_PUT_RESET.xyrtothres)}
+                    style={compareDefaultValueReturnBorderStyle(
+                      XyrtothresInput.inputValue,
+                      requestBody_PUT_RESET.xyrtothres
+                    )}
                   />
                   <img className="suffix" src="" alt="dropdown icon" />
                 </div>

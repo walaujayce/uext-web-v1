@@ -17,11 +17,15 @@ import PatientDetail from "./pages/PatientDetail";
 import PatientMonitor from "./components/PatientMonitor";
 import PatientAlerts from "./components/PatientAlerts";
 import PatientEngineer from "./components/PatientEngineer";
+import PatientAnalysis from "./components/PatientAnalysis"
 import DeviceSettings from "./components/DeviceSetting";
 import AccountSetting from "./components/AccountSetting";
 import PrivateRoute from "./JS/PrivateRoute";
 import ForgetPassword from "./components/ForgetPassword"
 import ResetPassword from "./components/ResetPassword";
+import DemoSD from "./pages/DemoSD";
+import Alert from "./pages/Alert";
+import PatientRecord from "./components/PatientRecord";
 
 function App() {
   const location = useLocation();
@@ -40,6 +44,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/uneosddemo" element={<DemoSD />} />
       <Route path="/forget-password" element={<ForgetPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route
@@ -91,7 +96,31 @@ function App() {
             </PrivateRoute>
           }
         />
+        <Route
+          path="patient-analysis"
+          element={
+            <PrivateRoute allowedRoles={["administrator"]}>
+              <PatientAnalysis />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="patient-record"
+          element={
+            <PrivateRoute allowedRoles={["all"]}>
+              <PatientRecord/>
+            </PrivateRoute>
+          }
+        />
       </Route>
+      <Route
+        path="/alert"
+        element={
+          <PrivateRoute allowedRoles={["all"]}>
+            <Alert />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/device"
         element={
@@ -131,3 +160,4 @@ function App() {
 }
 
 export default App;
+  

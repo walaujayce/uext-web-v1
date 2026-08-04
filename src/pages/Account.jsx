@@ -16,7 +16,7 @@ function Account() {
   useEffect(() => {
     if (location.state?.reload) {
       // Perform any reset logic or force a refresh
-      console.log("Resetting Account component");
+      //console.log("Resetting Account component");
       setShowAccountList(true);
     }
   }, [location]);
