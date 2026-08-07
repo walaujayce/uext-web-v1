@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { loadOpenCv } from "../JS/opencv-loader.js";
 import { useAuth } from "../JS/AuthContext.jsx";
 
-const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
+const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] }) => {
   const sensor_height = height;
   const sensor_width = width;
   const { isDarkMode } = useAuth();
@@ -237,18 +237,75 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
         cv.INTER_LINEAR_EXACT,
       );
 
-      // Convert grayscale to RGB
+      // Convert grayscale to RGBA（圓圈外要套 alpha 0.8，需要 alpha 通道）
       let dst = new cv.Mat();
-      cv.cvtColor(resizedMat3, dst, cv.COLOR_GRAY2RGB, 0);
+      cv.cvtColor(resizedMat3, dst, cv.COLOR_GRAY2RGBA, 0);
+
+      // 若有 risk region：先算出各圓在 dst 座標系的位置（與 RiskArea 相同的換算，
+      // 含 180° 旋轉、半徑 = radius * 2.75，再依 dst 與 canvas 的比例放大）。
+      // 邊界羽化寬度 = 半徑 * 此比例（在此帶狀範圍內，減少量由 0 平滑過渡到 10，消除硬邊界）
+      const FEATHER_RATIO = 0.6;
+      const riskCircles =
+        Array.isArray(riskRegions) && riskRegions.length > 0
+          ? riskRegions
+              .filter((rg) => rg && (Number(rg.radius) || 0) > 0)
+              .map((rg) => {
+                const r =
+                  (Number(rg.radius) || 0) *
+                  2.75 *
+                  (dst.cols / canvasRef.current.width);
+                return {
+                  cx:
+                    (sensor_width - 1 - Number(rg.center_x)) *
+                    (dst.cols / (sensor_width - 1)),
+                  cy:
+                    (sensor_height - 1 - Number(rg.center_y)) *
+                    (dst.rows / (sensor_height - 1)),
+                  r,
+                  feather: Math.max(r * FEATHER_RATIO, 1),
+                };
+              })
+          : [];
+      const applyRiskMask = riskCircles.length > 0;
+
+      // 圓圈外要把值往下降（降壓/變淡）的最大量；圈內不動。
+      const OUTSIDE_DROP = 10;
+      const OUTSIDE_ALPHA = 0.2; // 圓圈外的透明度
 
       // Apply custom color mapping using `getColor()`
       for (let i = 0; i < dst.rows; i++) {
         for (let j = 0; j < dst.cols; j++) {
-          let c = getUMAPColor(dst.ucharPtr(i, j)[0]);
+          let val = dst.ucharPtr(i, j)[0]; // 原始灰階值 (0~255)
+          let alpha = 255; // 圈內不透明
+          // 沿圓邊「羽化」：ratio = 0(圈內) → 1(遠離所有圓)，用來平滑過渡「減值」與「透明度」，
+          // 讓圓圈外「值減 OUTSIDE_DROP」+「alpha 0.8」都不會有明顯邊界。
+          if (applyRiskMask) {
+            let ratio = 1;
+            for (let k = 0; k < riskCircles.length; k++) {
+              const dx = j - riskCircles[k].cx;
+              const dy = i - riskCircles[k].cy;
+              const dist = Math.sqrt(dx * dx + dy * dy) - riskCircles[k].r; // 帶號距離：<=0 在圈內
+              let t;
+              if (dist <= 0) t = 0;
+              else if (dist >= riskCircles[k].feather) t = 1;
+              else t = dist / riskCircles[k].feather;
+              if (t < ratio) ratio = t;
+              if (ratio <= 0) break; // 已落在某圓內，最小了
+            }
+            // 值：原本 < OUTSIDE_DROP 的不動（避免變負值/動到背景）
+            if (val >= OUTSIDE_DROP) {
+              val = val - Math.round(OUTSIDE_DROP * ratio);
+            }
+            // 透明度：圈內 1 → 圈外 OUTSIDE_ALPHA，沿羽化帶漸變
+            if(val > 10){
+              alpha = Math.round(255 * (1 - (1 - OUTSIDE_ALPHA) * ratio));
+            }
+          }
+          const c = getUMAPColor(val);
           dst.ucharPtr(i, j)[0] = c[2]; // Blue
           dst.ucharPtr(i, j)[1] = c[1]; // Green
           dst.ucharPtr(i, j)[2] = c[0]; // Red
-          dst.ucharPtr(i, j)[3] = 0; // Alpha
+          dst.ucharPtr(i, j)[3] = alpha; // Alpha
         }
       }
       // ** Resize to match canvas size **
@@ -375,7 +432,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width }) => {
       console.error("Error making in print_img request:", error);
       ////console.log("the aaaaaaaa is ", decimalArray);
     }
-  }, [opencvLoaded, decimalArray]);
+  }, [opencvLoaded, decimalArray, riskRegions]);
 
   return <canvas ref={canvasRef} style={{
         position: "absolute",
