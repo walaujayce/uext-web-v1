@@ -119,8 +119,9 @@ function Navbar() {
     async function fetchData() {
       try {
         // Get userid based on username in local storage
-        const response = await api.get("/api/7284/User");
+        const response = await api.get("/api/7284/User/me");
         const data = response.data;
+        // console.log("Data: ",data);
         // const response = await fetch("/api/7284/User", {
         //   method: "GET",
         //   headers: {
@@ -131,16 +132,16 @@ function Navbar() {
         //   throw new Error(`HTTP error! status: ${response.status}`);
         // }
         // const data = await response.json();
-        const stored_username = JSON.parse(localStorage.getItem("username"));
-        const selected_user = data.find(
-          (user) => user.username == stored_username,
-        );
-        setSelectedUserId(selected_user.userid);
+        // const stored_username = JSON.parse(localStorage.getItem("username"));
+        // const selected_user = data.find(
+        //   (user) => user.username == stored_username,
+        // );
+        setSelectedUserId("me");
       } catch (error) {
         console.error("Error updating password:", error.message);
       }
     }
-    fetchData();
+    // fetchData();
   }, []);
 
   {
@@ -424,8 +425,8 @@ function Navbar() {
                 <p>{userName}</p>
               </div>
               <Link
-                to={`/account/account-settings?userid=${selected_user_id}`}
-                key={selected_user_id}
+                to={`/account/account-settings?userid=me`}
+                key={"me"}
               >
                 <a
                   href="#"
