@@ -1,5 +1,15 @@
 import { HubConnectionBuilder, LogLevel } from "@microsoft/signalr";
 import { getCurrentServerIp } from "../api/serverStore";
+import { getAccessToken } from "../auth/authStore";
+
+// SignalR hub 已加上 JWT 驗證：
+//   - negotiate / long-polling(HTTP) → 用 Authorization: Bearer header
+//   - WebSocket 握手(無法帶 header) → SignalR 會自動把 token 放到 query string ?access_token=
+//     （後端 OnMessageReceived 對 /notifyHub 就是讀這個 query）
+// 只要提供 accessTokenFactory，@microsoft/signalr 會自動處理上述兩種情況。
+const hubOptions = () => ({
+  accessTokenFactory: () => getAccessToken() || "",
+});
 
 // 依目前選取的樓層/區域 IP 組出 SignalR hub 網址。
 //   一律走相對路徑 /signalR/7284（same-origin，無 CORS），把目標 IP 放在 query string；
@@ -35,7 +45,7 @@ class SignalRService {
 
     const url = buildHubUrl(ipOverride);
     this.connection = new HubConnectionBuilder()
-      .withUrl(url) // 依目前選取樓層 IP 動態決定
+      .withUrl(url, hubOptions()) // 依目前選取樓層 IP 動態決定 + 帶上 JWT
       .configureLogging(LogLevel.Information)
       .build();
 
