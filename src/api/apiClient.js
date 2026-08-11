@@ -12,6 +12,19 @@ const refreshClient = axios.create({
   withCredentials: true,
 });
 
+// auth 相關端點（login / refresh）一律只打 VITE_WEBAPI_URL 指定的主機，
+// 不能隨目前選取的樓層 IP 改變（登入頁尤其如此）。
+//   - 有設定且非 localhost → 用該值
+//   - "localhost" → 用瀏覽器目前 host
+//   - 未設定 → null（不帶 header，走 proxy 預設主機）
+const WEBAPI_IP = (() => {
+  const raw = import.meta.env.VITE_WEBAPI_URL;
+  if (!raw) return null;
+  if (raw === "localhost") return window.location.hostname;
+  return raw;
+})();
+const isAuthUrl = (url) => /^\/api\/7284\/auth(\/|$)/.test(url);
+
 // ─────────────────────────────────────────────────────────
 // 依「目前選取樓層/區域的 IP」決定要打哪台後端。
 //
@@ -29,6 +42,16 @@ const refreshClient = axios.create({
 const applyTargetHeader = (config) => {
   if (!config.url) return config;
   if (!/^\/api\/(7284)(\/|$)/.test(config.url)) return config; // 其他路徑不動
+
+  // auth 端點（login / refresh）：一律打 VITE_WEBAPI_URL，不看目前選取的 server IP。
+  if (isAuthUrl(config.url)) {
+    if (WEBAPI_IP) {
+      config.headers = config.headers || {};
+      config.headers["X-Target-IP"] = WEBAPI_IP;
+    }
+    // 沒解析到 → 不帶 header，proxy 會 fallback 到預設(WebAPI)主機
+    return config;
+  }
 
   // 明確指定的 config.targetIp 優先（讓呼叫端把整批請求釘在同一台，
   // 不受期間使用者切換樓層影響）；否則才讀目前選取的 IP。
