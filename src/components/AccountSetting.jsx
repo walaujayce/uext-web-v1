@@ -153,13 +153,13 @@ function AccountSetting() {
       PUT_UserInfo(userid, print_inputvalue);
     } else if (isRoleChanged && print_inputvalue === requestBody_PUT_Role) {
       // console.log("the input requestbody is Role", print_inputvalue);
-      if (userInfo.role===0) {
-        alert("Cannot modify Administrator role!");
-        window.location.reload();
-        return;
-      } else {
-        PUT_UserInfo(userid, print_inputvalue);
-      }
+      // if (userInfo.role===0) {
+      //   alert("Cannot modify Administrator role!");
+      //   window.location.reload();
+      //   return;
+      // } else {
+        PUT_UserRole(userid, print_inputvalue);
+      // }
     } else if (
       isPasswordChanged &&
       print_inputvalue === requestBody_PUT_Password
@@ -204,38 +204,17 @@ function AccountSetting() {
       setLoading(false);
     }
   };
-  // const PUT_UserInfo = async (userid, requestBody) => {
-  //   try {
-  //     // Remove 'alertguid' from the alertList
-  //     const { lastlogin, userid, ...filteredUserInfo } = userInfo; // Destructure to exclude alertguid
+  const PUT_UserRole = async (userid, requestBody) => {
+    try {
+      setLoading(true);
 
-  //     const updatedData = { ...filteredUserInfo, ...requestBody };
-  //     // console.log("updated data is :", updatedData);
-
-  //     setLoading(true);
-
-  //     const response = await api.put(`/api/7284/User/${userid}`, updatedData);
-
-  //     const data = response.data;
-  //     if(data.code === 401){
-  //       alert("Password is incorrect!");
-  //     }
-      
-  //     if (data.code !== 0) {
-  //       // console.log("User fail to update:", data);
-  //       alert("User fail to update!");
-  //     } else {
-  //       // console.log("User updated successfully:", data);
-  //       alert("Update Successfully!");
-  //       window.location.reload();
-  //     }
-  //     return data; // Return the response data if needed
-  //   } catch (error) {
-  //     console.error("Error updating device:", error.message);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+      const response = await api.patch(`/api/7284/User/${userid}/role`, requestBody);
+    } catch (error) {
+      console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleDeleteUser = (userid) => {
     // console.log("delete userid is ", userid);
