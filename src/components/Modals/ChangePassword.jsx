@@ -102,10 +102,8 @@ const ChangePasswordModal = ({ callback }) => {
       // if (!response.ok) {
       //   throw new Error(`HTTP error! status: ${response.status}`);
       // }
-      const response = await api.get("/api/7284/User");
+      const response = await api.get("/api/7284/User/me");
       const data = response.data;
-      const stored_username = JSON.parse(localStorage.getItem("username"));
-      const selected_user = data.find((user)=>(user.username == stored_username));
       //check current password with database password
       // if(selected_user.password!==currentPw.input){
       //   alert("Current Password is not correct!");

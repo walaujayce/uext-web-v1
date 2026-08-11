@@ -52,7 +52,6 @@ const clearSession = () => {
   clearAccessToken();
   localStorage.removeItem("isAuthenticated");
   localStorage.removeItem("role");
-  localStorage.removeItem("username");
 };
 
 const redirectToLogin = () => {
@@ -94,8 +93,20 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 沒有 response（例如網路斷線）或非 401 直接 reject
-    if (!error.response || error.response.status !== 401 || !originalRequest || originalRequest._retry) {
+    // 登入 / refresh 端點本身的 401 不要走「refresh + 導回登入」流程：
+    // 登入密碼錯誤本來就會回 401，若還去 refresh→失敗→redirectToLogin 會整頁重整。
+    // 這類 401 直接 reject，交給呼叫端（登入頁）自己顯示錯誤訊息。
+    const reqUrl = originalRequest?.url || "";
+    const isAuthEndpoint = /\/auth\/(login|refresh)/.test(reqUrl);
+
+    // 沒有 response（例如網路斷線）或非 401、或是 auth 端點 → 直接 reject
+    if (
+      !error.response ||
+      error.response.status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthEndpoint
+    ) {
       return Promise.reject(error);
     }
 
@@ -117,9 +128,10 @@ api.interceptors.response.use(
 
     try {
       // 用 refreshClient 送，不會被 api 的 response interceptor 攔截
-      const res = await refreshClient.post(REFRESH_URL, {
-        userId: JSON.parse(localStorage.getItem("username")), // ⬅ 你後端目前需要
-      });
+      const res = await refreshClient.post(REFRESH_URL);
+      // const res = await refreshClient.post(REFRESH_URL, {
+      //   userId: JSON.parse(localStorage.getItem("username")), // ⬅ 你後端目前需要
+      // });
 
       const newToken = res.data.accessToken;
       setAccessToken(newToken);
