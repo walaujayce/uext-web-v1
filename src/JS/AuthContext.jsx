@@ -6,8 +6,9 @@ import React, {
   useRef,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import alertLeftBedSound from "/src/assets/AlertLeftBed.mp3"; // Import MP3 file
-import AlertAboutToLeaveSound from "/src/assets/AlertAboutToLeave.mp3"; // Import MP3 file
+// mp3 已移到 public/src/assets，改用 URL 字串引用(public 的檔不能用 import)
+const alertLeftBedSound = "/src/assets/AlertLeftBed.mp3";
+const AlertAboutToLeaveSound = "/src/assets/AlertAboutToLeave.mp3";
 const isDevMode = false;
 const AuthContext = createContext();
 
