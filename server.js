@@ -53,7 +53,23 @@ const forwardHttp = (req, res, host, port, path) => {
   const proxyReq = http.request(
     { host, port, method: req.method, path, headers },
     (proxyRes) => {
-      res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
+      const outHeaders = { ...proxyRes.headers };
+      // 後端若動態產生 Access-Control-Allow-Origin，補上 Vary: Origin，
+      // 避免快取把某個 origin 的 CORS 回應拿去共用給別的 origin。
+      if (outHeaders["access-control-allow-origin"]) {
+        const vary = outHeaders["vary"];
+        const list = vary
+          ? String(vary)
+              .split(",")
+              .map((s) => s.trim())
+              .filter(Boolean)
+          : [];
+        if (!list.some((v) => v.toLowerCase() === "origin")) {
+          list.push("Origin");
+        }
+        outHeaders["vary"] = list.join(", ");
+      }
+      res.writeHead(proxyRes.statusCode || 502, outHeaders);
       proxyRes.pipe(res);
     },
   );
