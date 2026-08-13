@@ -270,7 +270,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
 
       // 圓圈外要把值往下降（降壓/變淡）的最大量；圈內不動。
       const OUTSIDE_DROP = 10;
-      const OUTSIDE_ALPHA = 0.2; // 圓圈外的透明度
+      const OUTSIDE_ALPHA = 0.5; // 圓圈外的透明度
 
       // Apply custom color mapping using `getColor()`
       for (let i = 0; i < dst.rows; i++) {

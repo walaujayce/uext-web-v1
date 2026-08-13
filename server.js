@@ -32,8 +32,35 @@ const HOST_RE = /^[A-Za-z0-9.:%-]{1,253}$/;
 const isValidHost = (h) =>
   typeof h === "string" && h.length > 0 && HOST_RE.test(h);
 
-// 我方自己產生的回應都帶 nosniff：禁止瀏覽器把 text/plain 猜成 HTML 執行
-const SECURITY_HEADERS = { "X-Content-Type-Options": "nosniff" };
+// 我方自己產生的回應都帶的安全性 headers：
+//   nosniff        → 禁止瀏覽器把回應內容猜成別的型別執行(擋反射型 XSS)
+//   X-Frame-Options→ 防 clickjacking
+//   Referrer-Policy→ 不外洩 referrer
+const SECURITY_HEADERS = {
+  "X-Content-Type-Options": "nosniff",
+  "X-Frame-Options": "DENY",
+  "Referrer-Policy": "no-referrer",
+};
+
+// Content-Security-Policy（套在 index.html 這份文件上）：限制資源只能來自同源，
+// 大幅降低 XSS 影響面。已針對本 App 需求放寬：
+//   script 'unsafe-eval' 'wasm-unsafe-eval' → OpenCV.js 內部用 new Function()/WASM
+//   style 'unsafe-inline' + fonts.googleapis → MUI/emotion 行內樣式 + Google Fonts 樣式表
+//   font fonts.gstatic                        → Google Fonts 字型檔
+//   connect 'self'                            → API 與 SignalR 都同源(經本 server 轉發)
+const CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-eval' 'wasm-unsafe-eval'",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data:",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "media-src 'self'",
+  // 'self' → API/SignalR(同源)；data: → OpenCV.js 用 fetch 載入內嵌的 WASM(data: URL)
+  "connect-src 'self' data:",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "frame-ancestors 'none'",
+].join("; ");
 
 // ── 以下轉發邏輯與 vite.config.js 的 dynamicApiProxy 完全一致 ──
 const rewriteApiPath = (port, url) =>
@@ -166,13 +193,17 @@ const MIME = {
 const sendFile = (res, filePath) => {
   const ext = path.extname(filePath).toLowerCase();
   const isIndex = path.basename(filePath) === "index.html";
-  res.writeHead(200, {
+  const headers = {
     "content-type": MIME[ext] || "application/octet-stream",
     // index.html 不快取(才能拿到新版)；其餘(hash 檔名)長快取
     "cache-control": isIndex
       ? "no-cache"
       : "public, max-age=31536000, immutable",
-  });
+    ...SECURITY_HEADERS,
+  };
+  // CSP 套在 HTML 文件上即可
+  if (isIndex) headers["Content-Security-Policy"] = CONTENT_SECURITY_POLICY;
+  res.writeHead(200, headers);
   fs.createReadStream(filePath)
     .on("error", () => {
       if (!res.headersSent) res.writeHead(500);
