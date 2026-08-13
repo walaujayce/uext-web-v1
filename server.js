@@ -24,23 +24,37 @@ const WEBAPI_HOST = process.env.VITE_WEBAPI_URL || "192.168.100.200";
 const SOCKETSERVER_HOST = process.env.VITE_SOCKETSERVER_URL || "192.168.100.200";
 const DEFAULT_HOST_BY_PORT = { "7284": WEBAPI_HOST, "8031": SOCKETSERVER_HOST };
 
+// 驗證使用者提供的轉發目標(X-Target-IP header / ?targetIp= query)：
+// 只允許合法 IP/hostname 字元(英數、.、:、%(IPv6 zone)、-)，長度上限 253。
+// 任何含 < > " ' ; 空白、腳本片段等注入字元的值都會不符 → 直接拒絕，
+// 不讓使用者輸入進到 http.request 或任何回應(擋 Server-Side Script Injection)。
+const HOST_RE = /^[A-Za-z0-9.:%-]{1,253}$/;
+const isValidHost = (h) =>
+  typeof h === "string" && h.length > 0 && HOST_RE.test(h);
+
+// 我方自己產生的回應都帶 nosniff：禁止瀏覽器把 text/plain 猜成 HTML 執行
+const SECURITY_HEADERS = { "X-Content-Type-Options": "nosniff" };
+
 // ── 以下轉發邏輯與 vite.config.js 的 dynamicApiProxy 完全一致 ──
 const rewriteApiPath = (port, url) =>
   port === "7284"
     ? url.replace(/^\/api\/7284/, "/api")
     : url.replace(/^\/api\/(8031)/, "/api/v1");
 
+// 回傳 null 代表「使用者提供了非法的 target」→ 呼叫端應回 400 拒絕。
 const resolveApiTarget = (req, port) => {
   const headerIp = req.headers["x-target-ip"];
-  const ip =
-    (Array.isArray(headerIp) ? headerIp[0] : headerIp) ||
-    DEFAULT_HOST_BY_PORT[port];
+  const raw = Array.isArray(headerIp) ? headerIp[0] : headerIp;
+  if (raw && !isValidHost(raw)) return null; // 非法輸入 → 拒絕
+  const ip = raw || DEFAULT_HOST_BY_PORT[port];
   return { ip, port: Number(port), path: rewriteApiPath(port, req.url) };
 };
 
 const resolveSignalRTarget = (reqUrl) => {
   const u = new URL(reqUrl, "http://placeholder");
-  const ip = u.searchParams.get("targetIp") || DEFAULT_HOST_BY_PORT["7284"];
+  const raw = u.searchParams.get("targetIp");
+  if (raw && !isValidHost(raw)) return null; // 非法輸入 → 拒絕
+  const ip = raw || DEFAULT_HOST_BY_PORT["7284"];
   u.searchParams.delete("targetIp");
   const path =
     u.pathname.replace(/^\/signalR\/7284/, "/notifyHub") + (u.search || "");
@@ -74,10 +88,15 @@ const forwardHttp = (req, res, host, port, path) => {
     },
   );
   proxyReq.on("error", (err) => {
+    // 細節只記在 server console；回給瀏覽器的內容不夾帶任何請求輸入(避免反射注入)
+    console.error("api-proxy error:", err.message);
     if (!res.headersSent) {
-      res.writeHead(502, { "content-type": "text/plain; charset=utf-8" });
+      res.writeHead(502, {
+        "content-type": "text/plain; charset=utf-8",
+        ...SECURITY_HEADERS,
+      });
     }
-    res.end("api-proxy error: " + err.message);
+    res.end("Bad Gateway");
   });
   req.pipe(proxyReq);
 };
@@ -173,7 +192,10 @@ const serveStatic = (req, res) => {
   const filePath = path.join(DIST_DIR, path.normalize(urlPath));
   // 防目錄穿越
   if (!filePath.startsWith(DIST_DIR)) {
-    res.writeHead(403);
+    res.writeHead(403, {
+      "content-type": "text/plain; charset=utf-8",
+      ...SECURITY_HEADERS,
+    });
     res.end("Forbidden");
     return;
   }
@@ -186,13 +208,23 @@ const serveStatic = (req, res) => {
 
 // ── HTTP server ──
 const server = http.createServer((req, res) => {
+  const badRequest = () => {
+    res.writeHead(400, {
+      "content-type": "text/plain; charset=utf-8",
+      ...SECURITY_HEADERS,
+    });
+    res.end("Bad Request");
+  };
+
   const apiM = req.url && req.url.match(/^\/api\/(7284|8031)(?=\/|\?|$)/);
   if (apiM) {
     const t = resolveApiTarget(req, apiM[1]);
+    if (!t) return badRequest(); // 非法 X-Target-IP → 拒絕
     return forwardHttp(req, res, t.ip, t.port, t.path);
   }
   if (req.url && /^\/signalR\/7284(?=\/|\?|$)/.test(req.url)) {
     const t = resolveSignalRTarget(req.url);
+    if (!t) return badRequest(); // 非法 targetIp → 拒絕
     return forwardHttp(req, res, t.ip, t.port, t.path);
   }
   return serveStatic(req, res);
@@ -205,6 +237,10 @@ server.on("upgrade", (req, socket, head) => {
     return;
   }
   const t = resolveSignalRTarget(req.url);
+  if (!t) {
+    socket.destroy(); // 非法 targetIp → 拒絕連線
+    return;
+  }
   forwardWs(req, socket, head, t.ip, t.port, t.path);
 });
 
