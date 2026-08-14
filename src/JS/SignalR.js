@@ -83,7 +83,7 @@ export class SignalRService {
     await Promise.all(
       uniqueIps.map(async (ip) => {
         const conn = new HubConnectionBuilder()
-          .withUrl(buildHubUrl(ip)) // 每台各自帶自己的 targetIp
+          .withUrl(buildHubUrl(ip), hubOptions()) // 每台各自帶自己的 targetIp + JWT
           .configureLogging(LogLevel.Information)
           .build();
         try {

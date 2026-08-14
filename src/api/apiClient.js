@@ -19,6 +19,7 @@ const refreshClient = axios.create({
 //   - 未設定 → null（不帶 header，走 proxy 預設主機）
 const WEBAPI_IP = (() => {
   const raw = import.meta.env.VITE_WEBAPI_URL;
+  console.log("login ip: ", raw);
   if (!raw) return null;
   if (raw === "localhost") return window.location.hostname;
   return raw;
