@@ -53,22 +53,7 @@ function Login() {
       // console.log("Click: ");
       const res = await login_auth(username, password);
 
-      // const res = api.get('/api/7284/User');
-      // const response = await fetch("/api/7284/User", {
-      //   method: "GET",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-      // const data = await response.json();
-      // const user = data.find((user) => user.userid === username);
-
       if (res.code === 200) {
-        ////console.log("Password:", user.password);
-        localStorage.setItem("username", JSON.stringify(username)); // Save user to localStorage
 
         switch (res.data.role) {
           case 0:
@@ -194,7 +179,7 @@ function Login() {
             <div
               className="btn text-only outline sec"
               id="forget-pw"
-              onClick={handleForgetPassword}
+              // onClick={handleForgetPassword}
             >
               <p className="btn-text sec-text">{t("Login.ForgetPassword")}</p>
             </div>

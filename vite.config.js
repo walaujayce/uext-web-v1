@@ -140,4 +140,10 @@ const dynamicApiProxy = () => ({
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), dynamicApiProxy()],
+  server: {
+    // 關掉 dev 模式的錯誤覆蓋層(那個紅色全螢幕堆疊)，
+    // 避免開發/展示時把底層實作資訊蓋在畫面上。
+    // 註：此覆蓋層本來就只有 dev(npm run dev)才有，正式 build 不會出現。
+    hmr: { overlay: false },
+  },
 });

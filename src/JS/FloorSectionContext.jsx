@@ -7,6 +7,7 @@ import {
 } from "react";
 import api from "../api/apiClient";
 import { getCurrentServerIp, setCurrentServerIp } from "../api/serverStore";
+import { useAuth } from "./AuthContext";
 
 // Source of truth: /api/7284/IpAddress/all
 //   每筆 { ip, floor, section }，同一個樓+層只會有 1 個 IP。
@@ -28,6 +29,9 @@ const readStoredFloorSection = () => {
 const FloorSectionContext = createContext();
 
 export const FloorSectionProvider = ({ children }) => {
+  // 登入後才需要 server 清單；未登入(登入頁)時不要打 /IpAddress/all
+  const { isAuthenticated } = useAuth();
+
   const [servers, setServers] = useState([]); // [{ ip, floor, section }]
   // 初始值優先讀 localStorage，重整後維持上次選取；沒有才為 null(待載入後帶預設)
   const [floor, setFloor] = useState(() => readStoredFloorSection().floor);
@@ -66,8 +70,12 @@ export const FloorSectionProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    fetchServers();
-  }, []);
+    // 只有登入後才抓 server 清單；登入頁(未登入)不呼叫 /IpAddress/all。
+    // 登入成功後 isAuthenticated 變 true，會自動觸發抓取。
+    if (isAuthenticated) {
+      fetchServers();
+    }
+  }, [isAuthenticated]);
 
   // 選取改變時持久化，供下次重整讀回
   useEffect(() => {

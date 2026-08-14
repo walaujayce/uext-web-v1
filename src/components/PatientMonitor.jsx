@@ -317,14 +317,15 @@ function PatientMonitor() {
                   rawdata={rawdatum}
                   width={width}
                   height={height}
+                  riskRegions={riskRegionArray}
                 />
-                {isUMAP && (
+                {/* {isUMAP && (
                   <RiskArea
                     data={riskRegionArray}
                     width={width}
                     height={height}
                   />
-                )}
+                )} */}
               </>
             ) : (
               <img

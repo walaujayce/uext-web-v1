@@ -3,7 +3,7 @@ let cvReadyPromise = null;
 export function loadOpenCv() {
   if (!cvReadyPromise) {
     cvReadyPromise = new Promise((resolve) => {
-      const existing = document.querySelector('script[src="/src/JS/OpenCV.js"]');
+      const existing = document.querySelector('script[src="/OpenCV.js"]');
       if (existing) {
         if (window.cv && window.cv.onRuntimeInitialized === undefined) {
           resolve();
@@ -14,7 +14,7 @@ export function loadOpenCv() {
       }
 
       const script = document.createElement("script");
-      script.src = "/src/JS/OpenCV.js";
+      script.src = "/OpenCV.js";
       script.async = true;
 
       script.onload = () => {

@@ -12,6 +12,19 @@ const refreshClient = axios.create({
   withCredentials: true,
 });
 
+// auth 相關端點（login / refresh）一律只打 VITE_WEBAPI_URL 指定的主機，
+// 不能隨目前選取的樓層 IP 改變（登入頁尤其如此）。
+//   - 有設定且非 localhost → 用該值
+//   - "localhost" → 用瀏覽器目前 host
+//   - 未設定 → null（不帶 header，走 proxy 預設主機）
+const WEBAPI_IP = (() => {
+  const raw = import.meta.env.VITE_WEBAPI_URL;
+  if (!raw) return null;
+  if (raw === "localhost") return window.location.hostname;
+  return raw;
+})();
+const isAuthUrl = (url) => /^\/api\/7284\/auth(\/|$)/.test(url);
+
 // ─────────────────────────────────────────────────────────
 // 依「目前選取樓層/區域的 IP」決定要打哪台後端。
 //
@@ -29,6 +42,16 @@ const refreshClient = axios.create({
 const applyTargetHeader = (config) => {
   if (!config.url) return config;
   if (!/^\/api\/(7284)(\/|$)/.test(config.url)) return config; // 其他路徑不動
+
+  // auth 端點（login / refresh）：一律打 VITE_WEBAPI_URL，不看目前選取的 server IP。
+  if (isAuthUrl(config.url)) {
+    if (WEBAPI_IP) {
+      config.headers = config.headers || {};
+      config.headers["X-Target-IP"] = WEBAPI_IP;
+    }
+    // 沒解析到 → 不帶 header，proxy 會 fallback 到預設(WebAPI)主機
+    return config;
+  }
 
   // 明確指定的 config.targetIp 優先（讓呼叫端把整批請求釘在同一台，
   // 不受期間使用者切換樓層影響）；否則才讀目前選取的 IP。
@@ -52,7 +75,6 @@ const clearSession = () => {
   clearAccessToken();
   localStorage.removeItem("isAuthenticated");
   localStorage.removeItem("role");
-  localStorage.removeItem("username");
 };
 
 const redirectToLogin = () => {
@@ -94,8 +116,20 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 沒有 response（例如網路斷線）或非 401 直接 reject
-    if (!error.response || error.response.status !== 401 || !originalRequest || originalRequest._retry) {
+    // 登入 / refresh 端點本身的 401 不要走「refresh + 導回登入」流程：
+    // 登入密碼錯誤本來就會回 401，若還去 refresh→失敗→redirectToLogin 會整頁重整。
+    // 這類 401 直接 reject，交給呼叫端（登入頁）自己顯示錯誤訊息。
+    const reqUrl = originalRequest?.url || "";
+    const isAuthEndpoint = /\/auth\/(login|refresh)/.test(reqUrl);
+
+    // 沒有 response（例如網路斷線）或非 401、或是 auth 端點 → 直接 reject
+    if (
+      !error.response ||
+      error.response.status !== 401 ||
+      !originalRequest ||
+      originalRequest._retry ||
+      isAuthEndpoint
+    ) {
       return Promise.reject(error);
     }
 
@@ -117,9 +151,10 @@ api.interceptors.response.use(
 
     try {
       // 用 refreshClient 送，不會被 api 的 response interceptor 攔截
-      const res = await refreshClient.post(REFRESH_URL, {
-        userId: JSON.parse(localStorage.getItem("username")), // ⬅ 你後端目前需要
-      });
+      const res = await refreshClient.post(REFRESH_URL);
+      // const res = await refreshClient.post(REFRESH_URL, {
+      //   userId: JSON.parse(localStorage.getItem("username")), // ⬅ 你後端目前需要
+      // });
 
       const newToken = res.data.accessToken;
       setAccessToken(newToken);

@@ -39,7 +39,6 @@ function Navbar() {
     } else {
       changeLanguage("zh");
     }
-    setUserName(JSON.parse(localStorage.getItem("username")));
 
     //   const theme = localStorage.getItem("theme");
     //   if(theme){
@@ -114,28 +113,14 @@ function Navbar() {
   {
     /* Get User ID for account setting */
   }
-  const [selected_user_id, setSelectedUserId] = useState("");
   useEffect(() => {
     async function fetchData() {
       try {
         // Get userid based on username in local storage
-        const response = await api.get("/api/7284/User");
+        const response = await api.get("/api/7284/User/me");
+        console.log("data me : ", response  );
         const data = response.data;
-        // const response = await fetch("/api/7284/User", {
-        //   method: "GET",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        // });
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-        // const data = await response.json();
-        const stored_username = JSON.parse(localStorage.getItem("username"));
-        const selected_user = data.find(
-          (user) => user.username == stored_username,
-        );
-        setSelectedUserId(selected_user.userid);
+        setUserName(data.username ?? "NaN");
       } catch (error) {
         console.error("Error updating password:", error.message);
       }
@@ -424,8 +409,8 @@ function Navbar() {
                 <p>{userName}</p>
               </div>
               <Link
-                to={`/account/account-settings?userid=${selected_user_id}`}
-                key={selected_user_id}
+                to={`/account/account-settings?userid=me`}
+                key={"me"}
               >
                 <a
                   href="#"
