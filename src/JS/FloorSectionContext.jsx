@@ -13,6 +13,19 @@ import { useAuth } from "./AuthContext";
 //   每筆 { ip, floor, section }，同一個樓+層只會有 1 個 IP。
 const BASE = "/api/7284/IpAddress";
 
+// IpAddress/all 是「主清單」端點：雖然每台 server 都能回應，但我們只允許打
+// VITE_WEBAPI_URL 指定的主機，避免隨目前選取的樓層 IP 改變而拿到不同來源的清單。
+//   - 有設定且非 localhost → 用該值當目標 IP（釘在該台）
+//   - "localhost" → 用瀏覽器目前 host（與 vite.config 的 WebAPI 解析一致）
+//   - 未設定 → 回傳 null，改用 noTargetIp 讓 proxy 走預設主機
+const resolveWebApiIp = () => {
+  const raw = import.meta.env.VITE_WEBAPI_URL;
+  if (!raw) return null;
+  if (raw === "localhost") return window.location.hostname;
+  return raw;
+};
+const WEBAPI_IP = resolveWebApiIp();
+
 // 把目前選取的 floor / section 存進 localStorage，讓瀏覽器重整後仍記得選取的樓層。
 const STORAGE_KEY = "floorSection";
 const readStoredFloorSection = () => {
@@ -39,7 +52,11 @@ export const FloorSectionProvider = ({ children }) => {
 
   const fetchServers = async () => {
     try {
-      const res = await api.get(`${BASE}/all`);
+      // 只允許打 VITE_WEBAPI_URL；有解析到就釘該台，否則用 noTargetIp 走 proxy 預設主機。
+      const res = await api.get(
+        `${BASE}/all`,
+        WEBAPI_IP ? { targetIp: WEBAPI_IP } : { noTargetIp: true },
+      );
       // 後端可能回 PascalCase 或 camelCase，統一成小寫。
       const list = (res.data || []).map((x) => ({
         ip: x.ip ?? x.Ip ?? "",
