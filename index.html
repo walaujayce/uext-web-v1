@@ -6,6 +6,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC&display=swap" rel="stylesheet">    <title>Uneo Bed Alarm System</title>
+
+    <!-- Runtime 設定：由 server.js(正式) / vite dev middleware(開發) 在「啟動時」
+         依 process.env 動態產生，內容為 window.__APP_CONFIG__ = {...}。
+         這是一般(classic)script，一定會在下面的 type="module" bundle 之前執行完，
+         所以 bundle 讀得到。改設定只要改 -e 後重啟容器，不需要重新 build。 -->
+    <script src="/config.js"></script>
   </head>
   <body>
     <div id="root"></div>

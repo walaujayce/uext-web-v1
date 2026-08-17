@@ -9,6 +9,7 @@ import { useAuth } from "../JS/AuthContext";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import api from "../api/apiClient";
+import { getWebApiIp } from "../config/runtimeConfig";
 
 function LoginPassword() {
   const { t, i18n } = useTranslation();
@@ -86,9 +87,10 @@ function LoginPassword() {
     try {
       setLoading(true);
       const token = await handleGenerateEmailToken(requestBody_POST);
-      const url = `http://${
-        import.meta.env.VITE_WEBAPI_URL
-      }:8005/reset-password`;
+      // 重設密碼連結是寄到使用者信箱的「外部可點連結」，必須是實際主機位址。
+      // 取值同樣走 runtimeConfig；若沒設定就退回瀏覽器目前的 host。
+      const resetHost = getWebApiIp() || window.location.hostname;
+      const url = `http://${resetHost}:8005/reset-password`;
       requestBody_POST.message = `${send_message_email}\r\n${url}?email=${emailInput}&token=${token}`;
       //console.log("message is ", requestBody_POST.message);
       // const response = await fetch("/api/7284/SendEmail/send-email", {

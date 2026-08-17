@@ -1,6 +1,7 @@
 import axios from "axios";
 import { getAccessToken, setAccessToken, clearAccessToken } from "../auth/authStore";
 import { getCurrentServerIp } from "./serverStore";
+import { getWebApiIp } from "../config/runtimeConfig";
 
 const api = axios.create({
 //   baseURL: import.meta.env.VITE_WEBAPI_URL || "/api",
@@ -12,18 +13,14 @@ const refreshClient = axios.create({
   withCredentials: true,
 });
 
-// auth 相關端點（login / refresh）一律只打 VITE_WEBAPI_URL 指定的主機，
+// auth 相關端點（login / refresh）一律只打設定檔指定的 WebAPI 主機，
 // 不能隨目前選取的樓層 IP 改變（登入頁尤其如此）。
+//
+// 值的來源改由 runtimeConfig 決定（runtime /config.js 優先，build time 為 fallback），
+// 且改成「每次請求才取值」而不是模組載入時取一次 —— 這樣 /config.js 何時載入都不影響。
 //   - 有設定且非 localhost → 用該值
 //   - "localhost" → 用瀏覽器目前 host
-//   - 未設定 → null（不帶 header，走 proxy 預設主機）
-const WEBAPI_IP = (() => {
-  const raw = import.meta.env.VITE_WEBAPI_URL;
-  console.log("login ip: ", raw);
-  if (!raw) return null;
-  if (raw === "localhost") return window.location.hostname;
-  return raw;
-})();
+//   - 未設定 → null（不帶 header，走 server 端預設主機）
 const isAuthUrl = (url) => /^\/api\/7284\/auth(\/|$)/.test(url);
 
 // ─────────────────────────────────────────────────────────
@@ -44,11 +41,12 @@ const applyTargetHeader = (config) => {
   if (!config.url) return config;
   if (!/^\/api\/(7284)(\/|$)/.test(config.url)) return config; // 其他路徑不動
 
-  // auth 端點（login / refresh）：一律打 VITE_WEBAPI_URL，不看目前選取的 server IP。
+  // auth 端點（login / refresh）：一律打設定的 WebAPI 主機，不看目前選取的 server IP。
   if (isAuthUrl(config.url)) {
-    if (WEBAPI_IP) {
+    const webApiIp = getWebApiIp();
+    if (webApiIp) {
       config.headers = config.headers || {};
-      config.headers["X-Target-IP"] = WEBAPI_IP;
+      config.headers["X-Target-IP"] = webApiIp;
     }
     // 沒解析到 → 不帶 header，proxy 會 fallback 到預設(WebAPI)主機
     return config;
@@ -76,6 +74,7 @@ const clearSession = () => {
   clearAccessToken();
   localStorage.removeItem("isAuthenticated");
   localStorage.removeItem("role");
+  localStorage.clear();
 };
 
 const redirectToLogin = () => {

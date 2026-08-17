@@ -44,6 +44,20 @@ function Login() {
     password: password,
   };
   const handleLogin = async () => {
+    const api = (await import('/src/api/apiClient.js')).default;
+
+    const orig = api.defaults.adapter;
+    api.defaults.adapter = async (config) => {
+      const h = config.headers;
+      console.group('%c=== DRY RUN (沒有送出) ===', 'color:#0a0');
+      console.log('method :', config.method?.toUpperCase(), config.url);
+      console.log('X-Target-IP :', h.get?.('X-Target-IP') ?? h['X-Target-IP'] ?? '(未帶 → proxy fallback 到 192.168.100.200)');
+      console.log('headers:', JSON.parse(JSON.stringify(h)));
+      console.log('body   :', config.data);
+      console.groupEnd();
+      return Promise.reject(new Error('DRY_RUN_ABORTED'));
+    };
+    api.defaults.adapter = orig; 
     try {
       if (!username || !password) {
         setError("User account and password are required");
@@ -83,6 +97,28 @@ function Login() {
       console.error(error);
     }
   };
+
+  const handleLogin2 = async() =>{
+    const api = (await import('/src/api/apiClient.js')).default;
+
+    const orig = api.defaults.adapter;
+    api.defaults.adapter = async (config) => {
+      const h = config.headers;
+      console.group('%c=== DRY RUN (沒有送出) ===', 'color:#0a0');
+      console.log('method :', config.method?.toUpperCase(), config.url);
+      console.log('X-Target-IP :', h.get?.('X-Target-IP') ?? h['X-Target-IP'] ?? '(未帶 → proxy fallback 到 192.168.100.200)');
+      console.log('headers:', JSON.parse(JSON.stringify(h)));
+      console.log('body   :', config.data);
+      console.groupEnd();
+      return Promise.reject(new Error('DRY_RUN_ABORTED'));
+    };
+    api.defaults.adapter = orig;   // 記得還原
+
+    await api.post('/api/7284/auth/login', { userId: 'dummy', password: 'dummy' })
+      .catch(e => console.log('已中止:', e.message));
+
+  }
+
 
   {
     /* Navigate to forget password Page */

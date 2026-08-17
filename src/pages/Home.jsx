@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
 import { useFloorSection } from "../JS/FloorSectionContext";
+import { isSignalREnabled } from "../config/runtimeConfig";
 
 // ─────────────────────────────────────────────────────────
 // 取得裝置列表的方式切換（開發時手動改這裡）：
@@ -29,7 +30,8 @@ import { useFloorSection } from "../JS/FloorSectionContext";
 //   true  → 改用 SignalR 推播（topic: "web/notify/devices"，訊息內容與 GET response 相同）
 // 兩種方式都支援指定樓層或選 All（All 會逐台連線/抓取後合併）。
 // ─────────────────────────────────────────────────────────
-const USE_SIGNALR_DEVICES = import.meta.env.VITE_SIGNALR_ENABLE === 'true' ? true : false;
+// 走 runtimeConfig，正式環境可用 docker run -e VITE_SIGNALR_ENABLE=true 切換，不必重 build
+const USE_SIGNALR_DEVICES = isSignalREnabled();
 const DEVICE_TOPIC = "web/notify/devices";
 
 function Home() {
@@ -662,6 +664,7 @@ function Home() {
     if (storedSort) {
       setSortBy(storedSort);
     }
+    console.log("USE_SIGNALR_DEVICES:", USE_SIGNALR_DEVICES);
   }, []);
 
   {
