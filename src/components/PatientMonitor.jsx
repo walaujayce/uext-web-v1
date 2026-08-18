@@ -14,6 +14,7 @@ import api from "../api/apiClient";
 import api8031, { isSkipped } from "../api/apiClient8031";
 import RiskRegion from "./RiskRegion";
 import RiskArea from "./RiskArea";
+import RiskIndexBar from "./RiskIndexBar";
 
 function PatientMonitor() {
   const { t, i18n } = useTranslation();
@@ -35,13 +36,13 @@ function PatientMonitor() {
 
   const temp = [
     { idx: 1, center_x: 0, center_y: 0, radius: 2, duration_sec: 5 },
-    { idx: 2, center_x: 24, center_y: 0, radius: 2, duration_sec: 5 },
-    { idx: 3, center_x: 0, center_y: 62, radius: 2, duration_sec: 5 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:0 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:1 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:0 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:2 },
+    { idx: 2, center_x: 10, center_y: 10, radius: 2, duration_sec: 5 },
+    { idx: 3, center_x: 20, center_y: 52, radius: 2, duration_sec: 5 },
+    { idx: 4, center_x: 50, center_y: 42, radius: 2, duration_sec: 5 },
+    { idx: 4, center_x: 40, center_y: 32, radius: 2, duration_sec: 5, risk_level:0 },
+    { idx: 4, center_x: 80, center_y: 22, radius: 2, duration_sec: 5, risk_level:1 },
+    { idx: 4, center_x: 100, center_y: 2, radius: 2, duration_sec: 5, risk_level:0 },
+    { idx: 4, center_x: 200, center_y: 62, radius: 2, duration_sec: 5, risk_level:2 },
     { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
     { idx: 99, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
   ];
@@ -307,7 +308,7 @@ function PatientMonitor() {
     <div className="monitor">
       <div className="pressure">
         <div className="title">{t("PatientMonitor.PressureMap")}</div>
-        <div className="box" style={{ position: "relative" }}>
+        <div className="box" style={{ position: "relative", background: isUMAP ? "none" : "" }}>
           {width &&
             height &&
             (rawdatum ? (
@@ -319,6 +320,15 @@ function PatientMonitor() {
                   height={height}
                   riskRegions={riskRegionArray}
                 />
+                {/* risk region 的 idx 標號：只有 riskRegionArray 有資料時才出現。
+                    placement="right"/"left" → 直向排，數字的 y 對齊圓心 y
+                    placement="top"/"bottom" → 橫向排，數字的 x 對齊圓心 x */}
+                {isUMAP && <RiskIndexBar
+                  data={riskRegionArray}
+                  width={width}
+                  height={height}
+                  placement="right"
+                />}
                 {/* {isUMAP && (
                   <RiskArea
                     data={riskRegionArray}

@@ -343,14 +343,15 @@ function PatientProfile() {
     setCalibrationOverlayVisible(!isCalibrationOverlayVisible);
   };
 
+  // 只負責送出校正請求。
+  // 15 秒的等待改由 CalibrationConfirmOverlay 自己倒數並顯示在同一個 modal 裡，
+  // 所以這裡不再 setLoading(true)、不再關 modal、也不再用 setTimeout 排 reload。
   const handleCalibration = async () => {
     //console.log("calibration clicked");
     const requestBody = {
       MAC: macaddress,
     };
     try {
-      setLoading(true);
-
       // const response = await fetch("/api/8031/ucb/denoise", {
       //   method: "POST",
       //   headers: {
@@ -366,13 +367,14 @@ function PatientProfile() {
     } catch (error) {
       console.error("Error while submitting data:", error);
       alert("Error: Unable to connect to the server.");
-    } finally {
-      handleCalibrationOverlay();
-      setTimeout(() => {
-        setLoading(false);
-        window.location.reload();
-      }, 15000);
     }
+  };
+
+  // 倒數結束、使用者按下 modal 上最後那顆「確認」之後：關掉 modal 並重新載入，
+  // 讓畫面拿到校正後的資料（沿用原本 15 秒後 reload 的行為）。
+  const handleCalibrationFinish = () => {
+    setCalibrationOverlayVisible(false);
+    // window.location.reload();
   };
 
   return (
@@ -711,6 +713,8 @@ function PatientProfile() {
           <CalibrationConfirmOverlay
             callback={handleCalibrationOverlay}
             calibrationbtn_click={handleCalibration}
+            onFinish={handleCalibrationFinish}
+            countdownSeconds={15}
           />
         )}
       </div>
@@ -728,6 +732,8 @@ function PatientProfile() {
           <CalibrationConfirmOverlay
             callback={handleCalibrationOverlay}
             calibrationbtn_click={handleCalibration}
+            onFinish={handleCalibrationFinish}
+            countdownSeconds={15}
           />
         )}
       </div>
