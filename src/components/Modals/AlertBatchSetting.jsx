@@ -8,7 +8,7 @@ import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
 import PatientAlerts from "../PatientAlerts";
 
-const AlertBatchSetting = ({ callback, patientIDs, isBatchUEXT }) => {
+const AlertBatchSetting = ({ callback, patientIDs, isBatchUEXT, patientIpMap }) => {
   const { t, i18n } = useTranslation();
 
   const [loading, setLoading] = useState(false); //loading screen
@@ -50,7 +50,7 @@ const AlertBatchSetting = ({ callback, patientIDs, isBatchUEXT }) => {
           </div>
           {/* Device Profile */}
           <div className="" style={{ width: "100%" }}>
-            <PatientAlerts patientIDs={patientIDs} isBatch={true} isBatchUEXT = {isBatchUEXT}/>
+            <PatientAlerts patientIDs={patientIDs} isBatch={true} isBatchUEXT = {isBatchUEXT} patientIpMap={patientIpMap}/>
           </div>
         </div>
       </div>

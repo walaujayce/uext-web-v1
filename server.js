@@ -24,6 +24,42 @@ const WEBAPI_HOST = process.env.VITE_WEBAPI_URL || "192.168.100.200";
 const SOCKETSERVER_HOST = process.env.VITE_SOCKETSERVER_URL || "192.168.100.200";
 const DEFAULT_HOST_BY_PORT = { "7284": WEBAPI_HOST, "8031": SOCKETSERVER_HOST };
 
+// DEBUG_PROXY=1 → 把每筆 /api 轉發的 X-Target-IP 與最終目標印到 server console
+const DEBUG_PROXY = process.env.DEBUG_PROXY === "1";
+
+// ─────────────────────────────────────────────────────────
+// Runtime 設定注入：/config.js
+//
+// import.meta.env.VITE_* 是 vite build 當下就寫死進 bundle 的常數，
+// `docker run -e` 改不動它。因此改由本 server 在「每次請求時」依 process.env
+// 產生一小段 JS，index.html 會在載入 bundle 之前先載入它。
+// 前端統一透過 src/config/runtimeConfig.js 讀取（runtime 優先，build time 為 fallback）。
+//
+// 改設定 = 改 -e + 重啟容器，不需要重新 build image。
+// ─────────────────────────────────────────────────────────
+const buildRuntimeConfigJs = () => {
+  const cfg = {
+    VITE_WEBAPI_URL: process.env.VITE_WEBAPI_URL ?? "",
+    VITE_SOCKETSERVER_URL: process.env.VITE_SOCKETSERVER_URL ?? "",
+    VITE_SIGNALR_ENABLE: process.env.VITE_SIGNALR_ENABLE ?? "false",
+    VITE_MODE: process.env.VITE_MODE ?? "",
+  };
+  // JSON.stringify 已足以跳脫字串內容；再擋掉 </script> 以防萬一被塞進 HTML
+  const json = JSON.stringify(cfg).replace(/</g, "\\u003c");
+  return `window.__APP_CONFIG__=${json};\n`;
+};
+
+const serveRuntimeConfig = (res) => {
+  const body = buildRuntimeConfigJs();
+  res.writeHead(200, {
+    "content-type": "text/javascript; charset=utf-8",
+    // 一定要 no-store：否則瀏覽器/中間快取會拿舊環境的設定
+    "cache-control": "no-store, no-cache, must-revalidate",
+    ...SECURITY_HEADERS,
+  });
+  res.end(body);
+};
+
 // 驗證使用者提供的轉發目標(X-Target-IP header / ?targetIp= query)：
 // 只允許合法 IP/hostname 字元(英數、.、:、%(IPv6 zone)、-)，長度上限 253。
 // 任何含 < > " ' ; 空白、腳本片段等注入字元的值都會不符 → 直接拒絕，
@@ -247,9 +283,22 @@ const server = http.createServer((req, res) => {
     res.end("Bad Request");
   };
 
+  // runtime 設定（必須排在靜態檔之前）
+  if (req.url && req.url.split("?")[0] === "/config.js") {
+    return serveRuntimeConfig(res);
+  }
+
   const apiM = req.url && req.url.match(/^\/api\/(7284|8031)(?=\/|\?|$)/);
   if (apiM) {
     const t = resolveApiTarget(req, apiM[1]);
+    if (DEBUG_PROXY) {
+      const raw = req.headers["x-target-ip"];
+      console.log(
+        `[proxy] ${req.method} ${req.url} | X-Target-IP=${raw ?? "(未帶)"} → ${
+          t ? `${t.ip}:${t.port}${t.path}` : "REJECTED(非法 host)"
+        }`,
+      );
+    }
     if (!t) return badRequest(); // 非法 X-Target-IP → 拒絕
     return forwardHttp(req, res, t.ip, t.port, t.path);
   }
@@ -279,4 +328,5 @@ server.listen(PORT, () => {
   console.log(
     `[server] listening on :${PORT} | WEBAPI_HOST=${WEBAPI_HOST} SOCKETSERVER_HOST=${SOCKETSERVER_HOST}`,
   );
+  console.log(`[server] /config.js → ${buildRuntimeConfigJs().trim()}`);
 });

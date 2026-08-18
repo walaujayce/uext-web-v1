@@ -7,11 +7,19 @@ import {
 } from "react";
 import api from "../api/apiClient";
 import { getCurrentServerIp, setCurrentServerIp } from "../api/serverStore";
+import { getWebApiIp } from "../config/runtimeConfig";
 import { useAuth } from "./AuthContext";
 
 // Source of truth: /api/7284/IpAddress/all
 //   每筆 { ip, floor, section }，同一個樓+層只會有 1 個 IP。
 const BASE = "/api/7284/IpAddress";
+
+// IpAddress/all 是「主清單」端點：雖然每台 server 都能回應，但我們只允許打
+// 設定的 WebAPI 主機，避免隨目前選取的樓層 IP 改變而拿到不同來源的清單。
+// 解析邏輯統一放在 runtimeConfig（runtime /config.js 優先，build time 為 fallback）：
+//   - 有設定且非 localhost → 用該值當目標 IP（釘在該台）
+//   - "localhost" → 用瀏覽器目前 host
+//   - 未設定 → null，改用 noTargetIp 讓 proxy 走預設主機
 
 // 把目前選取的 floor / section 存進 localStorage，讓瀏覽器重整後仍記得選取的樓層。
 const STORAGE_KEY = "floorSection";
@@ -39,7 +47,12 @@ export const FloorSectionProvider = ({ children }) => {
 
   const fetchServers = async () => {
     try {
-      const res = await api.get(`${BASE}/all`);
+      // 只允許打設定的 WebAPI 主機；有解析到就釘該台，否則用 noTargetIp 走 proxy 預設主機。
+      const webApiIp = getWebApiIp();
+      const res = await api.get(
+        `${BASE}/all`,
+        webApiIp ? { targetIp: webApiIp } : { noTargetIp: true },
+      );
       // 後端可能回 PascalCase 或 camelCase，統一成小寫。
       const list = (res.data || []).map((x) => ({
         ip: x.ip ?? x.Ip ?? "",
@@ -52,13 +65,22 @@ export const FloorSectionProvider = ({ children }) => {
         // 優先沿用上次(localStorage)的選取；若該樓層/區域在最新清單中已不存在，
         // 才 fallback 到 response 第一筆，避免停在無效的樓層。
         const stored = readStoredFloorSection();
-        const floorValid = stored.floor && list.some((s) => s.floor === stored.floor);
+        // "All" 是合法的選取值（代表跨所有樓層/區域），重整後要保留，不能因為
+        // 清單中找不到 floor === "All" 就 fallback 到第一台。
+        const floorValid =
+          stored.floor &&
+          (stored.floor === "All" || list.some((s) => s.floor === stored.floor));
         const nextFloor = floorValid ? stored.floor : list[0].floor;
+        // section 同理：stored 為 "All" 或 nextFloor 為 "All" 時都視為合法。
         const sectionValid =
           stored.section &&
-          list.some((s) => s.floor === nextFloor && s.section === stored.section);
+          (stored.section === "All" ||
+            nextFloor === "All" ||
+            list.some((s) => s.floor === nextFloor && s.section === stored.section));
         const nextSection = sectionValid
           ? stored.section
+          : nextFloor === "All"
+          ? "All"
           : (list.find((s) => s.floor === nextFloor)?.section ?? null);
 
         setFloor(nextFloor);
@@ -89,11 +111,12 @@ export const FloorSectionProvider = ({ children }) => {
   );
 
   // 區域選項：只顯示「目前選取樓層」底下的區域（cascade）
+  // 當 floor 為 "All" 時，顯示所有樓層的區域。
   const sections = useMemo(
     () => [
       ...new Set(
         servers
-          .filter((s) => (floor ? s.floor === floor : true))
+          .filter((s) => (floor && floor !== "All" ? s.floor === floor : true))
           .map((s) => s.section)
           .filter(Boolean),
       ),
@@ -102,8 +125,13 @@ export const FloorSectionProvider = ({ children }) => {
   );
 
   // 切換樓層：同時把區域重設成該樓層的第一個區域
+  // 選 "All" 樓層時，區域一併設為 "All"（代表跨所有樓層/區域）。
   const chooseFloor = (nextFloor) => {
     setFloor(nextFloor);
+    if (nextFloor === "All") {
+      setSection("All");
+      return "All";
+    }
     const firstSection =
       servers.find((s) => s.floor === nextFloor)?.section ?? null;
     setSection(firstSection);

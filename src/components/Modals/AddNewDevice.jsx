@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
@@ -7,11 +7,15 @@ import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
 import api from "../../api/apiClient";
+import { useFloorSection } from "../../JS/FloorSectionContext";
 
 const AddNewDevice = ({ callback }) => {
   const { t, i18n } = useTranslation();
 
   const [loading, setLoading] = useState(false); //loading screen
+
+  // Floor / Section 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext 的 servers）
+  const { servers } = useFloorSection();
 
   {
     /* Handle Overlay Logic */
@@ -81,34 +85,6 @@ const AddNewDevice = ({ callback }) => {
     }
   };
   {
-    /* Fetch Floors API */
-  }
-  const [floors, setFloors] = useState([]);
-
-  const fetchFloorList = async () => {
-    try {
-      // const response = await fetch("/api/7284/Floor");
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-      // const data = await response.json();
-      const response = await api.get("/api/7284/Floor");
-
-      const data = response.data;
-      //console.log(data);
-      setFloors(data);
-      if (data.length > 0) {
-        setPlaceholderFloor(data[data.length - 1].description);
-      }
-    } catch (error) {
-      console.error("Error fetching device data:", error);
-    }
-  };
-  useEffect(() => {
-    fetchFloorList();
-  }, []);
-
-  {
     /* Floor Dropdown Menu Logic */
   }
   const [isFloorActive, setFloorActive] = useState(false);
@@ -119,35 +95,13 @@ const AddNewDevice = ({ callback }) => {
 
   const handleFloorItemClick = (floor) => {
     setPlaceholderFloor(floor);
-    handleFloorDropDownMenu;
     setFloor_POST(floor);
+    // 換樓層時，section 連動重設成該樓層的第一個區域（cascade）
+    const firstSection = servers.find((s) => s.floor === floor)?.section ?? "";
+    setPlaceholderSection(firstSection);
+    setSection_POST(firstSection);
+    handleFloorDropDownMenu;
   };
-  {
-    /* Fetch Section API */
-  }
-  const [sections, setSections] = useState([]);
-
-  const fetchSectionList = async () => {
-    try {
-      // const response = await fetch("/api/7284/Section");
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-      // const data = await response.json();
-      const response = await api.get("/api/7284/Section");
-      const data = response.data;
-      if (data.length > 0) {
-        setPlaceholderSection(data[data.length - 1].description);
-      }
-      setSections(data);
-    } catch (error) {
-      console.error("Error fetching device data:", error);
-    }
-  };
-  useEffect(() => {
-    fetchSectionList();
-  }, []);
-
   {
     /* Section Dropdown Menu Logic */
   }
@@ -163,6 +117,42 @@ const AddNewDevice = ({ callback }) => {
     handleSectionDropDownMenu;
     setSection_POST(section);
   };
+
+  {
+    /* Floor / Section 選項：來自 /api/7284/IpAddress/all（去重後的清單） */
+  }
+  // 去重後的樓層選項
+  const floorOptions = useMemo(
+    () => [...new Set(servers.map((s) => s.floor).filter(Boolean))],
+    [servers],
+  );
+  // 區域選項：只顯示「目前選取樓層」底下的區域（cascade）
+  const sectionOptions = useMemo(
+    () => [
+      ...new Set(
+        servers
+          .filter((s) => (placeholderFloor ? s.floor === placeholderFloor : true))
+          .map((s) => s.section)
+          .filter(Boolean),
+      ),
+    ],
+    [servers, placeholderFloor],
+  );
+
+  // 初次載入 servers 後，帶入預設的第一個 floor 及其第一個 section（只觸發一次）
+  const didInitFloorSection = useRef(false);
+  useEffect(() => {
+    if (!didInitFloorSection.current && servers.length > 0) {
+      didInitFloorSection.current = true;
+      const firstFloor = floorOptions[0] ?? "";
+      const firstSection =
+        servers.find((s) => s.floor === firstFloor)?.section ?? "";
+      setPlaceholderFloor(firstFloor);
+      setFloor_POST(firstFloor);
+      setPlaceholderSection(firstSection);
+      setSection_POST(firstSection);
+    }
+  }, [servers, floorOptions]);
   {
     /* DHCP Dropdown Menu Logic */
   }
@@ -289,7 +279,15 @@ const AddNewDevice = ({ callback }) => {
       //   },
       //   body: JSON.stringify(requestBody),
       // });
-      const response = await api.post("/api/7284/db/Device", requestBody);
+      // 把裝置新增到「所選 floor+section 對應的那台後端」（同一樓+層唯一對應一台）
+      const postIp =
+        servers.find((s) => s.floor === floor && s.section === section)?.ip ??
+        null;
+      const response = await api.post(
+        "/api/7284/db/Device",
+        requestBody,
+        postIp ? { targetIp: postIp } : undefined,
+      );
 
       //console.log("devicetype", devicetype);
       //console.log("macaddress", macaddress);
@@ -536,53 +534,7 @@ const AddNewDevice = ({ callback }) => {
                   </div>
                 </div>
               )}
-
-              {/* Section */}
-              <div
-                className="input suffix g-c-3"
-                onClick={handleSectionDropDownMenu}
-                ref={addDropdownRef}
-              >
-                <label htmlFor="sectionInNewDevice" className="label-container">
-                  <p>{t("AddDeviceModal.Section")}</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="sectionInNewDevice"
-                    placeholder={placeholderSection}
-                    readOnly
-                  />
-                  <img
-                    className="suffix active"
-                    src="/src/assets/menu-down.svg"
-                    alt="dropdown icon"
-                  />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-                <div className={`list ${isSectionActive ? "active" : ""}`}>
-                  {sections.map((section) => (
-                    <div
-                      className="item"
-                      key={section.sectionid}
-                      onClick={() =>
-                        handleSectionItemClick(section.description)
-                      }
-                    >
-                      {section.description}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {/* Floor */}
+{/* Floor */}
               <div
                 className="input suffix g-c-3"
                 onClick={handleFloorDropDownMenu}
@@ -617,17 +569,60 @@ const AddNewDevice = ({ callback }) => {
                   className={`list ${isFloorActive ? "active" : ""}`}
                   ref={dropdownFloorStyleRef}
                 >
-                  {floors.map((floor) => (
+                  {floorOptions.map((floor) => (
                     <div
                       className="item"
-                      key={floor.floorid}
-                      onClick={() => handleFloorItemClick(floor.description)}
+                      key={floor}
+                      onClick={() => handleFloorItemClick(floor)}
                     >
-                      {floor.description}
+                      {floor}
                     </div>
                   ))}
                 </div>
               </div>
+              {/* Section */}
+              <div
+                className="input suffix g-c-3"
+                onClick={handleSectionDropDownMenu}
+                ref={addDropdownRef}
+              >
+                <label htmlFor="sectionInNewDevice" className="label-container">
+                  <p>{t("AddDeviceModal.Section")}</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="sectionInNewDevice"
+                    placeholder={placeholderSection}
+                    readOnly
+                  />
+                  <img
+                    className="suffix active"
+                    src="/src/assets/menu-down.svg"
+                    alt="dropdown icon"
+                  />
+                </div>
+                <div className="assistive-text">
+                  this is a line of assistive text
+                </div>
+                <div className={`list ${isSectionActive ? "active" : ""}`}>
+                  {sectionOptions.map((section) => (
+                    <div
+                      className="item"
+                      key={section}
+                      onClick={() => handleSectionItemClick(section)}
+                    >
+                      {section}
+                    </div>
+                  ))}
+                </div>
+              </div>              
             </div>
             <div
               className="btn-gp st1 active"

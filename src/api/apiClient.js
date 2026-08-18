@@ -1,6 +1,12 @@
 import axios from "axios";
-import { getAccessToken, setAccessToken, clearAccessToken } from "../auth/authStore";
+import {
+  getAccessToken,
+  setAccessToken,
+  clearAccessToken,
+  isTokenExpired,
+} from "../auth/authStore";
 import { getCurrentServerIp } from "./serverStore";
+import { getWebApiIp } from "../config/runtimeConfig";
 
 const api = axios.create({
 //   baseURL: import.meta.env.VITE_WEBAPI_URL || "/api",
@@ -12,17 +18,14 @@ const refreshClient = axios.create({
   withCredentials: true,
 });
 
-// auth 相關端點（login / refresh）一律只打 VITE_WEBAPI_URL 指定的主機，
+// auth 相關端點（login / refresh）一律只打設定檔指定的 WebAPI 主機，
 // 不能隨目前選取的樓層 IP 改變（登入頁尤其如此）。
+//
+// 值的來源改由 runtimeConfig 決定（runtime /config.js 優先，build time 為 fallback），
+// 且改成「每次請求才取值」而不是模組載入時取一次 —— 這樣 /config.js 何時載入都不影響。
 //   - 有設定且非 localhost → 用該值
 //   - "localhost" → 用瀏覽器目前 host
-//   - 未設定 → null（不帶 header，走 proxy 預設主機）
-const WEBAPI_IP = (() => {
-  const raw = import.meta.env.VITE_WEBAPI_URL;
-  if (!raw) return null;
-  if (raw === "localhost") return window.location.hostname;
-  return raw;
-})();
+//   - 未設定 → null（不帶 header，走 server 端預設主機）
 const isAuthUrl = (url) => /^\/api\/7284\/auth(\/|$)/.test(url);
 
 // ─────────────────────────────────────────────────────────
@@ -43,15 +46,22 @@ const applyTargetHeader = (config) => {
   if (!config.url) return config;
   if (!/^\/api\/(7284)(\/|$)/.test(config.url)) return config; // 其他路徑不動
 
-  // auth 端點（login / refresh）：一律打 VITE_WEBAPI_URL，不看目前選取的 server IP。
+  // auth 端點（login / refresh）：一律打設定的 WebAPI 主機，不看目前選取的 server IP。
   if (isAuthUrl(config.url)) {
-    if (WEBAPI_IP) {
+    const webApiIp = getWebApiIp();
+    if (webApiIp) {
       config.headers = config.headers || {};
-      config.headers["X-Target-IP"] = WEBAPI_IP;
+      config.headers["X-Target-IP"] = webApiIp;
     }
     // 沒解析到 → 不帶 header，proxy 會 fallback 到預設(WebAPI)主機
     return config;
   }
+
+  // 明確要求不帶目標 IP（例如 IpAddress/all 這種「主清單」端點，永遠只打預設/指定主機，
+  // 不能隨目前選取的樓層 IP 改變）→ 不帶 header，讓 proxy 走預設主機。
+  // ⚠ FloorSectionContext 一直有傳 { noTargetIp: true }，但本地分支漏掉這段判斷，
+  //   導致 /IpAddress/all 會被帶上「目前選取樓層」的 IP，等於跟主清單的語意相反。
+  if (config.noTargetIp) return config;
 
   // 明確指定的 config.targetIp 優先（讓呼叫端把整批請求釘在同一台，
   // 不受期間使用者切換樓層影響）；否則才讀目前選取的 IP。
@@ -75,13 +85,66 @@ const clearSession = () => {
   clearAccessToken();
   localStorage.removeItem("isAuthenticated");
   localStorage.removeItem("role");
+  localStorage.clear();
 };
+
+// 登入頁的路徑是 "/"（見 App.jsx 的 <Route path="/" element={<Login />} />），
+// 不是 "/login"。原本導去 /login 會落到 wildcard 再被 <Navigate to="/" /> 轉一次。
+const LOGIN_PATH = "/";
 
 const redirectToLogin = () => {
   clearSession();
   // 用 replace 避免在歷史紀錄中累積
-  if (window.location.pathname !== "/login") {
-    window.location.replace("/login");
+  if (window.location.pathname !== LOGIN_PATH) {
+    window.location.replace(LOGIN_PATH);
+  }
+};
+
+// ─────────────────────────────────────────────────────────
+// Refresh 的單一入口（同一時間只會有一個 /auth/refresh 在飛）。
+//
+// 之前 refresh 只會在「某個請求收到 401」時才被觸發，所以：
+//   - 停在 Device 頁一直輪詢 → 有請求 → 收到 401 → refresh → 續命 ✅
+//   - 停在 Alert 頁沒有請求 → token 靜靜過期 → 切頁時 PrivateRoute 直接判定
+//     過期並導回登入頁，全程沒有任何請求 → 沒機會 refresh ❌
+// 抽成獨立函式後，路由守衛(PrivateRoute)與 App 啟動時也能主動呼叫。
+// ─────────────────────────────────────────────────────────
+let refreshPromise = null;
+
+export const refreshAccessToken = () => {
+  if (!refreshPromise) {
+    // 用 refreshClient 送，不會被 api 的 response interceptor 再攔一次造成遞迴
+    refreshPromise = refreshClient
+      .post(REFRESH_URL)
+      .then((res) => {
+        const newToken = res.data.accessToken;
+        setAccessToken(newToken);
+        return newToken;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+};
+
+// 確保手上有「還沒過期」的 access token：
+//   - 沒過期            → 直接回傳現有 token
+//   - 過期/不存在       → 先 refresh，成功回傳新 token
+//   - refresh 也失敗    → 回傳 null（呼叫端自行決定要不要導回登入頁）
+// 這個函式不會自己導頁，方便 UI 端決定要顯示 loading 還是跳轉。
+export const ensureAccessToken = async () => {
+  if (!isTokenExpired()) return getAccessToken();
+  try {
+    return await refreshAccessToken();
+  } catch (err) {
+    // refresh token 也過期/被撤銷 → 清掉本地 session（但不強制整頁跳轉）
+    if (err.response?.status === 401) {
+      clearSession();
+    } else {
+      clearAccessToken();
+    }
+    return null;
   }
 };
 
@@ -96,20 +159,6 @@ api.interceptors.request.use((config) => {
   // 依目前選取的樓層/區域 IP，帶上 X-Target-IP header 給 dev proxy 用
   return applyTargetHeader(config);
 });
-
-let isRefreshing = false;
-let refreshQueue = [];
-
-const flushQueue = (error, newToken = null) => {
-  refreshQueue.forEach((p) => {
-    if (error) {
-      p.reject(error);
-    } else {
-      p.resolve(newToken);
-    }
-  });
-  refreshQueue = [];
-};
 
 api.interceptors.response.use(
   (res) => res,
@@ -135,39 +184,14 @@ api.interceptors.response.use(
 
     originalRequest._retry = true;
 
-    // 已經有其他請求在 refresh 了，把自己排進 queue 等新 token
-    if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        refreshQueue.push({ resolve, reject });
-      })
-        .then((newToken) => {
-          originalRequest.headers.Authorization = `Bearer ${newToken}`;
-          return api(originalRequest);
-        })
-        .catch((err) => Promise.reject(err));
-    }
-
-    isRefreshing = true;
-
     try {
-      // 用 refreshClient 送，不會被 api 的 response interceptor 攔截
-      const res = await refreshClient.post(REFRESH_URL);
-      // const res = await refreshClient.post(REFRESH_URL, {
-      //   userId: JSON.parse(localStorage.getItem("username")), // ⬅ 你後端目前需要
-      // });
-
-      const newToken = res.data.accessToken;
-      setAccessToken(newToken);
-
-      // 通知所有排隊的請求
-      flushQueue(null, newToken);
+      // 併發的 401 會共用同一個 refreshPromise，不會打出多支 /auth/refresh；
+      // 後到的請求 await 同一個 promise，拿到新 token 後各自重送。
+      const newToken = await refreshAccessToken();
 
       originalRequest.headers.Authorization = `Bearer ${newToken}`;
       return api(originalRequest);
     } catch (err) {
-      // refresh 失敗：把 queue 全部 reject，然後視情況導向 /login
-      flushQueue(err, null);
-
       // refresh token 也過期 → 強制回登入頁（整個 session 清掉）
       if (err.response?.status === 401) {
         redirectToLogin();
@@ -177,8 +201,6 @@ api.interceptors.response.use(
       }
 
       return Promise.reject(err);
-    } finally {
-      isRefreshing = false;
     }
   }
 );

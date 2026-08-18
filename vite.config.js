@@ -1,20 +1,18 @@
-import { defineConfig } from "vite";
+import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import http from "node:http";
 
-const WebAPI =
-  process.env.npm_lifecycle_event === "start:dev"
-    ? process.env.VITE_WEBAPI_URL === "localhost"
-      ? window.location.hostname
-      : process.env.VITE_WEBAPI_URL
-    : "192.168.100.200";
+// dev 端讀 .env（loadEnv 會把 .env 檔 + process.env 的 VITE_* 合併，process.env 優先）
+const devEnv = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "VITE_");
 
-const SocketServer =
-  process.env.npm_lifecycle_event === "start:dev"
-    ? process.env.VITE_SOCKETSERVER_URL === "localhost"
-      ? window.location.hostname
-      : process.env.VITE_SOCKETSERVER_URL
-    : "192.168.100.200";
+// 註：原本這裡在 start:dev 分支寫了 window.location.hostname，但 vite.config.js 是在
+// Node 端執行的，沒有 window → 會直接拋錯。改成只在 Node 能判斷的範圍內解析，
+// "localhost" 交給瀏覽器端(runtimeConfig)處理。
+const resolveDefaultHost = (raw) =>
+  !raw || raw === "localhost" ? "192.168.100.200" : raw;
+
+const WebAPI = resolveDefaultHost(devEnv.VITE_WEBAPI_URL);
+const SocketServer = resolveDefaultHost(devEnv.VITE_SOCKETSERVER_URL);
 
 // 每個 port 在「沒有指定目標 IP」時要 fallback 的預設主機（沿用原本 env 行為）
 const DEFAULT_HOST_BY_PORT = {
@@ -114,8 +112,27 @@ const forwardWs = (req, clientSocket, head, host, port, path) => {
 const dynamicApiProxy = () => ({
   name: "dynamic-api-proxy",
   configureServer(server) {
-    // 一般 HTTP：/api 與 SignalR negotiate / long-polling
+    // 一般 HTTP：/config.js、/api 與 SignalR negotiate / long-polling
     server.middlewares.use((req, res, next) => {
+      // 與 server.js 同一支 /config.js，讓 dev 與正式環境行為一致
+      // （dev 沒有這支的話，index.html 的 <script src="/config.js"> 會 404）
+      if (req.url && req.url.split("?")[0] === "/config.js") {
+        const cfg = {
+          VITE_WEBAPI_URL: devEnv.VITE_WEBAPI_URL ?? "",
+          VITE_SOCKETSERVER_URL: devEnv.VITE_SOCKETSERVER_URL ?? "",
+          VITE_SIGNALR_ENABLE: devEnv.VITE_SIGNALR_ENABLE ?? "false",
+          VITE_MODE: devEnv.VITE_MODE ?? "",
+        };
+        res.writeHead(200, {
+          "content-type": "text/javascript; charset=utf-8",
+          "cache-control": "no-store",
+        });
+        res.end(
+          `window.__APP_CONFIG__=${JSON.stringify(cfg).replace(/</g, "\\u003c")};\n`,
+        );
+        return;
+      }
+
       const apiM = req.url && req.url.match(/^\/api\/(7284|8031)(?=\/|\?|$)/);
       if (apiM) {
         const { ip, port, path } = resolveApiTarget(req, apiM[1]);

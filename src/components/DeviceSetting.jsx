@@ -13,6 +13,7 @@ import dayjs from "dayjs";
 import PatientMonitor from "./PatientMonitor";
 import { useAuth } from "../JS/AuthContext";
 import api from "../api/apiClient"
+import { getCurrentServerIp, setCurrentServerIp } from "../api/serverStore";
 
 function DeviceSettings() {
   const { t, i18n } = useTranslation();
@@ -24,6 +25,13 @@ function DeviceSettings() {
   const [searchParams] = useSearchParams();
 
   const macaddress = searchParams.get("macaddress") || "";
+
+  // 「All」模式下從 Home 帶進來的 ?ip=，代表這台裝置所屬的後端。
+  // render 期間就同步到 module store，確保本頁請求都釘在正確那台。
+  const ipParam = searchParams.get("ip");
+  if (ipParam && getCurrentServerIp() !== ipParam) {
+    setCurrentServerIp(ipParam);
+  }
 
   {
     /* Handle Back Button */
@@ -39,7 +47,16 @@ function DeviceSettings() {
     /* Floor 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext，去重後的清單）
        Section 選項在下方依目前選取的 floor 連動過濾（cascade） */
   }
-  const { servers } = useFloorSection();
+  const { servers, selectedServer } = useFloorSection();
+
+  // 這頁要打哪一台後端：
+  //   All 模式 → 用網址帶進來的 ?ip=（該裝置所屬 server）
+  //   單一模式 → 用目前選取的 server
+  // 重整時 servers 是非同步載入的，selectedServer 一開始為 null，
+  // 所以底下 fetch 會等到 targetIp 有值再抓，並在它出現後自動重抓，
+  // 避免在 IP 還沒確定前就打到預設台而抓不到資料。
+  const targetIp = ipParam ?? selectedServer?.ip ?? null;
+
   const floors = useMemo(
     () => [...new Set(servers.map((s) => s.floor).filter(Boolean))],
     [servers],
@@ -337,7 +354,7 @@ const handleDhcpItemClick = (dhcp) => {
     /* Fetch Get Device Information API */
   }
 
-  const fetchDeviceInfo = async (macaddress) => {
+  const fetchDeviceInfo = async (macaddress, targetIp) => {
     try {
       // const response = await fetch(`/api/7284/db/Device/${macaddress}`, {
       //   method: "GET",
@@ -350,7 +367,10 @@ const handleDhcpItemClick = (dhcp) => {
       // if (!response.ok || !contentType?.includes("application/json")) {
       //   throw new Error(`Expected JSON, got: ${contentType}`);
       // }
-      const response = await api.get(`/api/7284/db/Device/${macaddress}`);
+      const response = await api.get(
+        `/api/7284/db/Device/${macaddress}`,
+        targetIp ? { targetIp } : undefined,
+      );
 
       const data = response.data;
       //console.log(data);
@@ -402,8 +422,9 @@ const handleDhcpItemClick = (dhcp) => {
     }
   };
   useEffect(() => {
-    fetchDeviceInfo(macaddress);
-  }, []);
+    if (!targetIp) return; // 還不知道要打哪台 → 等 targetIp 出現再抓
+    fetchDeviceInfo(macaddress, targetIp);
+  }, [macaddress, targetIp]);
 
   {
     /* DELETE Device BUT USE PUT API */
@@ -421,7 +442,10 @@ const handleDhcpItemClick = (dhcp) => {
       // });
 
       // const contentType = response.headers.get("Content-Type");
-      const response = await api.delete(`/api/7284/db/Device/${deviceId}`);
+      const response = await api.delete(
+        `/api/7284/db/Device/${deviceId}`,
+        targetIp ? { targetIp } : undefined,
+      );
 
 
       if (response.status === 200) {
@@ -520,7 +544,8 @@ const handleDhcpItemClick = (dhcp) => {
       //   "the input requestbody is device location ",
       //   print_inputvalue
       // );
-      PUT_DeivceInfo(macaddress, print_inputvalue);
+      // 樓層/區域可能跨後端 → 用專責的搬移邏輯處理
+      saveDeviceLocation();
     } else if (
       isDeviceConfigChanged &&
       print_inputvalue === requestBody_DeviceLConfiguration
@@ -557,7 +582,11 @@ const handleDhcpItemClick = (dhcp) => {
       // }
 
       // const data = await response.json();
-      const response = await api.put(`/api/7284/db/Device/${macaddress}`,updatedData);
+      const response = await api.put(
+        `/api/7284/db/Device/${macaddress}`,
+        updatedData,
+        targetIp ? { targetIp } : undefined,
+      );
 
       const data = response.data;
       //console.log("Device updated successfully:", data);
@@ -566,6 +595,44 @@ const handleDhcpItemClick = (dhcp) => {
       return data; // Return the response data if needed
     } catch (error) {
       console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 變更樓層/區域時：若新的 floor+section 對應到「不同的後端」（同一樓+層唯一對應一台），
+  // 代表要把裝置搬到那台 → 在新後端建立、並從原後端刪除；仍是同一台就一般更新。
+  const saveDeviceLocation = async () => {
+    const newFloor = floorDropdown.placeholder;
+    const newSection = sectionDropdown.placeholder;
+    const oldIp = targetIp; // 裝置目前所在的後端
+    const newIp =
+      servers.find((s) => s.floor === newFloor && s.section === newSection)
+        ?.ip ?? null;
+    // 保留裝置原本所有設定，只覆蓋 bed/floor/section
+    const updatedData = { ...deviceInfo, ...requestBody_DeviceLocation };
+    try {
+      setLoading(true);
+      if (newIp && oldIp && newIp !== oldIp) {
+        // 跨後端搬移：先在新後端建立，再從原後端刪除
+        await api.post(`/api/7284/db/Device`, updatedData, { targetIp: newIp });
+        await api.delete(`/api/7284/db/Device/${macaddress}`, {
+          targetIp: oldIp,
+        });
+        alert("Update Successfully!");
+        navigate("/device"); // 已搬離原本網址對應的後端，導回列表避免抓到已刪除的資料
+      } else {
+        // 同一後端：一般更新
+        await api.put(
+          `/api/7284/db/Device/${macaddress}`,
+          updatedData,
+          oldIp ? { targetIp: oldIp } : undefined,
+        );
+        alert("Update Successfully!");
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Error updating device location:", error.message);
     } finally {
       setLoading(false);
     }
@@ -900,7 +967,65 @@ const handleDhcpItemClick = (dhcp) => {
                     <div className="assistive-text">
                       this is a line of assistive text
                     </div>
-                  </div>)}                 
+                  </div>)} 
+                  <div
+                    className="input dropdown floor g-col-3 suffix"
+                    onClick={floorDropdown.toggleActive}
+                    ref={addDropdownRef}
+                  >
+                    <label htmlFor="floor" className="label-container">
+                      <p>{t("DeviceSettings.Floor")}</p>
+                      <img
+                        className="info"
+                        src="/src/assets/information-outline.svg"
+                        alt="gray outline information icon"
+                      />
+                    </label>
+                    <div className="input-gp">
+                      <input
+                        type="text"
+                        className="placeholder"
+                        id="floor"
+                        placeholder={floorDropdown.placeholder}
+                        readOnly
+                      />
+                      <img
+                        className="suffix active"
+                        src=""
+                        alt="dropdown icon"
+                      />
+                    </div>
+                    <div className="assistive-text">
+                      this is a line of assistive text
+                    </div>
+                    <div
+                      className={`list ${
+                        floorDropdown.isActive ? "active" : ""
+                      }`}
+                      ref={dropdownFloorStyleRef}
+                    >
+                      {floors.map((floor) => (
+                        <div
+                          className="item opt1"
+                          key={floor}
+                          onClick={() => {
+                            const changed = floor !== floorDropdown.placeholder;
+                            floorDropdown.selectItem(floor);
+                            if (changed) {
+                              setIsDeviceLocationChanged(true);
+                              // 切 floor 後，section 自動選該 floor 底下的第一個區域
+                              const firstSection =
+                                servers.find((s) => s.floor === floor)
+                                  ?.section ?? "";
+                              sectionDropdown.selectItem(firstSection);
+                            }
+                          }}
+                        >
+                          {floor}
+                        </div>
+                      ))}
+                    </div>
+                  </div>                
                   <div
                     className="input dropdown section g-col-3 suffix"
                     onClick={sectionDropdown.toggleActive}
@@ -952,66 +1077,7 @@ const handleDhcpItemClick = (dhcp) => {
                         </div>
                       ))}
                     </div>
-                  </div>
-                  <div
-                    className="input dropdown floor g-col-3 suffix"
-                    onClick={floorDropdown.toggleActive}
-                    ref={addDropdownRef}
-                  >
-                    <label htmlFor="floor" className="label-container">
-                      <p>{t("DeviceSettings.Floor")}</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="floor"
-                        placeholder={floorDropdown.placeholder}
-                        readOnly
-                      />
-                      <img
-                        className="suffix active"
-                        src=""
-                        alt="dropdown icon"
-                      />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                    <div
-                      className={`list ${
-                        floorDropdown.isActive ? "active" : ""
-                      }`}
-                      ref={dropdownFloorStyleRef}
-                    >
-                      {floors.map((floor) => (
-                        <div
-                          className="item opt1"
-                          key={floor}
-                          onClick={() => {
-                            if (floor !== floorDropdown.placeholder) {
-                              setIsDeviceLocationChanged(true);
-                            }
-                            floorDropdown.selectItem(floor);
-                            // 切 floor 後，若目前選的 section 不在該 floor 底下就清空，避免存到無效組合
-                            const validSections = servers
-                              .filter((s) => s.floor === floor)
-                              .map((s) => s.section);
-                            if (!validSections.includes(sectionDropdown.placeholder)) {
-                              sectionDropdown.selectItem("");
-                            }
-                          }}
-                        >
-                          {floor}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                  </div>                  
                 </div>
                 <div className="btn-gp">
                   <div
