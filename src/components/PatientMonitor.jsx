@@ -308,7 +308,7 @@ function PatientMonitor() {
     <div className="monitor">
       <div className="pressure">
         <div className="title">{t("PatientMonitor.PressureMap")}</div>
-        <div className="box" style={{ position: "relative" }}>
+        <div className="box" style={{ position: "relative", background: isUMAP ? "none" : "" }}>
           {width &&
             height &&
             (rawdatum ? (

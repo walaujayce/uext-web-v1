@@ -121,8 +121,8 @@ function RiskIndexBar({
             lineHeight: 1,
             color: "#FF2D2D",
             // 深/淺底色都看得清楚
-            textShadow:
-              "0 0 3px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.85), 0 0 2px #fff",
+            // textShadow:
+            //   "0 0 3px rgba(0,0,0,0.85), 0 0 3px rgba(0,0,0,0.85), 0 0 2px #fff",
             whiteSpace: "nowrap",
           }}
         >

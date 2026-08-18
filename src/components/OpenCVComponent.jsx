@@ -434,12 +434,20 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
     }
   }, [opencvLoaded, decimalArray, riskRegions]);
 
+  // 底色：canvas 的 bitmap 是半透明的（圓圈外套了 OUTSIDE_ALPHA），沒有底色的話
+  // 會直接透出頁面背景。canvas 元素的 CSS background 就繪製在 bitmap「底下」，
+  // 且元素尺寸 = 繪圖表面尺寸（width/height 屬性），所以這就是一塊完全等大的底色，
+  // 不需要額外的 div，也不會有對不齊的問題。
+  //   深色模式 → 黑；淺色模式 → 白（與 getColor / getUMAPColor 的背景值一致）
+  const backdropColor = isDarkMode ? "#000000" : "#FFFFFF";
+
   return <canvas ref={canvasRef} style={{
         position: "absolute",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
+        backgroundColor: backdropColor,
       }} ></canvas>;
 };
 
