@@ -57,6 +57,12 @@ const applyTargetHeader = (config) => {
     return config;
   }
 
+  // 明確要求不帶目標 IP（例如 IpAddress/all 這種「主清單」端點，永遠只打預設/指定主機，
+  // 不能隨目前選取的樓層 IP 改變）→ 不帶 header，讓 proxy 走預設主機。
+  // ⚠ FloorSectionContext 一直有傳 { noTargetIp: true }，但本地分支漏掉這段判斷，
+  //   導致 /IpAddress/all 會被帶上「目前選取樓層」的 IP，等於跟主清單的語意相反。
+  if (config.noTargetIp) return config;
+
   // 明確指定的 config.targetIp 優先（讓呼叫端把整批請求釘在同一台，
   // 不受期間使用者切換樓層影響）；否則才讀目前選取的 IP。
   const ip = config.targetIp ?? getCurrentServerIp();
