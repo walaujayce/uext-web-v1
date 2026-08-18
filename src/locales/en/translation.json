@@ -137,7 +137,10 @@
   "CalibrationModal": {
     "description": "Confirm to proceed calibration?",
     "Confirm": "Confirm",
-    "Cancel": "Cancel"
+    "Cancel": "Cancel",
+    "Calibrating": "Calibrating...",
+    "Completed": "Calibration completed",
+    "SecondsSuffix": "s"
   },
   "PatientMonitor": {
     "PressureMap": "Pressure Map",

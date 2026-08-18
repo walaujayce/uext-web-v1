@@ -137,7 +137,10 @@
   "CalibrationModal": {
     "description": "確認執行校正?",
     "Confirm": "確認",
-    "Cancel": "取消"
+    "Cancel": "取消",
+    "Calibrating": "校正中...",
+    "Completed": "校正完成",
+    "SecondsSuffix": "秒"
   },
   "PatientMonitor": {
     "PressureMap": "臥床壓力",
