@@ -254,9 +254,11 @@ function AlertList() {
   useEffect(() => {
     if (isAllMode) return;
     const initializeSignalR = async () => {
-      await SignalRService.startConnection(signalrTargetIp);
+      // handler 當參數傳進去，startConnection 會在 start() 之前先綁好；
+      // 否則連線一建立後端就開始推，中間那段沒有 handler 的訊息會被丟掉
+      // 並在 console 洗出 "No client method with the name 'receivemessage' found."
       // 單一模式：訊息一律來自 signalrTargetIp
-      SignalRService.onReceiveMessage((topic, message) =>
+      await SignalRService.startConnection(signalrTargetIp, (topic, message) =>
         handleSignalRMessage(topic, message, signalrTargetIp),
       );
     };
@@ -274,8 +276,12 @@ function AlertList() {
   useEffect(() => {
     if (!isAllMode) return;
     const initializeMulti = async () => {
-      await SignalRService.startConnections(alertTargetIps);
-      SignalRService.onReceiveMessageMulti(handleSignalRMessage);
+      // 同上：handler 先綁再 start。All 模式下這件事更重要 ——
+      // 原本要等所有 IP 都連完才綁，先連上的那幾台會漏掉整段等待期間的推播。
+      await SignalRService.startConnections(
+        alertTargetIps,
+        handleSignalRMessage,
+      );
     };
     initializeMulti();
 

@@ -515,8 +515,10 @@ function Home() {
     };
 
     const init = async () => {
-      await svc.startConnections(deviceSignalrIps);
-      svc.onReceiveMessageMulti(handleDeviceMessage);
+      // handler 當參數傳進去，startConnections 會在每條連線 start() 之前先綁好。
+      // 否則先連上的後端在「等其他台連完」的期間推來的訊息會被丟掉，
+      // console 也會洗出 "No client method with the name 'receivemessage' found."
+      await svc.startConnections(deviceSignalrIps, handleDeviceMessage);
     };
     init();
 
