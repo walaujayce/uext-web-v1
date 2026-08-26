@@ -2,9 +2,16 @@ import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import http from "node:http";
 import https from "node:https";
+import fs from "node:fs";
+
+const MODE = process.env.NODE_ENV || "development";
 
 // dev 端讀 .env（loadEnv 會把 .env 檔 + process.env 的 VITE_* 合併，process.env 優先）
-const devEnv = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "VITE_");
+const devEnv = loadEnv(MODE, process.cwd(), "VITE_");
+
+// 前綴給空字串 → 連沒有 VITE_ 前綴的變數也讀得到（例如 SERVER_TLS_*）。
+// 這份只在 Node 端使用，不會被塞進前端 bundle（只有 VITE_ 開頭的才會）。
+const nodeEnv = loadEnv(MODE, process.cwd(), "");
 
 // .env 的值一律是字串：'false' / '' / undefined 都要當成 false
 const asBool = (v, dflt = false) =>
@@ -228,10 +235,69 @@ const dynamicApiProxy = () => ({
   },
 });
 
+// ─────────────────────────────────────────────────────────
+// dev server 自己要不要走 HTTPS（瀏覽器 ←→ vite dev server 這一段）。
+//
+// ⚠ 這與 VITE_USE_HTTPS 是「兩段不同的連線」：
+//     瀏覽器 ──(A)──▶ vite dev server ──(B)──▶ WebAPI
+//   (A) 由這裡的 SERVER_TLS_CERT / SERVER_TLS_KEY 決定
+//   (B) 由 VITE_USE_HTTPS 決定
+//
+// ⚠ NODE_EXTRA_CA_CERTS 只影響 (B)：它決定「Node 對外連線時信任哪些 CA」，
+//   完全不會讓 dev server 自己變成 https。沒設定憑證就直接開 https://localhost:5173
+//   會拿到 ERR_SSL_PROTOCOL_ERROR，因為那是一台純 HTTP 伺服器。
+//
+// 變數與 server.js(正式環境)刻意用同一組，dev / prod 行為一致：
+//   SERVER_TLS_CERT / SERVER_TLS_KEY / SERVER_TLS_PASSPHRASE
+// ─────────────────────────────────────────────────────────
+const devServerHttps = (() => {
+  const certPath = nodeEnv.SERVER_TLS_CERT || "";
+  const keyPath = nodeEnv.SERVER_TLS_KEY || "";
+  if (!certPath || !keyPath) return undefined; // 沒設定 → 維持 http
+
+  try {
+    const opts = {
+      cert: fs.readFileSync(certPath),
+      key: fs.readFileSync(keyPath),
+    };
+    if (nodeEnv.SERVER_TLS_PASSPHRASE) {
+      opts.passphrase = nodeEnv.SERVER_TLS_PASSPHRASE;
+    }
+    console.log(`[vite] dev server (A) → https  (cert: ${certPath})`);
+    return opts;
+  } catch (err) {
+    // 讀不到就直接停，不要默默退回 http ——
+    // 否則你以為是 https、實際是 http，Secure cookie 會整個失效卻很難察覺。
+    console.error(
+      `[vite] 讀取 TLS 憑證失敗：${err.message}\n` +
+        `       SERVER_TLS_CERT=${certPath}\n` +
+        `       SERVER_TLS_KEY=${keyPath}`,
+    );
+    process.exit(1);
+  }
+})();
+
+if (!devServerHttps) {
+  console.log("[vite] dev server (A) → http  (未提供憑證)");
+  if (USE_HTTPS) {
+    // 後端 BuildRefreshCookieOptions 是 Secure = Request.IsHttps；
+    // proxy 用 TLS 連後端時它會發 Secure cookie，而瀏覽器在 http 頁面會拒收，
+    // 於是 /auth/refresh 永遠讀不到 refreshToken → 一路 401。
+    console.warn(
+      "[vite] ⚠ dev server 是 http 但 VITE_USE_HTTPS=true：\n" +
+        "       後端會發出 Secure 的 refreshToken cookie，瀏覽器在 http 頁面會拒收，\n" +
+        "       導致 /auth/refresh 永遠 401。請設定 SERVER_TLS_CERT / SERVER_TLS_KEY，\n" +
+        "       或把 VITE_USE_HTTPS 關掉。",
+    );
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), dynamicApiProxy()],
   server: {
+    // 有憑證才是 https；undefined 時 vite 維持原本的 http（預設行為不變）
+    https: devServerHttps,
     // 關掉 dev 模式的錯誤覆蓋層(那個紅色全螢幕堆疊)，
     // 避免開發/展示時把底層實作資訊蓋在畫面上。
     // 註：此覆蓋層本來就只有 dev(npm run dev)才有，正式 build 不會出現。

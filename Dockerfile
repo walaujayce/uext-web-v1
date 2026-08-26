@@ -36,6 +36,17 @@ COPY server.js ./
 #                            要驗證就設 true 並額外提供 NODE_EXTRA_CA_CERTS，
 #                            例如：-v /path/rootCA.crt:/certs/rootCA.crt:ro \
 #                                  -e NODE_EXTRA_CA_CERTS=/certs/rootCA.crt
+#   SERVER_TLS_CERT / SERVER_TLS_KEY
+#                          → 站台本身要走 https 時，指向掛進容器的憑證/私鑰。
+#                            兩個都給才會啟用 https；只要有一個沒給就維持 http。
+#                            ⚠ 與 VITE_USE_HTTPS 是兩段不同的連線：
+#                                瀏覽器 ──(A)──▶ 本 server ──(B)──▶ WebAPI
+#                              (A) 由 SERVER_TLS_* 決定；(B) 由 VITE_USE_HTTPS 決定。
+#                            例如：
+#                              -v /path/certs:/certs:ro \
+#                              -e SERVER_TLS_CERT=/certs/server.crt \
+#                              -e SERVER_TLS_KEY=/certs/server.key
+#   SERVER_TLS_PASSPHRASE  → 私鑰有加密時才需要
 #   DEBUG_PROXY=1          → 印出每筆轉發的 X-Target-IP 與最終目標
 ENV PORT=5173 \
     VITE_WEBAPI_URL=192.168.100.200 \

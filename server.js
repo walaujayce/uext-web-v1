@@ -330,8 +330,49 @@ const serveStatic = (req, res) => {
   });
 };
 
-// ── HTTP server ──
-const server = http.createServer((req, res) => {
+// ─────────────────────────────────────────────────────────
+// 本站自己要不要走 HTTPS（瀏覽器 ←→ 本 server 這一段）。
+//
+// ⚠ 這與 VITE_USE_HTTPS 是「兩段不同的連線」，不要混淆：
+//     瀏覽器 ──(A)──▶ 本 server ──(B)──▶ WebAPI
+//   (A) 由這裡的 SERVER_TLS_CERT / SERVER_TLS_KEY 決定
+//   (B) 由 VITE_USE_HTTPS 決定
+//
+// 只要同時給了 cert 與 key 就走 https，否則維持原本的 http（預設行為不變）。
+//   SERVER_TLS_CERT        憑證檔路徑（PEM，可含中繼憑證鏈）
+//   SERVER_TLS_KEY         私鑰檔路徑（PEM）
+//   SERVER_TLS_PASSPHRASE  私鑰密碼（有加密才需要）
+// ─────────────────────────────────────────────────────────
+const TLS_CERT_PATH = process.env.SERVER_TLS_CERT || "";
+const TLS_KEY_PATH = process.env.SERVER_TLS_KEY || "";
+
+const loadServerTls = () => {
+  if (!TLS_CERT_PATH || !TLS_KEY_PATH) return null; // 沒設定 → 走 http
+  try {
+    const opts = {
+      cert: fs.readFileSync(TLS_CERT_PATH),
+      key: fs.readFileSync(TLS_KEY_PATH),
+    };
+    if (process.env.SERVER_TLS_PASSPHRASE) {
+      opts.passphrase = process.env.SERVER_TLS_PASSPHRASE;
+    }
+    return opts;
+  } catch (err) {
+    // 讀不到就直接讓它爆，不要默默退回 http ——
+    // 否則你以為站台是 https，實際上是 http，Secure cookie 會整個失效。
+    console.error(
+      `[server] 讀取 TLS 憑證失敗：${err.message}\n` +
+        `         SERVER_TLS_CERT=${TLS_CERT_PATH}\n` +
+        `         SERVER_TLS_KEY=${TLS_KEY_PATH}`,
+    );
+    process.exit(1);
+  }
+};
+
+const serverTls = loadServerTls();
+const SITE_IS_HTTPS = Boolean(serverTls);
+
+const requestHandler = (req, res) => {
   const badRequest = () => {
     res.writeHead(400, {
       "content-type": "text/plain; charset=utf-8",
@@ -367,9 +408,16 @@ const server = http.createServer((req, res) => {
     return forwardHttp(req, res, t.ip, t.port, t.path, t.https);
   }
   return serveStatic(req, res);
-});
+};
+
+// 有憑證 → https server；沒有 → 維持原本的 http server
+const server = SITE_IS_HTTPS
+  ? https.createServer(serverTls, requestHandler)
+  : http.createServer(requestHandler);
 
 // ── WebSocket upgrade（只接管 /signalR/7284）──
+// 註：https server 的 upgrade 事件用法與 http server 完全相同，
+//     瀏覽器端會自動從 ws:// 變成 wss://（SignalR 依頁面協定決定）。
 server.on("upgrade", (req, socket, head) => {
   if (!req.url || !/^\/signalR\/7284(?=\/|\?|$)/.test(req.url)) {
     socket.destroy();
@@ -385,6 +433,11 @@ server.on("upgrade", (req, socket, head) => {
 
 server.listen(PORT, () => {
   const w = TARGET_BY_LABEL["7284"];
+  const scheme = SITE_IS_HTTPS ? "https" : "http";
+  console.log(
+    `[server] 站台 (A) → ${scheme}://<host>:${PORT}` +
+      (SITE_IS_HTTPS ? `  (cert: ${TLS_CERT_PATH})` : "  (未提供憑證，走 http)"),
+  );
   console.log(
     `[server] listening on :${PORT} | WEBAPI_HOST=${WEBAPI_HOST} SOCKETSERVER_HOST=${SOCKETSERVER_HOST}`,
   );
@@ -395,4 +448,16 @@ server.listen(PORT, () => {
         : ""),
   );
   console.log(`[server] /config.js → ${buildRuntimeConfigJs().trim()}`);
+
+  // 站台走 http、但後端走 https 時：後端的 BuildRefreshCookieOptions 會因為
+  // Request.IsHttps === true 而把 refreshToken 設成 Secure；瀏覽器在 http 頁面
+  // 上會直接拒收這個 cookie → /auth/refresh 永遠讀不到 → 一路 401 被踢回登入頁。
+  if (!SITE_IS_HTTPS && w.https) {
+    console.warn(
+      "[server] ⚠ 站台是 http 但 WebAPI 走 https：\n" +
+        "         後端會發出 Secure 的 refreshToken cookie，瀏覽器在 http 頁面會拒收，\n" +
+        "         導致 /auth/refresh 永遠 401。請改用 https 提供站台\n" +
+        "         （設定 SERVER_TLS_CERT / SERVER_TLS_KEY），或把 VITE_USE_HTTPS 關掉。",
+    );
+  }
 });
