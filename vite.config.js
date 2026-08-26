@@ -1,9 +1,16 @@
 import { defineConfig, loadEnv } from "vite";
 import react from "@vitejs/plugin-react";
 import http from "node:http";
+import https from "node:https";
 
 // dev 端讀 .env（loadEnv 會把 .env 檔 + process.env 的 VITE_* 合併，process.env 優先）
 const devEnv = loadEnv(process.env.NODE_ENV || "development", process.cwd(), "VITE_");
+
+// .env 的值一律是字串：'false' / '' / undefined 都要當成 false
+const asBool = (v, dflt = false) =>
+  v === undefined || v === null || v === ""
+    ? dflt
+    : String(v).toLowerCase() === "true";
 
 // 註：原本這裡在 start:dev 分支寫了 window.location.hostname，但 vite.config.js 是在
 // Node 端執行的，沒有 window → 會直接拋錯。改成只在 Node 能判斷的範圍內解析，
@@ -14,44 +21,85 @@ const resolveDefaultHost = (raw) =>
 const WebAPI = resolveDefaultHost(devEnv.VITE_WEBAPI_URL);
 const SocketServer = resolveDefaultHost(devEnv.VITE_SOCKETSERVER_URL);
 
-// 每個 port 在「沒有指定目標 IP」時要 fallback 的預設主機（沿用原本 env 行為）
-const DEFAULT_HOST_BY_PORT = {
-  "7284": WebAPI,
-  "8031": SocketServer,
+// ─────────────────────────────────────────────────────────
+// WebAPI 的協定 / port 切換
+//
+//   VITE_USE_HTTPS='false'(預設) → http  + 7284   ← 原本的行為
+//   VITE_USE_HTTPS='true'        → https + 8081
+//
+// ⚠ 重點：網址裡的 "7284"（/api/7284/*、/signalR/7284）只是**路由標籤**，
+//   不是真實 port。瀏覽器永遠只打同源的這個標籤，真正連哪個 port / 用什麼協定
+//   由這裡決定。所以切換 https 時，src/ 底下那上百處 /api/7284/... 完全不用動。
+//
+// TLS 驗證：Node 不會讀作業系統的憑證存放區，所以你在 Windows 安裝的 rootCA.crt
+//   對這支 proxy 是無效的。自簽憑證有兩條路：
+//     (a) VITE_TLS_REJECT_UNAUTHORIZED='false'（預設）→ 不驗證，最省事
+//     (b) 設成 'true'，並用環境變數 NODE_EXTRA_CA_CERTS=<rootCA.crt 的路徑>
+//         啟動 vite，讓 Node 信任你的 CA（憑證的 SAN 必須包含該 IP）
+// ─────────────────────────────────────────────────────────
+const USE_HTTPS = asBool(devEnv.VITE_USE_HTTPS, false);
+const TLS_REJECT_UNAUTHORIZED = asBool(
+  devEnv.VITE_TLS_REJECT_UNAUTHORIZED,
+  false,
+);
+
+// 路徑標籤 → 實際要連的後端（host 為「沒帶 X-Target-IP 時」的 fallback）
+const TARGET_BY_LABEL = {
+  "7284": {
+    host: WebAPI,
+    port: USE_HTTPS ? 8081 : 7284,
+    https: USE_HTTPS,
+  },
+  // SocketServer 維持 http:8031，不受 VITE_USE_HTTPS 影響
+  "8031": { host: SocketServer, port: 8031, https: false },
 };
 
-// /api/<port>/* 的路徑改寫（與原本 server.proxy 的 rewrite 規則一致）
-const rewriteApiPath = (port, url) =>
-  port === "7284"
+// /api/<label>/* 的路徑改寫（與原本 server.proxy 的 rewrite 規則一致）
+// 新後端仍保留 /api 前綴，所以這裡不用改。
+const rewriteApiPath = (label, url) =>
+  label === "7284"
     ? url.replace(/^\/api\/7284/, "/api")
     : url.replace(/^\/api\/(8031)/, "/api/v1");
 
-// 解析 /api/<port>/* 請求 → 目標 host(來自 X-Target-IP header) / port / path
-const resolveApiTarget = (req, port) => {
+// 解析 /api/<label>/* 請求 → 目標 host(來自 X-Target-IP header) / port / 協定 / path
+const resolveApiTarget = (req, label) => {
+  const t = TARGET_BY_LABEL[label];
   const headerIp = req.headers["x-target-ip"];
-  const ip =
-    (Array.isArray(headerIp) ? headerIp[0] : headerIp) ||
-    DEFAULT_HOST_BY_PORT[port];
-  return { ip, port: Number(port), path: rewriteApiPath(port, req.url) };
+  const ip = (Array.isArray(headerIp) ? headerIp[0] : headerIp) || t.host;
+  return {
+    ip,
+    port: t.port,
+    https: t.https,
+    path: rewriteApiPath(label, req.url),
+  };
 };
 
-// 解析 /signalR/7284* 請求 → 目標 host(來自 targetIp query) / port 7284 / path(/notifyHub)
+// 解析 /signalR/7284* 請求 → 目標 host(來自 targetIp query) / WebAPI 的 port / path(/notifyHub)
 // negotiate(HTTP) 與 ws 握手都會帶 query，故兩邊共用同一套解析。
+// USE_HTTPS 時自動變成 https negotiate + wss。
 const resolveSignalRTarget = (reqUrl) => {
+  const t = TARGET_BY_LABEL["7284"];
   const u = new URL(reqUrl, "http://placeholder");
-  const ip = u.searchParams.get("targetIp") || DEFAULT_HOST_BY_PORT["7284"];
+  const ip = u.searchParams.get("targetIp") || t.host;
   u.searchParams.delete("targetIp"); // 只給 proxy 用，不往後端送
   const path =
     u.pathname.replace(/^\/signalR\/7284/, "/notifyHub") + (u.search || "");
-  return { ip, port: 7284, path };
+  return { ip, port: t.port, https: t.https, path };
 };
 
+// 依目標協定挑 http / https，並在 https 時帶上自簽憑證的處理
+const requestOptions = (useHttps, opts) =>
+  useHttps
+    ? { ...opts, rejectUnauthorized: TLS_REJECT_UNAUTHORIZED }
+    : opts;
+const requestModule = (useHttps) => (useHttps ? https : http);
+
 // 一般 HTTP 轉發（/api 與 SignalR 的 negotiate / long-polling 都走這裡）
-const forwardHttp = (req, res, host, port, path) => {
+const forwardHttp = (req, res, host, port, path, useHttps) => {
   const headers = { ...req.headers, host: `${host}:${port}` };
   delete headers["x-target-ip"];
-  const proxyReq = http.request(
-    { host, port, method: req.method, path, headers },
+  const proxyReq = requestModule(useHttps).request(
+    requestOptions(useHttps, { host, port, method: req.method, path, headers }),
     (proxyRes) => {
       res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
       proxyRes.pipe(res);
@@ -67,10 +115,19 @@ const forwardHttp = (req, res, host, port, path) => {
 };
 
 // WebSocket upgrade 轉發（SignalR 的 ws transport 走這裡）
-const forwardWs = (req, clientSocket, head, host, port, path) => {
+const forwardWs = (req, clientSocket, head, host, port, path, useHttps) => {
   const headers = { ...req.headers, host: `${host}:${port}` };
   delete headers["x-target-ip"];
-  const proxyReq = http.request({ host, port, method: req.method || "GET", path, headers });
+  // useHttps 時這裡就是 wss：TLS 之上再做 HTTP upgrade
+  const proxyReq = requestModule(useHttps).request(
+    requestOptions(useHttps, {
+      host,
+      port,
+      method: req.method || "GET",
+      path,
+      headers,
+    }),
+  );
 
   proxyReq.on("upgrade", (proxyRes, proxySocket, proxyHead) => {
     // 把後端的 101 + headers 回給瀏覽器
@@ -122,6 +179,9 @@ const dynamicApiProxy = () => ({
           VITE_SOCKETSERVER_URL: devEnv.VITE_SOCKETSERVER_URL ?? "",
           VITE_SIGNALR_ENABLE: devEnv.VITE_SIGNALR_ENABLE ?? "false",
           VITE_MODE: devEnv.VITE_MODE ?? "",
+          // 前端不需要這個值（協定切換完全在 proxy 端），純粹方便在
+          // console 用 __APP_CONFIG__ 確認目前跑在哪個模式
+          VITE_USE_HTTPS: String(USE_HTTPS),
         };
         res.writeHead(200, {
           "content-type": "text/javascript; charset=utf-8",
@@ -135,12 +195,17 @@ const dynamicApiProxy = () => ({
 
       const apiM = req.url && req.url.match(/^\/api\/(7284|8031)(?=\/|\?|$)/);
       if (apiM) {
-        const { ip, port, path } = resolveApiTarget(req, apiM[1]);
-        return forwardHttp(req, res, ip, port, path);
+        const { ip, port, https: useHttps, path } = resolveApiTarget(
+          req,
+          apiM[1],
+        );
+        return forwardHttp(req, res, ip, port, path, useHttps);
       }
       if (req.url && /^\/signalR\/7284(?=\/|\?|$)/.test(req.url)) {
-        const { ip, port, path } = resolveSignalRTarget(req.url);
-        return forwardHttp(req, res, ip, port, path);
+        const { ip, port, https: useHttps, path } = resolveSignalRTarget(
+          req.url,
+        );
+        return forwardHttp(req, res, ip, port, path, useHttps);
       }
       return next();
     });
@@ -148,9 +213,18 @@ const dynamicApiProxy = () => ({
     // WebSocket upgrade：只接管 /signalR/7284，其餘(例如 Vite HMR)交回 Vite 處理
     server.httpServer?.on("upgrade", (req, socket, head) => {
       if (!req.url || !/^\/signalR\/7284(?=\/|\?|$)/.test(req.url)) return;
-      const { ip, port, path } = resolveSignalRTarget(req.url);
-      forwardWs(req, socket, head, ip, port, path);
+      const { ip, port, https: useHttps, path } = resolveSignalRTarget(req.url);
+      forwardWs(req, socket, head, ip, port, path, useHttps);
     });
+
+    // 啟動時把目前的轉發設定印出來，一眼確認跑在哪個模式
+    const t = TARGET_BY_LABEL["7284"];
+    console.log(
+      `[dynamic-api-proxy] WebAPI → ${t.https ? "https" : "http"}://${t.host}:${t.port}` +
+        (t.https
+          ? `  (TLS 驗證: ${TLS_REJECT_UNAUTHORIZED ? "開啟" : "關閉"})`
+          : ""),
+    );
   },
 });
 

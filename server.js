@@ -7,11 +7,14 @@
 // 只用 Node 內建模組，不裝任何套件 → image 小、攻擊面小。
 //
 // 可用環境變數設定（部署時覆蓋）：
-//   PORT               監聽埠（預設 8080）
-//   WEBAPI_HOST        7284 沒帶 X-Target-IP 時的預設後端主機
-//   SOCKETSERVER_HOST  8031 沒帶 X-Target-IP 時的預設後端主機
+//   PORT                          監聽埠（預設 8080）
+//   VITE_WEBAPI_URL               WebAPI 沒帶 X-Target-IP 時的預設後端主機
+//   VITE_SOCKETSERVER_URL         8031 沒帶 X-Target-IP 時的預設後端主機
+//   VITE_USE_HTTPS                'true' → WebAPI 走 https:8081；否則 http:7284
+//   VITE_TLS_REJECT_UNAUTHORIZED  'true' → 驗證後端 TLS 憑證（自簽請留 false）
 // ─────────────────────────────────────────────────────────
 import http from "node:http";
+import https from "node:https";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -20,9 +23,49 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const DIST_DIR = path.join(__dirname, "dist");
 const PORT = Number(process.env.PORT || 8080);
 
+// 環境變數一律是字串：'false' / '' / undefined 都要當成 false
+const asBool = (v, dflt = false) =>
+  v === undefined || v === null || v === ""
+    ? dflt
+    : String(v).toLowerCase() === "true";
+
 const WEBAPI_HOST = process.env.VITE_WEBAPI_URL || "192.168.100.200";
 const SOCKETSERVER_HOST = process.env.VITE_SOCKETSERVER_URL || "192.168.100.200";
-const DEFAULT_HOST_BY_PORT = { "7284": WEBAPI_HOST, "8031": SOCKETSERVER_HOST };
+
+// ─────────────────────────────────────────────────────────
+// WebAPI 的協定 / port 切換（與 vite.config.js 的邏輯必須一致）
+//
+//   VITE_USE_HTTPS='false'(預設) → http  + 7284   ← 原本的行為
+//   VITE_USE_HTTPS='true'        → https + 8081
+//
+// ⚠ 網址裡的 "7284"（/api/7284/*、/signalR/7284）只是**路由標籤**，不是真實 port。
+//   所以切換 https 時，前端那上百處 /api/7284/... 完全不用動。
+//
+// TLS 驗證：Node 不讀作業系統的憑證存放區。自簽憑證有兩條路：
+//   (a) VITE_TLS_REJECT_UNAUTHORIZED='false'（預設）→ 不驗證
+//   (b) 設成 'true'，並以 NODE_EXTRA_CA_CERTS=<rootCA.crt 路徑> 啟動 node
+//       （容器內要先把 rootCA.crt 掛進去，且憑證 SAN 必須包含該 IP）
+// ─────────────────────────────────────────────────────────
+const USE_HTTPS = asBool(process.env.VITE_USE_HTTPS, false);
+const TLS_REJECT_UNAUTHORIZED = asBool(
+  process.env.VITE_TLS_REJECT_UNAUTHORIZED,
+  false,
+);
+
+const TARGET_BY_LABEL = {
+  "7284": {
+    host: WEBAPI_HOST,
+    port: USE_HTTPS ? 8081 : 7284,
+    https: USE_HTTPS,
+  },
+  // SocketServer 維持 http:8031，不受 VITE_USE_HTTPS 影響
+  "8031": { host: SOCKETSERVER_HOST, port: 8031, https: false },
+};
+
+// 依目標協定挑 http / https，並在 https 時帶上自簽憑證的處理
+const requestOptions = (useHttps, opts) =>
+  useHttps ? { ...opts, rejectUnauthorized: TLS_REJECT_UNAUTHORIZED } : opts;
+const requestModule = (useHttps) => (useHttps ? https : http);
 
 // DEBUG_PROXY=1 → 把每筆 /api 轉發的 X-Target-IP 與最終目標印到 server console
 const DEBUG_PROXY = process.env.DEBUG_PROXY === "1";
@@ -43,6 +86,9 @@ const buildRuntimeConfigJs = () => {
     VITE_SOCKETSERVER_URL: process.env.VITE_SOCKETSERVER_URL ?? "",
     VITE_SIGNALR_ENABLE: process.env.VITE_SIGNALR_ENABLE ?? "false",
     VITE_MODE: process.env.VITE_MODE ?? "",
+    // 前端不需要這個值（協定切換完全在 proxy 端），純粹方便在
+    // console 用 __APP_CONFIG__ 確認目前跑在哪個模式
+    VITE_USE_HTTPS: String(USE_HTTPS),
   };
   // JSON.stringify 已足以跳脫字串內容；再擋掉 </script> 以防萬一被塞進 HTML
   const json = JSON.stringify(cfg).replace(/</g, "\\u003c");
@@ -99,36 +145,44 @@ const CONTENT_SECURITY_POLICY = [
 ].join("; ");
 
 // ── 以下轉發邏輯與 vite.config.js 的 dynamicApiProxy 完全一致 ──
-const rewriteApiPath = (port, url) =>
-  port === "7284"
+// 新後端仍保留 /api 前綴，所以路徑改寫規則不變。
+const rewriteApiPath = (label, url) =>
+  label === "7284"
     ? url.replace(/^\/api\/7284/, "/api")
     : url.replace(/^\/api\/(8031)/, "/api/v1");
 
 // 回傳 null 代表「使用者提供了非法的 target」→ 呼叫端應回 400 拒絕。
-const resolveApiTarget = (req, port) => {
+const resolveApiTarget = (req, label) => {
+  const t = TARGET_BY_LABEL[label];
   const headerIp = req.headers["x-target-ip"];
   const raw = Array.isArray(headerIp) ? headerIp[0] : headerIp;
   if (raw && !isValidHost(raw)) return null; // 非法輸入 → 拒絕
-  const ip = raw || DEFAULT_HOST_BY_PORT[port];
-  return { ip, port: Number(port), path: rewriteApiPath(port, req.url) };
+  const ip = raw || t.host;
+  return {
+    ip,
+    port: t.port,
+    https: t.https,
+    path: rewriteApiPath(label, req.url),
+  };
 };
 
 const resolveSignalRTarget = (reqUrl) => {
+  const t = TARGET_BY_LABEL["7284"];
   const u = new URL(reqUrl, "http://placeholder");
   const raw = u.searchParams.get("targetIp");
   if (raw && !isValidHost(raw)) return null; // 非法輸入 → 拒絕
-  const ip = raw || DEFAULT_HOST_BY_PORT["7284"];
+  const ip = raw || t.host;
   u.searchParams.delete("targetIp");
   const path =
     u.pathname.replace(/^\/signalR\/7284/, "/notifyHub") + (u.search || "");
-  return { ip, port: 7284, path };
+  return { ip, port: t.port, https: t.https, path };
 };
 
-const forwardHttp = (req, res, host, port, path) => {
+const forwardHttp = (req, res, host, port, path, useHttps) => {
   const headers = { ...req.headers, host: `${host}:${port}` };
   delete headers["x-target-ip"];
-  const proxyReq = http.request(
-    { host, port, method: req.method, path, headers },
+  const proxyReq = requestModule(useHttps).request(
+    requestOptions(useHttps, { host, port, method: req.method, path, headers }),
     (proxyRes) => {
       const outHeaders = { ...proxyRes.headers };
       // 後端若動態產生 Access-Control-Allow-Origin，補上 Vary: Origin，
@@ -164,16 +218,19 @@ const forwardHttp = (req, res, host, port, path) => {
   req.pipe(proxyReq);
 };
 
-const forwardWs = (req, clientSocket, head, host, port, path) => {
+const forwardWs = (req, clientSocket, head, host, port, path, useHttps) => {
   const headers = { ...req.headers, host: `${host}:${port}` };
   delete headers["x-target-ip"];
-  const proxyReq = http.request({
-    host,
-    port,
-    method: req.method || "GET",
-    path,
-    headers,
-  });
+  // useHttps 時這裡就是 wss：TLS 之上再做 HTTP upgrade
+  const proxyReq = requestModule(useHttps).request(
+    requestOptions(useHttps, {
+      host,
+      port,
+      method: req.method || "GET",
+      path,
+      headers,
+    }),
+  );
 
   proxyReq.on("upgrade", (proxyRes, proxySocket, proxyHead) => {
     let resHead = `HTTP/1.1 ${proxyRes.statusCode} ${proxyRes.statusMessage}\r\n`;
@@ -295,17 +352,19 @@ const server = http.createServer((req, res) => {
       const raw = req.headers["x-target-ip"];
       console.log(
         `[proxy] ${req.method} ${req.url} | X-Target-IP=${raw ?? "(未帶)"} → ${
-          t ? `${t.ip}:${t.port}${t.path}` : "REJECTED(非法 host)"
+          t
+            ? `${t.https ? "https" : "http"}://${t.ip}:${t.port}${t.path}`
+            : "REJECTED(非法 host)"
         }`,
       );
     }
     if (!t) return badRequest(); // 非法 X-Target-IP → 拒絕
-    return forwardHttp(req, res, t.ip, t.port, t.path);
+    return forwardHttp(req, res, t.ip, t.port, t.path, t.https);
   }
   if (req.url && /^\/signalR\/7284(?=\/|\?|$)/.test(req.url)) {
     const t = resolveSignalRTarget(req.url);
     if (!t) return badRequest(); // 非法 targetIp → 拒絕
-    return forwardHttp(req, res, t.ip, t.port, t.path);
+    return forwardHttp(req, res, t.ip, t.port, t.path, t.https);
   }
   return serveStatic(req, res);
 });
@@ -321,12 +380,19 @@ server.on("upgrade", (req, socket, head) => {
     socket.destroy(); // 非法 targetIp → 拒絕連線
     return;
   }
-  forwardWs(req, socket, head, t.ip, t.port, t.path);
+  forwardWs(req, socket, head, t.ip, t.port, t.path, t.https);
 });
 
 server.listen(PORT, () => {
+  const w = TARGET_BY_LABEL["7284"];
   console.log(
     `[server] listening on :${PORT} | WEBAPI_HOST=${WEBAPI_HOST} SOCKETSERVER_HOST=${SOCKETSERVER_HOST}`,
+  );
+  console.log(
+    `[server] WebAPI → ${w.https ? "https" : "http"}://${w.host}:${w.port}` +
+      (w.https
+        ? `  (TLS 驗證: ${TLS_REJECT_UNAUTHORIZED ? "開啟" : "關閉"})`
+        : ""),
   );
   console.log(`[server] /config.js → ${buildRuntimeConfigJs().trim()}`);
 });

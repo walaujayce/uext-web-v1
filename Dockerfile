@@ -29,12 +29,21 @@ COPY server.js ./
 #   VITE_WEBAPI_URL        → 前端 /config.js 的值 + server.js 轉發 7284 的預設主機
 #   VITE_SOCKETSERVER_URL  → 前端 /config.js 的值 + server.js 轉發 8031 的預設主機
 #   VITE_SIGNALR_ENABLE    → 前端是否改用 SignalR 推播
+#   VITE_USE_HTTPS         → true 時 WebAPI 走 https:8081，否則 http:7284
+#                            （/api/7284 只是路由標籤，切換時前端不用改）
+#   VITE_TLS_REJECT_UNAUTHORIZED
+#                          → 是否驗證後端 TLS 憑證。自簽請留 false；
+#                            要驗證就設 true 並額外提供 NODE_EXTRA_CA_CERTS，
+#                            例如：-v /path/rootCA.crt:/certs/rootCA.crt:ro \
+#                                  -e NODE_EXTRA_CA_CERTS=/certs/rootCA.crt
 #   DEBUG_PROXY=1          → 印出每筆轉發的 X-Target-IP 與最終目標
 ENV PORT=5173 \
     VITE_WEBAPI_URL=192.168.100.200 \
     VITE_SOCKETSERVER_URL=192.168.100.200 \
     VITE_SIGNALR_ENABLE=false \
     VITE_MODE=prod \
+    VITE_USE_HTTPS=false \
+    VITE_TLS_REJECT_UNAUTHORIZED=false \
     DEBUG_PROXY=0
 EXPOSE 5173
 
