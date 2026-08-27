@@ -33,15 +33,16 @@ COPY server.js ./
 #                            （/api/7284 只是路由標籤，切換時前端不用改）
 #   VITE_TLS_REJECT_UNAUTHORIZED
 #                          → 是否驗證後端 TLS 憑證。自簽請留 false；
-#                            要驗證就設 true 並額外提供 NODE_EXTRA_CA_CERTS，
-#                            例如：-v /path/rootCA.crt:/certs/rootCA.crt:ro \
-#                                  -e NODE_EXTRA_CA_CERTS=/certs/rootCA.crt
+#                            要驗證就設 true 並用 SERVER_TLS_CA 指向 rootCA.crt
+#   SERVER_TLS_CA          → 簽發後端憑證的根 CA（僅在開啟驗證時需要）
 #   SERVER_TLS_CERT / SERVER_TLS_KEY
-#                          → 站台本身要走 https 時，指向掛進容器的憑證/私鑰。
-#                            兩個都給才會啟用 https；只要有一個沒給就維持 http。
-#                            ⚠ 與 VITE_USE_HTTPS 是兩段不同的連線：
+#                          → VITE_USE_HTTPS=true 時「必須」提供，指向掛進容器的
+#                            憑證/私鑰；缺少會直接結束，不會默默退回 http。
+#                            VITE_USE_HTTPS=false 時這兩個會被忽略。
+#                            一個開關管兩段：
 #                                瀏覽器 ──(A)──▶ 本 server ──(B)──▶ WebAPI
-#                              (A) 由 SERVER_TLS_* 決定；(B) 由 VITE_USE_HTTPS 決定。
+#                              false → (A) http  + (B) http:7284
+#                              true  → (A) https + (B) https:8081
 #                            例如：
 #                              -v /path/certs:/certs:ro \
 #                              -e SERVER_TLS_CERT=/certs/server.crt \
