@@ -29,12 +29,33 @@ COPY server.js ./
 #   VITE_WEBAPI_URL        → 前端 /config.js 的值 + server.js 轉發 7284 的預設主機
 #   VITE_SOCKETSERVER_URL  → 前端 /config.js 的值 + server.js 轉發 8031 的預設主機
 #   VITE_SIGNALR_ENABLE    → 前端是否改用 SignalR 推播
+#   VITE_USE_HTTPS         → true 時 WebAPI 走 https:8081，否則 http:7284
+#                            （/api/7284 只是路由標籤，切換時前端不用改）
+#   VITE_TLS_REJECT_UNAUTHORIZED
+#                          → 是否驗證後端 TLS 憑證。自簽請留 false；
+#                            要驗證就設 true 並用 SERVER_TLS_CA 指向 rootCA.crt
+#   SERVER_TLS_CA          → 簽發後端憑證的根 CA（僅在開啟驗證時需要）
+#   SERVER_TLS_CERT / SERVER_TLS_KEY
+#                          → VITE_USE_HTTPS=true 時「必須」提供，指向掛進容器的
+#                            憑證/私鑰；缺少會直接結束，不會默默退回 http。
+#                            VITE_USE_HTTPS=false 時這兩個會被忽略。
+#                            一個開關管兩段：
+#                                瀏覽器 ──(A)──▶ 本 server ──(B)──▶ WebAPI
+#                              false → (A) http  + (B) http:7284
+#                              true  → (A) https + (B) https:8081
+#                            例如：
+#                              -v /path/certs:/certs:ro \
+#                              -e SERVER_TLS_CERT=/certs/server.crt \
+#                              -e SERVER_TLS_KEY=/certs/server.key
+#   SERVER_TLS_PASSPHRASE  → 私鑰有加密時才需要
 #   DEBUG_PROXY=1          → 印出每筆轉發的 X-Target-IP 與最終目標
 ENV PORT=5173 \
     VITE_WEBAPI_URL=192.168.100.200 \
     VITE_SOCKETSERVER_URL=192.168.100.200 \
     VITE_SIGNALR_ENABLE=false \
     VITE_MODE=prod \
+    VITE_USE_HTTPS=false \
+    VITE_TLS_REJECT_UNAUTHORIZED=false \
     DEBUG_PROXY=0
 EXPOSE 5173
 

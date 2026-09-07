@@ -24,3 +24,13 @@ dist-ssr
 *.sw?
 dist_verify/
 dist_check/
+
+# TLS 憑證：檔案本身不進版控，只保留資料夾與說明
+certs/*
+!certs/.gitkeep
+!certs/README.md
+
+# 環境設定（含憑證路徑）
+.env
+.env.local
+.env.*.local
