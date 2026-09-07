@@ -21,10 +21,6 @@ function Patient() {
   // 所有樓層/區域對應的後端清單，供「All」模式逐台抓取所有病患
   const { servers } = useFloorSection();
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     setSelect_Section(section);
@@ -33,25 +29,14 @@ function Patient() {
   const [patients, setPatients] = useState([]);
 
   // 決定要抓哪些後端（與 Home 規則一致）：
-  //   floor === "All"   → 所有 server
-  //   section === "All" → 該樓層底下所有 server
+  //   section === "All" → 所有 server
   //   其他              → null，走目前選取的單一 server
   const targetIps = useMemo(() => {
-    if (select_floor === "All") {
+    if (select_section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (select_section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === select_floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return null;
-  }, [servers, select_floor, select_section]);
+  }, [servers, select_section]);
 
   // React key：All 模式下不同 server 可能有相同 deviceid，用來源 IP 前綴保證唯一
   const patientKey = (patient) =>
@@ -100,7 +85,6 @@ function Patient() {
     "sex",
     "bed",
     "section",
-    "floor",
     "deviceId",
     "status",
   ];
@@ -118,9 +102,6 @@ function Patient() {
     .slice()
     // .filter((patient) => {
     //   return (
-    //     select_floor === "" ||
-    //     select_floor === "All" ||
-    //     patient.floor === select_floor
     //   );
     // })
     // .filter((patient) => {
@@ -201,18 +182,7 @@ function Patient() {
               numeric: true,
             });
           }
-        case sortTypes[5]: // floor
-          //console.log("sortType: ", sortType);
-          if (sortDirection) {
-            return valA(a.floor).localeCompare(valA(b.floor), undefined, {
-              numeric: true,
-            });
-          } else {
-            return valA(b.floor).localeCompare(valA(a.floor), undefined, {
-              numeric: true,
-            });
-          }
-        case sortTypes[6]: // device id
+        case sortTypes[5]: // device id
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.deviceid).localeCompare(valA(b.deviceid), undefined, {
@@ -223,7 +193,7 @@ function Patient() {
               numeric: true,
             });
           }
-        case sortTypes[7]: // status
+        case sortTypes[6]: // status
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.devicestatus).localeCompare(String(a.devicestatus));
@@ -257,7 +227,6 @@ function Patient() {
           <div className="container">
             <div className="top-bar">
               <FloorSectionBar
-                selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
                 enableDeviceType={false}
               />
@@ -331,32 +300,22 @@ function Patient() {
                     (sortDirection ? "\u25BC" : "\u25B2")}
                 </h3>
                 <h3
-                  className={`fg1 ${
+                  className={`fg2 ${
                     sortType === sortTypes[5] ? "selected" : ""
                   }`}
                   onClick={() => SortType(5)}
                 >
-                  {t("PatientList.Floor")}{" "}
+                  {t("PatientList.DeviceID")}{" "}
                   {sortType === sortTypes[5] &&
                     (sortDirection ? "\u25BC" : "\u25B2")}
                 </h3>
-                <h3
-                  className={`fg2 ${
-                    sortType === sortTypes[6] ? "selected" : ""
-                  }`}
-                  onClick={() => SortType(6)}
-                >
-                  {t("PatientList.DeviceID")}{" "}
-                  {sortType === sortTypes[6] &&
-                    (sortDirection ? "\u25BC" : "\u25B2")}
-                </h3>
-                <div className="connection fg2" onClick={() => SortType(7)}>
+                <div className="connection fg2" onClick={() => SortType(6)}>
                   <h3
-                    className={`${sortType === sortTypes[7] ? "selected" : ""}`}
+                    className={`${sortType === sortTypes[6] ? "selected" : ""}`}
                   >
                     {t("PatientList.DeviceStatus")}
                     {`(${connectedDevicesCount}/${filteredDevices.length})`}{" "}
-                    {sortType === sortTypes[7] &&
+                    {sortType === sortTypes[6] &&
                       (sortDirection ? "\u25BC" : "\u25B2")}
                   </h3>
                 </div>
@@ -383,9 +342,6 @@ function Patient() {
                       <h3 className="fg1">{patient.bed || "N/A"}</h3>
                       <h3 className="fg1">
                         {patient.section === "" ? "N/A" : patient.section}
-                      </h3>
-                      <h3 className="fg1">
-                        {patient.floor === "" ? "N/A" : patient.floor}
                       </h3>
                       <h3 className="fg2">{patient.deviceid || "N/A"}</h3>
                       <div

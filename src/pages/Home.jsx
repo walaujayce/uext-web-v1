@@ -37,7 +37,7 @@ const DEVICE_TOPIC = "web/notify/devices";
 function Home() {
   const { t, i18n } = useTranslation();
 
-  // 所有樓層/區域對應的後端清單（每筆 { ip, floor, section }），
+  // 所有區域對應的後端清單（每筆 { ip, section }），
   // 供「All」模式逐台抓取所有 device。
   const { servers, selectedServer } = useFloorSection();
 
@@ -47,10 +47,6 @@ function Home() {
     setPort(port);
   };
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     //console.log("section");
@@ -67,7 +63,6 @@ function Home() {
       MAC: "A1",
       HOLD: 0,
       Bed: "4201",
-      Floor: "All",
       Section: "All",
       UserName: "UEXT/REST/GEEN",
       TYPE: 1,
@@ -82,7 +77,6 @@ function Home() {
       MAC: "A2",
       HOLD: 0,
       Bed: "4202",
-      Floor: "All",
       Section: "All",
       UserName: "UEXT/EDGE/YELLOW",
       TYPE: 1,
@@ -97,7 +91,6 @@ function Home() {
       MAC: "A3",
       HOLD: 0,
       Bed: "4203",
-      Floor: "All",
       Section: "All",
       UserName: "UEXT/LEAVE/RED",
       TYPE: 1,
@@ -112,7 +105,6 @@ function Home() {
       MAC: "A4",
       HOLD: 0,
       Bed: "4204",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/REST/GREEN",
       TYPE: 2,
@@ -127,7 +119,6 @@ function Home() {
       MAC: "A5",
       HOLD: 0,
       Bed: "4301",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/REST/YELLOW",
       TYPE: 2,
@@ -142,7 +133,6 @@ function Home() {
       MAC: "A7",
       HOLD: 0,
       Bed: "4302",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/REST/RED",
       TYPE: 2,
@@ -157,7 +147,6 @@ function Home() {
       MAC: "A8",
       HOLD: 0,
       Bed: "4303",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/LEFT/GREEN",
       TYPE: 2,
@@ -172,7 +161,6 @@ function Home() {
       MAC: "A9",
       HOLD: 0,
       Bed: "4304",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/LEFT/YELLOW",
       TYPE: 2,
@@ -187,7 +175,6 @@ function Home() {
       MAC: "A10",
       HOLD: 0,
       Bed: "4401",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/LEFT/RED",
       TYPE: 2,
@@ -202,7 +189,6 @@ function Home() {
       MAC: "A11",
       HOLD: 0,
       Bed: "4402",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/RIGHT/GREEN",
       TYPE: 2,
@@ -217,7 +203,6 @@ function Home() {
       MAC: "A12",
       HOLD: 0,
       Bed: "4403",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/RIGHT/YELLOW",
       TYPE: 2,
@@ -232,7 +217,6 @@ function Home() {
       MAC: "A13",
       HOLD: 0,
       Bed: "4501",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/RIGHT/RED",
       TYPE: 2,
@@ -247,7 +231,6 @@ function Home() {
       MAC: "A15",
       HOLD: 0,
       Bed: "4502",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/LEAVE/RED",
       TYPE: 2,
@@ -262,7 +245,6 @@ function Home() {
       MAC: "A16",
       HOLD: 0,
       Bed: "4503",
-      Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 1,
@@ -277,7 +259,6 @@ function Home() {
       MAC: "A17",
       HOLD: 0,
       Bed: "4601",
-      Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 2,
@@ -292,7 +273,6 @@ function Home() {
       MAC: "A18",
       HOLD: 0,
       Bed: "4602",
-      Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 1,
@@ -307,7 +287,6 @@ function Home() {
       MAC: "A19",
       HOLD: 0,
       Bed: "4603",
-      Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 2,
@@ -396,26 +375,15 @@ function Home() {
 
   const [devices, setDevices] = useState([]);
 
-  // 依 select_floor / select_section 決定要抓哪些後端：
-  //   - floor === "All"            → 抓「所有」server 的 device
-  //   - section === "All"          → 抓該樓層底下「所有」區域的 server
-  //   - 其他（指定 floor + section）→ null，維持原本走目前選取單一 server 的行為
+  // 依 select_section 決定要抓哪些後端：
+  //   - section === "All" → 抓「所有」server 的 device
+  //   - 其他（指定 section）→ null，維持原本走目前選取單一 server 的行為
   const targetIps = useMemo(() => {
-    if (select_floor === "All") {
+    if (select_section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (select_section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === select_floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return null;
-  }, [servers, select_floor, select_section]);
+  }, [servers, select_section]);
 
   // 從「單一」server 抓 device 清單。傳入 targetIp 時，用 header 把請求釘在該台；
   // 不傳時走目前選取的 server（原本行為）。
@@ -470,7 +438,7 @@ function Home() {
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, [port, select_floor, select_section, servers]);
+  }, [port, select_section, servers]);
 
   // ── 方式 B：SignalR 推播（USE_SIGNALR_DEVICES = true 時啟用）──
   // 要連線/訂閱的後端 IP：All 模式用 targetIps（多台）；單一模式用目前選取的 server。
@@ -534,7 +502,6 @@ function Home() {
       MAC,
       HOLD,
       Bed,
-      Floor,
       Section,
       UserName,
       TYPE,
@@ -558,7 +525,6 @@ function Home() {
               macaddress={MAC}
               hold={formatSecondsToDHMS(HOLD)}
               bed={Bed}
-              floor={Floor}
               section={Section}
               username={UserName}
               deviceType={TYPE}
@@ -573,7 +539,6 @@ function Home() {
             key={rowKey}
             macaddress={MAC}
             bed={Bed}
-            floor={Floor}
             section={Section}
           />
         );
@@ -727,7 +692,6 @@ function Home() {
           <div className="monitors">
             <div className="top-bar">
               <FloorSectionBar
-                selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
                 selectDeviceType={handleSelectDeviceType}
                 enableDeviceType={true}
@@ -766,9 +730,6 @@ function Home() {
                 })
                 // .filter((device) => {
                 //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
                 //   );
                 // })
                 // .filter((device) => {
@@ -787,9 +748,6 @@ function Home() {
               {devices
                 // .filter((device) => {
                 //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
                 //   );
                 // })
                 // .filter((device) => {
@@ -821,9 +779,6 @@ function Home() {
                     {devices
                       // .filter((device) => {
                       //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
                       //   );
                       // })
                       // .filter((device) => {
@@ -859,7 +814,6 @@ function Home() {
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
                             bed={device.Bed}
-                            floor={device.Floor}
                             section={device.Section}
                             username={device.UserName}
                             pos={device.POS}
@@ -876,9 +830,6 @@ function Home() {
               {devices
                 // .filter((device) => {
                 //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
                 //   );
                 // })
                 // .filter((device) => {
@@ -910,9 +861,6 @@ function Home() {
                     {devices
                       // .filter((device) => {
                       //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
                       //   );
                       // })
                       // .filter((device) => {
@@ -950,7 +898,6 @@ function Home() {
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
                             bed={device.Bed}
-                            floor={device.Floor}
                             section={device.Section}
                             username={device.UserName}
                             pos={device.POS}
@@ -967,9 +914,6 @@ function Home() {
               {devices
                 // .filter((device) => {
                 //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
                 //   );
                 // })
                 // .filter((device) => {
@@ -1001,9 +945,6 @@ function Home() {
                     {devices
                       // .filter((device) => {
                       //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
                       //   );
                       // })
                       // .filter((device) => {
@@ -1041,7 +982,6 @@ function Home() {
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
                             bed={device.Bed}
-                            floor={device.Floor}
                             section={device.Section}
                             username={device.UserName}
                             pos={device.POS}
@@ -1058,9 +998,6 @@ function Home() {
               {devices
                 // .filter((device) => {
                 //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
                 //   );
                 // })
                 // .filter((device) => {
@@ -1091,9 +1028,6 @@ function Home() {
                     {devices
                       // .filter((device) => {
                       //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
                       //   );
                       // })
                       // .filter((device) => {
@@ -1122,7 +1056,6 @@ function Home() {
                           key={deviceKey(device)}
                           macaddress={device.MAC}
                           bed={device.Bed}
-                          floor={device.Floor}
                           section={device.Section}
                         />
                       ))}
@@ -1133,9 +1066,6 @@ function Home() {
               {devices
                 // .filter((device) => {
                 //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
                 //   );
                 // })
                 // .filter((device) => {
@@ -1165,9 +1095,6 @@ function Home() {
                     {devices
                       // .filter((device) => {
                       //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
                       //   );
                       // })
                       // .filter((device) => {
@@ -1201,7 +1128,6 @@ function Home() {
                             macaddress={device.MAC}
                             hold={formatSecondsToDHMS(device.HOLD)}
                             bed={device.Bed}
-                            floor={device.Floor}
                             section={device.Section}
                             username={device.UserName}
                             deviceType={device.TYPE}

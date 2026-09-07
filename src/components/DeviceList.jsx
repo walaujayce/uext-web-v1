@@ -33,10 +33,6 @@ const DeviceList = () => {
     setPort(port);
   };
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     setSelect_Section(section);
@@ -47,25 +43,14 @@ const DeviceList = () => {
   };
 
   // 決定要抓哪些後端（與 Home 規則一致）：
-  //   floor === "All"   → 所有 server
-  //   section === "All" → 該樓層底下所有 server
+  //   section === "All" → 所有 server
   //   其他              → null，走目前選取的單一 server
   const targetIps = useMemo(() => {
-    if (select_floor === "All") {
+    if (select_section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (select_section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === select_floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return null;
-  }, [servers, select_floor, select_section]);
+  }, [servers, select_section]);
 
   // ping/rssi map 的 key、React key、詳情頁連結：All 模式下同 MAC 可能來自不同 server，
   // 一律用來源 IP 前綴避免衝突。
@@ -84,7 +69,6 @@ const DeviceList = () => {
     "ip",
     "bed",
     "section",
-    "floor",
     "updateDate",
     "status",
   ];
@@ -180,10 +164,6 @@ const DeviceList = () => {
     .filter((device) => device.used === true) // Only used devices
     // .filter(
     //   (device) =>
-    //     select_floor === "" ||
-    //     select_floor === "All" ||
-    //     device.floor === select_floor
-    // ) // Filter by floor
     // .filter(
     //   (device) =>
     //     select_section === "" ||
@@ -284,18 +264,7 @@ const DeviceList = () => {
               numeric: true,
             });
           }
-        case sortTypes[6]: // floor
-          //console.log("sortType: ", sortType);
-          if (sortDirection) {
-            return valA(a.floor).localeCompare(valA(b.floor), undefined, {
-              numeric: true,
-            });
-          } else {
-            return valA(b.floor).localeCompare(valA(a.floor), undefined, {
-              numeric: true,
-            });
-          }
-        case sortTypes[7]: // date
+        case sortTypes[6]: // date
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             const dateA = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
@@ -306,7 +275,7 @@ const DeviceList = () => {
             const dateB = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
             return dateB - dateA; // Subtracting dates sorts by timestamp
           }
-        case sortTypes[8]: // status
+        case sortTypes[7]: // status
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.devicestatus).localeCompare(String(a.devicestatus));
@@ -340,7 +309,6 @@ const DeviceList = () => {
       <div className="container">
         <div className="top-bar">
           <FloorSectionBar
-            selectFloor={handleSelectFloor}
             selectSection={handleSelectSection}
             selectDeviceType={handleSelectDeviceType}
             enableDeviceType={true}
@@ -405,28 +373,20 @@ const DeviceList = () => {
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
-              className={`fg3 ${sortType === sortTypes[6] ? "selected" : ""}`}
+              className={`fg1 ${sortType === sortTypes[6] ? "selected" : ""}`}
               onClick={() => SortType(6)}
             >
-              {t("DeviceList.Floor")}{" "}
-              {sortType === sortTypes[6] &&
-                (sortDirection ? "\u25BC" : "\u25B2")}
-            </h3>
-            <h3
-              className={`fg1 ${sortType === sortTypes[7] ? "selected" : ""}`}
-              onClick={() => SortType(7)}
-            >
               {t("DeviceList.SettingDate")}{" "}
-              {sortType === sortTypes[7] &&
+              {sortType === sortTypes[6] &&
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             {/* <h3 className="fg3">PING(ms)</h3> */}
             <h3 className="fg3">RSSI(dBm)</h3>
-            <div className="connection fg2" onClick={() => SortType(8)}>
-              <h3 className={`${sortType === sortTypes[8] ? "selected" : ""}`}>
+            <div className="connection fg2" onClick={() => SortType(7)}>
+              <h3 className={`${sortType === sortTypes[7] ? "selected" : ""}`}>
                 {t("DeviceList.DeviceStatus")}
                 {`(${connectedDevicesCount}/${filteredDevices.length})`}
-                {sortType === sortTypes[8] &&
+                {sortType === sortTypes[7] &&
                   (sortDirection ? "\u25BC" : "\u25B2")}
               </h3>
             </div>
@@ -447,10 +407,6 @@ const DeviceList = () => {
                           ? "UEXT"
                           : device.devicetype === 2
                           ? "UMAP"
-                          : device.devicetype === 3
-                          ? "UNC"
-                          : device.devicetype === 201
-                          ? "HaLow-R"
                           : "Not Specified"}
                       </h3>
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
@@ -458,7 +414,6 @@ const DeviceList = () => {
                       <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
                       <h3 className="fg3">{device.bed || "N/A"}</h3>
                       <h3 className="fg3">{device.section || "N/A"}</h3>
-                      <h3 className="fg3">{device.floor || "N/A"}</h3>
                       <h3 className="fg1">
                         {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                       </h3>
@@ -489,10 +444,6 @@ const DeviceList = () => {
                         ? "UEXT"
                         : device.devicetype === 2
                         ? "UMAP"
-                        : device.devicetype === 3
-                        ? "UNC"
-                        : device.devicetype === 201
-                        ? "HaLow-R"
                         : "Not Specified"}
                     </h3>
                     <h3 className="fg2">{device.deviceid || "N/A"}</h3>
@@ -500,7 +451,6 @@ const DeviceList = () => {
                     <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
                     <h3 className="fg3">{device.bed || "N/A"}</h3>
                     <h3 className="fg3">{device.section || "N/A"}</h3>
-                    <h3 className="fg3">{device.floor || "N/A"}</h3>
                     <h3 className="fg1">
                       {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                     </h3>

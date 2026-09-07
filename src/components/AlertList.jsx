@@ -30,33 +30,22 @@ function AlertList() {
     isDarkMode,
   } = useAuth(); // Access sound management
 
-  // 目前選取樓層/區域對應的後端 IP；變動時 SignalR 會重新連線到新的 IP
-  const { selectedServer, servers, floor, section } = useFloorSection();
+  // 目前選取區域對應的後端 IP；變動時 SignalR 會重新連線到新的 IP
+  const { selectedServer, servers, section } = useFloorSection();
   const signalrTargetIp = selectedServer?.ip ?? null;
 
-  // 選 "All" 樓層或 "All" 區域時 → 涵蓋多台後端
-  const isAllMode = floor === "All" || section === "All";
+  // 選 "All" 區域時 → 涵蓋多台後端
+  const isAllMode = section === "All";
 
   // 要涵蓋的後端 IP 清單（單一模式=1 台；All 模式=多台）。與 Home 的規則一致：
-  //   floor === "All"   → 所有 server
-  //   section === "All" → 該樓層底下所有 server
+  //   section === "All" → 所有 server
   //   其他              → 目前選取的單一 server
   const alertTargetIps = useMemo(() => {
-    if (floor === "All") {
+    if (section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return signalrTargetIp ? [signalrTargetIp] : [];
-  }, [servers, floor, section, signalrTargetIp]);
+  }, [servers, section, signalrTargetIp]);
 
   const handleAlertListExpandClick = () => {
     setExpandAlertList((prev) => {
@@ -99,7 +88,6 @@ function AlertList() {
     mac: parsedMessage.MAC,
     userName: parsedMessage.UserName || "",
     bedNo: parsedMessage.Bed || "",
-    floor: parsedMessage.Floor || "",
     section: parsedMessage.Section || "",
     alertTime:
       new Date(parsedMessage.AlertTime).toLocaleString([], {
@@ -123,13 +111,11 @@ function AlertList() {
   });
 
   // 找出某筆 alert 該打哪一台後端：優先用記錄的 srcIp；
-  // 若沒有(舊資料/單一模式)，退而用 floor+section 反查 servers（同一樓+層唯一對應一台）。
+  // 若沒有(舊資料/單一模式)，退而用 section 反查 servers（一個 section 唯一對應一台）。
   const ipForAlert = (alert) => {
     if (!alert) return undefined;
     if (alert.srcIp) return alert.srcIp;
-    const match = servers.find(
-      (s) => s.floor === alert.floor && s.section === alert.section,
-    );
+    const match = servers.find((s) => s.section === alert.section);
     return match?.ip;
   };
 
@@ -780,9 +766,7 @@ function AlertList() {
                           <div className="caption">
                             {t("AlertList.Section")}
                           </div>
-                          <p>{`${alert.floor}-${alert.section
-                            .split(" ")
-                            .pop()}`}</p>
+                          <p>{alert.section.split(" ").pop()}</p>
                         </div>
                         <div className="item">
                           <div className="caption">{t("AlertList.Bed")}</div>
@@ -831,9 +815,7 @@ function AlertList() {
                           <div className="caption">
                             {t("AlertList.Section")}
                           </div>
-                          <p>{`${alert.floor}-${alert.section
-                            .split(" ")
-                            .pop()}`}</p>
+                          <p>{alert.section.split(" ").pop()}</p>
                         </div>
                         <div className="item">
                           <div className="caption">{t("AlertList.Bed")}</div>
@@ -882,9 +864,7 @@ function AlertList() {
                           <div className="caption">
                             {t("AlertList.Section")}
                           </div>
-                          <p>{`${alert.floor}-${alert.section
-                            .split(" ")
-                            .pop()}`}</p>
+                          <p>{alert.section.split(" ").pop()}</p>
                         </div>
                         <div className="item">
                           <div className="caption">{t("AlertList.Bed")}</div>
@@ -938,9 +918,7 @@ function AlertList() {
                           <div className="caption">
                             {t("AlertList.Section")}
                           </div>
-                          <p>{`${alert.floor}-${alert.section
-                            .split(" ")
-                            .pop()}`}</p>
+                          <p>{alert.section.split(" ").pop()}</p>
                         </div>
                         <div className="item">
                           <div className="caption">{t("AlertList.Bed")}</div>

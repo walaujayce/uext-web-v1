@@ -133,7 +133,6 @@ function PatientProfile() {
   const patientWeightInput = useSetInfoToInput("");
   const patientBedInput = useSetInfoToInput("");
   const patientSectionInput = useSetInfoToInput("");
-  const patientFloorInput = useSetInfoToInput("");
 
   const [patient, setPatient] = useState([]);
   const fetchPatientProfile = async () => {
@@ -168,7 +167,6 @@ function PatientProfile() {
         weight: "",
         bed: "",
         section: "",
-        floor: "",
         deviceid: "",
         devicestatus: "",
       };
@@ -190,7 +188,6 @@ function PatientProfile() {
       patientWeightInput.setInputValue(matchingPatient.weight);
       patientBedInput.setInputValue(matchingPatient.bed);
       patientSectionInput.setInputValue(matchingPatient.section);
-      patientFloorInput.setInputValue(matchingPatient.floor);
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -585,32 +582,6 @@ function PatientProfile() {
               id="section"
               name="section"
               placeholder={patientSectionInput.inputValue}
-              readOnly
-              style={{ cursor: "default" }}
-              tabIndex="-1"
-              onFocus={(e) => e.target.blur()}
-            />
-            <img className="suffix" src="" alt="dropdown icon" />
-          </div>
-          <div className="assistive-text">Oops! Something went wrong.</div>
-        </div>
-        {/* Floor */}
-        <div className="input g-c-2">
-          <label htmlFor="floor" className="label-container">
-            <p>{t("PatientProfile.Floor")}</p>
-            <img
-              className="info"
-              src="/src/assets/information-outline.svg"
-              alt="gray outline information icon"
-            />
-          </label>
-          <div className="input-gp">
-            <input
-              type="text"
-              className="placeholder"
-              id="floor"
-              name="floor"
-              placeholder={patientFloorInput.inputValue}
               readOnly
               style={{ cursor: "default" }}
               tabIndex="-1"

@@ -14,7 +14,7 @@ const AddNewDevice = ({ callback }) => {
 
   const [loading, setLoading] = useState(false); //loading screen
 
-  // Floor / Section 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext 的 servers）
+  // Section 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext 的 servers）
   const { servers } = useFloorSection();
 
   {
@@ -60,7 +60,7 @@ const AddNewDevice = ({ callback }) => {
   {
     /* Handle Device Type Dropdown Menu */
   }
-  const deviceTypes = ["Not specified", "UEXT", "UMAP", "UNC", "HaLow-R"];
+  const deviceTypes = ["Not specified", "UEXT", "UMAP"];
   const [isDeviceTypeActive, setDeviceTypeActive] = useState(false);
   const handleDeviceTypeDropdownMenu = () => {
     setDeviceTypeActive((prev) => !prev);
@@ -76,31 +76,9 @@ const AddNewDevice = ({ callback }) => {
       setDeviceType_POST(1);
     } else if (deviceType === "UMAP") {
       setDeviceType_POST(2);
-    } else if (deviceType === "UNC") {
-      setDeviceType_POST(3);
-    } else if (deviceType === "HaLow-R") {
-      setDeviceType_POST(201);
     } else {
       setDeviceType_POST(0);
     }
-  };
-  {
-    /* Floor Dropdown Menu Logic */
-  }
-  const [isFloorActive, setFloorActive] = useState(false);
-  const handleFloorDropDownMenu = () => {
-    setFloorActive((prev) => !prev);
-  };
-  const [placeholderFloor, setPlaceholderFloor] = useState(""); // Input placeholder
-
-  const handleFloorItemClick = (floor) => {
-    setPlaceholderFloor(floor);
-    setFloor_POST(floor);
-    // 換樓層時，section 連動重設成該樓層的第一個區域（cascade）
-    const firstSection = servers.find((s) => s.floor === floor)?.section ?? "";
-    setPlaceholderSection(firstSection);
-    setSection_POST(firstSection);
-    handleFloorDropDownMenu;
   };
   {
     /* Section Dropdown Menu Logic */
@@ -119,40 +97,23 @@ const AddNewDevice = ({ callback }) => {
   };
 
   {
-    /* Floor / Section 選項：來自 /api/7284/IpAddress/all（去重後的清單） */
+    /* Section 選項：來自 /api/7284/IpAddress/all（去重後的清單） */
   }
-  // 去重後的樓層選項
-  const floorOptions = useMemo(
-    () => [...new Set(servers.map((s) => s.floor).filter(Boolean))],
+  const sectionOptions = useMemo(
+    () => [...new Set(servers.map((s) => s.section).filter(Boolean))],
     [servers],
   );
-  // 區域選項：只顯示「目前選取樓層」底下的區域（cascade）
-  const sectionOptions = useMemo(
-    () => [
-      ...new Set(
-        servers
-          .filter((s) => (placeholderFloor ? s.floor === placeholderFloor : true))
-          .map((s) => s.section)
-          .filter(Boolean),
-      ),
-    ],
-    [servers, placeholderFloor],
-  );
 
-  // 初次載入 servers 後，帶入預設的第一個 floor 及其第一個 section（只觸發一次）
-  const didInitFloorSection = useRef(false);
+  // 初次載入 servers 後，帶入預設的第一個 section（只觸發一次）
+  const didInitSection = useRef(false);
   useEffect(() => {
-    if (!didInitFloorSection.current && servers.length > 0) {
-      didInitFloorSection.current = true;
-      const firstFloor = floorOptions[0] ?? "";
-      const firstSection =
-        servers.find((s) => s.floor === firstFloor)?.section ?? "";
-      setPlaceholderFloor(firstFloor);
-      setFloor_POST(firstFloor);
+    if (!didInitSection.current && servers.length > 0) {
+      didInitSection.current = true;
+      const firstSection = sectionOptions[0] ?? "";
       setPlaceholderSection(firstSection);
       setSection_POST(firstSection);
     }
-  }, [servers, floorOptions]);
+  }, [servers, sectionOptions]);
   {
     /* DHCP Dropdown Menu Logic */
   }
@@ -192,7 +153,6 @@ const AddNewDevice = ({ callback }) => {
         dropdownRefs.current.every((ref) => ref && !ref.contains(event.target))
       ) {
         // Close all dropdowns or handle logic here
-        setFloorActive(false);
         setSectionActive(false);
         setDeviceTypeActive(false);
         setDhcpActive(false);
@@ -227,11 +187,9 @@ const AddNewDevice = ({ callback }) => {
   };
 
   const dropdownDeviceTypeStyleRef = useRef(null);
-  const dropdownFloorStyleRef = useRef(null);
   const dropdownDhcpStyleRef = useRef(null);
 
   useDynamicDropdownHeight(dropdownDeviceTypeStyleRef, isDeviceTypeActive);
-  useDynamicDropdownHeight(dropdownFloorStyleRef, isFloorActive);
   useDynamicDropdownHeight(dropdownDhcpStyleRef, isDhcpActive);
 
   {
@@ -254,7 +212,6 @@ const AddNewDevice = ({ callback }) => {
   const [ipaddress, setIpAddress_POST] = useState("");
   const [dhcp, setDhcp_POST] = useState(true);
   const [bed, setBed_POST] = useState("");
-  const [floor, setFloor_POST] = useState(placeholderFloor);
   const [section, setSection_POST] = useState(placeholderSection);
 
   const handleSubmit = async () => {
@@ -264,7 +221,6 @@ const AddNewDevice = ({ callback }) => {
       dhcp,
       ipaddress,
       bed,
-      floor,
       section,
       used: true,
       jlog:{}
@@ -279,10 +235,8 @@ const AddNewDevice = ({ callback }) => {
       //   },
       //   body: JSON.stringify(requestBody),
       // });
-      // 把裝置新增到「所選 floor+section 對應的那台後端」（同一樓+層唯一對應一台）
-      const postIp =
-        servers.find((s) => s.floor === floor && s.section === section)?.ip ??
-        null;
+      // 把裝置新增到「所選 section 對應的那台後端」（一個 section 唯一對應一台）
+      const postIp = servers.find((s) => s.section === section)?.ip ?? null;
       const response = await api.post(
         "/api/7284/db/Device",
         requestBody,
@@ -294,7 +248,6 @@ const AddNewDevice = ({ callback }) => {
       //console.log("dhcp", dhcp);
       //console.log("ipaddress", ipaddress);
       //console.log("bed", bed);
-      //console.log("floor", floor);
       //console.log("section", section);
 
       if (response.status === 200) {
@@ -534,52 +487,6 @@ const AddNewDevice = ({ callback }) => {
                   </div>
                 </div>
               )}
-{/* Floor */}
-              <div
-                className="input suffix g-c-3"
-                onClick={handleFloorDropDownMenu}
-                ref={addDropdownRef}
-              >
-                <label htmlFor="floorInNewDevice" className="label-container">
-                  <p>{t("AddDeviceModal.Floor")}</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="floorInNewDevice"
-                    placeholder={placeholderFloor}
-                    readOnly
-                  />
-                  <img
-                    className="suffix active"
-                    src="/src/assets/menu-down.svg"
-                    alt="dropdown icon"
-                  />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-                <div
-                  className={`list ${isFloorActive ? "active" : ""}`}
-                  ref={dropdownFloorStyleRef}
-                >
-                  {floorOptions.map((floor) => (
-                    <div
-                      className="item"
-                      key={floor}
-                      onClick={() => handleFloorItemClick(floor)}
-                    >
-                      {floor}
-                    </div>
-                  ))}
-                </div>
-              </div>
               {/* Section */}
               <div
                 className="input suffix g-c-3"
