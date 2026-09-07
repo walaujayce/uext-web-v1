@@ -113,8 +113,8 @@ function PatientMonitor() {
             : next;
         });
 
-        // setRiskRegionArray(data.RecordDatumJlog.RiskRegions);
-        setRiskRegionArray(data.RecordDatumJlog.RiskRegions.filter((region)=>region.risk_level !== 0));
+        setRiskRegionArray(data.RecordDatumJlog.RiskRegions);
+        // setRiskRegionArray(data.RecordDatumJlog.RiskRegions.filter((region)=>region.risk_level !== 0));
 
         // setRiskRegionArray(temp);
         console.log("risk regions: ", data.RecordDatumJlog.RiskRegions);

@@ -116,7 +116,7 @@ function RiskIndexBar({
             left: isVertical ? "50%" : `${l.pos}px`,
             top: isVertical ? `${l.pos}px` : "50%",
             transform: "translate(-50%, -50%)",
-            fontSize: "14px",
+            fontSize: "18px",
             fontWeight: 700,
             lineHeight: 1,
             color: "#FF2D2D",

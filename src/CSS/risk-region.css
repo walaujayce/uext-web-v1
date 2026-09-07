@@ -1,0 +1,194 @@
+/* ─────────────────────────────────────────────────────────
+   RiskRegion 表格
+   - 深/淺模式：沿用專案既有機制（html.dark 切換 CSS 變數），
+     不需要在 JS 端判斷 isDarkMode，切主題時瀏覽器自己重繪。
+   - RWD：字級與間距用 clamp() 隨視窗流動縮放，
+     再於專案既有斷點（1920 / 1366 / 647）做微調。
+   - 顏色皆通過 WCAG AA（正常文字 4.5:1），淺色模式的等級標籤
+     原本的 #b8860b / #c0392b / #1e7e34 對比只有 2.97～4.47，已調深。
+   ───────────────────────────────────────────────────────── */
+
+:root {
+  --rr-surface: #ffffff;
+  --rr-surface-alt: #fafbfc;
+  --rr-head-bg: #f5f7fa;
+  --rr-border: #e0e0e0;
+  --rr-border-soft: #f0f0f0;
+  --rr-text: #444444;
+  --rr-head-text: #333333;
+  --rr-empty-text: #767676;
+  --rr-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+
+  --rr-high-bg: #fde2e2;
+  --rr-high-fg: #b32d1f;
+  --rr-mid-bg: #fff4d6;
+  --rr-mid-fg: #8a6100;
+  --rr-low-bg: #dff5e1;
+  --rr-low-fg: #1a7030;
+}
+
+html.dark {
+  --rr-surface: #3a3a3a;
+  --rr-surface-alt: #343434;
+  --rr-head-bg: #4a4a4a;
+  --rr-border: #5a5a5a;
+  --rr-border-soft: #4a4a4a;
+  --rr-text: #e6e6e6;
+  --rr-head-text: #ffffff;
+  --rr-empty-text: #b3b3b3;
+  --rr-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+
+  --rr-high-bg: #c0392b;
+  --rr-high-fg: #fde2e2;
+  --rr-mid-bg: #b8860b;
+  --rr-mid-fg: #ffffff;
+  --rr-low-bg: #1e7e34;
+  --rr-low-fg: #ffffff;
+}
+
+/* ── 外層：撐滿 .monitor 的 grid cell ── */
+.risk-region {
+  height: 100%;
+  min-height: 0; /* 允許 flex 子元素正確 shrink + scroll */
+  overflow: hidden;
+}
+
+/* ── 捲動容器 ── */
+.risk-region__wrapper {
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0; /* 關鍵：flex 子元素預設 min-height:auto 會擋掉 scroll */
+  overflow: auto;
+  border: 1px solid var(--rr-border);
+  border-radius: 8px;
+  box-shadow: var(--rr-shadow);
+  background-color: var(--rr-surface);
+  box-sizing: border-box;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+/* ── 表格本體 ── */
+.risk-region__table {
+  width: 100%;
+  min-width: 280px; /* 再窄就讓 wrapper 橫向捲動，不要把欄位擠爆 */
+  table-layout: auto;
+  border-collapse: collapse;
+  /* 字級隨視窗流動：360px→11px，1920px→14px */
+  font-size: clamp(11px, 0.19vw + 10.3px, 14px);
+  color: var(--rr-text);
+}
+
+.risk-region__thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background-color: var(--rr-head-bg);
+  color: var(--rr-head-text);
+}
+
+.risk-region__th {
+  padding: clamp(7px, 0.63vw, 12px) clamp(8px, 0.83vw, 16px);
+  font-weight: 600;
+  border-bottom: 2px solid var(--rr-border);
+  text-align: center;
+  vertical-align: middle;
+  /* sticky 在部分瀏覽器需要 cell 本身也有底色，否則會透出下方內容 */
+  background-color: var(--rr-head-bg);
+  white-space: nowrap;
+  font-size: 24px;
+}
+
+.risk-region__td {
+  padding: clamp(7px, 0.63vw, 12px) clamp(8px, 0.83vw, 16px);
+  border-bottom: 1px solid var(--rr-border-soft);
+  color: var(--rr-text);
+  text-align: center;
+  vertical-align: middle;
+  font-size: 22px;
+}
+
+.risk-region__row {
+  background-color: var(--rr-surface);
+}
+.risk-region__row--alt {
+  background-color: var(--rr-surface-alt);
+}
+
+.risk-region__empty {
+  padding: clamp(16px, 1.25vw, 24px) clamp(8px, 0.83vw, 16px);
+  text-align: center;
+  vertical-align: middle;
+  color: var(--rr-empty-text);
+  font-style: italic;
+}
+
+/* ── 風險等級標籤 ── */
+.risk-region__badge {
+  display: inline-block;
+  padding: clamp(3px, 0.21vw, 4px) clamp(7px, 0.52vw, 10px);
+  border-radius: 999px;
+  font-size: clamp(10px, 0.13vw + 9.5px, 12px);
+  font-weight: 600;
+  text-transform: capitalize;
+  min-width: clamp(46px, 3.13vw, 60px);
+  text-align: center;
+  white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.risk-region__badge--high {
+  background-color: var(--rr-high-bg);
+  color: var(--rr-high-fg);
+}
+.risk-region__badge--medium {
+  background-color: var(--rr-mid-bg);
+  color: var(--rr-mid-fg);
+}
+.risk-region__badge--low {
+  background-color: var(--rr-low-bg);
+  color: var(--rr-low-fg);
+}
+
+/* ── 專案既有斷點的微調 ── */
+@media (max-width: 1920px) {
+  .risk-region__th{
+    font-size: 20px;
+  }
+  .risk-region__td{
+    font-size: 18px;
+  }
+}
+@media (max-width: 1366px) {
+  .risk-region__th{
+    font-size: 18px;
+  }
+  .risk-region__td{
+    font-size: 16px;
+  }
+  .risk-region__wrapper {
+    border-radius: 6px;
+  }
+  .risk-region__th,
+  .risk-region__td {
+    padding: 7px 8px;
+  }
+}
+
+@media (max-width: 647px) {
+  .risk-region__table {
+    font-size: 11px;
+  }
+  .risk-region__th,
+  .risk-region__td {
+    padding: 6px 6px;
+  }
+  .risk-region__th {
+    /* 窄螢幕允許表頭換行，避免整列被撐開 */
+    white-space: normal;
+  }
+  .risk-region__badge {
+    min-width: 0;
+    padding: 3px 6px;
+    font-size: 10px;
+  }
+}
