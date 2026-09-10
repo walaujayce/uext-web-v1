@@ -1,0 +1,251 @@
+/* ─────────────────────────────────────────────────────────
+   RiskIndexBar — 風險區域標籤 + 展開資訊卡
+   - 標籤與資訊卡一律排在 canvas 之外，不會遮蔽風險發生的位置；
+     壓力圖上只留一個小圓點與一條細引線。
+   - 深/淺模式沿用專案既有機制（html.dark 切換 CSS 變數）。
+   - 字級與間距用 clamp() 隨視窗流動，再於 1366 / 647 斷點微調。
+   ───────────────────────────────────────────────────────── */
+
+:root {
+  --rc-panel-bg: rgba(255, 255, 255, 0.95);
+  --rc-panel-border: #1a1a1a;
+  --rc-text: #1a1a1a;
+  --rc-label: #4d4d4d;
+  --rc-line: #8a8a8a;
+  --rc-line-active: #1a1a1a;
+  --rc-head-bg: #1a1a1a;
+  --rc-head-text: #ffffff;
+  --rc-marker-ring: #ffffff;
+  --rc-chip-text: #ffffff;
+
+  --rc-high: #b32d1f;
+  --rc-mid: #8a6100;
+  --rc-low: #1a7030;
+}
+
+html.dark {
+  --rc-panel-bg: rgba(20, 20, 20, 0.88);
+  --rc-panel-border: #ffffff;
+  --rc-text: #ffffff;
+  --rc-label: #e6e6e6;
+  --rc-line: #9a9a9a;
+  --rc-line-active: #ffffff;
+  --rc-head-bg: #ffffff;
+  --rc-head-text: #141414;
+  --rc-marker-ring: #141414;
+  --rc-chip-text: #141414;
+
+  --rc-high: #ff6b5e;
+  --rc-mid: #ffc14d;
+  --rc-low: #62d98a;
+}
+
+/* 覆蓋整個 .box 的透明層；預設不吃滑鼠事件，只有標籤/卡片吃 */
+.risk-callout {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+}
+
+/* ── 引線 ── */
+.risk-callout__line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.risk-callout__line path {
+  fill: none;
+  stroke: var(--rc-line);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+  opacity: 0.75;
+  transition: stroke 0.12s ease, stroke-width 0.12s ease, opacity 0.12s ease;
+}
+.risk-callout__line path.is-active {
+  stroke: var(--rc-line-active);
+  stroke-width: 1.75;
+  opacity: 1;
+}
+
+/* ── 壓力圖上的區域圓圈 ──
+   尺寸由 JS 依 radius * 2.75 給（與 OpenCVComponent / RiskArea 同一套換算）。
+   刻意做成「只有邊框、內部透明」的圓環，圈出範圍但不遮蔽底下的壓力分佈。 */
+.risk-callout__marker {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background-color: transparent;
+  border: 2px solid currentColor;
+  /* 內外各描一圈對比色，深淺底都看得見 */
+  box-shadow:
+    0 0 0 1px var(--rc-marker-ring),
+    inset 0 0 0 1px var(--rc-marker-ring);
+  transition: border-width 0.12s ease, opacity 0.12s ease;
+  opacity: 0.85;
+}
+.risk-callout__marker.is-high {
+  color: var(--rc-high);
+}
+.risk-callout__marker.is-medium {
+  color: var(--rc-mid);
+}
+.risk-callout__marker.is-low {
+  color: var(--rc-low);
+}
+.risk-callout__marker.is-active {
+  border-width: 3px;
+  opacity: 1;
+}
+
+/* ── 外側標籤（預設狀態）── */
+.risk-callout__label {
+  position: absolute;
+  transform: translateY(-50%);
+  pointer-events: auto;
+  cursor: default;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: clamp(2px, 0.16vw, 3px) clamp(6px, 0.52vw, 10px);
+  font-size: clamp(9px, 0.1vw + 8.6px, 11px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  line-height: 1.35;
+  color: var(--rc-chip-text);
+  border: 1.5px solid var(--rc-marker-ring);
+  white-space: nowrap;
+  transition: box-shadow 0.12s ease, filter 0.12s ease;
+}
+/* 收合狀態的展開提示 */
+.risk-callout__label::after {
+  content: "›";
+  font-size: 1.2em;
+  line-height: 1;
+}
+.risk-callout__label.is-high {
+  background-color: var(--rc-high);
+}
+.risk-callout__label.is-medium {
+  background-color: var(--rc-mid);
+}
+.risk-callout__label.is-low {
+  background-color: var(--rc-low);
+}
+.risk-callout__label.is-active {
+  box-shadow: 0 0 0 2px var(--rc-panel-border);
+  filter: brightness(1.08);
+}
+
+/* ── 展開的資訊卡 ── */
+.risk-callout__panel {
+  position: absolute;
+  pointer-events: auto;
+  box-sizing: border-box;
+  border: 1.5px solid var(--rc-panel-border);
+  background-color: var(--rc-panel-bg);
+  color: var(--rc-text);
+  padding: clamp(10px, 0.78vw, 15px) clamp(10px, 0.94vw, 18px);
+  min-width: clamp(150px, 12.5vw, 240px);
+  backdrop-filter: blur(2px);
+  /* 與標籤相接，中間不留縫，滑鼠移過去不會斷開 hover */
+  margin-left: 0;
+}
+
+/* 標題列 "RISK REGION ›" —— 疊在面板上緣 */
+.risk-callout__title {
+  position: absolute;
+  top: 0;
+  left: clamp(6px, 0.63vw, 12px);
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: clamp(2px, 0.16vw, 3px) clamp(6px, 0.52vw, 10px);
+  background-color: var(--rc-head-bg);
+  color: var(--rc-head-text);
+  border: 1.5px solid var(--rc-panel-border);
+  font-size: clamp(9px, 0.1vw + 8.6px, 11px);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+.risk-callout__title-idx {
+  opacity: 0.85;
+}
+
+/* ── 資料列 ── */
+.risk-callout__rows {
+  display: flex;
+  flex-direction: column;
+  gap: clamp(2px, 0.21vw, 4px);
+  margin-top: clamp(2px, 0.21vw, 4px);
+}
+
+.risk-callout__row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4em;
+  font-size: clamp(12px, 0.31vw + 10.8px, 18px);
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.risk-callout__key {
+  color: var(--rc-label);
+}
+.risk-callout__sep {
+  color: var(--rc-label);
+}
+.risk-callout__val {
+  color: var(--rc-text);
+  font-variant-numeric: tabular-nums; /* 數字跳動時寬度不晃 */
+}
+.risk-callout__unit {
+  font-size: 0.82em;
+  font-weight: 600;
+}
+
+/* ── 專案既有斷點的微調 ── */
+@media (max-width: 1366px) {
+  .risk-callout__panel {
+    padding: 9px 10px;
+    min-width: 150px;
+  }
+  .risk-callout__row {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 647px) {
+  .risk-callout__panel {
+    padding: 7px 8px;
+    min-width: 128px;
+    border-width: 1px;
+  }
+  .risk-callout__row {
+    font-size: 11px;
+    gap: 0.3em;
+  }
+  .risk-callout__title {
+    font-size: 9px;
+    border-width: 1px;
+    letter-spacing: 0.04em;
+  }
+  .risk-callout__label {
+    font-size: 9px;
+    letter-spacing: 0.04em;
+    padding: 2px 5px;
+    border-width: 1px;
+  }
+  .risk-callout__marker {
+    width: 6px;
+    height: 6px;
+    box-shadow: 0 0 0 1px var(--rc-marker-ring);
+  }
+}

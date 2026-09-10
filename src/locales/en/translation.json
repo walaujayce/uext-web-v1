@@ -335,7 +335,13 @@
     "Medium": "Medium",
     "Low": "Low",
     "Unusual": "Unusual",
-    "NaN": "No risk record"
+    "NaN": "No risk record",
+    
+    "CalloutTitle": "RISK REGION",
+    "Max": "Max",
+    "Avg": "Avg",
+    "Duration": "Duration",
+    "Area": "Area"
   },
   "PatientRecord": {
     "NotEnoughData": "Data is not enough for analysis.",

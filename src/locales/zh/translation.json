@@ -336,7 +336,13 @@
     "Medium": "中",
     "Low": "低",
     "Unusual": "異常",
-    "NaN": "無壓力風險"
+    "NaN": "無壓力風險",
+    
+    "CalloutTitle": "風險區域",
+    "Max": "最高",
+    "Avg": "平均",
+    "Duration": "持續",
+    "Area": "面積"
   },
   "PatientRecord": {
     "NotEnoughData": "目前資料不足以分析。",

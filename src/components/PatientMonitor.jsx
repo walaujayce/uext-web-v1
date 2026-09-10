@@ -12,7 +12,6 @@ import HeartBeatGraph from "./HeartRateGraph";
 import RespirationChart from "./RespiratoryGraph";
 import api from "../api/apiClient";
 import api8031, { isSkipped } from "../api/apiClient8031";
-import RiskRegion from "./RiskRegion";
 import RiskArea from "./RiskArea";
 import RiskIndexBar from "./RiskIndexBar";
 
@@ -305,7 +304,8 @@ function PatientMonitor() {
   };
 
   return (
-    <div className="monitor">
+    // isUMAP：只顯示壓力圖，讓 .pressure 佔滿整列並水平置中（見 patient.css 的 .umap-only）
+    <div className={`monitor${isUMAP ? " umap-only" : ""}`}>
       <div className="pressure">
         <div className="title">{t("PatientMonitor.PressureMap")}</div>
         <div className="box" style={{ position: "relative", background: isUMAP ? "none" : "" }}>
@@ -320,15 +320,15 @@ function PatientMonitor() {
                   height={height}
                   riskRegions={riskRegionArray}
                 />
-                {/* risk region 的 idx 標號：只有 riskRegionArray 有資料時才出現。
-                    placement="right"/"left" → 直向排，數字的 y 對齊圓心 y
-                    placement="top"/"bottom" → 橫向排，數字的 x 對齊圓心 x */}
-                {isUMAP && <RiskIndexBar
-                  data={riskRegionArray}
-                  width={width}
-                  height={height}
-                  placement="right"
-                />}
+                {/* 風險最高的那個 region：在壓力圖上標點並拉引線到資訊卡
+                    （Max / Avg / Duration / Area）。沒資料時不顯示。 */}
+                {isUMAP && (
+                  <RiskIndexBar
+                    data={riskRegionArray}
+                    width={width}
+                    height={height}
+                  />
+                )}
                 {/* {isUMAP && (
                   <RiskArea
                     data={riskRegionArray}
@@ -371,9 +371,8 @@ function PatientMonitor() {
           </div>
         </div>
       </div>
-      {isUMAP ? (
-        <RiskRegion data={riskRegionArray} />
-      ) : (
+      {/* isUMAP 時只保留 .pressure，不再顯示 RiskRegion 表格與呼吸/心率 */}
+      {!isUMAP && (
         <>
           <div className="respiration">
             <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>
