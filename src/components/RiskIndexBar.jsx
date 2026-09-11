@@ -16,6 +16,7 @@ import "/src/CSS/risk-callout.css";
  *  - height: sensor 高（data.HEIGHT）
  *  - gap:    標籤與 canvas 邊緣的水平間距 px（預設 20）
  *
+ * 
  * 對齊原理（與 OpenCVComponent / RiskArea 完全相同的換算）：
  *  1. canvas 尺寸 = parentBox.clientHeight * 0.9，寬度依 sensor 比例換算後同樣 * 0.9
  *  2. canvas 在 .box 中是垂直+水平置中
@@ -30,8 +31,9 @@ import "/src/CSS/risk-callout.css";
 //   （每個欄位按順序找第一個有值的 key，找不到就顯示 "--"）
 // ─────────────────────────────────────────────────────────
 const FIELD_KEYS = {
-  max: ["peak","max_pressure", "maxPressure", "max_press", "pressure_max", "max", "Max"],
-  avg: ["mean","avg_pressure", "avgPressure", "avg_press", "pressure_avg", "mean_pressure", "avg", "Avg"],
+  // 後端欄位：最高壓力 = peak、平均壓力 = mean
+  max: ["peak", "Peak"],
+  avg: ["mean", "Mean"],
   // 註：目前 RiskRegion 表格是把 radius 當「壓力範圍(cm²)」顯示，這裡沿用同一個來源
   area: ["area", "area_cm2", "pressure_area", "radius", "Radius"],
   duration: ["duration_sec", "durationSec", "duration", "Duration"],
@@ -249,40 +251,71 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
 
   return (
     <div ref={rootRef} className="risk-callout">
-      {/* 引線：圖上的點 → 外側的標籤 */}
-      <svg className="risk-callout__line" aria-hidden="true">
+      {/* 引線與區域圓環都畫在同一張 SVG：SVG 才能精準畫弧段、刻度與旋轉 */}
+      <svg className="risk-callout__svg" aria-hidden="true">
+        {/* 引線：圓環邊緣 → 外側的標籤 */}
         {placed.map((it) => {
           const endX = onRight ? labelX : labelX + labelSize.w;
-          // 從圓圈「邊緣」起筆，不要從圓心拉線穿過風險區域
+          // 從圓環「邊緣」起筆，不要從圓心拉線穿過風險區域
           const startX = it.dotX + (onRight ? it.r : -it.r);
           const elbowX = onRight
             ? startX + (endX - startX) * 0.55
             : startX - (startX - endX) * 0.55;
           return (
             <path
-              key={it.key}
-              className={it.key === hovered ? "is-active" : undefined}
+              key={`line-${it.key}`}
+              className={`risk-callout__line${
+                it.key === hovered ? " is-active" : ""
+              }`}
               d={`M ${startX} ${it.dotY} L ${elbowX} ${it.labelY} L ${endX} ${it.labelY}`}
             />
           );
         })}
-      </svg>
 
-      {/* 圖上的位置標記：只有一個小圓點，盡量不遮蔽 */}
-      {placed.map((it) => (
-        <div
-          key={`dot-${it.key}`}
-          className={`risk-callout__marker ${LEVEL_CLASS[it.level] ?? "is-low"}${
+        {/* 區域圓圈：持續旋轉的虛線環（外環半徑 = radius × 2.75），中心留一個小點 */}
+        {placed.map((it) => {
+          const r = it.r;
+          const circumference = 2 * Math.PI * r;
+          // 每段約 8px；用 round 讓 dash 整除圓周，接縫才不會有一段長短不一
+          const segCount = Math.max(6, Math.round(circumference / 8));
+          const segLen = circumference / segCount;
+          const dash = segLen * 0.5;
+          const gapLen = segLen - dash;
+          const cls = `${LEVEL_CLASS[it.level] ?? "is-low"}${
             it.key === hovered ? " is-active" : ""
-          }`}
-          style={{
-            left: `${it.dotX}px`,
-            top: `${it.dotY}px`,
-            width: `${it.r * 2}px`,
-            height: `${it.r * 2}px`,
-          }}
-        />
-      ))}
+          }`;
+          return (
+            <g key={`ring-${it.key}`} className={`risk-callout__reticle ${cls}`}>
+              {/* 外暈：同半徑的粗描邊 + 低透明度，讓環在任何底色都浮得起來 */}
+              <circle
+                className="risk-callout__glow"
+                cx={it.dotX}
+                cy={it.dotY}
+                r={r}
+              />
+              {/* 旋轉層：transformOrigin 設在自己的圓心，環才會原地轉 */}
+              <g
+                className="risk-callout__spin"
+                style={{ transformOrigin: `${it.dotX}px ${it.dotY}px` }}
+              >
+                <circle
+                  className="risk-callout__ring"
+                  cx={it.dotX}
+                  cy={it.dotY}
+                  r={r}
+                  strokeDasharray={`${dash} ${gapLen}`}
+                />
+              </g>
+              <circle
+                className="risk-callout__core"
+                cx={it.dotX}
+                cy={it.dotY}
+                r={1.6}
+              />
+            </g>
+          );
+        })}
+      </svg>
 
       {/* 外側標籤：預設只顯示區域編號，hover 才展開資訊卡 */}
       {placed.map((it, i) => (

@@ -194,7 +194,7 @@
    ───────────────────────────────────────────────────────── */
 .monitor.umap-only .pressure {
   grid-column: 1 / -1;
-  align-items: center; /* .pressure 是 flex column → 子元素水平置中 */
+  align-items: start; /* .pressure 是 flex column → 子元素水平置中 */
 }
 
 .monitor.umap-only .pressure .box {
@@ -209,8 +209,9 @@
 /* 圖例原本用 flex:3 0 0 + 每格 33% 撐滿整排；.box 變全寬後會散得太開，
    umap-only 改成不伸長、三個圖示靠在一起再整組置中。 */
 .monitor.umap-only .pressure .bt-box .spec.row {
-  flex: 0 0 auto;
-  column-gap: 24px;
+  flex: 0 0 auto; 
+  column-gap: 0px;
+  display: none;
 }
 
 .monitor.umap-only .bt-box .spec .mr.high,

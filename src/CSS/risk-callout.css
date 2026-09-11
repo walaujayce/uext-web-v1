@@ -48,15 +48,18 @@ html.dark {
   z-index: 12;
 }
 
-/* ── 引線 ── */
-.risk-callout__line {
+/* ── 引線與圓環共用的那張 SVG ── */
+.risk-callout__svg {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   overflow: visible;
+  /* 沒有 viewBox，所以 1 user unit = 1 px，JS 直接給 .box 座標即可 */
 }
-.risk-callout__line path {
+
+/* ── 引線 ── */
+.risk-callout__line {
   fill: none;
   stroke: var(--rc-line);
   stroke-width: 1;
@@ -65,40 +68,91 @@ html.dark {
   opacity: 0.75;
   transition: stroke 0.12s ease, stroke-width 0.12s ease, opacity 0.12s ease;
 }
-.risk-callout__line path.is-active {
+.risk-callout__line.is-active {
   stroke: var(--rc-line-active);
   stroke-width: 1.75;
   opacity: 1;
 }
 
-/* ── 壓力圖上的區域圓圈 ──
-   尺寸由 JS 依 radius * 2.75 給（與 OpenCVComponent / RiskArea 同一套換算）。
-   刻意做成「只有邊框、內部透明」的圓環，圈出範圍但不遮蔽底下的壓力分佈。 */
-.risk-callout__marker {
-  position: absolute;
-  transform: translate(-50%, -50%);
-  border-radius: 50%;
-  background-color: transparent;
-  border: 2px solid currentColor;
-  /* 內外各描一圈對比色，深淺底都看得見 */
-  box-shadow:
-    0 0 0 1px var(--rc-marker-ring),
-    inset 0 0 0 1px var(--rc-marker-ring);
-  transition: border-width 0.12s ease, opacity 0.12s ease;
-  opacity: 0.85;
+/* ── 壓力圖上的旋轉虛線環 ──
+   半徑由 JS 依 radius * 2.75 給（與 OpenCVComponent / RiskArea 同一套換算）。
+   只描邊、內部透明，圈出範圍但不遮蔽底下的壓力分佈。 */
+.risk-callout__reticle {
+  transition: opacity 0.12s ease;
+  opacity: 0.9;
 }
-.risk-callout__marker.is-high {
+.risk-callout__reticle.is-high {
   color: var(--rc-high);
 }
-.risk-callout__marker.is-medium {
+.risk-callout__reticle.is-medium {
   color: var(--rc-mid);
 }
-.risk-callout__marker.is-low {
+.risk-callout__reticle.is-low {
   color: var(--rc-low);
 }
-.risk-callout__marker.is-active {
-  border-width: 3px;
+.risk-callout__reticle.is-active {
   opacity: 1;
+}
+
+/* 外暈：同半徑的粗描邊、低透明度，讓環在任何底色上都浮得起來 */
+.risk-callout__glow {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 6;
+  opacity: 0.18;
+  filter: blur(2px);
+}
+.risk-callout__reticle.is-active .risk-callout__glow {
+  opacity: 0.32;
+}
+
+/* 旋轉層：包住虛線環，讓它原地持續轉。
+   ⚠ transform-box 必須指定 view-box，inline 的 transformOrigin（px）
+     才會落在 SVG 視窗座標系上，也就是每個圓自己的圓心。 */
+.risk-callout__spin {
+  transform-box: view-box;
+  animation: rc-spin 8s linear infinite;
+}
+.risk-callout__reticle.is-active .risk-callout__spin {
+  animation-duration: 3s;
+}
+
+/* 虛線環本體；stroke-dasharray 由 JS 依周長算，確保虛線整除、接縫不會長短不一 */
+.risk-callout__ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+}
+.risk-callout__reticle.is-active .risk-callout__ring {
+  stroke-width: 2.5;
+}
+
+/* 中心點：唯一有填色的元素，但只有 1.6px，不構成遮蔽 */
+.risk-callout__core {
+  fill: currentColor;
+  stroke: var(--rc-marker-ring);
+  stroke-width: 0.75;
+}
+
+@keyframes rc-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 使用者若關閉動態效果，就停在原地（環本身仍看得見） */
+@media (prefers-reduced-motion: reduce) {
+  .risk-callout__spin,
+  .risk-callout__reticle.is-active .risk-callout__spin {
+    animation: none;
+  }
+  .risk-callout__glow {
+    filter: none;
+  }
 }
 
 /* ── 外側標籤（預設狀態）── */
@@ -243,9 +297,10 @@ html.dark {
     padding: 2px 5px;
     border-width: 1px;
   }
-  .risk-callout__marker {
-    width: 6px;
-    height: 6px;
-    box-shadow: 0 0 0 1px var(--rc-marker-ring);
+  .risk-callout__ring {
+    stroke-width: 1.25;
+  }
+  .risk-callout__glow {
+    stroke-width: 4;
   }
 }
