@@ -38,7 +38,8 @@
     "Attention": "注意",
     "Disconnected": "斷線",
     "Normal": "正常",
-    "Vacant": "空床"
+    "Vacant": "空床",
+    "ClickToBindDevice": "點擊以綁定裝置"
   },
   "FloorSection": {
     "Floor": "樓層",

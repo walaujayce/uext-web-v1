@@ -417,15 +417,15 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
                     onSelect={handleSectionSelect}
                   />
 
-                  {/* 護理人員（顯示 username、送出 userid） */}
+                  {/* 裝置（來源 /api/7284/db/Device） */}
                   <SelectField
-                    id="nurseInNewBed"
-                    label={t("AddBedModal.Nurse")}
-                    value={nurseId}
+                    id="deviceInNewBed"
+                    label={t("AddBedModal.Device")}
+                    value={deviceId}
                     placeholder={t("AddBedModal.Unassigned")}
-                    options={nurseSelectOptions}
-                    onSelect={setNurseId_POST}
-                  />
+                    options={deviceSelectOptions}
+                    onSelect={setDeviceId_POST}
+                  />                  
 
                   {/* 住民編號（來源 /api/7284/db/Patient） */}
                   <SelectField
@@ -437,14 +437,14 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
                     onSelect={setPatientId_POST}
                   />
 
-                  {/* 裝置（來源 /api/7284/db/Device） */}
+                  {/* 護理人員（顯示 username、送出 userid） */}
                   <SelectField
-                    id="deviceInNewBed"
-                    label={t("AddBedModal.Device")}
-                    value={deviceId}
+                    id="nurseInNewBed"
+                    label={t("AddBedModal.Nurse")}
+                    value={nurseId}
                     placeholder={t("AddBedModal.Unassigned")}
-                    options={deviceSelectOptions}
-                    onSelect={setDeviceId_POST}
+                    options={nurseSelectOptions}
+                    onSelect={setNurseId_POST}
                   />
                 </div>
 

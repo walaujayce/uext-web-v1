@@ -38,7 +38,8 @@
     "Attention": "Attention",
     "Disconnected": "Disconnected",
     "Normal": "Normal",
-    "Vacant": "Vacant"
+    "Vacant": "Vacant",
+    "ClickToBindDevice": "Click to bind a device"
   },
   "FloorSection": {
     "Floor": "Floor",

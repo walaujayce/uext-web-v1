@@ -2,8 +2,7 @@ import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/index.css";
-import React, { useEffect, useState, useRef } from "react";
-import AddNewPatient from "./Modals/AddNewPatient";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 export function Bed_disconnect({
@@ -44,40 +43,26 @@ export function Bed_disconnect({
   );
 }
 
-export function Bed_vacant({ bed, macaddress }) {
-  const { t, i18n } = useTranslation();
-
-  const [isOverlayVisible, setOverlayVisible] = useState(false);
-
-  const handleAddPatientClick = (e) => {
-    e.preventDefault();
-    setOverlayVisible(!isOverlayVisible);
-  };
-
-  const isInitialRender = useRef(true);
-  useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false; // Mark initial render as completed
-      return;
-    }
-    console.log("overlay visible is called!");
-  }, [isOverlayVisible]);
+// 空床 = 這張床位還沒綁定裝置。點擊由父層決定要做什麼
+// （首頁是開啟 AddNewBed modal 讓使用者綁裝置）。
+export function Bed_vacant({ bed, onClick }) {
+  const { t } = useTranslation();
 
   return (
-    <div className="bed vacant" onClick={handleAddPatientClick}>
+    <div className="bed vacant" onClick={onClick}>
       <div className="b-num">{bed}&nbsp;</div>
-      <div className="name">{t("AddPatientModal.ClickToAddPatient")}</div>
+      <div className="name">{t("Home.ClickToBindDevice")}</div>
       <div
         className="tag"
         style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
-          <p className="timer">02:14:42</p>
+          <p className="timer">&nbsp;</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
-          <p className="timer">02:14:42</p>
+          <p className="timer">&nbsp;</p>
         </div>
       </div>
       <div className="dis-tag">
@@ -85,13 +70,6 @@ export function Bed_vacant({ bed, macaddress }) {
         <p>Disconnected</p>
       </div>
       <img className="add" src="/src/assets/add.svg" alt="add icon" />
-      {isOverlayVisible && (
-        <AddNewPatient
-          key={macaddress}
-          mac={macaddress}
-          callback={handleAddPatientClick}
-        />
-      )}
     </div>
   );
 }
