@@ -11,6 +11,7 @@ import "./App.css";
 import Login from "./pages/Login";
 import Home from "./pages/Home";
 import Patient from "./pages/Patient";
+import Bed from "./pages/Bed";
 import Account from "./pages/Account";
 import Device from "./pages/Device";
 import PatientDetail from "./pages/PatientDetail";
@@ -113,6 +114,14 @@ function App() {
           }
         />
       </Route>
+      <Route
+        path="/bed"
+        element={
+          <PrivateRoute allowedRoles={["all"]}>
+            <Bed />
+          </PrivateRoute>
+        }
+      />
       <Route
         path="/alert"
         element={

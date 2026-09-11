@@ -18,6 +18,7 @@
   "Navbar": {
     "Home": "Home",
     "Patient": "Resident",
+    "Bed": "Bed",
     "Alert": "Alert",
     "Device": "Device",
     "Account": "Account",
@@ -89,6 +90,17 @@
     "Floor": "Floor",
     "DeviceID": "Device ID",
     "DeviceStatus": "Device Status"
+  },
+  "BedList": {
+    "BedList": "Bed List",
+    "BedID": "Bed ID",
+    "Section": "Section",
+    "PatientID": "Resident ID",
+    "DeviceID": "Device ID",
+    "NurseID": "Nurse",
+    "Status": "Bed Status",
+    "Occupied": "Occupied",
+    "Vacant": "Vacant"
   },
   "PatientDetail": {
     "Monitor": "Monitor",
@@ -336,7 +348,6 @@
     "Low": "Low",
     "Unusual": "Unusual",
     "NaN": "No risk record",
-    
     "CalloutTitle": "RISK REGION",
     "Max": "Max",
     "Avg": "Avg",
@@ -351,8 +362,8 @@
     "TurnOverInterval": "Maximal Turn Over Time Interval",
     "SummaryTitle": "Analysis Summary",
     "DetailsTitle": "Detailed Recommendations",
-    "Date":"Date",
-    "Times":"times",
+    "Date": "Date",
+    "Times": "times",
     "Hour": "hr",
     "Recommendations": {
       "sleepTime": {

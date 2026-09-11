@@ -18,6 +18,7 @@
   "Navbar": {
     "Home": "首頁",
     "Patient": "住民",
+    "Bed": "床位",
     "Alert": "警示",
     "Device": "裝置",
     "Account": "帳戶",
@@ -89,6 +90,17 @@
     "Floor": "樓層",
     "DeviceID": "裝置編號",
     "DeviceStatus": "連線狀態"
+  },
+  "BedList": {
+    "BedList": "床位列表",
+    "BedID": "床位編號",
+    "Section": "區域",
+    "PatientID": "住民編號",
+    "DeviceID": "裝置編號",
+    "NurseID": "護理人員",
+    "Status": "床位狀態",
+    "Occupied": "佔用中",
+    "Vacant": "空床"
   },
   "PatientDetail": {
     "Monitor": "即時監控",
@@ -337,7 +349,6 @@
     "Low": "低",
     "Unusual": "異常",
     "NaN": "無壓力風險",
-    
     "CalloutTitle": "風險區域",
     "Max": "最高",
     "Avg": "平均",
