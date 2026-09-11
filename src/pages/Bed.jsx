@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
@@ -10,6 +9,7 @@ import "/src/CSS/bed.css";
 import AlertList from "/src/components/AlertList.jsx";
 import Navbar from "../components/Navbar";
 import FloorSectionBar from "../components/FloorSectionBar";
+import AddNewBed from "../components/Modals/AddNewBed";
 import { useTranslation } from "react-i18next";
 import { useFloorSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient";
@@ -72,10 +72,16 @@ function Bed() {
     }
   };
 
+  // 開著 modal 時暫停輪詢，避免編輯中列表在背景被換掉
+  const isModalOpenRef = useRef(false);
+
   useEffect(() => {
     fetchBeds();
     // 床位異動頻率遠低於量測資料，5 秒輪詢即可（/patient 的 1 秒是為了連線狀態）
-    const interval = setInterval(fetchBeds, 5000);
+    const interval = setInterval(() => {
+      if (isModalOpenRef.current) return;
+      fetchBeds();
+    }, 5000);
     return () => clearInterval(interval);
   }, [targetIps]);
 
@@ -120,14 +126,35 @@ function Bed() {
 
   const occupiedCount = filteredBeds.filter(isOccupied).length;
 
-  // 有裝置才進得了監控頁；沒裝置的床位就顯示成不可點的列
-  const monitorLink = (bed) =>
-    `/patient/patient-detail/patient-monitor?macaddress=${bed.deviceId}${
-      bed.__srcIp ? `&ip=${bed.__srcIp}` : ""
-    }`;
+  {
+    /* Handle Overlay Visible
+       新增：editingBed = null + isAddVisible = true
+       編輯：editingBed = 該筆床位（點列表任一列） */
+  }
+  const [isAddVisible, setAddVisible] = useState(false);
+  const [editingBed, setEditingBed] = useState(null);
+
+  const isModalOpen = isAddVisible || Boolean(editingBed);
+  isModalOpenRef.current = isModalOpen;
+
+  const handleAddBedClick = (e) => {
+    e?.preventDefault();
+    setEditingBed(null);
+    setAddVisible((prev) => !prev);
+  };
+
+  const handleRowClick = (bed) => {
+    setAddVisible(false);
+    setEditingBed(bed);
+  };
+
+  const handleCloseModal = () => {
+    setAddVisible(false);
+    setEditingBed(null);
+  };
 
   const BedRow = ({ bed }) => (
-    <div className={`item ${isOccupied(bed) ? "" : "vacant-row"}`}>
+    <div className="item" onClick={() => handleRowClick(bed)}>
       <h3 className="fg2">{bed.bedId || "N/A"}</h3>
       <h3 className="fg1">{bed.section || "N/A"}</h3>
       <h3 className="fg2">{bed.patientId || "N/A"}</h3>
@@ -155,6 +182,11 @@ function Bed() {
                 selectSection={handleSelectSection}
                 enableDeviceType={false}
               />
+
+              <div className="btn" id="addBed" onClick={handleAddBedClick}>
+                <img src="" alt="" className="prefix" />
+                <p className="btn-text">{t("BedList.NewBed")}</p>
+              </div>
             </div>
             {/* Bed List Main body */}
             <div className="pl bed-list">
@@ -203,26 +235,26 @@ function Bed() {
                   </h3>
                 </div>
               </div>
-              {/* Bed List */}
+              {/* Bed List：點任一列開啟編輯 modal */}
               <div className="item-list">
-                {filteredBeds.map((bed) =>
-                  bed.deviceId ? (
-                    <Link
-                      to={monitorLink(bed)}
-                      key={bedKey(bed)}
-                      state={{ from: "/bed" }}
-                    >
-                      <BedRow bed={bed} />
-                    </Link>
-                  ) : (
-                    <BedRow bed={bed} key={bedKey(bed)} />
-                  ),
-                )}
+                {filteredBeds.map((bed) => (
+                  <BedRow bed={bed} key={bedKey(bed)} />
+                ))}
               </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal 放在 .top-bar 外面：general.css 有 .top-bar .dropdown{max-width}，
+          放在裡面會讓 modal 的下拉欄位被限寬 */}
+      {isModalOpen && (
+        <AddNewBed
+          bed={editingBed}
+          callback={handleCloseModal}
+          onCreated={fetchBeds}
+        />
+      )}
     </>
   );
 }

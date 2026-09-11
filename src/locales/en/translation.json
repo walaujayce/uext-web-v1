@@ -100,7 +100,30 @@
     "NurseID": "Nurse",
     "Status": "Bed Status",
     "Occupied": "Occupied",
-    "Vacant": "Vacant"
+    "Vacant": "Vacant",
+    "NewBed": "New Bed"
+  },
+  "AddBedModal": {
+    "AddBed": "Add a Bed",
+    "EditBed": "Edit Bed",
+    "NewBedAdded": "New Bed Added",
+    "BedUpdated": "Bed Updated",
+    "BedDeleted": "Bed Deleted",
+    "BedProfile": "Bed Profile",
+    "BedID": "Bed ID",
+    "Section": "Section",
+    "Nurse": "Nurse",
+    "PatientID": "Resident ID",
+    "Device": "Device",
+    "Unassigned": "Unassigned",
+    "Required": "Information Required!",
+    "Continue": "Continue",
+    "Cancel": "Cancel",
+    "Okay": "Okay",
+    "Save": "Save",
+    "Delete": "Delete",
+    "DeleteConfirm": "Delete bed \"{{bedId}}\"? This cannot be undone.",
+    "DeleteYes": "Yes, delete"
   },
   "PatientDetail": {
     "Monitor": "Monitor",

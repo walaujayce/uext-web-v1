@@ -100,7 +100,30 @@
     "NurseID": "護理人員",
     "Status": "床位狀態",
     "Occupied": "佔用中",
-    "Vacant": "空床"
+    "Vacant": "空床",
+    "NewBed": "新增床位"
+  },
+  "AddBedModal": {
+    "AddBed": "新增床位",
+    "EditBed": "編輯床位",
+    "NewBedAdded": "床位新增成功",
+    "BedUpdated": "床位已更新",
+    "BedDeleted": "床位已刪除",
+    "BedProfile": "床位資料",
+    "BedID": "床位編號",
+    "Section": "區域",
+    "Nurse": "護理人員",
+    "PatientID": "住民編號",
+    "Device": "裝置",
+    "Unassigned": "未指派",
+    "Required": "此欄位為必填！",
+    "Continue": "確認",
+    "Cancel": "取消",
+    "Okay": "確定",
+    "Save": "儲存",
+    "Delete": "刪除",
+    "DeleteConfirm": "確定要刪除床位「{{bedId}}」嗎？此操作無法復原。",
+    "DeleteYes": "確定刪除"
   },
   "PatientDetail": {
     "Monitor": "即時監控",
