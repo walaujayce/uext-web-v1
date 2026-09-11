@@ -646,3 +646,10 @@
         gap: 24px;
     }
 }
+
+/* 解除裝置綁定的確認視窗（UnbindDevice.jsx）。
+   主要動作是破壞性的，文字用紅色標示，與出院確認的處理一致
+   （出院那支是寫 inline style，這裡改用 class）。 */
+.overlay.unbind .btn-text.unbind-text {
+    color: #D53636;
+}

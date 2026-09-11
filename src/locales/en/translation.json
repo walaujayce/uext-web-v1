@@ -153,6 +153,7 @@
     "DeviceStatus": "Connection Status",
     "Save": "Save",
     "Discharge": "Discharge",
+    "UnbindDevice": "Remove device",
     "Calibration": "Calibration"
   },
   "AddPatientModal": {
@@ -173,6 +174,13 @@
     "description": "Confirm to discharge the resident?",
     "Discharge": "Discharge",
     "Cancel": "Cancel"
+  },
+  "UnbindDeviceModal": {
+    "description": "Remove the device from this bed?",
+    "note": "The bed keeps its resident; only the device binding is removed.",
+    "Unbind": "Remove device",
+    "Cancel": "Cancel",
+    "NotBound": "This device is not bound to any bed."
   },
   "CalibrationModal": {
     "description": "Confirm to proceed calibration?",

@@ -153,6 +153,7 @@
     "DeviceStatus": "連線狀態",
     "Save": "儲存",
     "Discharge": "出院確認",
+    "UnbindDevice": "移除裝置",
     "Calibration": "校正"
   },
   "AddPatientModal": {
@@ -173,6 +174,13 @@
     "description": "確定住民出院？",
     "Discharge": "出院確認",
     "Cancel": "取消"
+  },
+  "UnbindDeviceModal": {
+    "description": "確定解除此床位的裝置綁定？",
+    "note": "床位與住民資料會保留，只解除裝置綁定。",
+    "Unbind": "移除裝置",
+    "Cancel": "取消",
+    "NotBound": "此裝置尚未綁定任何床位。"
   },
   "CalibrationModal": {
     "description": "確認執行校正?",

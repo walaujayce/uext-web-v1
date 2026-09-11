@@ -9,6 +9,7 @@ import "/src/CSS/patient.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import DisChargePatient from "./Modals/DisChargePatient";
+import UnbindDevice from "./Modals/UnbindDevice";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
@@ -331,6 +332,51 @@ function PatientProfile() {
       console.error("Error fetching device data:", error.message, error);
     } finally {
       // setLoading(false);
+    }
+  };
+
+  {
+    /* Remove Device Button：解除這張床位與目前裝置的綁定
+       先用 GET /db/Bed?deviceId=xxx 找出是哪張床，再打
+       DELETE /db/Bed/{bedId}/device（BedController 的 UnassignDevice）。
+       只解除綁定，不會動到床位本身或住民資料。 */
+  }
+  const [isUnbindOverlayVisible, setUnbindOverlayVisible] = useState(false);
+  const handleUnbindOverlay = () => {
+    setUnbindOverlayVisible((prev) => !prev);
+  };
+
+  const handleUnbindDevice = async () => {
+    const cfg = targetIp ? { targetIp } : undefined;
+    try {
+      setLoading(true);
+
+      const bedRes = await api.get(
+        `/api/7284/db/Bed?deviceId=${encodeURIComponent(macaddress)}`,
+        cfg,
+      );
+      const bed = (bedRes.data || [])[0];
+
+      if (!bed) {
+        alert(t("UnbindDeviceModal.NotBound"));
+        setUnbindOverlayVisible(false);
+        return;
+      }
+
+      // DELETE 需要 engineer 以上權限，權限不足時後端會回 401/403
+      await api.delete(`/api/7284/db/Bed/${bed.bedId}/device`, cfg);
+
+      setUnbindOverlayVisible(false);
+      navigate("/home");
+    } catch (error) {
+      console.error("Error unbinding device:", error);
+      alert(
+        `Error: ${
+          error.response?.data?.message || "Unable to connect to the server."
+        }`,
+      );
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -668,6 +714,20 @@ function PatientProfile() {
             <DisChargePatient
               callback={handleDisChargeOverlay}
               dischargebtn_click={handleDischargePatient}
+            />
+          )}
+        </div>
+        <div
+          className="btn text-only outline"
+          id="unbindDevice"
+          onClick={handleUnbindOverlay}
+        >
+          <img src="" alt="" className="prefix" />
+          <p className="btn-text">{t("PatientProfile.UnbindDevice")}</p>
+          {isUnbindOverlayVisible && (
+            <UnbindDevice
+              callback={handleUnbindOverlay}
+              unbindbtn_click={handleUnbindDevice}
             />
           )}
         </div>
