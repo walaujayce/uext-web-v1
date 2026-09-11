@@ -5,6 +5,7 @@ import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/index.css";
+import "/src/CSS/bed.css";
 import "../components/Modals/overlay.css";
 import Navbar from "/src/components/Navbar.jsx";
 import AlertList from "/src/components/AlertList.jsx";
@@ -502,30 +503,41 @@ function Home() {
   // 狀態仍沿用 8031 裝置資料判斷，只是改成「先有床位、再去找它綁的裝置」。
   // ─────────────────────────────────────────────────────────
   const [beds, setBeds] = useState([]);
+  // 已註冊的裝置清單（/api/7284/db/Device）。
+  // 狀態列的「可供綁定的裝置」要和 AddNewBed 的裝置下拉一致，所以用同一個來源，
+  // 而不是用 8031 的即時裝置清單（那份只有正在回報的裝置）。
+  const [registeredDevices, setRegisteredDevices] = useState([]);
 
-  const fetchBedsFrom = async (targetIp) => {
+  const fetchFrom = async (url, targetIp) => {
     const cfg = targetIp ? { targetIp } : undefined;
-    const response = await api.get("/api/7284/db/Bed", cfg);
+    const response = await api.get(url, cfg);
     return response.data || [];
+  };
+
+  const fetchListFrom = async (url, setter) => {
+    if (targetIps) {
+      const results = await Promise.all(
+        targetIps.map((ip) =>
+          fetchFrom(url, ip)
+            .then((list) => list.map((x) => ({ ...x, __srcIp: ip })))
+            .catch((err) => {
+              console.error(`Error fetching ${url} from ${ip}:`, err);
+              return [];
+            }),
+        ),
+      );
+      setter(results.flat());
+    } else {
+      setter(await fetchFrom(url));
+    }
   };
 
   const fetchBedList = async () => {
     try {
-      if (targetIps) {
-        const results = await Promise.all(
-          targetIps.map((ip) =>
-            fetchBedsFrom(ip)
-              .then((list) => list.map((b) => ({ ...b, __srcIp: ip })))
-              .catch((err) => {
-                console.error(`Error fetching beds from ${ip}:`, err);
-                return [];
-              }),
-          ),
-        );
-        setBeds(results.flat());
-      } else {
-        setBeds(await fetchBedsFrom());
-      }
+      await Promise.all([
+        fetchListFrom("/api/7284/db/Bed", setBeds),
+        fetchListFrom("/api/7284/db/Device", setRegisteredDevices),
+      ]);
     } catch (error) {
       console.error("Error fetching bed data:", error);
     }
@@ -605,6 +617,30 @@ function Home() {
 
   const cardsOf = (status) =>
     visibleCards.filter((c) => c.status === status).sort(sortAlphabet);
+
+  {
+    /* 可供綁定床位的裝置：已註冊但還沒被任何床位指派的裝置。
+       這裡的判斷與 AddNewBed 裝置下拉的過濾條件一致（同樣扣掉已被佔用的）。 */
+  }
+  const deviceStats = useMemo(() => {
+    const boundIds = new Set(
+      beds
+        .filter((b) => b.deviceId)
+        .map((b) => deviceMapKey(b.__srcIp, b.deviceId)),
+    );
+
+    const matchesType = (d) =>
+      select_deviceType === "" ||
+      select_deviceType === "All" ||
+      d.devicetype === select_deviceType;
+
+    const list = registeredDevices.filter(matchesType);
+    const bound = list.filter((d) =>
+      boundIds.has(deviceMapKey(d.__srcIp, d.deviceid)),
+    ).length;
+
+    return { total: list.length, bound, available: list.length - bound };
+  }, [beds, registeredDevices, select_deviceType]);
 
   const statusCounts = {
     alerts: visibleCards.filter((c) => c.status === "alert").length,
@@ -769,6 +805,34 @@ function Home() {
                     className={`bg-bk ${sortBy === "bed" ? "s1" : "s2"}`}
                   ></div>
                 </div>
+              </div>
+            </div>
+            {/* 還有多少裝置可以綁定到床位（已註冊但尚未被任何床位指派）。
+                兩種排序檢視都看得到；有可綁定的裝置時整條轉成 attention 色，
+                點擊可到 /bed 進行綁定。 */}
+            <div
+              className={`bed-summary ${
+                deviceStats.available > 0 ? "ok" : "warn"
+              }`}
+            >
+              <Link to="/bed" className="bed-summary-stat">
+                <span className="label">
+                  {deviceStats.available > 0
+                    ? t("Home.AvailableDevices")
+                    : t("Home.AllDevicesBound")}
+                </span>
+                <span className="badge">{deviceStats.available}</span>
+              </Link>
+              <div className="bed-summary-meta">
+                <span className="cell">
+                  <span className="cell-label">{t("Home.BoundDevices")}</span>
+                  <span className="cell-value">{deviceStats.bound}</span>
+                </span>
+                <span className="sep" />
+                <span className="cell">
+                  <span className="cell-label">{t("Home.TotalDevices")}</span>
+                  <span className="cell-value">{deviceStats.total}</span>
+                </span>
               </div>
             </div>
             {/* Bed Grid Sort by Bed */}

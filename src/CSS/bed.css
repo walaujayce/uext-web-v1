@@ -77,9 +77,9 @@
     cursor: pointer;
 }
 
-/* .pl.bed-list .item:hover {
+.pl.bed-list .item:hover {
     background: var(--50, #F2F2F2);
-} */
+}
 
 @media (max-width: 1920px) {
     .pl.bed-list .bed-status {
@@ -342,5 +342,193 @@
     .addBed .window {
         width: 560px;
         padding: 32px 40px;
+    }
+}
+
+
+/* ------------------------------------------------------------------
+   首頁的床位狀態列（.bed-summary）
+   顯示「尚未綁定裝置」的床位數量，放在 top-bar 與卡片之間。
+   尺寸刻意壓到卡片的一半左右，當作輔助資訊、不跟床位卡片搶視線。
+   兩種狀態：
+     .warn → 還有床位沒綁裝置，用 attention 橘（與 .bed.attention 同色），可點擊
+     .ok   → 全部綁好了，低調的完成樣式
+   配色一律用主題變數或半透明疊色，深淺色模式都成立。
+   ------------------------------------------------------------------ */
+
+.bed-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 16px;
+    row-gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    /* border-left-width: 3px; */
+    transition: background 200ms ease-out, border-color 200ms ease-out;
+}
+
+/* ── 左側：數量 + 說明（是一個連到 /bed 的 Link，要把 a 的預設樣式清掉） ── */
+.bed-summary-stat {
+    display: flex;
+    align-items: center;
+    column-gap: 9px;
+    min-width: 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.bed-summary .badge {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.bed-summary .label {
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 120%;
+    letter-spacing: 0.01em;
+}
+
+/* ── 右側：對照數字 ── */
+.bed-summary-meta {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+}
+
+.bed-summary-meta .cell {
+    display: flex;
+    align-items: baseline;
+    column-gap: 5px;
+}
+
+.bed-summary-meta .cell-label {
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 100%;
+    color: var(--500, #808080);
+}
+
+.bed-summary-meta .cell-value {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 100%;
+    color: var(--950, var(--text-fg-color));
+    font-variant-numeric: tabular-nums;
+}
+
+.bed-summary-meta .sep {
+    width: 1px;
+    height: 10px;
+    background: var(--200, #CCC);
+    opacity: 0.6;
+}
+
+/* ── 還有床位沒綁裝置 ── */
+.bed-summary.warn {
+    border-color: rgba(163, 163, 163, 0.45);
+    /* border-left-color: #FC9F2E; */
+    background: rgba(252, 159, 46, 0.08);
+}
+
+.bed-summary.warn .badge {
+    background: #7b7b7b;
+    color: #FFF;
+}
+
+.bed-summary.warn .label {
+    color: #c9c9c8;
+}
+
+.bed-summary.warn:hover {
+    background: rgba(252, 159, 46, 0.14);
+    border-color: rgba(120, 120, 119, 0.7);
+}
+
+html.dark .bed-summary.warn .label {
+    color: #bbbab9;
+}
+
+/* ── 全部綁好了 ── */
+.bed-summary.ok {
+    border-color: var(--150, #E6E6E6);
+    /* border-left-color: #43951D; */
+    background: transparent;
+}
+
+.bed-summary.ok .badge {
+    background: transparent;
+    border: 1px solid rgba(67, 149, 29, 0.5);
+    color: #43951D;
+}
+
+.bed-summary.ok .label {
+    color: var(--600, var(--label-color));
+}
+
+html.dark .bed-summary.ok {
+    border-color: rgba(255, 255, 255, 0.16);
+    border-left-color: #43951D;
+}
+
+@media (max-width: 1920px) {
+    .bed-summary {
+        padding: 6px 12px;
+        column-gap: 12px;
+    }
+    .bed-summary-stat {
+        column-gap: 8px;
+    }
+    .bed-summary .badge {
+        min-width: 24px;
+        height: 24px;
+        font-size: 13px;
+    }
+    .bed-summary .label {
+        font-size: 12px;
+    }
+    .bed-summary-meta {
+        column-gap: 10px;
+    }
+    .bed-summary-meta .cell-label {
+        font-size: 10px;
+    }
+    .bed-summary-meta .cell-value {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 1366px) {
+    .bed-summary {
+        padding: 5px 10px;
+        column-gap: 8px;
+    }
+    .bed-summary .badge {
+        min-width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+    .bed-summary .label {
+        font-size: 11px;
+    }
+    .bed-summary-meta .cell-value {
+        font-size: 11px;
+    }
+    .bed-summary-meta .sep {
+        height: 8px;
     }
 }

@@ -39,7 +39,11 @@
     "Disconnected": "斷線",
     "Normal": "正常",
     "Vacant": "空床",
-    "ClickToBindDevice": "點擊以綁定裝置"
+    "ClickToBindDevice": "點擊以綁定裝置",
+    "AvailableDevices": "可供綁定床位的裝置",
+    "AllDevicesBound": "所有裝置皆已綁定床位",
+    "BoundDevices": "已綁定",
+    "TotalDevices": "裝置總數"
   },
   "FloorSection": {
     "Floor": "樓層",

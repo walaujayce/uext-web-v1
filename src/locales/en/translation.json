@@ -39,7 +39,11 @@
     "Disconnected": "Disconnected",
     "Normal": "Normal",
     "Vacant": "Vacant",
-    "ClickToBindDevice": "Click to bind a device"
+    "ClickToBindDevice": "Click to bind a device",
+    "AvailableDevices": "Devices available to bind",
+    "AllDevicesBound": "All devices are bound to a bed",
+    "BoundDevices": "Bound",
+    "TotalDevices": "Total devices"
   },
   "FloorSection": {
     "Floor": "Floor",
