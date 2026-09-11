@@ -34,6 +34,9 @@ function PatientProfile() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
+  // 首頁 / 住民列表點進來時會把床位上指派的住民編號帶在網址上，
+  // 有帶就直接用 GET /db/Patient/{patientid} 取單筆資料。
+  const patientIdParam = searchParams.get("patientid") || "";
 
   // 這頁該打哪台後端：All 模式用網址帶進來的 ?ip=（該裝置所屬 server）；
   // 單一模式用目前選取的 server。重整時 selectedServer 一開始為 null（servers 非同步載入），
@@ -136,6 +139,10 @@ function PatientProfile() {
   const patientSectionInput = useSetInfoToInput("");
 
   const [patient, setPatient] = useState([]);
+  // 這台裝置目前綁在哪張床（BedController）。床位是住民與裝置的關聯來源，
+  // 床號 / 區域也以床位資料為準。
+  const [bed, setBed] = useState(null);
+
   const fetchPatientProfile = async () => {
     try {
       // const response = await fetch(`/api/7284/db/Patient`, {
@@ -151,15 +158,58 @@ function PatientProfile() {
       // }
 
       // const data = await response.json();
-      const response = await api.get(
-        `/api/7284/db/Patient`,
-        targetIp ? { targetIp } : undefined,
-      );
+      const cfg = targetIp ? { targetIp } : undefined;
 
-      const data = response.data;
-      const matchingPatient = data.find(
-        (item) => item.deviceid === macaddress
-      ) || {
+      // 床位：床號 / 區域 / 移除裝置都會用到
+      const bedPromise = api
+        .get(`/api/7284/db/Bed?deviceId=${encodeURIComponent(macaddress)}`, cfg)
+        .catch((err) => {
+          console.error("Error fetching bed by deviceId:", err.message);
+          return null;
+        });
+
+      // 住民：網址帶了 patientid 就查單筆，否則退回舊的「抓整份清單再比對」
+      const patientPromise = (
+        patientIdParam
+          ? api.get(
+              `/api/7284/db/Patient/${encodeURIComponent(patientIdParam)}`,
+              cfg,
+            )
+          : api.get(`/api/7284/db/Patient`, cfg)
+      ).catch((err) => {
+        console.error("Error fetching patient:", err.message);
+        return null;
+      });
+
+      const [bedRes, patientRes] = await Promise.all([
+        bedPromise,
+        patientPromise,
+      ]);
+
+      const matchingBed = (bedRes?.data || [])[0] ?? null;
+      setBed(matchingBed);
+
+      let matchingPatient = null;
+
+      if (patientIdParam) {
+        // 查無此住民時後端是回 200 + { code: -1, message }，不是 404，要自己判斷
+        const one = patientRes?.data;
+        if (one && one.code === undefined && one.patientid) {
+          matchingPatient = one;
+        }
+      } else {
+        // 相容舊進入點（網址沒帶 patientid）：
+        //   1. 這台裝置所綁床位上指派的住民（bed.patientId）
+        //   2. 住民資料自己帶的 deviceid（床位表還沒建立時的舊資料）
+        const list = Array.isArray(patientRes?.data) ? patientRes.data : [];
+        matchingPatient =
+          (matchingBed?.patientId &&
+            list.find((item) => item.patientid === matchingBed.patientId)) ||
+          list.find((item) => item.deviceid === macaddress) ||
+          null;
+      }
+
+      matchingPatient = matchingPatient || {
         patientname: "",
         patientid: "",
         sex: "",
@@ -184,11 +234,18 @@ function PatientProfile() {
           ? SEX[0]
           : SEX[1]
       );
-      setSelectedDate(new Date(matchingPatient.birthday));
+      setSelectedDate(
+        matchingPatient.birthday
+          ? new Date(matchingPatient.birthday)
+          : new Date(),
+      );
       patientHeightInput.setInputValue(matchingPatient.height);
       patientWeightInput.setInputValue(matchingPatient.weight);
-      patientBedInput.setInputValue(matchingPatient.bed);
-      patientSectionInput.setInputValue(matchingPatient.section);
+      // 床號 / 區域以床位表為準，沒有床位資料才退回住民 DTO 帶的值
+      patientBedInput.setInputValue(matchingBed?.bedId || matchingPatient.bed || "");
+      patientSectionInput.setInputValue(
+        matchingBed?.section || matchingPatient.section || "",
+      );
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -196,7 +253,7 @@ function PatientProfile() {
   useEffect(() => {
     if (!targetIp) return; // 還不知道要打哪台 → 等 targetIp 出現再抓
     fetchPatientProfile();
-  }, [targetIp, macaddress]);
+  }, [targetIp, macaddress, patientIdParam]);
 
   const formatDOB = (birthday) => {
     if (!birthday) {
@@ -351,20 +408,24 @@ function PatientProfile() {
     try {
       setLoading(true);
 
-      const bedRes = await api.get(
-        `/api/7284/db/Bed?deviceId=${encodeURIComponent(macaddress)}`,
-        cfg,
-      );
-      const bed = (bedRes.data || [])[0];
+      // 進頁面時已經查過這台裝置綁在哪張床，沒有的話再查一次（避免剛好還沒回來）
+      let targetBed = bed;
+      if (!targetBed) {
+        const bedRes = await api.get(
+          `/api/7284/db/Bed?deviceId=${encodeURIComponent(macaddress)}`,
+          cfg,
+        );
+        targetBed = (bedRes.data || [])[0];
+      }
 
-      if (!bed) {
+      if (!targetBed) {
         alert(t("UnbindDeviceModal.NotBound"));
         setUnbindOverlayVisible(false);
         return;
       }
 
       // DELETE 需要 engineer 以上權限，權限不足時後端會回 401/403
-      await api.delete(`/api/7284/db/Bed/${bed.bedId}/device`, cfg);
+      await api.delete(`/api/7284/db/Bed/${targetBed.bedId}/device`, cfg);
 
       setUnbindOverlayVisible(false);
       navigate("/home");

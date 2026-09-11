@@ -656,6 +656,9 @@ function Home() {
 
   const bedIpQuery = (bed) => (bed.__srcIp ? `&ip=${bed.__srcIp}` : "");
 
+  const bedPatientQuery = (bed) =>
+    bed.patientId ? `&patientid=${encodeURIComponent(bed.patientId)}` : "";
+
   // 卡片上顯示的住民名稱：優先用裝置回報的 UserName，沒有就退回床位綁定的住民編號
   const cardName = (card) => card.device?.UserName || card.bed.patientId || "";
 
@@ -690,10 +693,11 @@ function Home() {
       );
     }
 
-    // 連線中 → 維持原本導到住民監控頁
+    // 連線中 → 導到住民監控頁。床位上有指派住民時把 patientid 一起帶過去，
+    // 詳情頁就能直接用 GET /db/Patient/{patientid} 取資料，不必再從裝置反查。
     return (
       <Link
-        to={`/patient/patient-detail/patient-monitor?macaddress=${bed.deviceId}${bedIpQuery(bed)}`}
+        to={`/patient/patient-detail/patient-monitor?macaddress=${bed.deviceId}${bedIpQuery(bed)}${bedPatientQuery(bed)}`}
         key={key}
         state={{ from: "/home" }}
       >
@@ -812,16 +816,16 @@ function Home() {
                 點擊可到 /bed 進行綁定。 */}
             <div
               className={`bed-summary ${
-                deviceStats.available > 0 ? "ok" : "warn"
+                deviceStats.available > 0 ? "warn" : "ok"
               }`}
             >
               <Link to="/bed" className="bed-summary-stat">
+                <span className="badge">{deviceStats.available}</span>
                 <span className="label">
                   {deviceStats.available > 0
                     ? t("Home.AvailableDevices")
                     : t("Home.AllDevicesBound")}
                 </span>
-                <span className="badge">{deviceStats.available}</span>
               </Link>
               <div className="bed-summary-meta">
                 <span className="cell">
