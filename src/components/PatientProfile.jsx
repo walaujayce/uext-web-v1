@@ -32,7 +32,7 @@ function PatientProfile() {
 
 
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
   // 首頁 / 住民列表點進來時會把床位上指派的住民編號帶在網址上，
   // 有帶就直接用 GET /db/Patient/{patientid} 取單筆資料。
@@ -139,6 +139,8 @@ function PatientProfile() {
   const patientSectionInput = useSetInfoToInput("");
 
   const [patient, setPatient] = useState([]);
+  // 住民下拉的選項來源（整份住民清單）
+  const [patients, setPatients] = useState([]);
   // 這台裝置目前綁在哪張床（BedController）。床位是住民與裝置的關聯來源，
   // 床號 / 區域也以床位資料為準。
   const [bed, setBed] = useState(null);
@@ -168,23 +170,35 @@ function PatientProfile() {
           return null;
         });
 
-      // 住民：網址帶了 patientid 就查單筆，否則退回舊的「抓整份清單再比對」
-      const patientPromise = (
-        patientIdParam
-          ? api.get(
+      // 住民清單：住民編號下拉的選項，另外也是沒帶 patientid 時的比對來源
+      const listPromise = api
+        .get(`/api/7284/db/Patient`, cfg)
+        .catch((err) => {
+          console.error("Error fetching patient list:", err.message);
+          return null;
+        });
+
+      // 網址帶了 patientid → 直接查單筆
+      const patientPromise = patientIdParam
+        ? api
+            .get(
               `/api/7284/db/Patient/${encodeURIComponent(patientIdParam)}`,
               cfg,
             )
-          : api.get(`/api/7284/db/Patient`, cfg)
-      ).catch((err) => {
-        console.error("Error fetching patient:", err.message);
-        return null;
-      });
+            .catch((err) => {
+              console.error("Error fetching patient:", err.message);
+              return null;
+            })
+        : Promise.resolve(null);
 
-      const [bedRes, patientRes] = await Promise.all([
+      const [bedRes, listRes, patientRes] = await Promise.all([
         bedPromise,
+        listPromise,
         patientPromise,
       ]);
+
+      const patientList = Array.isArray(listRes?.data) ? listRes.data : [];
+      setPatients(patientList);
 
       const matchingBed = (bedRes?.data || [])[0] ?? null;
       setBed(matchingBed);
@@ -201,11 +215,12 @@ function PatientProfile() {
         // 相容舊進入點（網址沒帶 patientid）：
         //   1. 這台裝置所綁床位上指派的住民（bed.patientId）
         //   2. 住民資料自己帶的 deviceid（床位表還沒建立時的舊資料）
-        const list = Array.isArray(patientRes?.data) ? patientRes.data : [];
         matchingPatient =
           (matchingBed?.patientId &&
-            list.find((item) => item.patientid === matchingBed.patientId)) ||
-          list.find((item) => item.deviceid === macaddress) ||
+            patientList.find(
+              (item) => item.patientid === matchingBed.patientId,
+            )) ||
+          patientList.find((item) => item.deviceid === macaddress) ||
           null;
       }
 
@@ -255,6 +270,63 @@ function PatientProfile() {
     fetchPatientProfile();
   }, [targetIp, macaddress, patientIdParam]);
 
+  {
+    /* 住民編號下拉：可以從既有住民挑一位綁到這張床，
+       也可以直接打一個不存在的編號 + 填其他欄位，儲存時新增住民。 */
+  }
+  const [isPatientListActive, setPatientListActive] = useState(false);
+  const patientDropdownRef = useRef(null);
+  const dropdownPatientStyleRef = useRef(null);
+
+  useDynamicDropdownHeight(dropdownPatientStyleRef, isPatientListActive);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (
+        patientDropdownRef.current &&
+        !patientDropdownRef.current.contains(event.target)
+      ) {
+        setPatientListActive(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  // 依已輸入的字串過濾選項，方便從一長串住民裡找人
+  const patientOptions = patients.filter((p) => {
+    const keyword = (patientIDInput.inputValue || "").trim().toLowerCase();
+    if (!keyword) return true;
+    return (
+      String(p.patientid || "").toLowerCase().includes(keyword) ||
+      String(p.patientname || "").toLowerCase().includes(keyword)
+    );
+  });
+
+  // 目前輸入的編號在住民清單裡找不到 → 儲存時會新增住民
+  const typedPatientId = (patientIDInput.inputValue || "").trim();
+  const isNewPatient =
+    typedPatientId !== "" &&
+    !patients.some((p) => p.patientid === typedPatientId);
+
+  const handlePatientIdChange = (e) => {
+    patientIDInput.setInputValue(e.target.value);
+    setPatientListActive(true);
+    setIsChanged(true);
+  };
+
+  // 從下拉選一位既有住民 → 其他欄位一併帶入
+  const handlePatientItemClick = (p) => {
+    patientIDInput.setInputValue(p.patientid ?? "");
+    patientNameInput.setInputValue(p.patientname ?? "");
+    setPlaceholderSex(p.sex === 1 ? SEX[1] : SEX[0]);
+    setSelectedDate(p.birthday ? new Date(p.birthday) : new Date());
+    patientHeightInput.setInputValue(p.height ?? "");
+    patientWeightInput.setInputValue(p.weight ?? "");
+    setPatientListActive(false);
+    setIsChanged(true);
+  };
+
   const formatDOB = (birthday) => {
     if (!birthday) {
       return "";
@@ -262,61 +334,75 @@ function PatientProfile() {
     return birthday.split("T")[0];
   };
   {
-    /* PUT API */
+    /* 儲存：既有住民 → 更新資料；新編號 → 新增住民。兩者最後都指派到這張床 */
   }
-  const requestBody = {
-    patientname: patientNameInput.inputValue,
-    sex: placeholderSex === SEX[0] ? 0 : 1,
-    birthday: format(selectedDate, "yyyy-MM-dd"),
-    height: parseInt(patientHeightInput.inputValue, 10),
-    weight: parseInt(patientWeightInput.inputValue, 10),
-    deviceid: macaddress,
-  };
+  const handleSave = async () => {
+    const pid = (patientIDInput.inputValue || "").trim();
+    if (!pid) {
+      alert(t("PatientProfile.PatientIDRequired"));
+      return;
+    }
+    if (!(patientNameInput.inputValue || "").trim()) {
+      alert(t("PatientProfile.PatientNameRequired"));
+      return;
+    }
 
-  const handlePut_API = (print_inputvalue) => {
-    //console.log("the input requestbody is ", print_inputvalue);
-    PUT_PatientInfo(patientIDInput.inputValue, print_inputvalue);
-  };
+    const cfg = targetIp ? { targetIp } : undefined;
+    const profile = {
+      patientname: patientNameInput.inputValue,
+      sex: placeholderSex === SEX[0] ? 0 : 1,
+      birthday: format(selectedDate, "yyyy-MM-dd"),
+      height: parseInt(patientHeightInput.inputValue, 10) || 0,
+      weight: parseInt(patientWeightInput.inputValue, 10) || 0,
+      deviceid: macaddress,
+    };
 
-  const PUT_PatientInfo = async (patientid, requestBody) => {
     try {
       setLoading(true);
-      // const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
-      //   method: "PUT",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(requestBody), // Convert the requestBody to JSON
-      // });
 
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-
-      // const data = await response.json();
-      const response = await api.put(
-        `/api/7284/db/Patient/${patientid}`,
-        requestBody,
-        targetIp ? { targetIp } : undefined,
-      );
-      const data = response.data;
-      if (data.code !== 0) {
-        //console.log("Patient fail to update:", data);
-        alert("Patient fail to update!");
-        setIsChanged(false);
+      if (isNewPatient) {
+        // 清單裡沒有這個編號 → 新增住民
+        await api.post(
+          `/api/7284/db/Patient`,
+          { ...profile, patientid: pid, jlog: {} },
+          cfg,
+        );
       } else {
-        //console.log("Patient updated successfully:", data);
-        alert("Update Successfully!");
-        window.location.reload();
-        setIsChanged(false);
+        // 既有住民 → 更新資料。
+        // 注意：後端只有在真的有欄位變動時才回 code 0（SaveChanges > 0），
+        // 只換綁定、沒改資料的情況會回非 0，那不算失敗，所以不在這裡擋。
+        await api.put(`/api/7284/db/Patient/${pid}`, profile, cfg);
       }
-      return data; // Return the response data if needed
+
+      // 指派到這張床（床位是住民與裝置的關聯來源）
+      if (bed && bed.patientId !== pid) {
+        await api.put(
+          `/api/7284/db/Bed/${bed.bedId}/patient`,
+          { patientId: pid },
+          cfg,
+        );
+      }
+
+      setIsChanged(false);
+      alert(t("PatientProfile.SaveSuccess"));
+
+      // 網址上的 patientid 換成剛存好的那位，並重新載入這頁資料
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("patientid", pid);
+      setSearchParams(nextParams, { replace: true });
+      fetchPatientProfile();
     } catch (error) {
-      console.error("Error updating device:", error.message);
+      console.error("Error saving patient:", error);
+      alert(
+        `Error: ${
+          error.response?.data?.message || "Unable to connect to the server."
+        }`,
+      );
     } finally {
       setLoading(false);
     }
   };
+
   {
     /* Discharge Patient Button */
   }
@@ -485,8 +571,11 @@ function PatientProfile() {
     <div className="pp">
       <h1 className="pp-title" style={{ zIndex: "1" }}>{t("PatientProfile.PatientProfile")}</h1>
       <div className="pfl">
-        {/* Patient ID */}
-        <div className="input g-c-6">
+        {/* Patient ID：可從既有住民挑一位綁到這張床，也可以直接輸入新的編號新增住民 */}
+        <div
+          className="input dropdown suffix g-c-6"
+          ref={patientDropdownRef}
+        >
           <label htmlFor="p-id" className="label-container">
             <p>{t("PatientProfile.PatientID")}</p>
             <img
@@ -501,13 +590,40 @@ function PatientProfile() {
               className="placeholder"
               id="p-id"
               name="p-id"
-              placeholder={patientIDInput.inputValue}
+              placeholder={t("PatientProfile.PatientIDPlaceholder")}
               value={patientIDInput.inputValue}
-              readOnly
+              onChange={handlePatientIdChange}
+              onFocus={() => setPatientListActive(true)}
+              autoComplete="off"
             />
-            <img className="suffix" src="" alt="dropdown icon" />
+            <img
+              className="suffix active"
+              src="/src/assets/menu-down.svg"
+              alt="dropdown icon"
+              onClick={() => setPatientListActive((prev) => !prev)}
+            />
           </div>
-          <div className="assistive-text">Oops! Something went wrong.</div>
+          <div
+            className={`assistive-text new-patient ${
+              isNewPatient ? "active" : ""
+            }`}
+          >
+            {t("PatientProfile.NewPatientHint")}
+          </div>
+          <div
+            className={`list ${isPatientListActive ? "active" : ""}`}
+            ref={dropdownPatientStyleRef}
+          >
+            {patientOptions.map((p) => (
+              <div
+                className="item"
+                key={p.patientid}
+                onClick={() => handlePatientItemClick(p)}
+              >
+                {p.patientname ? `${p.patientid}（${p.patientname}）` : p.patientid}
+              </div>
+            ))}
+          </div>
         </div>
         {/* Patient Name */}
         <div className="input g-c-6">
@@ -756,7 +872,7 @@ function PatientProfile() {
           className={`btn text-only ${isChanged ? "" : "inactive"}`}
           onClick={() => {
             if (isChanged) {
-              handlePut_API(requestBody);
+              handleSave();
             }
           }}
           style={{ cursor: isChanged ? "pointer" : "default" }}

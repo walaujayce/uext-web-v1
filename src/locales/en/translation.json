@@ -141,6 +141,8 @@
   "PatientProfile": {
     "PatientProfile": "Resident Profile",
     "PatientID": "Resident ID",
+    "PatientIDPlaceholder": "Select or enter a resident ID",
+    "NewPatientHint": "No such resident yet — saving will create one",
     "PatientName": "Name",
     "Sex": "Sex",
     "Birthday": "Birthday",
@@ -154,7 +156,10 @@
     "Save": "Save",
     "Discharge": "Discharge",
     "UnbindDevice": "Remove device",
-    "Calibration": "Calibration"
+    "Calibration": "Calibration",
+    "PatientIDRequired": "Please enter a resident ID.",
+    "PatientNameRequired": "Please enter the resident's name.",
+    "SaveSuccess": "Saved successfully!"
   },
   "AddPatientModal": {
     "ClickToAddPatient": "Click to add resident",

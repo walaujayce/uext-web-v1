@@ -820,12 +820,12 @@ function Home() {
               }`}
             >
               <Link to="/bed" className="bed-summary-stat">
-                <span className="badge">{deviceStats.available}</span>
                 <span className="label">
                   {deviceStats.available > 0
                     ? t("Home.AvailableDevices")
                     : t("Home.AllDevicesBound")}
                 </span>
+                <span className="badge">{deviceStats.available}</span>
               </Link>
               <div className="bed-summary-meta">
                 <span className="cell">

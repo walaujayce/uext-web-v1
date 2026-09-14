@@ -1393,3 +1393,10 @@
     height: 28px;
   }
 }
+
+
+/* 住民編號欄位打了一個清單裡沒有的編號時的提示。
+   .assistive-text 預設是紅色錯誤色，這裡是「將新增住民」的中性提示，改成綠色。 */
+.pp .input .assistive-text.new-patient {
+    color: #43951D;
+}

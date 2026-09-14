@@ -141,6 +141,8 @@
   "PatientProfile": {
     "PatientProfile": "住民資料",
     "PatientID": "住民編號",
+    "PatientIDPlaceholder": "選擇或輸入住民編號",
+    "NewPatientHint": "清單中沒有此住民編號，儲存後將新增住民",
     "PatientName": "姓名",
     "Sex": "性別",
     "Birthday": "生日",
@@ -154,7 +156,10 @@
     "Save": "儲存",
     "Discharge": "出院確認",
     "UnbindDevice": "移除裝置",
-    "Calibration": "校正"
+    "Calibration": "校正",
+    "PatientIDRequired": "請輸入住民編號。",
+    "PatientNameRequired": "請輸入住民姓名。",
+    "SaveSuccess": "儲存成功！"
   },
   "AddPatientModal": {
     "ClickToAddPatient": "點擊以新增住民",

@@ -292,14 +292,14 @@ function Navbar() {
           >
             {t("Navbar.Home")}
           </Link>
-          <Link
+          {/* <Link
             to="/patient"
             className={`nav-link ${
               location.pathname.includes("/patient") ? "active" : ""
             }`}
           >
             {t("Navbar.Patient")}
-          </Link>
+          </Link> */}
           <Link
             to="/bed"
             state={{ reload: true }}

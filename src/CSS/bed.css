@@ -440,23 +440,23 @@
 
 /* ── 還有床位沒綁裝置 ── */
 .bed-summary.warn {
-    border-color: rgba(163, 163, 163, 0.45);
     /* border-left-color: #FC9F2E; */
-    background: rgba(252, 159, 46, 0.08);
+    background: rgba(0, 178, 15, 0.1);
 }
 
 .bed-summary.warn .badge {
-    background: #7b7b7b;
-    color: #FFF;
+    /* border: 1px solid rgba(67, 149, 29, 0.5);
+    border-radius: 50%; */
+    color: #169000;
 }
 
 .bed-summary.warn .label {
-    color: #c9c9c8;
+    color: #949493;
 }
 
 .bed-summary.warn:hover {
-    background: rgba(252, 159, 46, 0.14);
-    border-color: rgba(120, 120, 119, 0.7);
+    border-color: rgba(11, 135, 0, 0.17);
+    background: rgba(0, 191, 13, 0.07);
 }
 
 html.dark .bed-summary.warn .label {
@@ -482,7 +482,7 @@ html.dark .bed-summary.warn .label {
 
 html.dark .bed-summary.ok {
     border-color: rgba(255, 255, 255, 0.16);
-    border-left-color: #43951D;
+    /* border-left-color: #43951D; */
 }
 
 @media (max-width: 1920px) {
