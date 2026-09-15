@@ -148,6 +148,7 @@ const TextField = ({ id, label, value, onChange, maxLength, disabled, error, err
 //
 //   不帶 bed  → 新增模式：POST /db/Bed
 //   帶  bed  → 編輯模式：PUT /db/Bed/{bedId}，並可「住民出院」或刪除床位
+//              （刪除床位時，床上的住民資料也會一併刪除）
 //
 // 版面：
 //   床位編號 / 區域 —— 一定顯示（區域選項來自 FloorSectionContext，非資料庫查詢）
@@ -521,13 +522,37 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     }
   };
 
+  {
+    /* 刪除床位。床上若有住民，該住民（與其警示設定）也一併刪除。
+       順序：先刪床位再刪住民 —— bed.patient_id 參照 patient，
+       反過來會踩到外鍵限制。 */
+  }
   const handleDelete = async () => {
+    const pid = bed?.patientId;
     try {
       setLoading(true);
       // DELETE 需要 engineer 以上權限，權限不足時後端會回 401/403
       const response = await api.delete(`/api/7284/db/Bed/${bed.bedId}`, cfg);
 
       if (response.status === 204 || response.status === 200) {
+        if (pid) {
+          // 警示設定沒有不算錯，失敗只記錄不中斷
+          await api
+            .delete(`/api/7284/db/Alert/${pid}`, cfg)
+            .catch((err) =>
+              console.error("Error deleting alert:", err.message),
+            );
+          // 床位已經刪掉了，住民刪失敗就提示一下，不回頭擋流程
+          await api.delete(`/api/7284/db/Patient/${pid}`, cfg).catch((err) => {
+            console.error("Error deleting patient:", err);
+            alert(
+              `Error: ${
+                err.response?.data?.message || "Failed to delete resident."
+              }`,
+            );
+          });
+        }
+
         setConfirmMode(null);
         setDoneMessage("BedDeleted");
         onCreated?.();
@@ -733,7 +758,12 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
                         ? t("AddBedModal.DischargeConfirm", {
                             patientId: bed?.patientId,
                           })
-                        : t("AddBedModal.DeleteConfirm", { bedId: bed?.bedId })}
+                        : t(
+                            bed?.patientId
+                              ? "AddBedModal.DeleteConfirmWithPatient"
+                              : "AddBedModal.DeleteConfirm",
+                            { bedId: bed?.bedId, patientId: bed?.patientId },
+                          )}
                     </p>
                     <div className="btn-gp">
                       <div

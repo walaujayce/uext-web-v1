@@ -412,69 +412,75 @@ function PatientProfile() {
     setDischargeOverlayVisible(!isDischargeOverlayVisible);
   };
 
-  const handleDischargePatient = (patientid) => {
-    patientid = patient.patientid;
-    //console.log("delete patient ", patientid);
-    deletePatientAlert_API(patientid);
-    deletePatient_API(patientid);
-  };
+  {
+    /* 住民出院：
+         1. 先解除床位綁定 —— bed.patient_id 參照 patient，不先解除就直接刪住民
+            會踩到外鍵限制。連同裝置一起解除（沒有住民就不該留著裝置）。
+            用 PUT 一次寫完，只需要 Roles.User 權限，也不會動到護理人員。
+         2. 刪掉該住民的警示設定
+         3. 刪掉住民本身
+       原本這三步是兩支沒有 await 的函式各自併發跑，順序無法保證。 */
+  }
+  const handleDischargePatient = async () => {
+    const patientId = patient?.patientid;
+    if (!patientId) {
+      setDischargeOverlayVisible(false);
+      return;
+    }
 
-  const deletePatient_API = async (patientId) => {
+    const cfg = targetIp ? { targetIp } : undefined;
+
     try {
       setLoading(true);
-      // const response = await fetch(`/api/7284/db/Patient/${patientId}`, {
-      //   method: "DELETE",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
 
-      // const contentType = response.headers.get("Content-Type");
-      // if (!response.ok || !contentType?.includes("application/json")) {
-      //   throw new Error(`Expected JSON, got: ${contentType}`);
-      // }
-      // const data = await response.json();
-      const response = await api.delete(
-        `/api/7284/db/Patient/${patientId}`,
-        targetIp ? { targetIp } : undefined,
-      );
+      // 這頁的 bed 是用 deviceId 查到的；沒有綁裝置時查不到，改用住民編號再查一次
+      let targetBed = bed;
+      if (!targetBed) {
+        const bedRes = await api
+          .get(
+            `/api/7284/db/Bed?patientId=${encodeURIComponent(patientId)}`,
+            cfg,
+          )
+          .catch((err) => {
+            console.error("Error fetching bed by patientId:", err.message);
+            return null;
+          });
+        targetBed = (bedRes?.data || [])[0] ?? null;
+      }
 
-      const data = response.data;
-      //console.log("Delete successfully!:", data);
-      alert("Delete successfully!");
+      if (targetBed) {
+        await api.put(
+          `/api/7284/db/Bed/${targetBed.bedId}`,
+          {
+            bedId: targetBed.bedId,
+            section: targetBed.section || null,
+            patientId: null,
+            deviceId: null,
+            nurseId: targetBed.nurseId || null,
+          },
+          cfg,
+        );
+      }
+
+      // 警示設定沒有不算錯，失敗只記錄不中斷
+      await api
+        .delete(`/api/7284/db/Alert/${patientId}`, cfg)
+        .catch((err) => console.error("Error deleting alert:", err.message));
+
+      await api.delete(`/api/7284/db/Patient/${patientId}`, cfg);
+
+      setDischargeOverlayVisible(false);
+      alert(t("PatientProfile.DischargeSuccess"));
       navigate("/home");
     } catch (error) {
-      console.error("Error fetching device data:", error.message, error);
+      console.error("Error discharging patient:", error);
+      alert(
+        `Error: ${
+          error.response?.data?.message || "Unable to connect to the server."
+        }`,
+      );
     } finally {
       setLoading(false);
-    }
-  };
-  const deletePatientAlert_API = async (patientId) => {
-    try {
-      setLoading(true);
-      // const response = await fetch(`/api/7284/db/Alert/${patientId}`, {
-      //   method: "DELETE",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
-      const response = await api.delete(
-        `/api/7284/db/Alert/${patientId}`,
-        targetIp ? { targetIp } : undefined,
-      );
-
-      // const contentType = response.headers.get("Content-Type");
-      // if (!response.ok || !contentType?.includes("application/json")) {
-      //   throw new Error(`Expected JSON, got: ${contentType}`);
-      // }
-      // const data = await response.json();
-      // //console.log("Delete successfully!:", data);
-      // alert("Delete successfully!");
-      // navigate("/home");
-    } catch (error) {
-      console.error("Error fetching device data:", error.message, error);
-    } finally {
-      // setLoading(false);
     }
   };
 
@@ -512,6 +518,29 @@ function PatientProfile() {
 
       // DELETE 需要 engineer 以上權限，權限不足時後端會回 401/403
       await api.delete(`/api/7284/db/Bed/${targetBed.bedId}/device`, cfg);
+
+      // 住民資料表也有一份 deviceid，一併清掉，否則兩邊會不一致
+      //（其他頁面仍有用 patient.deviceid 反查裝置的地方）
+      if (patient?.patientid) {
+        await api
+          .put(
+            `/api/7284/db/Patient/${patient.patientid}`,
+            {
+              patientname: patient.patientname ?? "",
+              sex: patient.sex ?? 0,
+              birthday: patient.birthday
+                ? format(new Date(patient.birthday), "yyyy-MM-dd")
+                : format(new Date(), "yyyy-MM-dd"),
+              height: patient.height ?? 0,
+              weight: patient.weight ?? 0,
+              deviceid: null,
+            },
+            cfg,
+          )
+          .catch((err) =>
+            console.error("Error clearing patient deviceid:", err.message),
+          );
+      }
 
       setUnbindOverlayVisible(false);
       navigate("/home");

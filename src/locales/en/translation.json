@@ -133,6 +133,7 @@
     "Delete": "Delete",
     "Discharge": "Discharge resident",
     "DeleteConfirm": "Delete bed \"{{bedId}}\"? This cannot be undone.",
+    "DeleteConfirmWithPatient": "Delete bed \"{{bedId}}\"? Resident \"{{patientId}}\" on this bed will be deleted as well. This cannot be undone.",
     "DeleteYes": "Yes, delete",
     "Height": "Height",
     "Weight": "Weight",
@@ -173,7 +174,8 @@
     "Calibration": "Calibration",
     "PatientIDRequired": "Please enter a resident ID.",
     "PatientNameRequired": "Please enter the resident's name.",
-    "SaveSuccess": "Saved successfully!"
+    "SaveSuccess": "Saved successfully!",
+    "DischargeSuccess": "Resident discharged."
   },
   "AddPatientModal": {
     "ClickToAddPatient": "Click to add resident",
