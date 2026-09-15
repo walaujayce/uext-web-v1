@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Outlet, Link } from "react-router-dom";
 import dayjs from "dayjs";
 import "/src/CSS/btn.css";
@@ -19,7 +19,8 @@ function Patient() {
   const { t, i18n } = useTranslation();
 
   // 所有樓層/區域對應的後端清單，供「All」模式逐台抓取所有病患
-  const { servers } = useFloorSection();
+  // selectedServer：非 All 模式下，目前選取的區域對應到的那一台
+  const { servers, selectedServer } = useFloorSection();
 
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
@@ -38,6 +39,18 @@ function Patient() {
     return null;
   }, [servers, select_section]);
 
+  // 篩選條件的識別字串。
+  // ⚠ 不能直接把 targetIps 當 useEffect 的依賴：非 All 模式下它「恆為 null」，
+  //   所以 A 區 → B 區 的切換會被 Object.is 判定成沒變，effect 不會重跑，
+  //   列表要等下一次輪詢才更新。這裡改用會真正跟著篩選變動的字串當依賴。
+  const filterKey = useMemo(
+    () =>
+      select_section === "All"
+        ? `all:${(targetIps || []).join(",")}`
+        : `one:${select_section}:${selectedServer?.ip ?? ""}`,
+    [select_section, targetIps, selectedServer],
+  );
+
   // React key：All 模式下不同 server 可能有相同 deviceid，用來源 IP 前綴保證唯一
   const patientKey = (patient) =>
     patient.__srcIp ? `${patient.__srcIp}-${patient.deviceid}` : patient.deviceid;
@@ -48,8 +61,14 @@ function Patient() {
     return response.data || [];
   };
 
+  // 請求序號：切換區域時，前一次還在飛的請求可能比新的晚回來，
+  // 若不擋掉就會用「舊區域」的資料蓋掉剛抓到的新資料。只採用最後一次發出的請求。
+  const reqSeqRef = useRef(0);
+
   const fetchPatients = async () => {
+    const seq = ++reqSeqRef.current;
     try {
+      let next;
       if (targetIps) {
         // 「All」模式：逐台抓取後合併，並標上來源 IP，避免跨 server 資料互相覆蓋
         const results = await Promise.all(
@@ -62,19 +81,23 @@ function Patient() {
               }),
           ),
         );
-        setPatients(results.flat());
+        next = results.flat();
       } else {
-        setPatients(await fetchPatientsFrom());
+        next = await fetchPatientsFrom();
       }
+      // 已經有更新的請求發出 → 這次的結果過期，丟棄
+      if (seq !== reqSeqRef.current) return;
+      setPatients(next);
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
   };
   useEffect(() => {
+    // 篩選一改就立刻抓一次，不用等下一次輪詢；同時重設輪詢計時器
     fetchPatients();
     const interval = setInterval(fetchPatients, 1000);
     return () => clearInterval(interval);
-  }, [targetIps]);
+  }, [filterKey]);
 
   {
     /* sort logic */

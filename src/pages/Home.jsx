@@ -387,6 +387,18 @@ function Home() {
     return null;
   }, [servers, select_section]);
 
+  // 篩選條件的識別字串。
+  // ⚠ 不能直接把 targetIps 當 useEffect 的依賴：非 All 模式下它「恆為 null」，
+  //   所以 A 區 → B 區 的切換會被 Object.is 判定成沒變，effect 不會重跑，
+  //   列表要等下一次輪詢才更新。這裡改用會真正跟著篩選變動的字串當依賴。
+  const filterKey = useMemo(
+    () =>
+      select_section === "All"
+        ? `all:${(targetIps || []).join(",")}`
+        : `one:${select_section}:${selectedServer?.ip ?? ""}`,
+    [select_section, targetIps, selectedServer],
+  );
+
   // 從「單一」server 抓 device 清單。傳入 targetIp 時，用 header 把請求釘在該台；
   // 不傳時走目前選取的 server（原本行為）。
   const fetchDevicesFrom = async (targetIp) => {
@@ -408,8 +420,14 @@ function Home() {
     return [];
   };
 
+  // 請求序號：切換區域時，前一次還在飛的請求可能比新的晚回來，
+  // 若不擋掉就會用「舊區域」的資料蓋掉剛抓到的新資料。只採用最後一次發出的請求。
+  const deviceSeqRef = useRef(0);
+
   const fetchDeviceList = async () => {
+    const seq = ++deviceSeqRef.current;
     try {
+      let next;
       if (targetIps) {
         // 「All」模式：逐台抓取後合併。單台失敗不影響其他台。
         // 把來源 IP 標在每筆 device 上（__srcIp），這樣：
@@ -426,10 +444,13 @@ function Home() {
           ),
         );
         // setDevices([...fakeList,results.flat()]);
-        setDevices(results.flat());
+        next = results.flat();
       } else {
-        setDevices(await fetchDevicesFrom());
+        next = await fetchDevicesFrom();
       }
+      // 已經有更新的請求發出 → 這次的結果過期，丟棄
+      if (seq !== deviceSeqRef.current) return;
+      setDevices(next);
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -437,10 +458,11 @@ function Home() {
   // ── 方式 A：GET API 輪詢（USE_SIGNALR_DEVICES = false 時啟用，維持原本行為）──
   useEffect(() => {
     if (USE_SIGNALR_DEVICES) return; // 改用 SignalR 時不跑 GET 輪詢
+    // 篩選一改就立刻抓一次，不用等下一次輪詢；同時重設輪詢計時器
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, [port, select_section, servers]);
+  }, [port, filterKey]);
 
   // ── 方式 B：SignalR 推播（USE_SIGNALR_DEVICES = true 時啟用）──
   // 要連線/訂閱的後端 IP：All 模式用 targetIps（多台）；單一模式用目前選取的 server。
@@ -507,6 +529,9 @@ function Home() {
   // 狀態列的「可供綁定的裝置」要和 AddNewBed 的裝置下拉一致，所以用同一個來源，
   // 而不是用 8031 的即時裝置清單（那份只有正在回報的裝置）。
   const [registeredDevices, setRegisteredDevices] = useState([]);
+  // 住民清單：床位有住民但沒綁裝置時，卡片上的名字只能從這裡來
+  //（8031 的 UserName 只有正在回報的裝置才有）
+  const [patients, setPatients] = useState([]);
 
   const fetchFrom = async (url, targetIp) => {
     const cfg = targetIp ? { targetIp } : undefined;
@@ -514,7 +539,8 @@ function Home() {
     return response.data || [];
   };
 
-  const fetchListFrom = async (url, setter) => {
+  // 回傳資料而不直接 setState，讓呼叫端的請求序號能擋掉過期結果
+  const fetchListFrom = async (url) => {
     if (targetIps) {
       const results = await Promise.all(
         targetIps.map((ip) =>
@@ -526,18 +552,26 @@ function Home() {
             }),
         ),
       );
-      setter(results.flat());
-    } else {
-      setter(await fetchFrom(url));
+      return results.flat();
     }
+    return await fetchFrom(url);
   };
 
+  const bedSeqRef = useRef(0);
+
   const fetchBedList = async () => {
+    const seq = ++bedSeqRef.current;
     try {
-      await Promise.all([
-        fetchListFrom("/api/7284/db/Bed", setBeds),
-        fetchListFrom("/api/7284/db/Device", setRegisteredDevices),
+      const [bedList, deviceList, patientList] = await Promise.all([
+        fetchListFrom("/api/7284/db/Bed"),
+        fetchListFrom("/api/7284/db/Device"),
+        fetchListFrom("/api/7284/db/Patient"),
       ]);
+      // 已經有更新的請求發出 → 這次的結果過期，丟棄
+      if (seq !== bedSeqRef.current) return;
+      setBeds(bedList);
+      setRegisteredDevices(deviceList);
+      setPatients(patientList);
     } catch (error) {
       console.error("Error fetching bed data:", error);
     }
@@ -554,7 +588,7 @@ function Home() {
       fetchBedList();
     }, 5000);
     return () => clearInterval(interval);
-  }, [select_section, servers]);
+  }, [filterKey]);
 
   {
     /* 點空床卡片 → 開 AddNewBed（編輯模式）讓使用者綁定裝置 */
@@ -571,6 +605,15 @@ function Home() {
   const deviceMapKey = (srcIp, mac) =>
     `${srcIp ?? ""}|${String(mac ?? "").toUpperCase()}`;
 
+  const patientNameMap = useMemo(() => {
+    const map = new Map();
+    patients.forEach((p) => {
+      if (!p.patientid) return;
+      map.set(deviceMapKey(p.__srcIp, p.patientid), p.patientname ?? "");
+    });
+    return map;
+  }, [patients]);
+
   const bedCards = useMemo(() => {
     const deviceMap = new Map();
     devices.forEach((d) => {
@@ -583,12 +626,13 @@ function Home() {
         ? deviceMap.get(deviceMapKey(bed.__srcIp, bed.deviceId))
         : undefined;
 
-      // 狀態判斷（沿用原本 8031 的邏輯）：
-      //   沒綁裝置                        → vacant
-      //   綁了但抓不到裝置 / STAT === 0   → disconnect
+      // 狀態判斷：
+      //   沒綁住民                        → vacant（空床，不管有沒有裝置）
+      //   有住民但沒綁裝置                → vacant（還沒開始監測）
+      //   有住民有裝置，但抓不到 / STAT 0 → disconnect
       //   STAT === 1                      → 依 BedColor：1 alert / 2 attention / 其他 default
       let status;
-      if (!bed.deviceId) {
+      if (!bed.patientId || !bed.deviceId) {
         status = "vacant";
       } else if (!device || device.STAT === 0) {
         status = "disconnect";
@@ -659,17 +703,32 @@ function Home() {
   const bedPatientQuery = (bed) =>
     bed.patientId ? `&patientid=${encodeURIComponent(bed.patientId)}` : "";
 
-  // 卡片上顯示的住民名稱：優先用裝置回報的 UserName，沒有就退回床位綁定的住民編號
-  const cardName = (card) => card.device?.UserName || card.bed.patientId || "";
+  // 卡片上顯示的住民名稱。
+  // 以資料庫的住民姓名為準（床位的住民才是權威來源），抓不到才退回
+  // 裝置回報的 UserName，再不然用住民編號頂著。沒有住民就回空字串。
+  const cardName = (card) => {
+    const { bed } = card;
+    if (!bed.patientId) return "";
+    return (
+      patientNameMap.get(deviceMapKey(bed.__srcIp, bed.patientId)) ||
+      card.device?.UserName ||
+      bed.patientId
+    );
+  };
 
   const renderBedCard = (card) => {
     const { bed, device, status } = card;
     const key = bedKey(bed);
 
-    // 空床（沒綁裝置）→ 點擊開 modal 綁定裝置
+    // 空床（沒綁住民，或有住民但還沒綁裝置）→ 點擊開 modal 做綁定
     if (status === "vacant") {
       return (
-        <Bed_vacant key={key} bed={bed.bedId} onClick={() => setEditingBed(bed)} />
+        <Bed_vacant
+          key={key}
+          bed={bed.bedId}
+          name={cardName(card)}
+          onClick={() => setEditingBed(bed)}
+        />
       );
     }
 

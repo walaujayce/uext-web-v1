@@ -43,15 +43,16 @@ export function Bed_disconnect({
   );
 }
 
-// 空床 = 這張床位還沒綁定裝置。點擊由父層決定要做什麼
-// （首頁是開啟 AddNewBed modal 讓使用者綁裝置）。
-export function Bed_vacant({ bed, onClick }) {
+// 空床 = 這張床位還沒綁住民，或有住民但還沒綁裝置。
+// name 有值（已綁住民）就顯示住民姓名，沒有就提示點擊綁定住民。
+// 點擊行為由父層決定（首頁是開啟 AddNewBed modal）。
+export function Bed_vacant({ bed, name, onClick }) {
   const { t } = useTranslation();
 
   return (
     <div className="bed vacant" onClick={onClick}>
       <div className="b-num">{bed}&nbsp;</div>
-      <div className="name">{t("Home.ClickToBindDevice")}</div>
+      <div className="name">{name || t("Home.ClickToBindPatient")}</div>
       <div
         className="tag"
         style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}

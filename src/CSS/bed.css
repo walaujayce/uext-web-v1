@@ -243,8 +243,104 @@
     opacity: 0.7;
 }
 
+/* ── 選填區塊：住民與指派 ──
+   預設收合，標題列右邊顯示目前狀態（未指派 / 已填的摘要）。 */
+.addBed .bed-optional {
+    display: flex;
+    flex-direction: column;
+    border: 1.5px solid var(--150, #E6E6E6);
+}
+
+.addBed .bed-optional-head {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 150ms ease-out;
+}
+
+.addBed .bed-optional-head:hover {
+    background: var(--50, #F7F7F7);
+}
+
+.addBed .bed-optional-title {
+    flex: none;
+    color: var(--850, var(--primary-text-color));
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 100%;
+}
+
+.addBed .bed-optional-state {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    color: var(--500, #808080);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 120%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.addBed .bed-optional-chevron {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    content: var(--menu-down-url);
+    transition: transform 200ms ease-out;
+}
+
+.addBed .bed-optional.open .bed-optional-chevron {
+    transform: rotate(180deg);
+}
+
+.addBed .bed-optional-body {
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+    padding: 4px 16px 20px;
+    border-top: 1.5px solid var(--150, #E6E6E6);
+}
+
+/* 鎖住的下拉（例如：還沒填住民時的裝置欄位） */
+.addBed .input.dropdown.is-disabled {
+    cursor: not-allowed;
+}
+
+.addBed .input.dropdown.is-disabled .suffix {
+    opacity: 0.4;
+}
+
+/* 兩欄併排（身高／體重、生日／性別） */
+.addBed .bed-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+}
+
+.addBed .bed-row-2 .input,
+.addBed .bed-row-2 .bed-dob {
+    min-width: 0;
+}
+
+.addBed .bed-dob .dob-input {
+    padding-top: 2px;
+}
+
+.addBed .bed-optional-note {
+    color: var(--500, #808080);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 140%;
+}
+
 .addBed .btn-gp {
     display: flex;
+    flex-wrap: wrap;
     gap: 24px;
     margin-top: 40px;
     justify-content: center;
@@ -328,6 +424,27 @@
     }
     .addBed .bed-form {
         row-gap: 16px;
+    }
+    .addBed .bed-optional-head {
+        padding: 10px 12px;
+        column-gap: 8px;
+    }
+    .addBed .bed-optional-title {
+        font-size: 15px;
+    }
+    .addBed .bed-optional-state {
+        font-size: 12px;
+    }
+    .addBed .bed-optional-chevron {
+        width: 16px;
+        height: 16px;
+    }
+    .addBed .bed-optional-body {
+        row-gap: 14px;
+        padding: 4px 12px 14px;
+    }
+    .addBed .bed-optional-note {
+        font-size: 11px;
     }
     .addBed .btn-gp {
         margin-top: 24px;
