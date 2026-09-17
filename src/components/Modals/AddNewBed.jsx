@@ -160,6 +160,8 @@ const TextField = ({ id, label, value, onChange, maxLength, disabled, error, err
 //   2. 新增住民時裝置非必填；若這張床有綁裝置，POST /db/Patient 會把它一併
 //      寫進 patient 的 deviceid
 //
+// 綁定／解除裝置時，裝置資料表的 bed / section 兩欄會同步維護（見 syncDeviceBed）。
+//
 // 資料庫查詢只有兩處：裝置下拉（依區域抓裝置清單 + 排除已被別張床綁走的），
 // 以及編輯模式載入已綁定住民的資料。其餘欄位一律手動輸入。
 // 樣式全部寫在 /src/CSS/bed.css，不使用 inline style。
@@ -357,6 +359,34 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
   // （舊資料可能有「有裝置但沒住民」的床位，這時不鎖，讓使用者能把它解除掉）
   const deviceLocked = !patientId.trim() && !deviceId;
 
+  {
+    /* 裝置資料表自己也有 bed / section 兩欄，綁定與解除時要一起維護，
+       否則會和床位表對不起來（DeviceList、8031 等處都讀裝置上的這兩欄）。
+
+       ⚠ PUT /db/Device/{id} 是整筆覆寫（後端用 AutoMapper 全欄位 map），
+         所以要把該裝置現有的值原樣帶回，只改 bed / section，
+         不能只送這兩個欄位，否則其他設定會被清成預設值。
+       ⚠ 這支端點需要 Roles.Engineer；權限不足時失敗只記錄，不中斷主流程。 */
+  }
+  const syncDeviceBed = async (devId, nextBed, nextSection) => {
+    if (!devId) return;
+    const current = devices.find((d) => d.deviceid === devId);
+    if (!current) return; // 不在這台後端的清單裡就跳過
+
+    // 這幾個欄位不屬於 DevicePutDto（唯讀或由後端維護），不要送出去
+    const { __srcIp, deviceid, updatedat, ping, rssi, ...rest } = current;
+
+    await api
+      .put(
+        `/api/7284/db/Device/${devId}`,
+        { ...rest, bed: nextBed, section: nextSection },
+        cfg,
+      )
+      .catch((err) =>
+        console.error(`Error updating device ${devId} bed/section:`, err.message),
+      );
+  };
+
   // 新增模式換區域 = 換後端，原本選的裝置在新的後端不存在 → 清掉重選
   const handleSectionSelect = (value) => {
     if (value === section) return;
@@ -457,6 +487,16 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
         : await api.post("/api/7284/db/Bed", requestBody, cfg);
 
       if (response.status === 200 || response.status === 201) {
+        // 裝置資料表的 bed / section 跟著更新
+        const prevDeviceId = isEdit ? bed.deviceId : null;
+        if (prevDeviceId && prevDeviceId !== deviceId) {
+          // 換綁或解除 → 舊裝置的 bed / section 清掉
+          await syncDeviceBed(prevDeviceId, null, null);
+        }
+        if (deviceId) {
+          await syncDeviceBed(deviceId, bedId.trim(), section || null);
+        }
+
         setDoneMessage(isEdit ? "BedUpdated" : "NewBedAdded");
         onCreated?.();
       } else {
@@ -500,6 +540,9 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
         cfg,
       );
 
+      // 床位上的裝置也解除了 → 裝置資料表的 bed / section 一併清掉
+      await syncDeviceBed(bed.deviceId, null, null);
+
       // 警示設定沒有不算錯，失敗只記錄不中斷
       await api
         .delete(`/api/7284/db/Alert/${pid}`, cfg)
@@ -535,6 +578,9 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       const response = await api.delete(`/api/7284/db/Bed/${bed.bedId}`, cfg);
 
       if (response.status === 204 || response.status === 200) {
+        // 床位沒了 → 這張床上的裝置 bed / section 清掉
+        await syncDeviceBed(bed.deviceId, null, null);
+
         if (pid) {
           // 警示設定沒有不算錯，失敗只記錄不中斷
           await api

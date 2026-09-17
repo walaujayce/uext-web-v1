@@ -519,6 +519,28 @@ function PatientProfile() {
       // DELETE 需要 engineer 以上權限，權限不足時後端會回 401/403
       await api.delete(`/api/7284/db/Bed/${targetBed.bedId}/device`, cfg);
 
+      // 裝置資料表自己也有 bed / section 兩欄，解除綁定時要一起清掉。
+      // PUT /db/Device/{id} 是整筆覆寫，所以先讀回現值、只改這兩欄再送。
+      // 需要 Roles.Engineer，失敗只記錄不中斷（床位那邊已經解除成功了）。
+      try {
+        const devRes = await api.get(
+          `/api/7284/db/Device/${encodeURIComponent(macaddress)}`,
+          cfg,
+        );
+        const current = devRes.data;
+        // 查無裝置時後端是回 200 + { code: -1 }，要自己判斷
+        if (current && current.code === undefined && current.deviceid) {
+          const { deviceid, updatedat, ping, rssi, ...rest } = current;
+          await api.put(
+            `/api/7284/db/Device/${macaddress}`,
+            { ...rest, bed: null, section: null },
+            cfg,
+          );
+        }
+      } catch (err) {
+        console.error("Error clearing device bed/section:", err.message);
+      }
+
       // 住民資料表也有一份 deviceid，一併清掉，否則兩邊會不一致
       //（其他頁面仍有用 patient.deviceid 反查裝置的地方）
       if (patient?.patientid) {
