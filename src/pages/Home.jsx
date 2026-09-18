@@ -745,11 +745,12 @@ function Home() {
       );
     }
 
-    // 斷線 → 維持原本導到裝置設定頁
+    // 斷線 → 一樣導到住民監控頁：床位既然已經綁了住民和裝置，
+    // 使用者要看的是這位住民的資料，裝置離線與否不該改變去處。
     if (status === "disconnect") {
       return (
         <Link
-          to={`/device/device-settings?macaddress=${card.deviceId}${bedIpQuery(bed)}`}
+          to={`/patient/patient-detail/patient-monitor?macaddress=${card.deviceId}${bedIpQuery(bed)}${bedPatientQuery(bed)}`}
           key={key}
           state={{ from: "/home" }}
         >
@@ -765,7 +766,7 @@ function Home() {
       );
     }
 
-    // 連線中 → 導到住民監控頁。床位上有指派住民時把 patientid 一起帶過去，
+    // 連線中 → 導到住民監控頁（與斷線同一個去處）。床位上有指派住民時把 patientid 一起帶過去，
     // 詳情頁就能直接用 GET /db/Patient/{patientid} 取資料，不必再從裝置反查。
     return (
       <Link
