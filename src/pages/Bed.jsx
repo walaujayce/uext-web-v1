@@ -11,7 +11,7 @@ import Navbar from "../components/Navbar";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewBed from "../components/Modals/AddNewBed";
 import { useTranslation } from "react-i18next";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient";
 
 // 床位列表：資料來源為 WebAPI 的 BedController（GET api/db/Bed），
@@ -58,6 +58,9 @@ function Bed() {
 
   // React key：All 模式下不同 server 可能有相同 bedId，用來源 IP 前綴保證唯一
   const bedKey = (bed) => (bed.__srcIp ? `${bed.__srcIp}-${bed.bedId}` : bed.bedId);
+
+  // 多個區域共用同一台後端，所以抓回來的床位會夾帶其他區域的，前端要再過濾一次
+  const inSection = (bed) => matchesSection(select_section, bed.section);
 
   const fetchListFrom = async (url, targetIp) => {
     const cfg = targetIp ? { targetIp } : undefined;
@@ -155,7 +158,7 @@ function Bed() {
   // 有指派住民 = 佔用中
   const isOccupied = (bed) => Boolean(bed.patientId);
 
-  const filteredBeds = beds.slice().sort((a, b) => {
+  const filteredBeds = beds.filter(inSection).sort((a, b) => {
     const valA = (val) => val ?? "";
     const cmp = (x, y) => valA(x).localeCompare(valA(y), undefined, { numeric: true });
     switch (sortType) {

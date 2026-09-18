@@ -12,7 +12,7 @@ import Navbar from "../components/Navbar";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewPatient from "../components/Modals/AddNewPatient";
 import { useTranslation } from "react-i18next";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 
 function Patient() {
@@ -54,6 +54,12 @@ function Patient() {
   // React key：All 模式下不同 server 可能有相同 deviceid，用來源 IP 前綴保證唯一
   const patientKey = (patient) =>
     patient.__srcIp ? `${patient.__srcIp}-${patient.deviceid}` : patient.deviceid;
+
+  // 多個區域共用同一台後端，抓回來的住民會夾帶其他區域的，前端要再過濾一次。
+  // patient.section 是後端用「住民綁定的裝置」的區域帶出來的（PatientGetDto），
+  // 所以還沒綁裝置的住民 section 會是空字串 → matchesSection 讓它在每個區域都看得到，
+  // 否則新建但還沒指派的住民會整個消失。
+  const inSection = (patient) => matchesSection(select_section, patient.section);
 
   const fetchPatientsFrom = async (targetIp) => {
     const cfg = targetIp ? { targetIp } : undefined;
@@ -123,17 +129,7 @@ function Patient() {
 
   const filteredDevices = patients
     .slice()
-    // .filter((patient) => {
-    //   return (
-    //   );
-    // })
-    // .filter((patient) => {
-    //   return (
-    //     select_section === "" ||
-    //     select_section === "All" ||
-    //     patient.section === select_section
-    //   );
-    // })
+    .filter(inSection)
     .sort((a, b) => {
       // const p_idA = a.patientid?.toUpperCase() || "";
       // const p_idB = b.patientid?.toUpperCase() || "";

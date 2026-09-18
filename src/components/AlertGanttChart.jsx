@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import FloorSectionBar from "./FloorSectionBar";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import { Chart } from "chart.js";
 import "/src/CSS/alert.css";
 import ChartDataLabels from "chartjs-plugin-datalabels";
@@ -33,6 +33,9 @@ function AlertGanttChart() {
     }
     return [targetIp];
   }, [servers, select_section, targetIp]);
+
+  // 多個區域共用同一台後端，抓回來的資料會夾帶其他區域的，前端要再過濾一次
+  const inSection = (item) => matchesSection(select_section, item?.section);
   const [select_device, setSelect_Device] = useState("");
   const handleSelectDeviceType = (device) => {
     setSelect_Device(device);
@@ -357,17 +360,7 @@ function AlertGanttChart() {
     setSelectedAlert([]);
     setData(
       result
-        // .filter((patient) => {
-        //   return (
-        //   );
-        // })
-        // .filter((patient) => {
-        //   return (
-        //     select_section === "" ||
-        //     select_section === "All" ||
-        //     patient.section === select_section
-        //   );
-        // })
+        .filter(inSection)
         .filter((patient) => {
           return (
             select_device === "" ||

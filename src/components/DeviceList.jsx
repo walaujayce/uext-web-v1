@@ -11,7 +11,7 @@ import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewDevice from "../components/Modals/AddNewDevice";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 import api8031 from "../api/apiClient8031";
 
@@ -58,6 +58,9 @@ const DeviceList = () => {
   const deviceKey = (device) =>
     device.__srcIp ? `${device.__srcIp}-${device.macaddress}` : device.macaddress;
   const ipQuery = (device) => (device.__srcIp ? `&ip=${device.__srcIp}` : "");
+
+  // 多個區域共用同一台後端，抓回來的裝置會夾帶其他區域的，前端要再過濾一次
+  const inSection = (device) => matchesSection(select_section, device.section);
 
   {
     /* sort logic */
@@ -154,22 +157,17 @@ const DeviceList = () => {
       console.error("Error fetching device data:", error);
     }
   };
+  // select_section 也要當依賴：非 All 模式下 targetIps 恆為 null，
+  // 只靠它的話切換區域不會重跑（現在多個區域共用一台後端，過濾條件也在這裡變）。
   useEffect(() => {
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, [port, targetIps]);
+  }, [port, targetIps, select_section]);
 
   const filteredDevices = devices
     .filter((device) => device.used === true) // Only used devices
-    // .filter(
-    //   (device) =>
-    // .filter(
-    //   (device) =>
-    //     select_section === "" ||
-    //     select_section === "All" ||
-    //     device.section === select_section
-    // ) // Filter by section
+    .filter(inSection) // Filter by section
     .filter(
       (device) =>
         select_deviceType === "" ||

@@ -11,7 +11,11 @@ import { getWebApiIp } from "../config/runtimeConfig";
 import { useAuth } from "./AuthContext";
 
 // Source of truth: /api/7284/IpAddress/all
-//   每筆 { ip, section }，一個 section 只會有 1 個 IP（後端 Section 是唯一鍵）。
+//   每筆 { ip, section }。section → IP 仍然是唯一的（後端 Section 是唯一鍵），
+//   但反過來「一個 IP 只服務一個 section」已經不成立：多個 section 會共用同一台後端。
+//
+// ⚠ 因此「選定單一區域」時，從該台後端抓回來的資料會夾帶其他區域的資料，
+//   前端一定要再過濾一次 → 各列表頁共用底下的 matchesSection()。
 //
 // ⚠ 後端已移除 floor，這裡不再有樓層的概念，只剩 section。
 const BASE = "/api/7284/IpAddress";
@@ -36,6 +40,13 @@ const readStoredSection = () => {
     return null;
   }
 };
+
+// 區域過濾的共用判斷（Home / Bed / Patient / Device / Alert 列表都用這支）：
+//   selected 未選或 "All" → 全部通過
+//   資料本身沒有 section（尚未指派給任何區域）→ 一律顯示，
+//     否則這種資料在每個區域都看不到，只有 All 才找得到
+export const matchesSection = (selected, value) =>
+  !selected || selected === "All" || !value || value === selected;
 
 const FloorSectionContext = createContext();
 
@@ -102,7 +113,8 @@ export const FloorSectionProvider = ({ children }) => {
     return nextSection;
   };
 
-  // 依目前 section 找出對應的 IP（一個 section 唯一對應一台）
+  // 依目前 section 找出對應的 IP（section → IP 仍唯一；
+  // 注意反向不成立，同一台 IP 可能同時服務其他 section）
   const selectedServer = useMemo(
     () => servers.find((s) => s.section === section) ?? null,
     [servers, section],

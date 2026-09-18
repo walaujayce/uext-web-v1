@@ -23,7 +23,7 @@ import AddNewBed from "../components/Modals/AddNewBed";
 import { useTranslation } from "react-i18next";
 import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import { isSignalREnabled } from "../config/runtimeConfig";
 
 // ─────────────────────────────────────────────────────────
@@ -622,6 +622,9 @@ function Home() {
 
   const bedDeviceId = (bed) => bedPatient(bed)?.deviceid || "";
 
+  // 多個區域共用同一台後端，抓回來的資料會夾帶其他區域的，前端要再過濾一次
+  const inSection = (item) => matchesSection(select_section, item?.section);
+
   const bedCards = useMemo(() => {
     const deviceMap = new Map();
     devices.forEach((d) => {
@@ -629,7 +632,7 @@ function Home() {
       deviceMap.set(deviceMapKey(d.__srcIp, d.MAC), d);
     });
 
-    return beds.map((bed) => {
+    return beds.filter(inSection).map((bed) => {
       // 裝置來自住民：bed.patientId → patient.deviceid
       const boundDeviceId = bedDeviceId(bed);
       const device = boundDeviceId
@@ -656,7 +659,7 @@ function Home() {
 
       return { bed, device, status, deviceId: boundDeviceId, Bed: bed.bedId };
     });
-  }, [beds, devices, patientMap]);
+  }, [beds, devices, patientMap, select_section]);
 
   {
     /* deviceType 篩選：空床沒有裝置，沒有 TYPE 可比，
@@ -689,13 +692,13 @@ function Home() {
       select_deviceType === "All" ||
       d.devicetype === select_deviceType;
 
-    const list = registeredDevices.filter(matchesType);
+    const list = registeredDevices.filter(inSection).filter(matchesType);
     const bound = list.filter((d) =>
       boundIds.has(deviceMapKey(d.__srcIp, d.deviceid)),
     ).length;
 
     return { total: list.length, bound, available: list.length - bound };
-  }, [patients, registeredDevices, select_deviceType]);
+  }, [patients, registeredDevices, select_deviceType, select_section]);
 
   const statusCounts = {
     alerts: visibleCards.filter((c) => c.status === "alert").length,
