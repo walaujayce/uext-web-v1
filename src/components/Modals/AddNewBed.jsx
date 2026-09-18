@@ -161,7 +161,11 @@ const TextField = ({ id, label, value, onChange, maxLength, disabled, error, err
 //      沒有住民的床位一定也沒有裝置。
 //   2. 裝置非必填；有選的話會寫進該住民的 deviceid。
 //
-// 綁定／解除裝置時，裝置資料表的 bed / section 兩欄會同步維護（見 syncDeviceBed）。
+// 床位編號與住民編號都限制在 8 個字元：裝置資料表的 devices.bed 只有 8 個字元，
+// 綁定裝置時床位編號要寫進去，超過會被 PostgreSQL 以 22001 擋下（整個綁定失敗）。
+//
+// 綁定／解除裝置時，裝置資料表的 bed / section 兩欄由後端同步維護
+// （WebAPI 的 Utility/DeviceBedSync.cs），前端不需要也不應該自己去改裝置。
 //
 // 資料庫查詢只有兩處：裝置下拉（依區域抓裝置清單 + 排除已被別張床綁走的），
 // 以及編輯模式載入已綁定住民的資料。其餘欄位一律手動輸入。
@@ -201,8 +205,10 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
   const [birthday, setBirthday] = useState(new Date());
   // 裝置來自住民（patient.deviceid），編輯模式下由底下載入住民資料時帶入
   const [deviceId, setDeviceId_POST] = useState("");
-  // 進來時住民身上原本綁的裝置，用來判斷使用者有沒有改過
-  const [initialDeviceId, setInitialDeviceId] = useState("");
+  // 表單上的住民資料是從資料庫載進來的（編輯模式）→ 送出時才能拿表單的值當準
+  const profileLoadedRef = useRef(false);
+  // 載進來的是哪一位住民；使用者把編號改掉之後，表單上那份資料就不再適用
+  const loadedPatientIdRef = useRef("");
   const [nurseId, setNurseId_POST] = useState(bed?.nurseId ?? "");
 
   // 編輯模式下這張床本來就有指派 → 一進來就展開，讓使用者直接看到現有內容
@@ -345,7 +351,8 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
         if (p.birthday) setBirthday(new Date(p.birthday));
         // 裝置記在住民身上
         setDeviceId_POST(p.deviceid ?? "");
-        setInitialDeviceId(p.deviceid ?? "");
+        profileLoadedRef.current = true;
+        loadedPatientIdRef.current = p.patientid;
         if (p.deviceid) setOptionalOpen(true);
       } catch (error) {
         console.error("Error fetching patient:", error.message);
@@ -361,7 +368,20 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
   // 住民編號清空 → 裝置一併清掉（規則：沒有住民就不能綁定裝置）
   const handlePatientIdChange = (value) => {
     setPatientId_POST(value);
-    if (!value.trim()) setDeviceId_POST("");
+    const next = value.trim();
+    if (!next) setDeviceId_POST("");
+
+    // 編輯模式換成另一位住民：表單上載入的是「上一位」的姓名／生日／裝置，
+    // 不清掉的話會被寫到新的住民身上
+    if (loadedPatientIdRef.current && next !== loadedPatientIdRef.current) {
+      profileLoadedRef.current = false;
+      setPatientName_POST("");
+      setHeight_POST("");
+      setWeight_POST("");
+      setSex_POST(0);
+      setBirthday(new Date());
+      setDeviceId_POST("");
+    }
   };
 
   // 裝置欄位何時鎖住：還沒填住民、且目前也沒有已綁定的裝置。
@@ -369,32 +389,14 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
   const deviceLocked = !patientId.trim() && !deviceId;
 
   {
-    /* 裝置資料表自己也有 bed / section 兩欄，綁定與解除時要一起維護，
-       否則會和床位表對不起來（DeviceList、8031 等處都讀裝置上的這兩欄）。
+    /* 裝置資料表自己也有 bed / section 兩欄，但那兩欄已經改由後端維護：
+       BedController / PatientController 在寫入時會依
+           bed.patient_id → patient.deviceid → device
+       這條鏈同步裝置的 bed / section（見 Utility/DeviceBedSync.cs）。
 
-       ⚠ PUT /db/Device/{id} 是整筆覆寫（後端用 AutoMapper 全欄位 map），
-         所以要把該裝置現有的值原樣帶回，只改 bed / section，
-         不能只送這兩個欄位，否則其他設定會被清成預設值。
-       ⚠ 這支端點需要 Roles.Engineer；權限不足時失敗只記錄，不中斷主流程。 */
+       前端不要再自己打 PUT /db/Device/{id}：那支端點需要 Roles.Engineer
+       （護理人員會靜默失敗），而且是整筆覆寫，漏欄位就會把裝置設定清掉。 */
   }
-  const syncDeviceBed = async (devId, nextBed, nextSection) => {
-    if (!devId) return;
-    const current = devices.find((d) => d.deviceid === devId);
-    if (!current) return; // 不在這台後端的清單裡就跳過
-
-    // 這幾個欄位不屬於 DevicePutDto（唯讀或由後端維護），不要送出去
-    const { __srcIp, deviceid, updatedat, ping, rssi, ...rest } = current;
-
-    await api
-      .put(
-        `/api/7284/db/Device/${devId}`,
-        { ...rest, bed: nextBed, section: nextSection },
-        cfg,
-      )
-      .catch((err) =>
-        console.error(`Error updating device ${devId} bed/section:`, err.message),
-      );
-  };
 
   // 新增模式換區域 = 換後端，原本選的裝置在新的後端不存在 → 清掉重選
   const handleSectionSelect = (value) => {
@@ -410,6 +412,26 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     if (deviceId) parts.push(`${t("AddBedModal.Device")} ${deviceId}`);
     if (nurseId) parts.push(`${t("AddBedModal.Nurse")} ${nurseId}`);
     return parts.length ? parts.join("・") : t("AddBedModal.Unassigned");
+  };
+
+  {
+    /* 後端的錯誤訊息可能是 camelCase 或 PascalCase，也可能整包不是 JSON。
+       以前一律吞成「Unable to connect to the server.」，實際上多半是 4xx/5xx，
+       訊息被吃掉就完全查不出原因，所以這裡盡量把狀態碼和內容攤出來。 */
+  }
+  const fmtErr = (error, fallback) => {
+    if (error?.response) {
+      const { status, data } = error.response;
+      const msg =
+        (typeof data === "string" && data) ||
+        data?.message ||
+        data?.Message ||
+        data?.title ||
+        error.message;
+      return `${status} ${msg || fallback}`;
+    }
+    // 沒有 response = 請求根本沒送到（連線失敗），或是前端自己丟的例外
+    return `${error?.message || fallback}`;
   };
 
   const handleConfirmClick = () => {
@@ -437,83 +459,81 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       setLoading(true);
 
       // ── 住民（裝置就記在住民身上的 deviceid）──
-      //   有編號 + 姓名 → 先試著建立；已存在（409）改用 PUT 更新
-      //   只有編號     → 指派既有住民。若裝置有異動，仍要把新的 deviceid 寫回去，
-      //                  所以先讀回該住民現值再 PUT，避免其他欄位被清掉。
-      if (pid && pname) {
-        const profile = {
-          patientname: pname,
-          deviceid: deviceId || null,
-          sex,
-          birthday: format(birthday, "yyyy-MM-dd"),
-          height: parseInt(height, 10) || 0,
-          weight: parseInt(weight, 10) || 0,
-          jlog: {},
-        };
-        try {
-          await api.post(
-            "/api/7284/db/Patient",
-            { ...profile, patientid: pid },
-            cfg,
-          );
-        } catch (error) {
-          if (error.response?.status === 409) {
-            // 既有住民 → 更新。後端只有在真的有欄位變動時才回 code 0，
-            // 沒改任何東西時會回非 0，那不算失敗，所以不看 code。
-            try {
-              await api.put(`/api/7284/db/Patient/${pid}`, profile, cfg);
-            } catch (putError) {
-              alert(
-                `Error: ${
-                  putError.response?.data?.message ||
-                  "Failed to update resident."
-                }`,
-              );
-              return;
-            }
-          } else {
-            alert(
-              `Error: ${
-                error.response?.data?.message || "Failed to create resident."
-              }`,
-            );
-            return;
-          }
-        }
-      } else if (pid && deviceId !== initialDeviceId) {
-        // 只指派既有住民，但裝置有換 → 讀回現值後只改 deviceid 再寫回
+      //   住民編號不存在 → 新增一筆。姓名沒填就用編號頂著，
+      //                    因為 patient.patientname 是 NOT NULL，
+      //                    而且床位上掛著一個資料庫裡不存在的住民編號才是更糟的狀態。
+      //   住民編號已存在 → 更新。使用者沒填的欄位沿用資料庫現值，
+      //                    避免表單的預設值（性別女、生日今天）把既有資料洗掉。
+      if (pid) {
+        // 1. 先確認這位住民存不存在
+        let existing = null;
         try {
           const res = await api.get(
             `/api/7284/db/Patient/${encodeURIComponent(pid)}`,
             cfg,
           );
           const p = res.data;
-          // 查無此住民時後端是回 200 + { code: -1 }
-          if (!p || p.code !== undefined || !p.patientid) {
-            alert(`Error: Resident '${pid}' does not exist.`);
+          // 查無此住民時後端是回 200 + { code: -1 }，不是 404，要自己判斷
+          if (p && p.code === undefined && p.patientid) existing = p;
+        } catch (error) {
+          // 404 才算「不存在」，其他錯誤（連線、權限）不能當成要新增
+          if (error.response?.status !== 404) {
+            alert(`Error: ${fmtErr(error, "Failed to look up resident.")}`);
             return;
           }
-          await api.put(
-            `/api/7284/db/Patient/${pid}`,
-            {
-              patientname: p.patientname ?? "",
-              deviceid: deviceId || null,
-              sex: p.sex ?? 0,
-              birthday: p.birthday
-                ? format(new Date(p.birthday), "yyyy-MM-dd")
-                : format(new Date(), "yyyy-MM-dd"),
-              height: p.height ?? 0,
-              weight: p.weight ?? 0,
-              jlog: {},
-            },
-            cfg,
-          );
+        }
+
+        // 2. 表單上的住民資料算不算數：
+        //    新增住民 → 一定算（使用者填什麼就是什麼）
+        //    既有住民 → 只有在進來時把他的資料載進表單才算。
+        //               新增床位時只是從下拉選了一個既有編號，表單是空的／預設值，
+        //               直接送出去會把他的姓名、生日、性別清掉。
+        const formIsAuthoritative =
+          !existing ||
+          (profileLoadedRef.current && pid === loadedPatientIdRef.current);
+
+        const numOr = (value, fallback) => {
+          const n = parseInt(String(value).trim(), 10);
+          return Number.isNaN(n) ? fallback : n;
+        };
+
+        const profile = {
+          patientname: pname || existing?.patientname || pid,
+          deviceid: deviceId || null,
+          sex: formIsAuthoritative ? sex : existing.sex ?? 0,
+          birthday: format(
+            formIsAuthoritative
+              ? birthday
+              : existing.birthday
+                ? new Date(existing.birthday)
+                : birthday,
+            "yyyy-MM-dd",
+          ),
+          height: numOr(height, existing?.height ?? 0),
+          weight: numOr(weight, existing?.weight ?? 0),
+          jlog: {},
+        };
+
+        // 3. 寫入。POST 撞到 409（剛好被別人建走）就改成 PUT。
+        //    後端只有在真的有欄位變動時才回 code 0，沒改任何東西時會回非 0，
+        //    那不算失敗，所以不看 code。
+        try {
+          if (existing) {
+            await api.put(`/api/7284/db/Patient/${pid}`, profile, cfg);
+          } else {
+            try {
+              await api.post(
+                "/api/7284/db/Patient",
+                { ...profile, patientid: pid },
+                cfg,
+              );
+            } catch (error) {
+              if (error.response?.status !== 409) throw error;
+              await api.put(`/api/7284/db/Patient/${pid}`, profile, cfg);
+            }
+          }
         } catch (error) {
-          alert(
-            `Error: ${
-              error.response?.data?.message || "Failed to update resident."
-            }`,
-          );
+          alert(`Error: ${fmtErr(error, "Failed to save resident.")}`);
           return;
         }
       }
@@ -531,15 +551,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
         : await api.post("/api/7284/db/Bed", requestBody, cfg);
 
       if (response.status === 200 || response.status === 201) {
-        // 裝置資料表的 bed / section 跟著更新
-        if (initialDeviceId && initialDeviceId !== deviceId) {
-          // 換綁或解除 → 舊裝置的 bed / section 清掉
-          await syncDeviceBed(initialDeviceId, null, null);
-        }
-        if (deviceId) {
-          await syncDeviceBed(deviceId, bedId.trim(), section || null);
-        }
-
+        // 裝置資料表的 bed / section 由後端在上面這些寫入裡一起維護，這裡不用再動
         setDoneMessage(isEdit ? "BedUpdated" : "NewBedAdded");
         onCreated?.();
       } else {
@@ -547,11 +559,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       }
     } catch (error) {
       console.error("Error while submitting data:", error);
-      alert(
-        `Error: ${
-          error.response?.data?.message || "Unable to connect to the server."
-        }`,
-      );
+      alert(`Error: ${fmtErr(error, "Unable to connect to the server.")}`);
     } finally {
       setLoading(false);
     }
@@ -582,9 +590,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
         cfg,
       );
 
-      // 住民會被刪掉，他身上綁的裝置等於一併解除
-      // → 裝置資料表的 bed / section 清掉
-      await syncDeviceBed(initialDeviceId, null, null);
+      // 床位解除住民時，後端已經把該住民所綁裝置的 bed / section 清掉了
 
       // 警示設定沒有不算錯，失敗只記錄不中斷
       await api
@@ -598,11 +604,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       onCreated?.();
     } catch (error) {
       console.error("Error while discharging patient:", error);
-      alert(
-        `Error: ${
-          error.response?.data?.message || "Unable to connect to the server."
-        }`,
-      );
+      alert(`Error: ${fmtErr(error, "Unable to connect to the server.")}`);
     } finally {
       setLoading(false);
     }
@@ -621,8 +623,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       const response = await api.delete(`/api/7284/db/Bed/${bed.bedId}`, cfg);
 
       if (response.status === 204 || response.status === 200) {
-        // 床位沒了、住民也會刪掉 → 該住民綁的裝置 bed / section 清掉
-        await syncDeviceBed(initialDeviceId, null, null);
+        // 床位沒了 → 後端在刪床位時已經把該住民所綁裝置的 bed / section 清掉
 
         if (pid) {
           // 警示設定沒有不算錯，失敗只記錄不中斷
@@ -634,11 +635,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
           // 床位已經刪掉了，住民刪失敗就提示一下，不回頭擋流程
           await api.delete(`/api/7284/db/Patient/${pid}`, cfg).catch((err) => {
             console.error("Error deleting patient:", err);
-            alert(
-              `Error: ${
-                err.response?.data?.message || "Failed to delete resident."
-              }`,
-            );
+            alert(`Error: ${fmtErr(err, "Failed to delete resident.")}`);
           });
         }
 
@@ -650,11 +647,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       }
     } catch (error) {
       console.error("Error while deleting bed:", error);
-      alert(
-        `Error: ${
-          error.response?.data?.message || "Unable to connect to the server."
-        }`,
-      );
+      alert(`Error: ${fmtErr(error, "Unable to connect to the server.")}`);
     } finally {
       setLoading(false);
     }
@@ -706,7 +699,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
                     label={t("AddBedModal.BedID")}
                     value={bedId}
                     onChange={setBedId_POST}
-                    maxLength={50}
+                    maxLength={8}
                     disabled={isEdit}
                     error={bedIdError}
                     errorText={t("AddBedModal.Required")}
@@ -748,7 +741,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
                           label={t("AddBedModal.PatientID")}
                           value={patientId}
                           onChange={handlePatientIdChange}
-                          maxLength={50}
+                          maxLength={8}
                         />
                         <TextField
                           id="patientNameInNewBed"

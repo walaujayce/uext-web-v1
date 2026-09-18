@@ -484,8 +484,8 @@ function PatientProfile() {
   {
     /* Remove Device Button：解除這位住民的裝置綁定。
        裝置已經不記在床位上，而是記在住民身上（patient.deviceid），
-       所以「移除裝置」＝ 把住民的 deviceid 清空，並清掉裝置自己的 bed / section。
-       床位本身不需要動。 */
+       所以「移除裝置」＝ 把住民的 deviceid 清空；裝置自己的 bed / section
+       後端會跟著清掉。床位本身不需要動。 */
   }
   const [isUnbindOverlayVisible, setUnbindOverlayVisible] = useState(false);
   const handleUnbindOverlay = () => {
@@ -520,27 +520,9 @@ function PatientProfile() {
         cfg,
       );
 
-      // 2. 裝置資料表自己也有 bed / section 兩欄，一起清掉。
-      //    PUT /db/Device/{id} 是整筆覆寫，所以先讀回現值、只改這兩欄再送。
-      //    需要 Roles.Engineer，失敗只記錄不中斷（住民那邊已經解除成功了）。
-      try {
-        const devRes = await api.get(
-          `/api/7284/db/Device/${encodeURIComponent(macaddress)}`,
-          cfg,
-        );
-        const current = devRes.data;
-        // 查無裝置時後端是回 200 + { code: -1 }，要自己判斷
-        if (current && current.code === undefined && current.deviceid) {
-          const { deviceid, updatedat, ping, rssi, ...rest } = current;
-          await api.put(
-            `/api/7284/db/Device/${macaddress}`,
-            { ...rest, bed: null, section: null },
-            cfg,
-          );
-        }
-      } catch (err) {
-        console.error("Error clearing device bed/section:", err.message);
-      }
+      // 2. 裝置資料表的 bed / section 由後端在上面那次 PUT 裡一起清掉
+      //    （PatientController 看到 deviceid 從有變成 null 就會處理，
+      //      見 WebAPI 的 Utility/DeviceBedSync.cs），前端不用再打裝置的端點。
 
       setUnbindOverlayVisible(false);
       navigate("/home");
@@ -622,6 +604,7 @@ function PatientProfile() {
               placeholder={t("PatientProfile.PatientIDPlaceholder")}
               value={patientIDInput.inputValue}
               onChange={handlePatientIdChange}
+              maxLength={8}
               onFocus={() => setPatientListActive(true)}
               autoComplete="off"
             />

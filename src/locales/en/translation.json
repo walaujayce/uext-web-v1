@@ -17,7 +17,7 @@
   },
   "Navbar": {
     "Home": "Home",
-    "Patient": "Resident",
+    "Patient": "Patient",
     "Bed": "Bed",
     "Alert": "Alert",
     "Device": "Device",
@@ -39,7 +39,7 @@
     "Disconnected": "Disconnected",
     "Normal": "Normal",
     "Vacant": "Vacant",
-    "ClickToBindPatient": "Click to bind a resident",
+    "ClickToBindPatient": "Click to bind a patient",
     "AvailableDevices": "Devices available to bind",
     "AllDevicesBound": "All devices are bound to a bed",
     "BoundDevices": "Bound",
@@ -86,9 +86,9 @@
     "Cancel": "Cancel"
   },
   "PatientList": {
-    "PatientList": "Resident List",
-    "PatientID": "Resident ID",
-    "PatientName": "Resident Name",
+    "PatientList": "Patient List",
+    "PatientID": "Patient ID",
+    "PatientName": "Patient Name",
     "Sex": "Sex",
     "Bed": "Bed",
     "Section": "Section",
@@ -100,7 +100,7 @@
     "BedList": "Bed List",
     "BedID": "Bed ID",
     "Section": "Section",
-    "PatientID": "Resident ID",
+    "PatientID": "Patient ID",
     "DeviceID": "Device ID",
     "NurseID": "Nurse",
     "Status": "Bed Status",
@@ -114,16 +114,16 @@
     "NewBedAdded": "New Bed Added",
     "BedUpdated": "Bed Updated",
     "BedDeleted": "Bed Deleted",
-    "PatientDischarged": "Resident discharged",
+    "PatientDischarged": "Patient discharged",
     "BedProfile": "Bed Profile",
     "BedID": "Bed ID",
     "Section": "Section",
-    "OptionalSection": "Resident & assignment (optional)",
+    "OptionalSection": "Patient & assignment (optional)",
     "Nurse": "Nurse",
-    "PatientID": "Resident ID",
-    "PatientName": "Resident name",
+    "PatientID": "Patient ID",
+    "PatientName": "Patient name",
     "Device": "Device",
-    "DeviceNeedsPatient": "Assign a resident first",
+    "DeviceNeedsPatient": "Assign a patient first",
     "Unassigned": "Unassigned",
     "Required": "Information Required!",
     "Continue": "Continue",
@@ -131,9 +131,9 @@
     "Okay": "Okay",
     "Save": "Save",
     "Delete": "Delete",
-    "Discharge": "Discharge resident",
+    "Discharge": "Discharge patient",
     "DeleteConfirm": "Delete bed \"{{bedId}}\"? This cannot be undone.",
-    "DeleteConfirmWithPatient": "Delete bed \"{{bedId}}\"? Resident \"{{patientId}}\" on this bed will be deleted as well. This cannot be undone.",
+    "DeleteConfirmWithPatient": "Delete bed \"{{bedId}}\"? Patient \"{{patientId}}\" on this bed will be deleted as well. This cannot be undone.",
     "DeleteYes": "Yes, delete",
     "Height": "Height",
     "Weight": "Weight",
@@ -141,8 +141,8 @@
     "Sex": "Sex",
     "Female": "Female",
     "Male": "Male",
-    "OptionalNote": "Leave blank to keep this bed unassigned. A device can only be bound once the bed has a resident; entering a resident ID together with a name creates that resident, and any bound device is saved onto it.",
-    "DischargeConfirm": "Discharge resident \"{{patientId}}\"? The bed will be unassigned from both the resident and the device, and the resident record will be deleted.",
+    "OptionalNote": "Leave blank to keep this bed unassigned. A device can only be bound once the bed has a patient; entering a patient ID together with a name creates that patient, and any bound device is saved onto it.",
+    "DischargeConfirm": "Discharge patient \"{{patientId}}\"? The bed will be unassigned from both the patient and the device, and the patient record will be deleted.",
     "DischargeYes": "Yes, discharge"
   },
   "PatientDetail": {
@@ -154,10 +154,10 @@
     "Back": "Back"
   },
   "PatientProfile": {
-    "PatientProfile": "Resident Profile",
-    "PatientID": "Resident ID",
-    "PatientIDPlaceholder": "Select or enter a resident ID",
-    "NewPatientHint": "No such resident yet — saving will create one",
+    "PatientProfile": "Patient Profile",
+    "PatientID": "Patient ID",
+    "PatientIDPlaceholder": "Select or enter a patient ID",
+    "NewPatientHint": "No such patient yet — saving will create one",
     "PatientName": "Name",
     "Sex": "Sex",
     "Birthday": "Birthday",
@@ -172,16 +172,16 @@
     "Discharge": "Discharge",
     "UnbindDevice": "Remove device",
     "Calibration": "Calibration",
-    "PatientIDRequired": "Please enter a resident ID.",
-    "PatientNameRequired": "Please enter the resident's name.",
+    "PatientIDRequired": "Please enter a patient ID.",
+    "PatientNameRequired": "Please enter the patient's name.",
     "SaveSuccess": "Saved successfully!",
-    "DischargeSuccess": "Resident discharged."
+    "DischargeSuccess": "Patient discharged."
   },
   "AddPatientModal": {
-    "ClickToAddPatient": "Click to add resident",
-    "AddNewPatient": "Resident Added Successfully",
-    "AddPatient-h1": "Add Resident",
-    "AddPatient-h2": "Resident Profile",
+    "ClickToAddPatient": "Click to add patient",
+    "AddNewPatient": "Patient Added Successfully",
+    "AddPatient-h1": "Add Patient",
+    "AddPatient-h2": "Patient Profile",
     "ID": "ID",
     "Name": "Name",
     "Height": "Height (cm)",
@@ -192,13 +192,13 @@
     "Cancel": "Cancel"
   },
   "DischargeModal": {
-    "description": "Confirm to discharge the resident?",
+    "description": "Confirm to discharge the patient?",
     "Discharge": "Discharge",
     "Cancel": "Cancel"
   },
   "UnbindDeviceModal": {
     "description": "Remove the device from this bed?",
-    "note": "The bed keeps its resident; only the device binding is removed.",
+    "note": "The bed keeps its patient; only the device binding is removed.",
     "Unbind": "Remove device",
     "Cancel": "Cancel",
     "NotBound": "This device is not bound to any bed."
@@ -269,8 +269,8 @@
     "AlertSettingList": "Alert Setting List",
     "Setting": "Setting",
     "BedID": "Bed ID",
-    "PatientID": "Resident",
-    "NoResident": "No resident"
+    "PatientID": "Patient",
+    "NoPatient": "No patient"
   },
   "DeviceList": {
     "NewDevice": "New Device",
@@ -437,7 +437,7 @@
           "summaryTitle": "Insufficient Sleep / Poor Quality",
           "summaryRange": "(Average less than 6 hours per night)",
           "details": [
-            "Resident has insufficient nighttime sleep; provide a quiet environment and reduce disturbances.",
+            "Patient has insufficient nighttime sleep; provide a quiet environment and reduce disturbances.",
             "Avoid stimulating activities before bed such as phone use or caffeinated drinks.",
             "Assess for pain, discomfort, or anxiety affecting sleep; notify the physician if necessary."
           ]
@@ -446,7 +446,7 @@
           "summaryTitle": "Excessive Sleep / Drowsiness",
           "summaryRange": "(Average more than 10 hours per night)",
           "details": [
-            "Resident shows notable drowsiness; encourage gentle awakening and daytime activity.",
+            "Patient shows notable drowsiness; encourage gentle awakening and daytime activity.",
             "Adjust daytime nap duration to avoid disrupting nighttime sleep.",
             "Assess whether it is related to medication side effects or underlying conditions."
           ]
@@ -457,7 +457,7 @@
           "summaryTitle": "Normal",
           "summaryRange": "(Average less than or equal to 2 times per night)",
           "details": [
-            "Resident's nighttime out-of-bed frequency is acceptable; continue to observe activity at night.",
+            "Patient's nighttime out-of-bed frequency is acceptable; continue to observe activity at night.",
             "Maintain a safe bedside environment, such as safety rails and call bell.",
             "Encourage toileting before bed to reduce nighttime out-of-bed needs.",
             "Continue to assess fall risk and provide necessary aids such as walkers."
@@ -467,7 +467,7 @@
           "summaryTitle": "Excessive Out-of-Bed / Frequent Urination",
           "summaryRange": "(Average more than 2 times per night)",
           "details": [
-            "Resident leaves bed frequently at night; strengthen fall prevention with call bell and lower bed height.",
+            "Patient leaves bed frequently at night; strengthen fall prevention with call bell and lower bed height.",
             "Assess possible causes such as frequent urination, pain, or discomfort; notify the physician if necessary.",
             "Schedule regular toileting times, such as before bed and at fixed intervals at night.",
             "Provide moderate nighttime lighting to reduce falls due to poor visibility.",
@@ -480,7 +480,7 @@
           "summaryTitle": "Normal",
           "summaryRange": "(Average less than or equal to 40 times per night)",
           "details": [
-            "Resident's nighttime turn-over count is acceptable; continue to observe activity at night.",
+            "Patient's nighttime turn-over count is acceptable; continue to observe activity at night.",
             "Continue providing proper positioning and support, such as pillows and pressure-relief mats.",
             "Maintain a safe bedside environment, such as safety rails and call bell."
           ]
@@ -489,7 +489,7 @@
           "summaryTitle": "Excessive Turn-Over / Light Sleep",
           "summaryRange": "(Average more than 40 times per night)",
           "details": [
-            "Resident turns over frequently at night; assess whether it is caused by pain, discomfort, or anxiety.",
+            "Patient turns over frequently at night; assess whether it is caused by pain, discomfort, or anxiety.",
             "Check whether the mattress is comfortable and positioning is appropriate.",
             "Assess pressure-point pain or skin issues if necessary.",
             "Reinforce nighttime observation; notify the physician for medication or treatment review if necessary."
@@ -501,7 +501,7 @@
           "summaryTitle": "Normal",
           "summaryRange": "(Average greater than or equal to 12 times per day)",
           "details": [
-            "Resident's daily turn-over count is normal and meets pressure injury prevention principles; continue scheduled turning.",
+            "Patient's daily turn-over count is normal and meets pressure injury prevention principles; continue scheduled turning.",
             "Continue executing the turning plan along with skin assessment and pressure-relief aids."
           ]
         },
@@ -509,7 +509,7 @@
           "summaryTitle": "Insufficient Turn-Over",
           "summaryRange": "(Average less than 12 times per day)",
           "details": [
-            "Resident's daily turn-over count is too low; increase turning frequency to prevent pressure injuries.",
+            "Patient's daily turn-over count is too low; increase turning frequency to prevent pressure injuries.",
             "Execute the turning plan strictly and strengthen turning records.",
             "Assess whether staffing, patient condition, or care arrangements affect turning execution.",
             "Adjust the care plan or increase rounding frequency if necessary."
@@ -521,7 +521,7 @@
           "summaryTitle": "Normal",
           "summaryRange": "(Max interval less than or equal to 2 hours per day)",
           "details": [
-            "Resident's turn-over interval is normal and meets pressure injury prevention principles; continue current practice.",
+            "Patient's turn-over interval is normal and meets pressure injury prevention principles; continue current practice.",
             "Continue executing the turning plan along with skin assessment and pressure-relief aids."
           ]
         },
@@ -529,7 +529,7 @@
           "summaryTitle": "Excessively Long Interval",
           "summaryRange": "(Max interval more than 2 hours per day)",
           "details": [
-            "Resident's turn-over interval exceeds the recommendation; shorten the interval to reduce pressure injury risk.",
+            "Patient's turn-over interval exceeds the recommendation; shorten the interval to reduce pressure injury risk.",
             "Implement scheduled turning and strengthen documentation.",
             "Assess whether nighttime staffing or care workflow affects turning execution.",
             "Adjust care arrangements to ensure proper turning frequency."

@@ -12,11 +12,17 @@ import { useAuth } from "../../JS/AuthContext";
 // Backend (IpAddressController.cs) routes:
 //   GET    /api/7284/IpAddress/all
 //   POST   /api/7284/IpAddress           body: { Ip, Section, IsSelf }
-//   PUT    /api/7284/IpAddress/{ip}      body: { Section, IsSelf }
-//   DELETE /api/7284/IpAddress/{ip}
+//   PUT    /api/7284/IpAddress/{id}      body: { Ip, Section, IsSelf }
+//   DELETE /api/7284/IpAddress/{id}
 //
-// ⚠ 後端已移除 Floor，IpAddress 只剩 Ip / Section / IsSelf。
-//   Section 在後端是唯一鍵：POST 與 PUT 都會擋重複的 Section。
+// ⚠ 後端已移除 Floor，IpAddress 只剩 Id / Ip / Section / IsSelf。
+//
+// ⚠ 一台後端可以服務多個區域：同一個 Ip 會出現多筆（每筆一個 Section），
+//   唯一鍵只在 Section 上（一個區域仍然只會落在一台後端）。
+//   主鍵是自增的 Id，所以 PUT / DELETE 都改用 Id 指定資料列，不能再用 Ip。
+//
+// ⚠ IsSelf 是「這個 IP 是不是本機」，屬於 IP 而不是區域：後端會把同一個 IP
+//   的所有資料列一起設成同樣的值，所以清單上同 IP 的列會一起打勾／取消。
 //
 // ⚠ PUT 的後端寫法是 entity.IsSelf = request.IsSelf ?? false，
 //   也就是「沒送 IsSelf 就會被重設為 false」。所以編輯時一定要把
@@ -29,10 +35,11 @@ const MultiServerSetting = ({ callback }) => {
   const { isDarkMode } = useAuth();
 
   const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState([]); // [{ ip, section, isSelf }]
+  const [rows, setRows] = useState([]); // [{ id, ip, section, isSelf }]
 
-  // Inline-edit state for an existing row
-  const [editingIp, setEditingIp] = useState(null);
+  // Inline-edit state for an existing row（以 id 指定，Ip 與 Section 都可以改）
+  const [editingId, setEditingId] = useState(null);
+  const [editIp, setEditIp] = useState("");
   const [editSection, setEditSection] = useState("");
   const [editIsSelf, setEditIsSelf] = useState(false);
 
@@ -54,6 +61,7 @@ const MultiServerSetting = ({ callback }) => {
       // Backend may serialize PascalCase or camelCase depending on settings —
       // normalize both to lowercase for the UI.
       const list = (res.data || []).map((x) => ({
+        id: x.id ?? x.Id ?? null,
         ip: x.ip ?? x.Ip ?? "",
         section: x.section ?? x.Section ?? "",
         isSelf: Boolean(x.isSelf ?? x.IsSelf ?? false),
@@ -111,25 +119,29 @@ const MultiServerSetting = ({ callback }) => {
   // PUT  – inline edit Section / IsSelf for an existing IP
   // ─────────────────────────────────────────────────────────
   const handleEditStart = (row) => {
-    setEditingIp(row.ip);
+    setEditingId(row.id);
+    setEditIp(row.ip);
     setEditSection(row.section);
     setEditIsSelf(row.isSelf);
   };
   const handleEditCancel = () => {
-    setEditingIp(null);
+    setEditingId(null);
+    setEditIp("");
     setEditSection("");
     setEditIsSelf(false);
   };
-  const handleEditSave = async (ip) => {
+  const handleEditSave = async (id) => {
     const section = editSection.trim();
-    if (!section) {
-      alert("Section cannot be empty.");
+    const ip = editIp.trim();
+    if (!section || !ip) {
+      alert("Section and IP cannot be empty.");
       return;
     }
     try {
       setLoading(true);
       // IsSelf 一定要一起送：後端是 request.IsSelf ?? false，漏送會被清成 false
-      await api.put(`${BASE}/${encodeURIComponent(ip)}`, {
+      await api.put(`${BASE}/${encodeURIComponent(id)}`, {
+        Ip: ip,
         Section: section,
         IsSelf: editIsSelf,
       });
@@ -151,9 +163,9 @@ const MultiServerSetting = ({ callback }) => {
     if (!ok) return;
     try {
       setLoading(true);
-      await api.delete(`${BASE}/${encodeURIComponent(row.ip)}`);
+      await api.delete(`${BASE}/${encodeURIComponent(row.id)}`);
       // If we were editing the row we just deleted, drop the edit state too.
-      if (editingIp === row.ip) handleEditCancel();
+      if (editingId === row.id) handleEditCancel();
       await refresh();
     } catch (err) {
       console.error("DELETE /IpAddress failed:", err);
@@ -229,10 +241,10 @@ const MultiServerSetting = ({ callback }) => {
                     </tr>
                   )}
                   {rows.map((row) => {
-                    const isEditing = editingIp === row.ip;
+                    const isEditing = editingId === row.id;
                     return (
                       <tr
-                        key={row.ip}
+                        key={row.id ?? `${row.ip}-${row.section}`}
                         style={{ borderTop: "1px solid #ececec" }}
                       >
                         <td style={tdStyle}>
@@ -247,7 +259,18 @@ const MultiServerSetting = ({ callback }) => {
                             row.section
                           )}
                         </td>
-                        <td style={tdStyle}>{row.ip}</td>
+                        <td style={tdStyle}>
+                          {isEditing ? (
+                            <input
+                              className="placeholder"
+                              style={inlineInputStyle}
+                              value={editIp}
+                              onChange={(e) => setEditIp(e.target.value)}
+                            />
+                          ) : (
+                            row.ip
+                          )}
+                        </td>
                         <td style={{ ...tdStyle, textAlign: "center" }}>
                           <input
                             type="checkbox"
@@ -262,7 +285,7 @@ const MultiServerSetting = ({ callback }) => {
                               <button
                                 type="button"
                                 style={smallBtnPrimary}
-                                onClick={() => handleEditSave(row.ip)}
+                                onClick={() => handleEditSave(row.id)}
                               >
                                 Save
                               </button>

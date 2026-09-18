@@ -11,7 +11,10 @@ import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewDevice from "../components/Modals/AddNewDevice";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
-import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
+import {
+  useFloorSection,
+  matchesSectionStrict,
+} from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 import api8031 from "../api/apiClient8031";
 
@@ -59,8 +62,13 @@ const DeviceList = () => {
     device.__srcIp ? `${device.__srcIp}-${device.macaddress}` : device.macaddress;
   const ipQuery = (device) => (device.__srcIp ? `&ip=${device.__srcIp}` : "");
 
-  // 多個區域共用同一台後端，抓回來的裝置會夾帶其他區域的，前端要再過濾一次
-  const inSection = (device) => matchesSection(select_section, device.section);
+  // 多個區域共用同一台後端，抓回來的裝置會夾帶其他區域的，前端要再過濾一次。
+  //
+  // 這裡用嚴格版：section 是裝置自己的欄位（新增裝置時指定，解除床位綁定時會被清成
+  // null＝未指派）。未指派的裝置若在每個區域都列出來，篩選等於沒作用，
+  // 所以只有選 "All" 才看得到它們 —— 要把它重新指派回某一區，
+  // 在床位的裝置下拉仍然選得到（那邊刻意用寬鬆比對）。
+  const inSection = (device) => matchesSectionStrict(select_section, device.section);
 
   {
     /* sort logic */

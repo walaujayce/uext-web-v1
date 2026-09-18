@@ -41,12 +41,22 @@ const readStoredSection = () => {
   }
 };
 
-// 區域過濾的共用判斷（Home / Bed / Patient / Device / Alert 列表都用這支）：
+// 區域過濾的共用判斷（Home / Bed / Patient / Alert 列表都用這支）：
 //   selected 未選或 "All" → 全部通過
 //   資料本身沒有 section（尚未指派給任何區域）→ 一律顯示，
 //     否則這種資料在每個區域都看不到，只有 All 才找得到
+//
+// 用在「section 是衍生值」的資料上：例如住民的 section 是從他綁的裝置帶出來的，
+// 還沒綁裝置的住民 section 是空的，這種住民不該從每個區域的清單裡消失。
 export const matchesSection = (selected, value) =>
   !selected || selected === "All" || !value || value === selected;
+
+// 嚴格版：沒有 section 的資料只有選 "All" 才看得到。
+// 用在「section 是這筆資料自己的欄位」的地方 —— 目前是裝置列表：
+// 裝置新增時就會指定區域，解除床位綁定時才會被清成 null（未指派），
+// 這種裝置若在每個區域都冒出來，等於整個篩選都失效。
+export const matchesSectionStrict = (selected, value) =>
+  !selected || selected === "All" || value === selected;
 
 const FloorSectionContext = createContext();
 
