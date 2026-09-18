@@ -15,7 +15,8 @@ import { useFloorSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient";
 
 // 床位列表：資料來源為 WebAPI 的 BedController（GET api/db/Bed），
-// 回傳欄位為 BedGetDto → camelCase：bedId / section / patientId / deviceId / nurseId。
+// 回傳欄位為 BedGetDto → camelCase：bedId / section / patientId / nurseId。
+// 裝置不在床位上，要另外從住民取：bed.patientId → patient.deviceid。
 // 版面與 /patient 一致，沿用 panel-list.css 的 .pl 結構，床位專屬樣式放在 bed.css。
 function Bed() {
   const { t } = useTranslation();
@@ -30,6 +31,8 @@ function Bed() {
   };
 
   const [beds, setBeds] = useState([]);
+  // 住民清單：列表的「裝置編號」欄要從住民身上取（patient.deviceid）
+  const [patients, setPatients] = useState([]);
 
   // 決定要抓哪些後端（與 Home / Patient 規則一致）：
   //   section === "All" → 所有 server
@@ -56,9 +59,9 @@ function Bed() {
   // React key：All 模式下不同 server 可能有相同 bedId，用來源 IP 前綴保證唯一
   const bedKey = (bed) => (bed.__srcIp ? `${bed.__srcIp}-${bed.bedId}` : bed.bedId);
 
-  const fetchBedsFrom = async (targetIp) => {
+  const fetchListFrom = async (url, targetIp) => {
     const cfg = targetIp ? { targetIp } : undefined;
-    const response = await api.get("/api/7284/db/Bed", cfg);
+    const response = await api.get(url, cfg);
     return response.data || [];
   };
 
@@ -69,26 +72,36 @@ function Bed() {
   const fetchBeds = async () => {
     const seq = ++reqSeqRef.current;
     try {
-      let next;
+      let nextBeds;
+      let nextPatients;
       if (targetIps) {
         // 「All」模式：逐台抓取後合併，並標上來源 IP，避免跨 server 資料互相覆蓋
-        const results = await Promise.all(
-          targetIps.map((ip) =>
-            fetchBedsFrom(ip)
-              .then((list) => list.map((b) => ({ ...b, __srcIp: ip })))
-              .catch((err) => {
-                console.error(`Error fetching beds from ${ip}:`, err);
-                return [];
-              }),
-          ),
-        );
-        next = results.flat();
+        const fetchAllOf = (url) =>
+          Promise.all(
+            targetIps.map((ip) =>
+              fetchListFrom(url, ip)
+                .then((list) => list.map((x) => ({ ...x, __srcIp: ip })))
+                .catch((err) => {
+                  console.error(`Error fetching ${url} from ${ip}:`, err);
+                  return [];
+                }),
+            ),
+          ).then((results) => results.flat());
+
+        [nextBeds, nextPatients] = await Promise.all([
+          fetchAllOf("/api/7284/db/Bed"),
+          fetchAllOf("/api/7284/db/Patient"),
+        ]);
       } else {
-        next = await fetchBedsFrom();
+        [nextBeds, nextPatients] = await Promise.all([
+          fetchListFrom("/api/7284/db/Bed"),
+          fetchListFrom("/api/7284/db/Patient"),
+        ]);
       }
       // 已經有更新的請求發出 → 這次的結果過期，丟棄
       if (seq !== reqSeqRef.current) return;
-      setBeds(next);
+      setBeds(nextBeds);
+      setPatients(nextPatients);
     } catch (error) {
       console.error("Error fetching bed data:", error);
     }
@@ -107,6 +120,24 @@ function Bed() {
     }, 5000);
     return () => clearInterval(interval);
   }, [filterKey]);
+
+  {
+    /* 床位的裝置：床位本身沒有裝置欄位，要透過住民取得
+       （All 模式下不同後端可能有相同住民編號，key 連來源 IP 一起比） */
+  }
+  const patientDeviceMap = useMemo(() => {
+    const map = new Map();
+    patients.forEach((p) => {
+      if (!p.patientid) return;
+      map.set(`${p.__srcIp ?? ""}|${p.patientid}`, p.deviceid ?? "");
+    });
+    return map;
+  }, [patients]);
+
+  const bedDeviceId = (bed) =>
+    bed.patientId
+      ? patientDeviceMap.get(`${bed.__srcIp ?? ""}|${bed.patientId}`) || ""
+      : "";
 
   {
     /* sort logic */
@@ -135,7 +166,9 @@ function Bed() {
       case sortTypes[2]: // patient id
         return sortDirection ? cmp(a.patientId, b.patientId) : cmp(b.patientId, a.patientId);
       case sortTypes[3]: // device id
-        return sortDirection ? cmp(a.deviceId, b.deviceId) : cmp(b.deviceId, a.deviceId);
+        return sortDirection
+          ? cmp(bedDeviceId(a), bedDeviceId(b))
+          : cmp(bedDeviceId(b), bedDeviceId(a));
       case sortTypes[4]: // nurse id
         return sortDirection ? cmp(a.nurseId, b.nurseId) : cmp(b.nurseId, a.nurseId);
       case sortTypes[5]: // status（佔用中優先）
@@ -181,7 +214,7 @@ function Bed() {
       <h3 className="fg2">{bed.bedId || "N/A"}</h3>
       <h3 className="fg1">{bed.section || "N/A"}</h3>
       <h3 className="fg2">{bed.patientId || "N/A"}</h3>
-      <h3 className="fg2">{bed.deviceId || "N/A"}</h3>
+      <h3 className="fg2">{bedDeviceId(bed) || "N/A"}</h3>
       <h3 className="fg2">{bed.nurseId || "N/A"}</h3>
       <div className={`bed-status ${isOccupied(bed) ? "occupied" : "vacant"} fg2`}>
         <span className="dot" />

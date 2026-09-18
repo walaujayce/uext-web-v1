@@ -141,8 +141,8 @@ function PatientProfile() {
   const [patient, setPatient] = useState([]);
   // 住民下拉的選項來源（整份住民清單）
   const [patients, setPatients] = useState([]);
-  // 這台裝置目前綁在哪張床（BedController）。床位是住民與裝置的關聯來源，
-  // 床號 / 區域也以床位資料為準。
+  // 這位住民目前在哪張床（BedController）。床號 / 區域以床位資料為準。
+  // 裝置不在床位上，而是記在住民身上（patient.deviceid）。
   const [bed, setBed] = useState(null);
 
   const fetchPatientProfile = async () => {
@@ -161,14 +161,6 @@ function PatientProfile() {
 
       // const data = await response.json();
       const cfg = targetIp ? { targetIp } : undefined;
-
-      // 床位：床號 / 區域 / 移除裝置都會用到
-      const bedPromise = api
-        .get(`/api/7284/db/Bed?deviceId=${encodeURIComponent(macaddress)}`, cfg)
-        .catch((err) => {
-          console.error("Error fetching bed by deviceId:", err.message);
-          return null;
-        });
 
       // 住民清單：住民編號下拉的選項，另外也是沒帶 patientid 時的比對來源
       const listPromise = api
@@ -191,8 +183,7 @@ function PatientProfile() {
             })
         : Promise.resolve(null);
 
-      const [bedRes, listRes, patientRes] = await Promise.all([
-        bedPromise,
+      const [listRes, patientRes] = await Promise.all([
         listPromise,
         patientPromise,
       ]);
@@ -200,28 +191,18 @@ function PatientProfile() {
       const patientList = Array.isArray(listRes?.data) ? listRes.data : [];
       setPatients(patientList);
 
-      const matchingBed = (bedRes?.data || [])[0] ?? null;
-      setBed(matchingBed);
-
       let matchingPatient = null;
 
       if (patientIdParam) {
-        // 查無此住民時後端是回 200 + { code: -1, message }，不是 404，要自己判斷
+        // 查無資料時後端是回 200 + { code: -1, message }，不是 404，要自己判斷
         const one = patientRes?.data;
         if (one && one.code === undefined && one.patientid) {
           matchingPatient = one;
         }
       } else {
-        // 相容舊進入點（網址沒帶 patientid）：
-        //   1. 這台裝置所綁床位上指派的住民（bed.patientId）
-        //   2. 住民資料自己帶的 deviceid（床位表還沒建立時的舊資料）
+        // 相容舊進入點（網址沒帶 patientid）：用裝置反查住民
         matchingPatient =
-          (matchingBed?.patientId &&
-            patientList.find(
-              (item) => item.patientid === matchingBed.patientId,
-            )) ||
-          patientList.find((item) => item.deviceid === macaddress) ||
-          null;
+          patientList.find((item) => item.deviceid === macaddress) || null;
       }
 
       matchingPatient = matchingPatient || {
@@ -236,6 +217,24 @@ function PatientProfile() {
         deviceid: "",
         devicestatus: "",
       };
+
+      // 床位：用住民編號反查（床位已經沒有裝置欄位，不能再用 deviceId 查）
+      const matchingBed = matchingPatient.patientid
+        ? ((
+            await api
+              .get(
+                `/api/7284/db/Bed?patientId=${encodeURIComponent(
+                  matchingPatient.patientid,
+                )}`,
+                cfg,
+              )
+              .catch((err) => {
+                console.error("Error fetching bed by patientId:", err.message);
+                return null;
+              })
+          )?.data || [])[0] ?? null
+        : null;
+      setBed(matchingBed);
 
       setPatient(matchingPatient);
       //console.log("patient detail is ", matchingPatient);
@@ -414,8 +413,7 @@ function PatientProfile() {
 
   {
     /* 住民出院：
-         1. 先解除床位綁定 —— bed.patient_id 參照 patient，不先解除就直接刪住民
-            會踩到外鍵限制。連同裝置一起解除（沒有住民就不該留著裝置）。
+         1. 先解除床位的住民。裝置記在住民身上，住民刪掉裝置自然跟著解除。
             用 PUT 一次寫完，只需要 Roles.User 權限，也不會動到護理人員。
          2. 刪掉該住民的警示設定
          3. 刪掉住民本身
@@ -455,7 +453,6 @@ function PatientProfile() {
             bedId: targetBed.bedId,
             section: targetBed.section || null,
             patientId: null,
-            deviceId: null,
             nurseId: targetBed.nurseId || null,
           },
           cfg,
@@ -485,10 +482,10 @@ function PatientProfile() {
   };
 
   {
-    /* Remove Device Button：解除這張床位與目前裝置的綁定
-       先用 GET /db/Bed?deviceId=xxx 找出是哪張床，再打
-       DELETE /db/Bed/{bedId}/device（BedController 的 UnassignDevice）。
-       只解除綁定，不會動到床位本身或住民資料。 */
+    /* Remove Device Button：解除這位住民的裝置綁定。
+       裝置已經不記在床位上，而是記在住民身上（patient.deviceid），
+       所以「移除裝置」＝ 把住民的 deviceid 清空，並清掉裝置自己的 bed / section。
+       床位本身不需要動。 */
   }
   const [isUnbindOverlayVisible, setUnbindOverlayVisible] = useState(false);
   const handleUnbindOverlay = () => {
@@ -497,31 +494,35 @@ function PatientProfile() {
 
   const handleUnbindDevice = async () => {
     const cfg = targetIp ? { targetIp } : undefined;
+
+    if (!patient?.patientid) {
+      alert(t("UnbindDeviceModal.NotBound"));
+      setUnbindOverlayVisible(false);
+      return;
+    }
+
     try {
       setLoading(true);
 
-      // 進頁面時已經查過這台裝置綁在哪張床，沒有的話再查一次（避免剛好還沒回來）
-      let targetBed = bed;
-      if (!targetBed) {
-        const bedRes = await api.get(
-          `/api/7284/db/Bed?deviceId=${encodeURIComponent(macaddress)}`,
-          cfg,
-        );
-        targetBed = (bedRes.data || [])[0];
-      }
+      // 1. 住民身上的 deviceid 清空（這就是解除綁定本身）
+      await api.put(
+        `/api/7284/db/Patient/${patient.patientid}`,
+        {
+          patientname: patient.patientname ?? "",
+          sex: patient.sex ?? 0,
+          birthday: patient.birthday
+            ? format(new Date(patient.birthday), "yyyy-MM-dd")
+            : format(new Date(), "yyyy-MM-dd"),
+          height: patient.height ?? 0,
+          weight: patient.weight ?? 0,
+          deviceid: null,
+        },
+        cfg,
+      );
 
-      if (!targetBed) {
-        alert(t("UnbindDeviceModal.NotBound"));
-        setUnbindOverlayVisible(false);
-        return;
-      }
-
-      // DELETE 需要 engineer 以上權限，權限不足時後端會回 401/403
-      await api.delete(`/api/7284/db/Bed/${targetBed.bedId}/device`, cfg);
-
-      // 裝置資料表自己也有 bed / section 兩欄，解除綁定時要一起清掉。
-      // PUT /db/Device/{id} 是整筆覆寫，所以先讀回現值、只改這兩欄再送。
-      // 需要 Roles.Engineer，失敗只記錄不中斷（床位那邊已經解除成功了）。
+      // 2. 裝置資料表自己也有 bed / section 兩欄，一起清掉。
+      //    PUT /db/Device/{id} 是整筆覆寫，所以先讀回現值、只改這兩欄再送。
+      //    需要 Roles.Engineer，失敗只記錄不中斷（住民那邊已經解除成功了）。
       try {
         const devRes = await api.get(
           `/api/7284/db/Device/${encodeURIComponent(macaddress)}`,
@@ -539,29 +540,6 @@ function PatientProfile() {
         }
       } catch (err) {
         console.error("Error clearing device bed/section:", err.message);
-      }
-
-      // 住民資料表也有一份 deviceid，一併清掉，否則兩邊會不一致
-      //（其他頁面仍有用 patient.deviceid 反查裝置的地方）
-      if (patient?.patientid) {
-        await api
-          .put(
-            `/api/7284/db/Patient/${patient.patientid}`,
-            {
-              patientname: patient.patientname ?? "",
-              sex: patient.sex ?? 0,
-              birthday: patient.birthday
-                ? format(new Date(patient.birthday), "yyyy-MM-dd")
-                : format(new Date(), "yyyy-MM-dd"),
-              height: patient.height ?? 0,
-              weight: patient.weight ?? 0,
-              deviceid: null,
-            },
-            cfg,
-          )
-          .catch((err) =>
-            console.error("Error clearing patient deviceid:", err.message),
-          );
       }
 
       setUnbindOverlayVisible(false);

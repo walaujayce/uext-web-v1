@@ -156,9 +156,10 @@ const TextField = ({ id, label, value, onChange, maxLength, disabled, error, err
 //                     （住民編號 / 姓名 / 身高 / 體重 / 生日 / 性別 / 裝置 / 護理人員）
 //
 // 綁定規則：
-//   1. 床位一定要先有住民，才能綁定裝置（沒填住民編號時裝置下拉是鎖住的）
-//   2. 新增住民時裝置非必填；若這張床有綁裝置，POST /db/Patient 會把它一併
-//      寫進 patient 的 deviceid
+//   1. 裝置不記在床位上，而是記在住民身上（patient.deviceid）。
+//      所以一定要先有住民才能綁裝置（沒填住民編號時裝置下拉是鎖住的），
+//      沒有住民的床位一定也沒有裝置。
+//   2. 裝置非必填；有選的話會寫進該住民的 deviceid。
 //
 // 綁定／解除裝置時，裝置資料表的 bed / section 兩欄會同步維護（見 syncDeviceBed）。
 //
@@ -198,12 +199,15 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
   const [weight, setWeight_POST] = useState("");
   const [sex, setSex_POST] = useState(0);
   const [birthday, setBirthday] = useState(new Date());
-  const [deviceId, setDeviceId_POST] = useState(bed?.deviceId ?? "");
+  // 裝置來自住民（patient.deviceid），編輯模式下由底下載入住民資料時帶入
+  const [deviceId, setDeviceId_POST] = useState("");
+  // 進來時住民身上原本綁的裝置，用來判斷使用者有沒有改過
+  const [initialDeviceId, setInitialDeviceId] = useState("");
   const [nurseId, setNurseId_POST] = useState(bed?.nurseId ?? "");
 
   // 編輯模式下這張床本來就有指派 → 一進來就展開，讓使用者直接看到現有內容
   const [isOptionalOpen, setOptionalOpen] = useState(
-    Boolean(bed?.patientId || bed?.deviceId || bed?.nurseId),
+    Boolean(bed?.patientId || bed?.nurseId),
   );
 
   const [bedIdError, setBedIdError] = useState(false);
@@ -253,7 +257,8 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
        住民資料仍維持手動輸入，不撈資料庫。 */
   }
   const [devices, setDevices] = useState([]);
-  // 已經被其他床位綁走的裝置（bed 表對 device_id 有唯一鍵，選了也會被擋）
+  // 已經被其他住民綁走的裝置。裝置記在 patient.deviceid，所以這裡看的是住民清單，
+  // 不是床位清單。
   const [takenDeviceIds, setTakenDeviceIds] = useState([]);
 
   useEffect(() => {
@@ -261,13 +266,13 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     const cfgLocal = targetIp ? { targetIp } : undefined;
 
     const fetchDevices = async () => {
-      const [deviceRes, bedRes] = await Promise.all([
+      const [deviceRes, patientRes] = await Promise.all([
         api.get("/api/7284/db/Device", cfgLocal).catch((err) => {
           console.error("Error fetching device list:", err.message);
           return null;
         }),
-        api.get("/api/7284/db/Bed", cfgLocal).catch((err) => {
-          console.error("Error fetching bed list:", err.message);
+        api.get("/api/7284/db/Patient", cfgLocal).catch((err) => {
+          console.error("Error fetching patient list:", err.message);
           return null;
         }),
       ]);
@@ -275,11 +280,11 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
 
       setDevices(Array.isArray(deviceRes?.data) ? deviceRes.data : []);
 
-      // 編輯模式下，這張床自己綁的裝置不算「被佔用」，否則會從選單裡消失
-      const beds = (Array.isArray(bedRes?.data) ? bedRes.data : []).filter(
-        (b) => !isEdit || b.bedId !== bed.bedId,
-      );
-      setTakenDeviceIds(beds.map((b) => b.deviceId).filter(Boolean));
+      // 這張床自己的住民所綁的裝置不算「被佔用」，否則會從選單裡消失
+      const others = (
+        Array.isArray(patientRes?.data) ? patientRes.data : []
+      ).filter((p) => !bed?.patientId || p.patientid !== bed.patientId);
+      setTakenDeviceIds(others.map((p) => p.deviceid).filter(Boolean));
     };
 
     fetchDevices();
@@ -289,16 +294,16 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     };
   }, [targetIp, isEdit, bed]);
 
-  // 顯示這個區域、且尚未被其他床位綁定的裝置：
+  // 顯示這個區域、且尚未被其他住民綁定的裝置：
   //   - 裝置自己標了 section 就比對，沒標的（尚未歸屬）也一併列出
-  //   - 已被別張床綁走的一律排除
+  //   - 已被別的住民綁走的一律排除
   const deviceSelectOptions = useMemo(() => {
     const list = devices
       .filter((d) => !d.section || !section || d.section === section)
       .filter((d) => !takenDeviceIds.includes(d.deviceid))
       .map((d) => ({ value: d.deviceid, label: d.deviceid }));
 
-    // 編輯模式下，目前綁定的裝置若不在清單裡（例如區域被改過），仍要顯示出來
+    // 目前綁定的裝置若不在清單裡（例如區域被改過），仍要顯示出來
     if (deviceId && !list.some((o) => o.value === deviceId)) {
       list.unshift({ value: deviceId, label: deviceId });
     }
@@ -338,6 +343,10 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
         setWeight_POST(p.weight ?? "");
         setSex_POST(p.sex === 1 ? 1 : 0);
         if (p.birthday) setBirthday(new Date(p.birthday));
+        // 裝置記在住民身上
+        setDeviceId_POST(p.deviceid ?? "");
+        setInitialDeviceId(p.deviceid ?? "");
+        if (p.deviceid) setOptionalOpen(true);
       } catch (error) {
         console.error("Error fetching patient:", error.message);
       }
@@ -427,13 +436,13 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     try {
       setLoading(true);
 
-      // 有填住民編號 + 姓名 → 先試著建立住民；
-      // 已存在（409）代表是既有住民，改用 PUT 更新它的資料（編輯時載入的欄位才改得動）。
-      // 只填編號沒填姓名 → 當作指派既有住民，不建立也不更新。
+      // ── 住民（裝置就記在住民身上的 deviceid）──
+      //   有編號 + 姓名 → 先試著建立；已存在（409）改用 PUT 更新
+      //   只有編號     → 指派既有住民。若裝置有異動，仍要把新的 deviceid 寫回去，
+      //                  所以先讀回該住民現值再 PUT，避免其他欄位被清掉。
       if (pid && pname) {
         const profile = {
           patientname: pname,
-          // 這張床有綁裝置就一併寫進住民資料；沒有就送 null（DTO 可為空）
           deviceid: deviceId || null,
           sex,
           birthday: format(birthday, "yyyy-MM-dd"),
@@ -471,14 +480,49 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
             return;
           }
         }
+      } else if (pid && deviceId !== initialDeviceId) {
+        // 只指派既有住民，但裝置有換 → 讀回現值後只改 deviceid 再寫回
+        try {
+          const res = await api.get(
+            `/api/7284/db/Patient/${encodeURIComponent(pid)}`,
+            cfg,
+          );
+          const p = res.data;
+          // 查無此住民時後端是回 200 + { code: -1 }
+          if (!p || p.code !== undefined || !p.patientid) {
+            alert(`Error: Resident '${pid}' does not exist.`);
+            return;
+          }
+          await api.put(
+            `/api/7284/db/Patient/${pid}`,
+            {
+              patientname: p.patientname ?? "",
+              deviceid: deviceId || null,
+              sex: p.sex ?? 0,
+              birthday: p.birthday
+                ? format(new Date(p.birthday), "yyyy-MM-dd")
+                : format(new Date(), "yyyy-MM-dd"),
+              height: p.height ?? 0,
+              weight: p.weight ?? 0,
+              jlog: {},
+            },
+            cfg,
+          );
+        } catch (error) {
+          alert(
+            `Error: ${
+              error.response?.data?.message || "Failed to update resident."
+            }`,
+          );
+          return;
+        }
       }
 
-      // 未填的欄位送 null，等同「未指派」
+      // ── 床位。裝置已經不是床位的欄位了 ──
       const requestBody = {
         bedId: bedId.trim(),
         section: section || null,
         patientId: pid || null,
-        deviceId: deviceId || null,
         nurseId: nurseId.trim() || null,
       };
 
@@ -488,10 +532,9 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
 
       if (response.status === 200 || response.status === 201) {
         // 裝置資料表的 bed / section 跟著更新
-        const prevDeviceId = isEdit ? bed.deviceId : null;
-        if (prevDeviceId && prevDeviceId !== deviceId) {
+        if (initialDeviceId && initialDeviceId !== deviceId) {
           // 換綁或解除 → 舊裝置的 bed / section 清掉
-          await syncDeviceBed(prevDeviceId, null, null);
+          await syncDeviceBed(initialDeviceId, null, null);
         }
         if (deviceId) {
           await syncDeviceBed(deviceId, bedId.trim(), section || null);
@@ -516,7 +559,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
 
   {
     /* 住民出院：
-         1. 床位解除住民；連同裝置一起解除（規則上沒有住民就不能綁裝置）。
+         1. 床位解除住民。裝置記在住民身上，住民一走裝置自然跟著解除。
             用 PUT 一次寫完，只需要 Roles.User 權限，也不會動到護理人員。
          2. 刪掉該住民的警示設定
          3. 刪掉住民本身（與 PatientProfile 的出院一致） */
@@ -534,14 +577,14 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
           bedId: bed.bedId,
           section: bed.section || null,
           patientId: null,
-          deviceId: null,
           nurseId: bed.nurseId || null,
         },
         cfg,
       );
 
-      // 床位上的裝置也解除了 → 裝置資料表的 bed / section 一併清掉
-      await syncDeviceBed(bed.deviceId, null, null);
+      // 住民會被刪掉，他身上綁的裝置等於一併解除
+      // → 裝置資料表的 bed / section 清掉
+      await syncDeviceBed(initialDeviceId, null, null);
 
       // 警示設定沒有不算錯，失敗只記錄不中斷
       await api
@@ -578,8 +621,8 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       const response = await api.delete(`/api/7284/db/Bed/${bed.bedId}`, cfg);
 
       if (response.status === 204 || response.status === 200) {
-        // 床位沒了 → 這張床上的裝置 bed / section 清掉
-        await syncDeviceBed(bed.deviceId, null, null);
+        // 床位沒了、住民也會刪掉 → 該住民綁的裝置 bed / section 清掉
+        await syncDeviceBed(initialDeviceId, null, null);
 
         if (pid) {
           // 警示設定沒有不算錯，失敗只記錄不中斷

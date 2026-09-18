@@ -599,20 +599,28 @@ function Home() {
   const handleCloseBedModal = () => setEditingBed(null);
 
   {
-    /* 把床位和它綁定的裝置接起來：bed.deviceId ↔ 8031 裝置的 MAC。
+    /* 把床位和它綁定的裝置接起來：
+       bed.patientId → patient.deviceid ↔ 8031 裝置的 MAC。
        All 模式下不同後端可能有相同 MAC，所以 key 要連同來源 IP 一起比。 */
   }
   const deviceMapKey = (srcIp, mac) =>
     `${srcIp ?? ""}|${String(mac ?? "").toUpperCase()}`;
 
-  const patientNameMap = useMemo(() => {
+  // 住民對照表。床位沒有裝置欄位，「這張床用哪一台裝置」要從住民身上取，
+  // 卡片上的名字也來自這裡。
+  const patientMap = useMemo(() => {
     const map = new Map();
     patients.forEach((p) => {
       if (!p.patientid) return;
-      map.set(deviceMapKey(p.__srcIp, p.patientid), p.patientname ?? "");
+      map.set(`${p.__srcIp ?? ""}|${p.patientid}`, p);
     });
     return map;
   }, [patients]);
+
+  const bedPatient = (bed) =>
+    bed.patientId ? patientMap.get(`${bed.__srcIp ?? ""}|${bed.patientId}`) : undefined;
+
+  const bedDeviceId = (bed) => bedPatient(bed)?.deviceid || "";
 
   const bedCards = useMemo(() => {
     const deviceMap = new Map();
@@ -622,8 +630,10 @@ function Home() {
     });
 
     return beds.map((bed) => {
-      const device = bed.deviceId
-        ? deviceMap.get(deviceMapKey(bed.__srcIp, bed.deviceId))
+      // 裝置來自住民：bed.patientId → patient.deviceid
+      const boundDeviceId = bedDeviceId(bed);
+      const device = boundDeviceId
+        ? deviceMap.get(deviceMapKey(bed.__srcIp, boundDeviceId))
         : undefined;
 
       // 狀態判斷：
@@ -632,7 +642,7 @@ function Home() {
       //   有住民有裝置，但抓不到 / STAT 0 → disconnect
       //   STAT === 1                      → 依 BedColor：1 alert / 2 attention / 其他 default
       let status;
-      if (!bed.patientId || !bed.deviceId) {
+      if (!bed.patientId || !boundDeviceId) {
         status = "vacant";
       } else if (!device || device.STAT === 0) {
         status = "disconnect";
@@ -644,9 +654,9 @@ function Home() {
         status = "default";
       }
 
-      return { bed, device, status, Bed: bed.bedId };
+      return { bed, device, status, deviceId: boundDeviceId, Bed: bed.bedId };
     });
-  }, [beds, devices]);
+  }, [beds, devices, patientMap]);
 
   {
     /* deviceType 篩選：空床沒有裝置，沒有 TYPE 可比，
@@ -667,10 +677,11 @@ function Home() {
        這裡的判斷與 AddNewBed 裝置下拉的過濾條件一致（同樣扣掉已被佔用的）。 */
   }
   const deviceStats = useMemo(() => {
+    // 裝置綁在住民身上，所以「已綁定」看的是住民清單
     const boundIds = new Set(
-      beds
-        .filter((b) => b.deviceId)
-        .map((b) => deviceMapKey(b.__srcIp, b.deviceId)),
+      patients
+        .filter((p) => p.deviceid)
+        .map((p) => deviceMapKey(p.__srcIp, p.deviceid)),
     );
 
     const matchesType = (d) =>
@@ -684,7 +695,7 @@ function Home() {
     ).length;
 
     return { total: list.length, bound, available: list.length - bound };
-  }, [beds, registeredDevices, select_deviceType]);
+  }, [patients, registeredDevices, select_deviceType]);
 
   const statusCounts = {
     alerts: visibleCards.filter((c) => c.status === "alert").length,
@@ -710,14 +721,13 @@ function Home() {
     const { bed } = card;
     if (!bed.patientId) return "";
     return (
-      patientNameMap.get(deviceMapKey(bed.__srcIp, bed.patientId)) ||
-      card.device?.UserName ||
-      bed.patientId
+      bedPatient(bed)?.patientname || card.device?.UserName || bed.patientId
     );
   };
 
   const renderBedCard = (card) => {
     const { bed, device, status } = card;
+    // card.deviceId = 這張床的住民所綁的裝置
     const key = bedKey(bed);
 
     // 空床（沒綁住民，或有住民但還沒綁裝置）→ 點擊開 modal 做綁定
@@ -736,12 +746,12 @@ function Home() {
     if (status === "disconnect") {
       return (
         <Link
-          to={`/device/device-settings?macaddress=${bed.deviceId}${bedIpQuery(bed)}`}
+          to={`/device/device-settings?macaddress=${card.deviceId}${bedIpQuery(bed)}`}
           key={key}
           state={{ from: "/home" }}
         >
           <Bed_disconnect
-            macaddress={bed.deviceId}
+            macaddress={card.deviceId}
             hold={formatSecondsToDHMS(device?.HOLD ?? 0)}
             bed={bed.bedId}
             section={bed.section}
@@ -756,12 +766,12 @@ function Home() {
     // 詳情頁就能直接用 GET /db/Patient/{patientid} 取資料，不必再從裝置反查。
     return (
       <Link
-        to={`/patient/patient-detail/patient-monitor?macaddress=${bed.deviceId}${bedIpQuery(bed)}${bedPatientQuery(bed)}`}
+        to={`/patient/patient-detail/patient-monitor?macaddress=${card.deviceId}${bedIpQuery(bed)}${bedPatientQuery(bed)}`}
         key={key}
         state={{ from: "/home" }}
       >
         <Bed_Online
-          macaddress={bed.deviceId}
+          macaddress={card.deviceId}
           hold={formatSecondsToDHMS(device.HOLD)}
           bed={bed.bedId}
           section={bed.section}
