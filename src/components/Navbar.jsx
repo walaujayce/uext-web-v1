@@ -192,9 +192,9 @@ function Navbar() {
       case 0:
         return "UNDEFINED";
       case 1:
-        return "UEXT";
+        return t("DeviceType.uext");
       case 2:
-        return "UMAP";
+        return t("DeviceType.umap");
       default:
         return "UNDEFINED";
     }

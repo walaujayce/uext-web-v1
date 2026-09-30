@@ -65,7 +65,9 @@ function AlertGanttChart() {
     });
     if (deviceType.size > 1) {
       alert(
-        "批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(UEXT或UMAP)的多個裝置。",
+        `批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(${t(
+          "DeviceType.uext",
+        )}或${t("DeviceType.umap")})的多個裝置。`,
       );
       return;
     }

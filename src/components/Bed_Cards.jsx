@@ -12,6 +12,7 @@ export function Bed_disconnect({
   bed,
   deviceType,
 }) {
+  const { t } = useTranslation();
   return (
     <div className="bed disconnect">
       <div className="b-num">{bed}&nbsp;</div>
@@ -26,7 +27,7 @@ export function Bed_disconnect({
         >
           <img src="" alt="" />
           <p className="timer" style={{ display: "block", color: "#CCCCCC" }}>
-            {deviceType === 1 ? "UEXT" : "UMAP"}
+            {deviceType === 1 ? t("DeviceType.uext") : t("DeviceType.umap")}
           </p>
         </div>
         <div style={{ display: "none", alignItems: "center", gap: 4 }}>
@@ -174,6 +175,7 @@ export function Bed_Online({
   deviceType,
   isAlertSet = false,
 }) {
+  const { t } = useTranslation();
   // POS
   let imgURL = "";
   if (deviceType === 1) {
@@ -259,7 +261,7 @@ export function Bed_Online({
               color: "white",
             }}
           >
-            {deviceType === 1 ? "UEXT" : "UMAP"}
+            {deviceType === 1 ? t("DeviceType.uext") : t("DeviceType.umap")}
           </p>
         </div>
         {/* <div style={{ display: "flex", alignItems: "center", gap: 4 }}> */}

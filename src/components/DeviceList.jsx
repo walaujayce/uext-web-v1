@@ -410,9 +410,9 @@ const DeviceList = () => {
                         {device.devicetype === 0
                           ? "Not Specified"
                           : device.devicetype === 1
-                          ? "UEXT"
+                          ? t("DeviceType.uext")
                           : device.devicetype === 2
-                          ? "UMAP"
+                          ? t("DeviceType.umap")
                           : "Not Specified"}
                       </h3>
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
@@ -447,9 +447,9 @@ const DeviceList = () => {
                       {device.devicetype === 0
                         ? "Not Specified"
                         : device.devicetype === 1
-                        ? "UEXT"
+                        ? t("DeviceType.uext")
                         : device.devicetype === 2
-                        ? "UMAP"
+                        ? t("DeviceType.umap")
                         : "Not Specified"}
                     </h3>
                     <h3 className="fg2">{device.deviceid || "N/A"}</h3>

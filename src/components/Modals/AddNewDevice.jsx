@@ -60,7 +60,15 @@ const AddNewDevice = ({ callback }) => {
   {
     /* Handle Device Type Dropdown Menu */
   }
+  // ⚠ 這個陣列是「內部值」，不能翻譯：handleDeviceTypeItemClick 用它做比對
+  //   決定要 POST 的 deviceType 數字。顯示時才經過 deviceTypeLabel。
   const deviceTypes = ["Not specified", "UEXT", "UMAP"];
+  const deviceTypeLabel = (v) =>
+    v === "UEXT"
+      ? t("DeviceType.uext")
+      : v === "UMAP"
+      ? t("DeviceType.umap")
+      : v;
   const [isDeviceTypeActive, setDeviceTypeActive] = useState(false);
   const handleDeviceTypeDropdownMenu = () => {
     setDeviceTypeActive((prev) => !prev);
@@ -329,7 +337,7 @@ const AddNewDevice = ({ callback }) => {
                     type="text"
                     className="placeholder"
                     id="devicetype"
-                    placeholder={placeholderDeviceType}
+                    placeholder={deviceTypeLabel(placeholderDeviceType)}
                     readOnly
                   />
                   <img
@@ -351,7 +359,7 @@ const AddNewDevice = ({ callback }) => {
                       onClick={() => handleDeviceTypeItemClick(deviceType)}
                       key={deviceType}
                     >
-                      {deviceType}
+                      {deviceTypeLabel(deviceType)}
                     </div>
                   ))}
                 </div>

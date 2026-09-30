@@ -69,7 +69,15 @@ function FloorSectionBar({ selectPort, selectSection, selectDeviceType, enableDe
     {
     /* DeviceType Dropdown Menu Logic */
   }
+  // ⚠ 這個陣列是「內部值」，不能翻譯：deviceTypeToIndex 用它做 switch，
+  //   localStorage 也存這個值。顯示時才經過 deviceTypeLabel 換成當前語系的字。
   const deviceTypes = ["All", "Not specified", "UEXT", "UMAP"];
+  const deviceTypeLabel = (v) =>
+    v === "UEXT"
+      ? t("DeviceType.uext")
+      : v === "UMAP"
+      ? t("DeviceType.umap")
+      : v;
 
   const deviceTypeToIndex = (deviceType) =>{
     switch(deviceType) {
@@ -228,7 +236,7 @@ function FloorSectionBar({ selectPort, selectSection, selectDeviceType, enableDe
             className="placeholder"
             id="deviceType"
             name="name"
-            placeholder={placeholderDeviceType}
+            placeholder={deviceTypeLabel(placeholderDeviceType)}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
@@ -241,7 +249,7 @@ function FloorSectionBar({ selectPort, selectSection, selectDeviceType, enableDe
               key={deviceType}
               onClick={() => handleDeviceTypeItemClick(deviceType)}
             >
-              {deviceType}
+              {deviceTypeLabel(deviceType)}
             </div>
           ))}
         </div>
