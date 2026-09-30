@@ -1,4 +1,8 @@
 {
+  "DeviceType":{
+    "uext":"UEXT",
+    "umap":"UMAP"
+  },
   "Login": {
     "title": "Bed Exit Alarm System",
     "Username": "Username:",

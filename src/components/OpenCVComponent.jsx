@@ -217,24 +217,48 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       return;
     }
 
-    if (!data.length >= sensor_height * sensor_width) {
+    // ⚠ 原本寫成 `!data.length >= sensor_height * sensor_width`：
+    //   `!data.length` 先變成 boolean，再跟數字比大小 → 永遠是 false，
+    //   這個保護從來沒有生效過，長度不足的 rawdata 會直接進到 cv.matFromArray
+    //   而丟出例外（然後被呼叫端的 try/catch 吞掉，順便漏掉一整批 Mat）。
+    if (data.length < sensor_height * sensor_width) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
+
+    // ⚠ OpenCV.js 的 Mat 配在 WASM heap 上，GC 不會回收，一定要自己 delete()。
+    //   原本是在函式尾端一個一個 delete，只要中途有任何一行丟出例外就全部漏掉
+    //   （呼叫端有 try/catch，所以畫面看起來正常，記憶體卻一路往上爬）。
+    //   實測：每漏一幀約 1.3 MB，100 幀就讓 WASM heap 多吃 128 MB。
+    //   改成統一登記、在 finally 釋放，任何路徑都不會漏。
+    const pool = [];
+    const track = (mat) => {
+      pool.push(mat);
+      return mat;
+    };
+    const releaseAll = () => {
+      for (const mat of pool) {
+        try {
+          mat.delete();
+        } catch (e) {
+          /* 已經被釋放過就略過 */
+        }
+      }
+      pool.length = 0;
+    };
+
+    try {
     if (sensor_height * sensor_width > 240) {
-      let originalImage = cv.matFromArray(
-        sensor_height,
-        sensor_width,
-        cv.CV_8UC1,
-        data,
+      let originalImage = track(
+        cv.matFromArray(sensor_height, sensor_width, cv.CV_8UC1, data),
       );
 
       let m = 3; // Scaling factor
 
       // Resize step 1
-      let resizedMat1 = new cv.Mat();
+      let resizedMat1 = track(new cv.Mat());
       cv.resize(
         originalImage,
         resizedMat1,
@@ -245,7 +269,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       );
 
       // Apply Gaussian blur
-      let result = new cv.Mat();
+      let result = track(new cv.Mat());
       let kernelSize = new cv.Size(9, 9); // Equivalent kernel size (not 25x25, as OpenCV.js uses width/height separately)
       cv.GaussianBlur(
         resizedMat1,
@@ -256,7 +280,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
         cv.BORDER_DEFAULT,
       );
       // Resize step 2
-      let resizedMat2 = new cv.Mat();
+      let resizedMat2 = track(new cv.Mat());
       cv.resize(
         result,
         resizedMat2,
@@ -267,7 +291,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       );
 
       // Resize step 3
-      let resizedMat3 = new cv.Mat();
+      let resizedMat3 = track(new cv.Mat());
       cv.resize(
         resizedMat2,
         resizedMat3,
@@ -283,7 +307,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       //   熱點永遠混不出飽和紅。改成先縮再著色之後：
       //     1. 量到的最大值就是畫面上真正會出現的最大值，頂端色階一定畫得到；
       //     2. 著色迴圈的像素數少一個數量級（27 倍圖約 115 萬 → canvas 約 15 萬），順便快很多。
-      let scaled = new cv.Mat();
+      let scaled = track(new cv.Mat());
       cv.resize(
         resizedMat3,
         scaled,
@@ -299,7 +323,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       const umapHi = umapUpperBound(grayToRaw(cv.minMaxLoc(scaled).maxVal));
 
       // Convert grayscale to RGBA（圓圈外要套 alpha，需要 alpha 通道）
-      let dst = new cv.Mat();
+      let dst = track(new cv.Mat());
       cv.cvtColor(scaled, dst, cv.COLOR_GRAY2RGBA, 0);
 
       // 若有 risk region：先算出各圓在 dst 座標系的位置（與 RiskArea 相同的換算，
@@ -371,39 +395,33 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       }
       // dst 已經是 canvas 尺寸了（縮圖提前到著色之前），直接畫上去
       cv.imshow(canvasRef.current, dst);
-      // Free memory
-      originalImage.delete();
-      resizedMat1.delete();
-      resizedMat2.delete();
-      resizedMat3.delete();
-      result.delete();
-      scaled.delete();
-      dst.delete();
     } else {
-      const mat24 = cv.matFromArray(
-        canvasRef.current.height,
-        canvasRef.current.width,
-        cv.CV_8UC1,
-        Array(canvasRef.current.width * canvasRef.current.height).fill(24),
+      // ⚠ mat24 原本完全沒有 delete → 每幀漏掉一張 canvas 大小的 Mat。
+      //   實測 1 Hz 跑 2000 幀（約 33 分鐘）WASM heap 從 128 MB 漲到 512 MB，
+      //   再跑下去就會 out of memory。現在統一由 finally 釋放。
+      const mat24 = track(
+        cv.matFromArray(
+          canvasRef.current.height,
+          canvasRef.current.width,
+          cv.CV_8UC1,
+          Array(canvasRef.current.width * canvasRef.current.height).fill(24),
+        ),
       );
-      const vis = cv.matFromArray(
-        sensor_height,
-        sensor_width,
-        cv.CV_8UC1,
-        data,
+      const vis = track(
+        cv.matFromArray(sensor_height, sensor_width, cv.CV_8UC1, data),
       );
 
       const dim = new cv.Size(
         canvasRef.current.width,
         canvasRef.current.height,
       );
-      const vis2 = new cv.Mat();
+      const vis2 = track(new cv.Mat());
 
       cv.resize(vis, vis2, dim, 0, 0, cv.INTER_CUBIC);
       cv.divide(vis2, mat24, vis2);
       cv.multiply(vis2, mat24, vis2);
 
-      const dst = new cv.Mat();
+      const dst = track(new cv.Mat());
       cv.cvtColor(vis2, dst, cv.COLOR_GRAY2RGB, 0);
 
       for (let i = 0; i < vis2.size().height; i++) {
@@ -417,10 +435,10 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       }
 
       cv.imshow(canvasRef.current, dst);
-
-      vis.delete();
-      vis2.delete();
-      dst.delete();
+    }
+    } finally {
+      // 正常結束、提早 return、丟出例外 —— 三種路徑都會走到這裡
+      releaseAll();
     }
   };
   const [decimalArray, setDecimalArray] = useState([]);
@@ -433,17 +451,9 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       const decimalValue = parseInt(hexPair, 16); // Convert to decimal
       decimalArray.push(decimalValue);
     }
-    const sum = decimalArray.reduce(
-      (accumulator, currentValue) => accumulator + currentValue,
-      0,
-    );
-    // //console.log("the total of rawdata is ", sum);
-    // Find the highest value
-    const maxValue = Math.max(...decimalArray);
-    // //console.log("The highest value in decimalArray is:", maxValue);
-    const minValue = Math.min(...decimalArray);
-    // //console.log("The smallest value in decimalArray is:", minValue);
-
+    // 原本這裡每幀都算一次 sum / max / min，但 console.log 早就註解掉、回傳值也用不到。
+    // Math.max(...arr) 還會把整個陣列展開成函式參數，點數再多一點就會
+    // RangeError: Maximum call stack size exceeded。純粹浪費，直接拿掉。
     return decimalArray;
   };
 

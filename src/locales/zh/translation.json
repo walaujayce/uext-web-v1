@@ -1,4 +1,8 @@
-{
+{  
+  "DeviceType":{
+    "uext":"離床墊",
+    "umap":"壓力墊"
+  },
   "Login": {
     "title": "離床警示系統",
     "Username": "Username：",
