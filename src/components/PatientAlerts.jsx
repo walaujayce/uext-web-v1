@@ -1119,6 +1119,11 @@ function PatientAlerts({ patientIDs, isBatch = false, isBatchUEXT }) {
       let start = toMinutes(i.start);
       let end = toMinutes(i.end);
 
+      // 結束時間 00:00 代表「到當天午夜」(24:00)，
+      // 例如後端存 UTC 12:00–16:00，讀回來顯示成 20:00–00:00，不應再被切成跨日
+      if (end === 0 && start > 0) end = 1440;
+      if (end === start) return; // 零長度區間直接略過
+
       if (end < start) {
         // cross midnight
         normalized.push({ start, end: 1440 });

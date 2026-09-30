@@ -55,11 +55,15 @@ const clearSession = () => {
   localStorage.removeItem("username");
 };
 
+// 登入頁實際路由是 "/"（App.jsx 沒有 /login，/login 會被 * 導回 /）。
+// 在這些不需登入的頁面上不要再整頁跳轉，否則會 reload → 重新打 API → 401 → 再 reload 的無限迴圈。
+const PUBLIC_PATHS = ["/", "/forget-password", "/reset-password", "/uneosddemo"];
+
 const redirectToLogin = () => {
   clearSession();
   // 用 replace 避免在歷史紀錄中累積
-  if (window.location.pathname !== "/login") {
-    window.location.replace("/login");
+  if (!PUBLIC_PATHS.includes(window.location.pathname)) {
+    window.location.replace("/");
   }
 };
 
@@ -96,6 +100,11 @@ api.interceptors.response.use(
 
     // 沒有 response（例如網路斷線）或非 401 直接 reject
     if (!error.response || error.response.status !== 401 || !originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    // 尚未登入（例如在登入頁打 /IpAddress/all）就不用 refresh，直接 reject
+    if (localStorage.getItem("isAuthenticated") !== "true") {
       return Promise.reject(error);
     }
 

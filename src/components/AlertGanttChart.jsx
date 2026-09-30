@@ -327,6 +327,24 @@ function AlertGanttChart() {
 
   const toDecimal = (t) => t.hour + t.minute / 60;
 
+  // 後端回傳的 start / end (hour, minute) 是 UTC，顯示時要轉成當地時間 (UTC+8)
+  const TZ_OFFSET_HOURS = 8;
+
+  // 把一段 UTC 區間轉成當地時間，跨過午夜時切成兩段 bar。
+  // 回傳 { segments: [[s, e], ...], label: "HH:mm - HH:mm" }
+  const toLocalSegments = (trigger) => {
+    const utcStart = toDecimal(trigger.start);
+    const utcEnd = toDecimal(trigger.end);
+    let duration = utcEnd - utcStart;
+    if (duration < 0) duration += 24; // UTC 本身就跨日
+    const localStart = (((utcStart + TZ_OFFSET_HOURS) % 24) + 24) % 24;
+    const localEnd = localStart + duration;
+    if (duration >= 24) return { segments: [[0, 24]], label: "00:00 - 24:00" }; // 全天
+    const label = `${toTimeStr(localStart)} - ${toTimeStr(localEnd % 24 === 0 && localEnd > 0 ? 24 : localEnd % 24)}`;
+    if (localEnd <= 24) return { segments: [[localStart, localEnd]], label };
+    return { segments: [[localStart, 24], [0, localEnd - 24]], label };
+  };
+
   // Helper function to format decimal hours back to HH:mm for tooltips
   const toTimeStr = (decimal) => {
     const h = Math.floor(decimal);
@@ -378,26 +396,28 @@ function AlertGanttChart() {
     const gridContainer = document.getElementById("grid-container");
     gridContainer.style.height = chartHeight + "px";
 
-    const maxTriggers = Math.max(
-      ...data.map((item) => {
-        if (item.alert_triggers.intervals === undefined) {
-          return 0;
-        } else {
-          return item.alert_triggers.intervals.length;
-        }
-      }),
-    );
+    // 每位住民：把 UTC intervals 轉成當地時間的 bar 段落（跨午夜會變兩段）
+    const rowSegments = data.map((item) => {
+      const intervals = item.alert_triggers.intervals;
+      // if alert status is false, then alert is not switch on but intervals might have values
+      if (!item.alert_triggers.status || !Array.isArray(intervals)) return [];
+      return [...intervals]
+        .sort((a, b) => a.id - b.id)
+        .flatMap((trigger) => {
+          const { segments, label } = toLocalSegments(trigger);
+          return segments.map((range) => ({ range, label }));
+        });
+    });
+    const maxTriggers = Math.max(0, ...rowSegments.map((segs) => segs.length));
+    // tooltip / datalabel 要顯示完整的當地時間區間（不是被切開後的段落）
+    const segmentLabel = (datasetIndex, dataIndex) =>
+      rowSegments[dataIndex]?.[datasetIndex]?.label ?? "";
+
     const datasets = [];
     for (let i = 0; i < maxTriggers; i++) {
       datasets.push({
         label: `Interval ${i + 1}`,
-        data: data.map((item) => {
-          if (!item.alert_triggers.status) return null; // if alert status is false, then alert is not switch on but intervals might have values
-          const trigger = item.alert_triggers.intervals.find((t) => t.id === i);
-          return trigger
-            ? [toDecimal(trigger.start), toDecimal(trigger.end)]
-            : null;
-        }),
+        data: rowSegments.map((segs) => (segs[i] ? segs[i].range : null)),
         backgroundColor: "#07794f",
         borderColor: "#055d3d",
         borderRadius: 5,
@@ -407,10 +427,9 @@ function AlertGanttChart() {
         datalabels: {
           display: false,
           color: "black", // Text color
-          formatter: (value) => {
+          formatter: (value, ctx) => {
             if (!value) return "";
-            // value[0] is start, value[1] is end
-            return `${toTimeStr(value[0])} ~ ${toTimeStr(value[1])}`;
+            return segmentLabel(ctx.datasetIndex, ctx.dataIndex).replace(" - ", " ~ ");
           },
           font: {
             weight: "bold",
@@ -494,8 +513,7 @@ function AlertGanttChart() {
               //   enabled: false,
               callbacks: {
                 label: function (context) {
-                  const range = context.raw;
-                  return `${toTimeStr(range[0])} - ${toTimeStr(range[1])}`;
+                  return segmentLabel(context.datasetIndex, context.dataIndex);
                 },
                 title: () => "",
               },
