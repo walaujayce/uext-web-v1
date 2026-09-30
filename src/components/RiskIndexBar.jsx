@@ -1,4 +1,10 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 import "/src/CSS/risk-callout.css";
 
@@ -106,7 +112,8 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
   const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 });
   const [labelSize, setLabelSize] = useState({ w: 28, h: 22 });
   const [panelSize, setPanelSize] = useState({ w: 0, h: 0 });
-  const [hovered, setHovered] = useState(null); // region 的 key
+  // 使用者「點過」的那一張。null = 還沒點過，用預設（mean 最大的那一個）。
+  const [selectedKey, setSelectedKey] = useState(null);
 
   const regions = (Array.isArray(data) ? data : []).filter(
     (r) =>
@@ -166,20 +173,31 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
     return () => ro.disconnect();
   }, [notReady]);
 
-  // 量資訊卡尺寸，才能把它夾在 .box 內不溢出
-  useLayoutEffect(() => {
-    const el = panelRef.current;
+  // 量資訊卡尺寸，才能把它夾在 .box 內不溢出。
+  // ⚠ 這裡用 callback ref 而不是 useLayoutEffect：資訊卡現在「一開始就存在」
+  //   （預設就展開一張），而它掛載的那一刻常常還在 notReady → 之後才真正出現。
+  //   用 effect 的話依賴陣列少寫一個就永遠量不到，panelSize 卡在 0，
+  //   卡片會一直停在 visibility:hidden。callback ref 在節點掛上的當下就會跑，
+  //   跟依賴陣列無關，之後的尺寸變化再交給 ResizeObserver。
+  const panelRoRef = useRef(null);
+  const setPanelRef = useCallback((el) => {
+    if (panelRoRef.current) {
+      panelRoRef.current.disconnect();
+      panelRoRef.current = null;
+    }
+    panelRef.current = el;
     if (!el) return;
     const measure = () => {
       const w = el.offsetWidth;
       const h = el.offsetHeight;
+      // 值相同就回傳 prev，否則 ResizeObserver 每次的新物件會造成無限迴圈
       setPanelSize((p) => (p.w === w && p.h === h ? p : { w, h }));
     };
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
-    return () => ro.disconnect();
-  }, [hovered]);
+    panelRoRef.current = ro;
+  }, []);
 
   // 沒資料時仍要保留一個節點，才有 parentElement 可以量測
   if (notReady) return <div ref={rootRef} style={{ display: "none" }} />;
@@ -211,7 +229,26 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
   });
 
   const placed = spreadLabels(items, labelSize.h + 6, box.h);
-  const active = placed.find((it) => it.key === hovered) || null;
+
+  // ── 哪一張資訊卡是展開的 ──
+  // 預設：mean 最大的那一個（只有一個風險區域時，就是它自己）。
+  // 使用者點過之後改用點選的那一個；但資料每秒會重新抓，若點選的區域已經消失，
+  // 就自動退回預設，不會變成「一張都沒展開」。任何時候都只展開一張。
+  const defaultKey = placed.reduce((best, it) => {
+    if (!best) return it;
+    const a = Number(pick(it.region, FIELD_KEYS.avg));
+    const b = Number(pick(best.region, FIELD_KEYS.avg));
+    return (Number.isFinite(a) ? a : -Infinity) >
+      (Number.isFinite(b) ? b : -Infinity)
+      ? it
+      : best;
+  }, null)?.key;
+
+  const activeKey = placed.some((it) => it.key === selectedKey)
+    ? selectedKey
+    : defaultKey;
+
+  const active = placed.find((it) => it.key === activeKey) || null;
 
   // 資訊卡：緊貼在標籤外側（中間不留縫，滑鼠移過去不會斷開 hover）
   const panelLeft = onRight
@@ -265,7 +302,7 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
             <path
               key={`line-${it.key}`}
               className={`risk-callout__line${
-                it.key === hovered ? " is-active" : ""
+                it.key === activeKey ? " is-active" : ""
               }`}
               d={`M ${startX} ${it.dotY} L ${elbowX} ${it.labelY} L ${endX} ${it.labelY}`}
             />
@@ -282,7 +319,7 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
           const dash = segLen * 0.5;
           const gapLen = segLen - dash;
           const cls = `${LEVEL_CLASS[it.level] ?? "is-low"}${
-            it.key === hovered ? " is-active" : ""
+            it.key === activeKey ? " is-active" : ""
           }`;
           return (
             <g key={`ring-${it.key}`} className={`risk-callout__reticle ${cls}`}>
@@ -317,17 +354,25 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
         })}
       </svg>
 
-      {/* 外側標籤：預設只顯示區域編號，hover 才展開資訊卡 */}
+      {/* 外側標籤：點擊才展開資訊卡（同一時間只會有一張展開） */}
       {placed.map((it, i) => (
         <div
           key={`label-${it.key}`}
           ref={i === 0 ? labelRef : undefined}
           className={`risk-callout__label ${LEVEL_CLASS[it.level] ?? "is-low"}${
-            it.key === hovered ? " is-active" : ""
+            it.key === activeKey ? " is-active" : ""
           }`}
           style={{ left: `${labelX}px`, top: `${it.labelY}px` }}
-          onMouseEnter={() => setHovered(it.key)}
-          onMouseLeave={() => setHovered(null)}
+          role="button"
+          tabIndex={0}
+          aria-pressed={it.key === activeKey}
+          onClick={() => setSelectedKey(it.key)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setSelectedKey(it.key);
+            }
+          }}
         >
           {t("RiskRegion.CalloutTitle", "RISK REGION")}
         </div>
@@ -336,7 +381,7 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
       {/* 展開的資訊卡：也在 canvas 之外 */}
       {active && (
         <div
-          ref={panelRef}
+          ref={setPanelRef}
           className="risk-callout__panel"
           style={{
             left: `${panelLeft}px`,
@@ -344,8 +389,6 @@ function RiskIndexBar({ data = [], width, height, gap = 20 }) {
             // 尚未量到尺寸前先不要閃現在錯的位置
             visibility: panelSize.w ? "visible" : "hidden",
           }}
-          onMouseEnter={() => setHovered(active.key)}
-          onMouseLeave={() => setHovered(null)}
         >
           <div className="risk-callout__title">
             {t("RiskRegion.CalloutTitle", "RISK REGION")}

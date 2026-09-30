@@ -160,7 +160,8 @@ html.dark {
   position: absolute;
   transform: translateY(-50%);
   pointer-events: auto;
-  cursor: default;
+  cursor: pointer;           /* 改成點擊展開 */
+  user-select: none;         /* 連點兩下時不要把文字選起來 */
   box-sizing: border-box;
   display: inline-flex;
   align-items: center;
@@ -190,6 +191,14 @@ html.dark {
 .risk-callout__label.is-low {
   background-color: var(--rc-low);
 }
+.risk-callout__label:hover {
+  filter: brightness(1.12);  /* 只是「可以點」的提示，不展開卡片 */
+}
+.risk-callout__label:focus-visible {
+  outline: 2px solid var(--rc-panel-border);
+  outline-offset: 2px;
+}
+/* 目前展開中的那一張 */
 .risk-callout__label.is-active {
   box-shadow: 0 0 0 2px var(--rc-panel-border);
   filter: brightness(1.08);
