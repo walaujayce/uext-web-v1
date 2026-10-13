@@ -5,6 +5,7 @@ import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/index.css";
+import "/src/CSS/bed.css";
 import "../components/Modals/overlay.css";
 import Navbar from "/src/components/Navbar.jsx";
 import AlertList from "/src/components/AlertList.jsx";
@@ -18,10 +19,11 @@ import {
   Bed_default,
   Bed_Online,
 } from "../components/Bed_Cards";
+import AddNewBed from "../components/Modals/AddNewBed";
 import { useTranslation } from "react-i18next";
 import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import { isSignalREnabled } from "../config/runtimeConfig";
 
 // ─────────────────────────────────────────────────────────
@@ -37,7 +39,7 @@ const DEVICE_TOPIC = "web/notify/devices";
 function Home() {
   const { t, i18n } = useTranslation();
 
-  // 所有樓層/區域對應的後端清單（每筆 { ip, floor, section }），
+  // 所有區域對應的後端清單（每筆 { ip, section }），
   // 供「All」模式逐台抓取所有 device。
   const { servers, selectedServer } = useFloorSection();
 
@@ -47,10 +49,6 @@ function Home() {
     setPort(port);
   };
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     //console.log("section");
@@ -67,7 +65,6 @@ function Home() {
       MAC: "A1",
       HOLD: 0,
       Bed: "4201",
-      Floor: "All",
       Section: "All",
       UserName: "UEXT/REST/GEEN",
       TYPE: 1,
@@ -82,7 +79,6 @@ function Home() {
       MAC: "A2",
       HOLD: 0,
       Bed: "4202",
-      Floor: "All",
       Section: "All",
       UserName: "UEXT/EDGE/YELLOW",
       TYPE: 1,
@@ -97,7 +93,6 @@ function Home() {
       MAC: "A3",
       HOLD: 0,
       Bed: "4203",
-      Floor: "All",
       Section: "All",
       UserName: "UEXT/LEAVE/RED",
       TYPE: 1,
@@ -112,7 +107,6 @@ function Home() {
       MAC: "A4",
       HOLD: 0,
       Bed: "4204",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/REST/GREEN",
       TYPE: 2,
@@ -127,7 +121,6 @@ function Home() {
       MAC: "A5",
       HOLD: 0,
       Bed: "4301",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/REST/YELLOW",
       TYPE: 2,
@@ -142,7 +135,6 @@ function Home() {
       MAC: "A7",
       HOLD: 0,
       Bed: "4302",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/REST/RED",
       TYPE: 2,
@@ -157,7 +149,6 @@ function Home() {
       MAC: "A8",
       HOLD: 0,
       Bed: "4303",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/LEFT/GREEN",
       TYPE: 2,
@@ -172,7 +163,6 @@ function Home() {
       MAC: "A9",
       HOLD: 0,
       Bed: "4304",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/LEFT/YELLOW",
       TYPE: 2,
@@ -187,7 +177,6 @@ function Home() {
       MAC: "A10",
       HOLD: 0,
       Bed: "4401",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/LEFT/RED",
       TYPE: 2,
@@ -202,7 +191,6 @@ function Home() {
       MAC: "A11",
       HOLD: 0,
       Bed: "4402",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/RIGHT/GREEN",
       TYPE: 2,
@@ -217,7 +205,6 @@ function Home() {
       MAC: "A12",
       HOLD: 0,
       Bed: "4403",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/RIGHT/YELLOW",
       TYPE: 2,
@@ -232,7 +219,6 @@ function Home() {
       MAC: "A13",
       HOLD: 0,
       Bed: "4501",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/RIGHT/RED",
       TYPE: 2,
@@ -247,7 +233,6 @@ function Home() {
       MAC: "A15",
       HOLD: 0,
       Bed: "4502",
-      Floor: "All",
       Section: "All",
       UserName: "UMAP/LEAVE/RED",
       TYPE: 2,
@@ -262,7 +247,6 @@ function Home() {
       MAC: "A16",
       HOLD: 0,
       Bed: "4503",
-      Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 1,
@@ -277,7 +261,6 @@ function Home() {
       MAC: "A17",
       HOLD: 0,
       Bed: "4601",
-      Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 2,
@@ -292,7 +275,6 @@ function Home() {
       MAC: "A18",
       HOLD: 0,
       Bed: "4602",
-      Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 1,
@@ -307,7 +289,6 @@ function Home() {
       MAC: "A19",
       HOLD: 0,
       Bed: "4603",
-      Floor: "All",
       Section: "All",
       UserName: "",
       TYPE: 2,
@@ -396,26 +377,27 @@ function Home() {
 
   const [devices, setDevices] = useState([]);
 
-  // 依 select_floor / select_section 決定要抓哪些後端：
-  //   - floor === "All"            → 抓「所有」server 的 device
-  //   - section === "All"          → 抓該樓層底下「所有」區域的 server
-  //   - 其他（指定 floor + section）→ null，維持原本走目前選取單一 server 的行為
+  // 依 select_section 決定要抓哪些後端：
+  //   - section === "All" → 抓「所有」server 的 device
+  //   - 其他（指定 section）→ null，維持原本走目前選取單一 server 的行為
   const targetIps = useMemo(() => {
-    if (select_floor === "All") {
+    if (select_section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (select_section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === select_floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return null;
-  }, [servers, select_floor, select_section]);
+  }, [servers, select_section]);
+
+  // 篩選條件的識別字串。
+  // ⚠ 不能直接把 targetIps 當 useEffect 的依賴：非 All 模式下它「恆為 null」，
+  //   所以 A 區 → B 區 的切換會被 Object.is 判定成沒變，effect 不會重跑，
+  //   列表要等下一次輪詢才更新。這裡改用會真正跟著篩選變動的字串當依賴。
+  const filterKey = useMemo(
+    () =>
+      select_section === "All"
+        ? `all:${(targetIps || []).join(",")}`
+        : `one:${select_section}:${selectedServer?.ip ?? ""}`,
+    [select_section, targetIps, selectedServer],
+  );
 
   // 從「單一」server 抓 device 清單。傳入 targetIp 時，用 header 把請求釘在該台；
   // 不傳時走目前選取的 server（原本行為）。
@@ -438,8 +420,14 @@ function Home() {
     return [];
   };
 
+  // 請求序號：切換區域時，前一次還在飛的請求可能比新的晚回來，
+  // 若不擋掉就會用「舊區域」的資料蓋掉剛抓到的新資料。只採用最後一次發出的請求。
+  const deviceSeqRef = useRef(0);
+
   const fetchDeviceList = async () => {
+    const seq = ++deviceSeqRef.current;
     try {
+      let next;
       if (targetIps) {
         // 「All」模式：逐台抓取後合併。單台失敗不影響其他台。
         // 把來源 IP 標在每筆 device 上（__srcIp），這樣：
@@ -456,10 +444,13 @@ function Home() {
           ),
         );
         // setDevices([...fakeList,results.flat()]);
-        setDevices(results.flat());
+        next = results.flat();
       } else {
-        setDevices(await fetchDevicesFrom());
+        next = await fetchDevicesFrom();
       }
+      // 已經有更新的請求發出 → 這次的結果過期，丟棄
+      if (seq !== deviceSeqRef.current) return;
+      setDevices(next);
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
@@ -467,10 +458,11 @@ function Home() {
   // ── 方式 A：GET API 輪詢（USE_SIGNALR_DEVICES = false 時啟用，維持原本行為）──
   useEffect(() => {
     if (USE_SIGNALR_DEVICES) return; // 改用 SignalR 時不跑 GET 輪詢
+    // 篩選一改就立刻抓一次，不用等下一次輪詢；同時重設輪詢計時器
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, [port, select_floor, select_section, servers]);
+  }, [port, filterKey]);
 
   // ── 方式 B：SignalR 推播（USE_SIGNALR_DEVICES = true 時啟用）──
   // 要連線/訂閱的後端 IP：All 模式用 targetIps（多台）；單一模式用目前選取的 server。
@@ -527,89 +519,275 @@ function Home() {
     };
   }, [deviceSignalrIps]);
 
-  const renderDeviceComponent = (device) => {
-    const {
-      STAT,
-      POS,
-      MAC,
-      HOLD,
-      Bed,
-      Floor,
-      Section,
-      UserName,
-      TYPE,
-      BedColor,
-      IsAlert
-    } = device;
-    // 「All」模式下不同 server 可能有相同 MAC，用來源 IP 前綴保證 React key 唯一
-    const rowKey = deviceKey(device);
+  // ─────────────────────────────────────────────────────────
+  // 床位列表：畫面上的卡片改以 /api/7284/db/Bed 為主體
+  // （原本是以 /api/8031/devices 的裝置為主體）。
+  // 狀態仍沿用 8031 裝置資料判斷，只是改成「先有床位、再去找它綁的裝置」。
+  // ─────────────────────────────────────────────────────────
+  const [beds, setBeds] = useState([]);
+  // 已註冊的裝置清單（/api/7284/db/Device）。
+  // 狀態列的「可供綁定的裝置」要和 AddNewBed 的裝置下拉一致，所以用同一個來源，
+  // 而不是用 8031 的即時裝置清單（那份只有正在回報的裝置）。
+  const [registeredDevices, setRegisteredDevices] = useState([]);
+  // 住民清單：床位有住民但沒綁裝置時，卡片上的名字只能從這裡來
+  //（8031 的 UserName 只有正在回報的裝置才有）
+  const [patients, setPatients] = useState([]);
 
-    // 先以STAT去區分on/off-line，再以TYPE區分UEXT/UMAP，最後以POS區分狀態
-    if (STAT === 0) {
-      if (TYPE !== 0) {
-        return (
-          <Link
-            to={`/device/device-settings?macaddress=${MAC}${ipQuery(device)}`}
-            key={rowKey}
-            state={{ from: "/home" }}
-          >
-            <Bed_disconnect
-              key={MAC}
-              macaddress={MAC}
-              hold={formatSecondsToDHMS(HOLD)}
-              bed={Bed}
-              floor={Floor}
-              section={Section}
-              username={UserName}
-              deviceType={TYPE}
-            />
-          </Link>
-        );
-      }
-    } else if (STAT === 1) {
-      if (UserName === null || UserName === "") {
-        return (
-          <Bed_vacant
-            key={rowKey}
-            macaddress={MAC}
-            bed={Bed}
-            floor={Floor}
-            section={Section}
-          />
-        );
-      } else {
-        return (
-          <Link
-            to={`/patient/patient-detail/patient-monitor?macaddress=${MAC}${ipQuery(device)}`}
-            key={rowKey}
-            state={{ from: "/home" }}
-          >
-            <Bed_Online
-              key={MAC}
-              macaddress={MAC}
-              hold={formatSecondsToDHMS(HOLD)}
-              bed={Bed}
-              username={UserName}
-              pos={POS}
-              color={BedColor}
-              deviceType={TYPE}
-              isAlertSet = {IsAlert}
-            />
-          </Link>
-        );
-      }
-    }
-
-    return null; // Handle any unexpected case if necessary
+  const fetchFrom = async (url, targetIp) => {
+    const cfg = targetIp ? { targetIp } : undefined;
+    const response = await api.get(url, cfg);
+    return response.data || [];
   };
 
-  // React key / 唯一識別：「All」模式下同 MAC 可能來自不同 server，前綴來源 IP 以避免衝突
-  const deviceKey = (device) =>
-    device.__srcIp ? `${device.__srcIp}-${device.MAC}` : device.MAC;
+  // 回傳資料而不直接 setState，讓呼叫端的請求序號能擋掉過期結果
+  const fetchListFrom = async (url) => {
+    if (targetIps) {
+      const results = await Promise.all(
+        targetIps.map((ip) =>
+          fetchFrom(url, ip)
+            .then((list) => list.map((x) => ({ ...x, __srcIp: ip })))
+            .catch((err) => {
+              console.error(`Error fetching ${url} from ${ip}:`, err);
+              return [];
+            }),
+        ),
+      );
+      return results.flat();
+    }
+    return await fetchFrom(url);
+  };
 
-  // 「All」模式下，把裝置所屬 server 的 IP 帶進詳情頁網址，
-  // 讓 PatientDetail / DeviceSettings 能把後續請求釘在正確那台（否則會 fallback 到預設台）。
-  const ipQuery = (device) => (device.__srcIp ? `&ip=${device.__srcIp}` : "");
+  const bedSeqRef = useRef(0);
+
+  const fetchBedList = async () => {
+    const seq = ++bedSeqRef.current;
+    try {
+      const [bedList, deviceList, patientList] = await Promise.all([
+        fetchListFrom("/api/7284/db/Bed"),
+        fetchListFrom("/api/7284/db/Device"),
+        fetchListFrom("/api/7284/db/Patient"),
+      ]);
+      // 已經有更新的請求發出 → 這次的結果過期，丟棄
+      if (seq !== bedSeqRef.current) return;
+      setBeds(bedList);
+      setRegisteredDevices(deviceList);
+      setPatients(patientList);
+    } catch (error) {
+      console.error("Error fetching bed data:", error);
+    }
+  };
+
+  // 床位的異動（新增/綁定/解除）頻率遠低於量測資料，5 秒輪詢即可；
+  // 開著 modal 時暫停，避免編輯中列表在背景被換掉。
+  const isBedModalOpenRef = useRef(false);
+
+  useEffect(() => {
+    fetchBedList();
+    const interval = setInterval(() => {
+      if (isBedModalOpenRef.current) return;
+      fetchBedList();
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [filterKey]);
+
+  {
+    /* 點空床卡片 → 開 AddNewBed（編輯模式）讓使用者綁定裝置 */
+  }
+  const [editingBed, setEditingBed] = useState(null);
+  isBedModalOpenRef.current = Boolean(editingBed);
+
+  const handleCloseBedModal = () => setEditingBed(null);
+
+  {
+    /* 把床位和它綁定的裝置接起來：
+       bed.patientId → patient.deviceid ↔ 8031 裝置的 MAC。
+       All 模式下不同後端可能有相同 MAC，所以 key 要連同來源 IP 一起比。 */
+  }
+  const deviceMapKey = (srcIp, mac) =>
+    `${srcIp ?? ""}|${String(mac ?? "").toUpperCase()}`;
+
+  // 住民對照表。床位沒有裝置欄位，「這張床用哪一台裝置」要從住民身上取，
+  // 卡片上的名字也來自這裡。
+  const patientMap = useMemo(() => {
+    const map = new Map();
+    patients.forEach((p) => {
+      if (!p.patientid) return;
+      map.set(`${p.__srcIp ?? ""}|${p.patientid}`, p);
+    });
+    return map;
+  }, [patients]);
+
+  const bedPatient = (bed) =>
+    bed.patientId ? patientMap.get(`${bed.__srcIp ?? ""}|${bed.patientId}`) : undefined;
+
+  const bedDeviceId = (bed) => bedPatient(bed)?.deviceid || "";
+
+  // 多個區域共用同一台後端，抓回來的資料會夾帶其他區域的，前端要再過濾一次
+  const inSection = (item) => matchesSection(select_section, item?.section);
+
+  const bedCards = useMemo(() => {
+    const deviceMap = new Map();
+    devices.forEach((d) => {
+      if (!d.MAC) return;
+      deviceMap.set(deviceMapKey(d.__srcIp, d.MAC), d);
+    });
+
+    return beds.filter(inSection).map((bed) => {
+      // 裝置來自住民：bed.patientId → patient.deviceid
+      const boundDeviceId = bedDeviceId(bed);
+      const device = boundDeviceId
+        ? deviceMap.get(deviceMapKey(bed.__srcIp, boundDeviceId))
+        : undefined;
+
+      // 狀態判斷：
+      //   沒綁住民                        → vacant（空床，不管有沒有裝置）
+      //   有住民但沒綁裝置                → vacant（還沒開始監測）
+      //   有住民有裝置，但抓不到 / STAT 0 → disconnect
+      //   STAT === 1                      → 依 BedColor：1 alert / 2 attention / 其他 default
+      let status;
+      if (!bed.patientId || !boundDeviceId) {
+        status = "vacant";
+      } else if (!device || device.STAT === 0) {
+        status = "disconnect";
+      } else if (device.BedColor === 1) {
+        status = "alert";
+      } else if (device.BedColor === 2) {
+        status = "attention";
+      } else {
+        status = "default";
+      }
+
+      return { bed, device, status, deviceId: boundDeviceId, Bed: bed.bedId };
+    });
+  }, [beds, devices, patientMap, select_section]);
+
+  {
+    /* deviceType 篩選：空床沒有裝置，沒有 TYPE 可比，
+       所以只有在「All / 未指定」時才顯示。 */
+  }
+  const matchesDeviceType = (card) =>
+    select_deviceType === "" ||
+    select_deviceType === "All" ||
+    card.device?.TYPE === select_deviceType;
+
+  const visibleCards = bedCards.filter(matchesDeviceType);
+
+  const cardsOf = (status) =>
+    visibleCards.filter((c) => c.status === status).sort(sortAlphabet);
+
+  {
+    /* 可供綁定床位的裝置：已註冊但還沒被任何床位指派的裝置。
+       這裡的判斷與 AddNewBed 裝置下拉的過濾條件一致（同樣扣掉已被佔用的）。 */
+  }
+  const deviceStats = useMemo(() => {
+    // 裝置綁在住民身上，所以「已綁定」看的是住民清單
+    const boundIds = new Set(
+      patients
+        .filter((p) => p.deviceid)
+        .map((p) => deviceMapKey(p.__srcIp, p.deviceid)),
+    );
+
+    const matchesType = (d) =>
+      select_deviceType === "" ||
+      select_deviceType === "All" ||
+      d.devicetype === select_deviceType;
+
+    const list = registeredDevices.filter(inSection).filter(matchesType);
+    const bound = list.filter((d) =>
+      boundIds.has(deviceMapKey(d.__srcIp, d.deviceid)),
+    ).length;
+
+    return { total: list.length, bound, available: list.length - bound };
+  }, [patients, registeredDevices, select_deviceType, select_section]);
+
+  const statusCounts = {
+    alerts: visibleCards.filter((c) => c.status === "alert").length,
+    attention: visibleCards.filter((c) => c.status === "attention").length,
+    normal: visibleCards.filter((c) => c.status === "default").length,
+    vacant: visibleCards.filter((c) => c.status === "vacant").length,
+    disconnected: visibleCards.filter((c) => c.status === "disconnect").length,
+  };
+
+  // 「All」模式下同 bedId 可能來自不同 server，前綴來源 IP 以避免 React key 衝突
+  const bedKey = (bed) =>
+    bed.__srcIp ? `${bed.__srcIp}-${bed.bedId}` : bed.bedId;
+
+  const bedIpQuery = (bed) => (bed.__srcIp ? `&ip=${bed.__srcIp}` : "");
+
+  const bedPatientQuery = (bed) =>
+    bed.patientId ? `&patientid=${encodeURIComponent(bed.patientId)}` : "";
+
+  // 卡片上顯示的住民名稱。
+  // 以資料庫的住民姓名為準（床位的住民才是權威來源），抓不到才退回
+  // 裝置回報的 UserName，再不然用住民編號頂著。沒有住民就回空字串。
+  const cardName = (card) => {
+    const { bed } = card;
+    if (!bed.patientId) return "";
+    return (
+      bedPatient(bed)?.patientname || card.device?.UserName || bed.patientId
+    );
+  };
+
+  const renderBedCard = (card) => {
+    const { bed, device, status } = card;
+    // card.deviceId = 這張床的住民所綁的裝置
+    const key = bedKey(bed);
+
+    // 空床（沒綁住民，或有住民但還沒綁裝置）→ 點擊開 modal 做綁定
+    if (status === "vacant") {
+      return (
+        <Bed_vacant
+          key={key}
+          bed={bed.bedId}
+          name={cardName(card)}
+          onClick={() => setEditingBed(bed)}
+        />
+      );
+    }
+
+    // 斷線 → 一樣導到住民監控頁：床位既然已經綁了住民和裝置，
+    // 使用者要看的是這位住民的資料，裝置離線與否不該改變去處。
+    if (status === "disconnect") {
+      return (
+        <Link
+          to={`/patient/patient-detail/patient-monitor?macaddress=${card.deviceId}${bedIpQuery(bed)}${bedPatientQuery(bed)}`}
+          key={key}
+          state={{ from: "/home" }}
+        >
+          <Bed_disconnect
+            macaddress={card.deviceId}
+            hold={formatSecondsToDHMS(device?.HOLD ?? 0)}
+            bed={bed.bedId}
+            section={bed.section}
+            username={cardName(card)}
+            deviceType={device?.TYPE ?? 1}
+          />
+        </Link>
+      );
+    }
+
+    // 連線中 → 導到住民監控頁（與斷線同一個去處）。床位上有指派住民時把 patientid 一起帶過去，
+    // 詳情頁就能直接用 GET /db/Patient/{patientid} 取資料，不必再從裝置反查。
+    return (
+      <Link
+        to={`/patient/patient-detail/patient-monitor?macaddress=${card.deviceId}${bedIpQuery(bed)}${bedPatientQuery(bed)}`}
+        key={key}
+        state={{ from: "/home" }}
+      >
+        <Bed_Online
+          macaddress={card.deviceId}
+          hold={formatSecondsToDHMS(device.HOLD)}
+          bed={bed.bedId}
+          section={bed.section}
+          username={cardName(card)}
+          pos={device.POS}
+          color={device.BedColor}
+          deviceType={device.TYPE}
+          isAlertSet={device.IsAlert}
+        />
+      </Link>
+    );
+  };
 
   const formatSecondsToDHMS = (seconds) => {
     const days = Math.floor(seconds / (24 * 3600));
@@ -669,52 +847,6 @@ function Home() {
     console.log("USE_SIGNALR_DEVICES:", USE_SIGNALR_DEVICES);
   }, []);
 
-  {
-    /* 依目前 deviceType 篩選後，各狀態的裝置數量（顯示在 status 分類標題旁）。
-       每個判斷式與下方各狀態 grid 的 filter 條件一致。 */
-  }
-  const matchesDeviceType = (device) =>
-    select_deviceType === "" ||
-    select_deviceType === "All" ||
-    device.TYPE === select_deviceType;
-
-  const isBedType = (device) => device.TYPE === 1 || device.TYPE === 2;
-  const hasUser = (device) =>
-    !(device.UserName === null || device.UserName === "");
-
-  const statusCounts = {
-    alerts: devices.filter(
-      (d) =>
-        matchesDeviceType(d) &&
-        isBedType(d) &&
-        d.STAT === 1 &&
-        d.BedColor === 1 &&
-        hasUser(d),
-    ).length,
-    attention: devices.filter(
-      (d) =>
-        matchesDeviceType(d) &&
-        isBedType(d) &&
-        d.STAT === 1 &&
-        hasUser(d) &&
-        d.BedColor === 2,
-    ).length,
-    normal: devices.filter(
-      (d) =>
-        matchesDeviceType(d) &&
-        isBedType(d) &&
-        d.STAT === 1 &&
-        hasUser(d) &&
-        d.BedColor === 0,
-    ).length,
-    vacant: devices.filter(
-      (d) => matchesDeviceType(d) && isBedType(d) && d.STAT === 1 && !hasUser(d),
-    ).length,
-    disconnected: devices.filter(
-      (d) => matchesDeviceType(d) && isBedType(d) && d.STAT === 0,
-    ).length,
-  };
-
   return (
     <>
       <Navbar />
@@ -727,7 +859,6 @@ function Home() {
           <div className="monitors">
             <div className="top-bar">
               <FloorSectionBar
-                selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
                 selectDeviceType={handleSelectDeviceType}
                 enableDeviceType={true}
@@ -753,461 +884,95 @@ function Home() {
                 </div>
               </div>
             </div>
+            {/* 還有多少裝置可以綁定到床位（已註冊但尚未被任何床位指派）。
+                兩種排序檢視都看得到；有可綁定的裝置時整條轉成 attention 色，
+                點擊可到 /bed 進行綁定。 */}
+            <div
+              className={`bed-summary ${
+                deviceStats.available > 0 ? "warn" : "ok"
+              }`}
+            >
+              <Link to="/bed" className="bed-summary-stat">
+                <span className="label">
+                  {deviceStats.available > 0
+                    ? t("Home.AvailableDevices")
+                    : t("Home.AllDevicesBound")}
+                </span>
+                <span className="badge">{deviceStats.available}</span>
+              </Link>
+              <div className="bed-summary-meta">
+                <span className="cell">
+                  <span className="cell-label">{t("Home.BoundDevices")}</span>
+                  <span className="cell-value">{deviceStats.bound}</span>
+                </span>
+                <span className="sep" />
+                <span className="cell">
+                  <span className="cell-label">{t("Home.TotalDevices")}</span>
+                  <span className="cell-value">{deviceStats.total}</span>
+                </span>
+              </div>
+            </div>
             {/* Bed Grid Sort by Bed */}
             <div className={`grid ${sortBy === "bed" ? "active" : ""}`}>
-              {devices
+              {visibleCards
                 .slice()
-                .filter((device) => {
-                  return (
-                    select_deviceType === "" ||
-                    select_deviceType === "All" ||
-                    device.TYPE === select_deviceType
-                  );
-                })
-                // .filter((device) => {
-                //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
-                //   );
-                // })
-                // .filter((device) => {
-                //   return (
-                //     select_section === "" ||
-                //     select_section === "All" ||
-                //     device.Section === select_section
-                //   );
-                // })
                 .sort(sortAlphabet)
-                .map((device) => renderDeviceComponent(device))}
+                .map((card) => renderBedCard(card))}
             </div>
             {/* Bed Grid Sort by Status */}
             <div className={`by-status ${sortBy === "bed" ? "" : "active"}`}>
               {/* Alert Status */}
-              {devices
-                // .filter((device) => {
-                //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
-                //   );
-                // })
-                // .filter((device) => {
-                //   return (
-                //     select_section === "" ||
-                //     select_section === "All" ||
-                //     device.Section === select_section
-                //   );
-                // })
-                .filter((device) => {
-                  return (
-                    select_deviceType === "" ||
-                    select_deviceType === "All" ||
-                    device.TYPE === select_deviceType
-                  );
-                })
-                .some(
-                  (device) =>
-                    (device.TYPE === 1 || device.TYPE === 2) &&
-                    device.STAT === 1 &&
-                    device.BedColor === 1 &&
-                    !(device.UserName === null || device.UserName === ""),
-                ) && (
+              {statusCounts.alerts > 0 && (
                 <div className="status">
                   <div className="title">
                     {t("Home.Alerts")} ({statusCounts.alerts})
                   </div>
                   <div className="status-grid">
-                    {devices
-                      // .filter((device) => {
-                      //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
-                      //   );
-                      // })
-                      // .filter((device) => {
-                      //   return (
-                      //     select_section === "" ||
-                      //     select_section === "All" ||
-                      //     device.Section === select_section
-                      //   );
-                      // })
-                      .filter((device) => {
-                        return (
-                          select_deviceType === "" ||
-                          select_deviceType === "All" ||
-                          device.TYPE === select_deviceType
-                        );
-                      })
-                      .filter(
-                        (device) =>
-                          (device.TYPE === 1 || device.TYPE === 2) &&
-                          device.STAT === 1 &&
-                          device.BedColor === 1 &&
-                          !(device.UserName === null || device.UserName === ""),
-                      )
-                      .sort(sortAlphabet)
-                      .map((device) => (
-                        <Link
-                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}${ipQuery(device)}`}
-                          key={deviceKey(device)}
-                          state={{ from: "/home" }}
-                        >
-                          <Bed_Online
-                            key={device.MAC}
-                            macaddress={device.MAC}
-                            hold={formatSecondsToDHMS(device.HOLD)}
-                            bed={device.Bed}
-                            floor={device.Floor}
-                            section={device.Section}
-                            username={device.UserName}
-                            pos={device.POS}
-                            color={device.BedColor}
-                            deviceType={device.TYPE}
-                            isAlertSet = {device.IsAlert}
-                          />
-                        </Link>
-                      ))}
+                    {cardsOf("alert").map((card) => renderBedCard(card))}
                   </div>
                 </div>
               )}
               {/* Attention Status */}
-              {devices
-                // .filter((device) => {
-                //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
-                //   );
-                // })
-                // .filter((device) => {
-                //   return (
-                //     select_section === "" ||
-                //     select_section === "All" ||
-                //     device.Section === select_section
-                //   );
-                // })
-                .filter((device) => {
-                  return (
-                    select_deviceType === "" ||
-                    select_deviceType === "All" ||
-                    device.TYPE === select_deviceType
-                  );
-                })
-                .some(
-                  (device) =>
-                    (device.TYPE === 1 || device.TYPE === 2) &&
-                    device.STAT === 1 &&
-                    !(device.UserName === null || device.UserName === "") &&
-                    device.BedColor === 2,
-                ) && (
+              {statusCounts.attention > 0 && (
                 <div className="status">
                   <div className="title">
                     {t("Home.Attention")} ({statusCounts.attention})
                   </div>
                   <div className="status-grid">
-                    {devices
-                      // .filter((device) => {
-                      //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
-                      //   );
-                      // })
-                      // .filter((device) => {
-                      //   return (
-                      //     select_section === "" ||
-                      //     select_section === "All" ||
-                      //     device.Section === select_section
-                      //   );
-                      // })
-                      .filter((device) => {
-                        return (
-                          select_deviceType === "" ||
-                          select_deviceType === "All" ||
-                          device.TYPE === select_deviceType
-                        );
-                      })
-                      .filter(
-                        (device) =>
-                          (device.TYPE === 1 || device.TYPE === 2) &&
-                          device.STAT === 1 &&
-                          !(
-                            device.UserName === null || device.UserName === ""
-                          ) &&
-                          device.BedColor === 2,
-                      )
-                      .sort(sortAlphabet)
-                      .map((device) => (
-                        <Link
-                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}${ipQuery(device)}`}
-                          key={deviceKey(device)}
-                          state={{ from: "/home" }}
-                        >
-                          <Bed_Online
-                            key={device.MAC}
-                            macaddress={device.MAC}
-                            hold={formatSecondsToDHMS(device.HOLD)}
-                            bed={device.Bed}
-                            floor={device.Floor}
-                            section={device.Section}
-                            username={device.UserName}
-                            pos={device.POS}
-                            deviceType={device.TYPE}
-                            color={device.BedColor}
-                            isAlertSet = {device.IsAlert}
-                          />
-                        </Link>
-                      ))}
+                    {cardsOf("attention").map((card) => renderBedCard(card))}
                   </div>
                 </div>
               )}
               {/* Default Status */}
-              {devices
-                // .filter((device) => {
-                //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
-                //   );
-                // })
-                // .filter((device) => {
-                //   return (
-                //     select_section === "" ||
-                //     select_section === "All" ||
-                //     device.Section === select_section
-                //   );
-                // })
-                .filter((device) => {
-                  return (
-                    select_deviceType === "" ||
-                    select_deviceType === "All" ||
-                    device.TYPE === select_deviceType
-                  );
-                })
-                .some(
-                  (device) =>
-                    (device.TYPE === 1 || device.TYPE === 2) &&
-                    device.STAT === 1 &&
-                    !(device.UserName === null || device.UserName === "") &&
-                    device.BedColor === 0,
-                ) && (
+              {statusCounts.normal > 0 && (
                 <div className="status">
                   <div className="title">
                     {t("Home.Normal")} ({statusCounts.normal})
                   </div>
                   <div className="status-grid">
-                    {devices
-                      // .filter((device) => {
-                      //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
-                      //   );
-                      // })
-                      // .filter((device) => {
-                      //   return (
-                      //     select_section === "" ||
-                      //     select_section === "All" ||
-                      //     device.Section === select_section
-                      //   );
-                      // })
-                      .filter((device) => {
-                        return (
-                          select_deviceType === "" ||
-                          select_deviceType === "All" ||
-                          device.TYPE === select_deviceType
-                        );
-                      })
-                      .filter(
-                        (device) =>
-                          (device.TYPE === 1 || device.TYPE === 2) &&
-                          device.STAT === 1 &&
-                          !(
-                            device.UserName === null || device.UserName === ""
-                          ) &&
-                          device.BedColor === 0,
-                      )
-                      .sort(sortAlphabet)
-                      .map((device) => (
-                        <Link
-                          to={`/patient/patient-detail/patient-monitor?macaddress=${device.MAC}${ipQuery(device)}`}
-                          key={deviceKey(device)}
-                          state={{ from: "/home" }}
-                        >
-                          <Bed_Online
-                            key={device.MAC}
-                            macaddress={device.MAC}
-                            hold={formatSecondsToDHMS(device.HOLD)}
-                            bed={device.Bed}
-                            floor={device.Floor}
-                            section={device.Section}
-                            username={device.UserName}
-                            pos={device.POS}
-                            color={device.BedColor}
-                            deviceType={device.TYPE}
-                            isAlertSet = {device.IsAlert}
-                          />
-                        </Link>
-                      ))}
+                    {cardsOf("default").map((card) => renderBedCard(card))}
                   </div>
                 </div>
               )}
-              {/* Vacant Status */}
-              {devices
-                // .filter((device) => {
-                //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
-                //   );
-                // })
-                // .filter((device) => {
-                //   return (
-                //     select_section === "" ||
-                //     select_section === "All" ||
-                //     device.Section === select_section
-                //   );
-                // })
-                .filter((device) => {
-                  return (
-                    select_deviceType === "" ||
-                    select_deviceType === "All" ||
-                    device.TYPE === select_deviceType
-                  );
-                })
-                .some(
-                  (device) =>
-                    (device.TYPE === 1 || device.TYPE === 2) &&
-                    device.STAT === 1 &&
-                    (device.UserName === null || device.UserName === ""),
-                ) && (
+              {/* Vacant Status（沒綁裝置的床位） */}
+              {statusCounts.vacant > 0 && (
                 <div className="status">
                   <div className="title">
                     {t("Home.Vacant")} ({statusCounts.vacant})
                   </div>
                   <div className="status-grid">
-                    {devices
-                      // .filter((device) => {
-                      //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
-                      //   );
-                      // })
-                      // .filter((device) => {
-                      //   return (
-                      //     select_section === "" ||
-                      //     select_section === "All" ||
-                      //     device.Section === select_section
-                      //   );
-                      // })
-                      .filter((device) => {
-                        return (
-                          select_deviceType === "" ||
-                          select_deviceType === "All" ||
-                          device.TYPE === select_deviceType
-                        );
-                      })
-                      .filter(
-                        (device) =>
-                          (device.TYPE === 1 || device.TYPE === 2) &&
-                          device.STAT === 1 &&
-                          (device.UserName === null || device.UserName === ""),
-                      )
-                      .sort(sortAlphabet)
-                      .map((device) => (
-                        <Bed_vacant
-                          key={deviceKey(device)}
-                          macaddress={device.MAC}
-                          bed={device.Bed}
-                          floor={device.Floor}
-                          section={device.Section}
-                        />
-                      ))}
+                    {cardsOf("vacant").map((card) => renderBedCard(card))}
                   </div>
                 </div>
               )}
               {/* Disconnected Status */}
-              {devices
-                // .filter((device) => {
-                //   return (
-                //     select_floor === "" ||
-                //     select_floor === "All" ||
-                //     device.Floor === select_floor
-                //   );
-                // })
-                // .filter((device) => {
-                //   return (
-                //     select_section === "" ||
-                //     select_section === "All" ||
-                //     device.Section === select_section
-                //   );
-                // })
-                .filter((device) => {
-                  return (
-                    select_deviceType === "" ||
-                    select_deviceType === "All" ||
-                    device.TYPE === select_deviceType
-                  );
-                })
-                .some(
-                  (device) =>
-                    (device.TYPE === 1 || device.TYPE === 2) &&
-                    device.STAT === 0,
-                ) && (
+              {statusCounts.disconnected > 0 && (
                 <div className="status">
                   <div className="title">
                     {t("Home.Disconnected")} ({statusCounts.disconnected})
                   </div>
                   <div className="status-grid">
-                    {devices
-                      // .filter((device) => {
-                      //   return (
-                      //     select_floor === "" ||
-                      //     select_floor === "All" ||
-                      //     device.Floor === select_floor
-                      //   );
-                      // })
-                      // .filter((device) => {
-                      //   return (
-                      //     select_section === "" ||
-                      //     select_section === "All" ||
-                      //     device.Section === select_section
-                      //   );
-                      // })
-                      .filter((device) => {
-                        return (
-                          select_deviceType === "" ||
-                          select_deviceType === "All" ||
-                          device.TYPE === select_deviceType
-                        );
-                      })
-                      .filter(
-                        (device) =>
-                          (device.TYPE === 1 || device.TYPE === 2) &&
-                          device.STAT === 0,
-                      )
-                      .sort(sortAlphabet)
-                      .map((device) => (
-                        <Link
-                          to={`/device/device-settings?macaddress=${device.MAC}${ipQuery(device)}`}
-                          key={deviceKey(device)}
-                          state={{ from: "/home" }}
-                        >
-                          <Bed_disconnect
-                            key={device.MAC}
-                            macaddress={device.MAC}
-                            hold={formatSecondsToDHMS(device.HOLD)}
-                            bed={device.Bed}
-                            floor={device.Floor}
-                            section={device.Section}
-                            username={device.UserName}
-                            deviceType={device.TYPE}
-                          />
-                        </Link>
-                      ))}
+                    {cardsOf("disconnect").map((card) => renderBedCard(card))}
                   </div>
                 </div>
               )}
@@ -1215,6 +980,17 @@ function Home() {
           </div>
         </div>
       </div>
+
+      {/* 點空床卡片後開啟：編輯該張床位（主要用途是綁定裝置）。
+          放在 .top-bar 之外，否則 general.css 的 .top-bar .dropdown{max-width}
+          會把 modal 裡的下拉欄位壓窄。 */}
+      {editingBed && (
+        <AddNewBed
+          bed={editingBed}
+          callback={handleCloseBedModal}
+          onCreated={fetchBedList}
+        />
+      )}
     </>
   );
 }

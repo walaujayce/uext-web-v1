@@ -1,4 +1,8 @@
-{
+{  
+  "DeviceType":{
+    "uext":"離床墊",
+    "umap":"壓力墊"
+  },
   "Login": {
     "title": "離床警示系統",
     "Username": "Username：",
@@ -17,7 +21,8 @@
   },
   "Navbar": {
     "Home": "首頁",
-    "Patient": "住民",
+    "Patient": "病人",
+    "Bed": "床位",
     "Alert": "警示",
     "Device": "裝置",
     "Account": "帳戶",
@@ -37,7 +42,12 @@
     "Attention": "注意",
     "Disconnected": "斷線",
     "Normal": "正常",
-    "Vacant": "空床"
+    "Vacant": "空床",
+    "ClickToBindPatient": "點擊以綁定病人",
+    "AvailableDevices": "可供綁定床位的裝置",
+    "AllDevicesBound": "所有裝置皆已綁定床位",
+    "BoundDevices": "已綁定",
+    "TotalDevices": "裝置總數"
   },
   "FloorSection": {
     "Floor": "樓層",
@@ -80,15 +90,64 @@
     "Cancel": "取消"
   },
   "PatientList": {
-    "PatientList": "住民列表",
-    "PatientID": "住民編號",
-    "PatientName": "住民姓名",
+    "PatientList": "病人列表",
+    "PatientID": "病人編號",
+    "PatientName": "病人姓名",
     "Sex": "性別",
     "Bed": "床號",
     "Section": "區域",
     "Floor": "樓層",
     "DeviceID": "裝置編號",
     "DeviceStatus": "連線狀態"
+  },
+  "BedList": {
+    "BedList": "床位列表",
+    "BedID": "床位編號",
+    "Section": "區域",
+    "PatientID": "病人編號",
+    "DeviceID": "裝置編號",
+    "NurseID": "護理人員",
+    "Status": "床位狀態",
+    "Occupied": "佔用中",
+    "Vacant": "空床",
+    "NewBed": "新增床位"
+  },
+  "AddBedModal": {
+    "AddBed": "新增床位",
+    "EditBed": "編輯床位",
+    "NewBedAdded": "床位新增成功",
+    "BedUpdated": "床位已更新",
+    "BedDeleted": "床位已刪除",
+    "PatientDischarged": "病人已出院",
+    "BedProfile": "床位資料",
+    "BedID": "床位編號",
+    "Section": "區域",
+    "OptionalSection": "病人與指派（選填）",
+    "Nurse": "護理人員",
+    "PatientID": "病人編號",
+    "PatientName": "病人姓名",
+    "Device": "裝置",
+    "DeviceNeedsPatient": "請先填寫病人編號",
+    "Unassigned": "未指派",
+    "Required": "此欄位為必填！",
+    "Continue": "確認",
+    "Cancel": "取消",
+    "Okay": "確定",
+    "Save": "儲存",
+    "Delete": "刪除",
+    "Discharge": "病人出院",
+    "DeleteConfirm": "確定要刪除床位「{{bedId}}」嗎？此操作無法復原。",
+    "DeleteConfirmWithPatient": "確定要刪除床位「{{bedId}}」嗎？床上的病人「{{patientId}}」也會一併刪除。此操作無法復原。",
+    "DeleteYes": "確定刪除",
+    "Height": "身高",
+    "Weight": "體重",
+    "DOB": "生日",
+    "Sex": "性別",
+    "Female": "女",
+    "Male": "男",
+    "OptionalNote": "留空即為未指派。要綁定裝置必須先有病人；病人編號連同姓名一起填寫會建立新病人，若已選裝置會一併寫進該病人資料。",
+    "DischargeConfirm": "確定讓病人「{{patientId}}」出院嗎？床位會解除病人與裝置的綁定，病人資料也會一併刪除。",
+    "DischargeYes": "確定出院"
   },
   "PatientDetail": {
     "Monitor": "即時監控",
@@ -99,8 +158,10 @@
     "Back": "返回列表"
   },
   "PatientProfile": {
-    "PatientProfile": "住民資料",
-    "PatientID": "住民編號",
+    "PatientProfile": "病人資料",
+    "PatientID": "病人編號",
+    "PatientIDPlaceholder": "選擇或輸入病人編號",
+    "NewPatientHint": "清單中沒有此病人編號，儲存後將新增病人",
     "PatientName": "姓名",
     "Sex": "性別",
     "Birthday": "生日",
@@ -113,14 +174,19 @@
     "DeviceStatus": "連線狀態",
     "Save": "儲存",
     "Discharge": "出院確認",
-    "Calibration": "校正"
+    "UnbindDevice": "移除裝置",
+    "Calibration": "校正",
+    "PatientIDRequired": "請輸入病人編號。",
+    "PatientNameRequired": "請輸入病人姓名。",
+    "SaveSuccess": "儲存成功！",
+    "DischargeSuccess": "病人已出院。"
   },
   "AddPatientModal": {
-    "ClickToAddPatient": "點擊以新增住民",
-    "AddNewPatient": "住民新增成功",
-    "AddPatient-h1": "新增住民",
-    "AddPatient-h2": "住民資料",
-    "ID": "住民編號",
+    "ClickToAddPatient": "點擊以新增病人",
+    "AddNewPatient": "病人新增成功",
+    "AddPatient-h1": "新增病人",
+    "AddPatient-h2": "病人資料",
+    "ID": "病人編號",
     "Name": "姓名",
     "Height": "身高 (公分)",
     "Weight": "體重 (公斤)",
@@ -130,9 +196,16 @@
     "Cancel": "取消"
   },
   "DischargeModal": {
-    "description": "確定住民出院？",
+    "description": "確定病人出院？",
     "Discharge": "出院確認",
     "Cancel": "取消"
+  },
+  "UnbindDeviceModal": {
+    "description": "確定解除此床位的裝置綁定？",
+    "note": "床位與病人資料會保留，只解除裝置綁定。",
+    "Unbind": "移除裝置",
+    "Cancel": "取消",
+    "NotBound": "此裝置尚未綁定任何床位。"
   },
   "CalibrationModal": {
     "description": "確認執行校正?",
@@ -193,7 +266,7 @@
     "AddNewAlert": "新增時段",
     "TurnOverAlert": "翻身壓力警報",
     "TurnOverHoldTime": "維持時間",
-    "TurnOverHoldTimeDescription": "當住民姿勢維持超過設定時間，系統會發送警報。",
+    "TurnOverHoldTimeDescription": "當病人姿勢維持超過設定時間，系統會發送警報。",
     "PressureRisk": "壓力風險",
     "PressureRiskDescription": "依照所設定之壓力與時間相乘所得到之數值，作為壓力風險警報通知基準。例如設定值為30mmHg與120分鐘，所得到的乘積為3600，則當區域壓力達到100mmHg與持續時間達到36分鐘時，系統會發出警報。"
   },
@@ -201,8 +274,8 @@
     "AlertSettingList": "警示設定列表",
     "Setting": "設定",
     "BedID": "床號",
-    "PatientID": "住民",
-    "NoResident": "目前沒有任何住民資料"
+    "PatientID": "病人",
+    "NoResident": "目前沒有任何病人資料"
   },
   "DeviceList": {
     "NewDevice": "新增裝置",
@@ -336,9 +409,19 @@
     "Medium": "中",
     "Low": "低",
     "Unusual": "異常",
-    "NaN": "無壓力風險"
+    "NaN": "無壓力風險",
+    "CalloutTitle": "風險區域",
+    "Max": "最高",
+    "Avg": "平均",
+    "Duration": "持續",
+    "Area": "面積"
   },
   "PatientRecord": {
+    "Analysing": "正在分析資料並製作圖表…",
+    "Elapsed": "已等待 {{seconds}} 秒",
+    "Cancel": "取消",
+    "Cancelled": "已取消分析。",
+    "Retry": "重新分析",
     "NotEnoughData": "目前資料不足以分析。",
     "SleepingTime": "睡眠時數",
     "LeaveBedCount": "離床次數",
@@ -364,7 +447,7 @@
           "summaryTitle": "睡眠不足 / 品質不佳",
           "summaryRange": "(平均每晚少於 6 小時)",
           "details": [
-            "住民夜間睡眠時數不足，建議提供安靜環境並減少干擾。",
+            "病人夜間睡眠時數不足，建議提供安靜環境並減少干擾。",
             "睡前避免刺激性活動，如滑手機、飲用含咖啡因飲品。",
             "可評估是否有疼痛、不適或焦慮影響睡眠，必要時通報醫師處理。"
           ]
@@ -373,7 +456,7 @@
           "summaryTitle": "睡眠過多 / 嗜睡",
           "summaryRange": "(平均每晚大於 10 小時)",
           "details": [
-            "住民嗜睡情形明顯，建議適度喚醒並鼓勵日間活動。",
+            "病人嗜睡情形明顯，建議適度喚醒並鼓勵日間活動。",
             "調整白天午睡休息時間，避免影響夜間睡眠。",
             "評估是否與藥物副作用或病況相關。"
           ]
@@ -384,7 +467,7 @@
           "summaryTitle": "一般狀況",
           "summaryRange": "(平均每晚少於或等於 2 次)",
           "details": [
-            "住民夜間離床次數可接受，持續觀察夜間活動狀況。",
+            "病人夜間離床次數可接受，持續觀察夜間活動狀況。",
             "建議維持床邊環境安全，如安全床欄、呼叫鈴。",
             "鼓勵睡前如廁，以減少夜間離床需求。",
             "建議持續評估跌倒風險並提供必要輔助，如助行器。"
@@ -394,7 +477,7 @@
           "summaryTitle": "離床次數太多 / 頻尿",
           "summaryRange": "(平均每晚大於 2 次)",
           "details": [
-            "住民夜間頻繁離床，建議加強跌倒預防措施，如呼叫鈴、降低床高。",
+            "病人夜間頻繁離床，建議加強跌倒預防措施，如呼叫鈴、降低床高。",
             "建議評估頻尿、疼痛或不適等可能原因，必要時通報醫師。",
             "建議安排規律如廁時間，如睡前及夜間定時如廁。",
             "建議夜間提供適度照明，避免因視線不佳導致跌倒。",
@@ -407,7 +490,7 @@
           "summaryTitle": "一般狀況",
           "summaryRange": "(平均每晚少於或等於 40 次)",
           "details": [
-            "住民夜間翻身次數可接受，持續觀察夜間活動狀況。",
+            "病人夜間翻身次數可接受，持續觀察夜間活動狀況。",
             "持續提供適當擺位與支撐，如枕頭、減壓墊。",
             "建議維持床邊環境安全，如安全床欄、呼叫鈴。"
           ]
@@ -416,7 +499,7 @@
           "summaryTitle": "翻身次數太多 / 淺眠",
           "summaryRange": "(平均每晚大於 40 次)",
           "details": [
-            "住民夜間頻繁翻身，建議評估是否因疼痛、不適或焦慮所致。",
+            "病人夜間頻繁翻身，建議評估是否因疼痛、不適或焦慮所致。",
             "建議檢查床墊舒適度及擺位是否適當。",
             "必要時評估壓力點疼痛或皮膚問題。",
             "建議夜間加強觀察，必要時通報醫師評估用藥或處置。"
@@ -428,7 +511,7 @@
           "summaryTitle": "一般狀況",
           "summaryRange": "(平均每日大於等於 12 次)",
           "details": [
-            "住民每日翻身次數正常，符合預防壓力性損傷原則，持續維持定時翻身措施。",
+            "病人每日翻身次數正常，符合預防壓力性損傷原則，持續維持定時翻身措施。",
             "建議持續依翻身計畫執行，並搭配皮膚評估與減壓輔具使用。"
           ]
         },
@@ -436,7 +519,7 @@
           "summaryTitle": "翻身次數太少",
           "summaryRange": "(平均每日少於 12 次)",
           "details": [
-            "住民每日翻身次數太少，建議加強翻身頻率以預防壓力性損傷。",
+            "病人每日翻身次數太少，建議加強翻身頻率以預防壓力性損傷。",
             "建議確實執行翻身計畫並加強翻身紀錄。",
             "評估是否因人力、病人狀況或照護安排影響翻身執行。",
             "必要時調整照護計畫或增加巡視頻率。"
@@ -448,7 +531,7 @@
           "summaryTitle": "一般狀況",
           "summaryRange": "(平均每日最長間隔小於等於 2 小時)",
           "details": [
-            "住民翻身間隔時間正常，符合壓力性損傷預防原則，持續維持。",
+            "病人翻身間隔時間正常，符合壓力性損傷預防原則，持續維持。",
             "建議持續依翻身計畫執行，並搭配皮膚評估與減壓輔具使用。"
           ]
         },
@@ -456,7 +539,7 @@
           "summaryTitle": "間隔時間太長",
           "summaryRange": "(平均每日最長間隔大於 2 小時)",
           "details": [
-            "住民翻身間隔時間超時，建議縮短翻身間隔以降低壓力性損傷風險。",
+            "病人翻身間隔時間超時，建議縮短翻身間隔以降低壓力性損傷風險。",
             "建議落實定時翻身計畫，並加強紀錄。",
             "評估是否因夜間人力或照護流程影響翻身執行。",
             "必要時調整照護安排以確保翻身頻率。"

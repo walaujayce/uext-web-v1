@@ -44,8 +44,8 @@ function DeviceSettings() {
   };
 
   {
-    /* Floor 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext，去重後的清單）
-       Section 選項在下方依目前選取的 floor 連動過濾（cascade） */
+    /* Section 選項來源：/api/7284/IpAddress/all（透過 FloorSectionContext，去重後的清單）
+       後端已移除 floor，這裡只剩 section */
   }
   const { servers, selectedServer } = useFloorSection();
 
@@ -56,11 +56,6 @@ function DeviceSettings() {
   // 所以底下 fetch 會等到 targetIp 有值再抓，並在它出現後自動重抓，
   // 避免在 IP 還沒確定前就打到預設台而抓不到資料。
   const targetIp = ipParam ?? selectedServer?.ip ?? null;
-
-  const floors = useMemo(
-    () => [...new Set(servers.map((s) => s.floor).filter(Boolean))],
-    [servers],
-  );
 
   // Detect change value in input box then enable save buttons
   const [isDeviceInfoChanged, setIsDeviceInfoChanged] = useState(false);
@@ -217,21 +212,12 @@ function DeviceSettings() {
   const dhcpDropdown = useLocationDropdown("");
 
   /// Device Location ///
-  const deviceBedInput = useSetLoactionInput("");
   const sectionDropdown = useLocationDropdown("");
-  const floorDropdown = useLocationDropdown("");
 
-  // Section 選項：只顯示「目前選取 floor」底下的區域（依 floorDropdown 連動）
+  // Section 選項：直接來自 server 清單（後端已移除 floor，不再需要 cascade）
   const sections = useMemo(
-    () => [
-      ...new Set(
-        servers
-          .filter((s) => s.floor === floorDropdown.placeholder)
-          .map((s) => s.section)
-          .filter(Boolean),
-      ),
-    ],
-    [servers, floorDropdown.placeholder],
+    () => [...new Set(servers.map((s) => s.section).filter(Boolean))],
+    [servers],
   );
 
   /// Device Configuration ///
@@ -281,7 +267,6 @@ function DeviceSettings() {
         edgeboxDropdown.setIsActiveFalse(false);
         sitparDropdown.setIsActiveFalse(false);
         sitboxDropdown.setIsActiveFalse(false);
-        floorDropdown.setIsActiveFalse(false);
         sectionDropdown.setIsActiveFalse(false);
         dhcpDropdown.setIsActiveFalse(false);
       }
@@ -314,7 +299,6 @@ function DeviceSettings() {
     }, [ref, isActive]);
   };
 
-  const dropdownFloorStyleRef = useRef(null);
   const dropdownSectionStyleRef = useRef(null);
   const dropdownJudgemethodStyleRef = useRef(null);
   const dropdownEdgeparStyleRef = useRef(null);
@@ -324,7 +308,6 @@ function DeviceSettings() {
   const dropdownDhcpStyleRef = useRef(null);
 
   useDynamicDropdownHeight(dropdownDhcpStyleRef, dhcpDropdown.isActive);
-  useDynamicDropdownHeight(dropdownFloorStyleRef, floorDropdown.isActive);
   useDynamicDropdownHeight(dropdownSectionStyleRef, sectionDropdown.isActive);
   useDynamicDropdownHeight(dropdownJudgemethodStyleRef, isJudgeMethodActive);
   // useDynamicDropdownHeight(dropdownEdgeparStyleRef, edgeparDropdown.isActive);
@@ -384,9 +367,6 @@ const handleDhcpItemClick = (dhcp) => {
         data.connect ? "Connected" : "Disconnect"
       );
       
-      deviceBedInput.setInputValue(data.bed || "");
-      floorDropdown.selectItem(data.floor);
-      floorDropdown.setIsActiveFalse;
       sectionDropdown.selectItem(data.section);
       sectionDropdown.setIsActiveFalse;
       dhcpDropdown.selectItem(data.dhcp ? "DHCP" : "Static IP");
@@ -477,10 +457,12 @@ const handleDhcpItemClick = (dhcp) => {
     ipaddress: deviceIPInput.inputValue,
   };
   // Update device location
+  // ⚠ 這裡刻意不送 bed：床號由床位綁定流程維護（見 WebAPI 的 DeviceBedSync），
+  //   不開放在這一頁手動修改。saveDeviceLocation 是用
+  //   { ...deviceInfo, ...requestBody_DeviceLocation } 組出整筆，
+  //   所以少了這個欄位就會沿用 deviceInfo 讀回來的現值，不會被清空。
   const requestBody_DeviceLocation = {
-    bed: deviceBedInput.inputValue,
     section: sectionDropdown.placeholder,
-    floor: floorDropdown.placeholder,
   };
   // update device configuration
   const requestBody_DeviceLConfiguration = {
@@ -600,16 +582,13 @@ const handleDhcpItemClick = (dhcp) => {
     }
   };
 
-  // 變更樓層/區域時：若新的 floor+section 對應到「不同的後端」（同一樓+層唯一對應一台），
+  // 變更區域時：若新的 section 對應到「不同的後端」（一個 section 唯一對應一台），
   // 代表要把裝置搬到那台 → 在新後端建立、並從原後端刪除；仍是同一台就一般更新。
   const saveDeviceLocation = async () => {
-    const newFloor = floorDropdown.placeholder;
     const newSection = sectionDropdown.placeholder;
     const oldIp = targetIp; // 裝置目前所在的後端
-    const newIp =
-      servers.find((s) => s.floor === newFloor && s.section === newSection)
-        ?.ip ?? null;
-    // 保留裝置原本所有設定，只覆蓋 bed/floor/section
+    const newIp = servers.find((s) => s.section === newSection)?.ip ?? null;
+    // 保留裝置原本所有設定，只覆蓋 section（bed 不動，沿用現值）
     const updatedData = { ...deviceInfo, ...requestBody_DeviceLocation };
     try {
       setLoading(true);
@@ -944,88 +923,6 @@ const handleDhcpItemClick = (dhcp) => {
               <h2>{t("DeviceSettings.DeviceLocation")}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
-                  {deviceType !== 201 && (<div className="input g-col-3">
-                    <label htmlFor="bed" className="label-container">
-                      <p>{t("DeviceSettings.Bed")}</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="bed"
-                        placeholder={deviceBedInput.inputValue}
-                        value={deviceBedInput.inputValue}
-                        onChange={deviceBedInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>)} 
-                  <div
-                    className="input dropdown floor g-col-3 suffix"
-                    onClick={floorDropdown.toggleActive}
-                    ref={addDropdownRef}
-                  >
-                    <label htmlFor="floor" className="label-container">
-                      <p>{t("DeviceSettings.Floor")}</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="floor"
-                        placeholder={floorDropdown.placeholder}
-                        readOnly
-                      />
-                      <img
-                        className="suffix active"
-                        src=""
-                        alt="dropdown icon"
-                      />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                    <div
-                      className={`list ${
-                        floorDropdown.isActive ? "active" : ""
-                      }`}
-                      ref={dropdownFloorStyleRef}
-                    >
-                      {floors.map((floor) => (
-                        <div
-                          className="item opt1"
-                          key={floor}
-                          onClick={() => {
-                            const changed = floor !== floorDropdown.placeholder;
-                            floorDropdown.selectItem(floor);
-                            if (changed) {
-                              setIsDeviceLocationChanged(true);
-                              // 切 floor 後，section 自動選該 floor 底下的第一個區域
-                              const firstSection =
-                                servers.find((s) => s.floor === floor)
-                                  ?.section ?? "";
-                              sectionDropdown.selectItem(firstSection);
-                            }
-                          }}
-                        >
-                          {floor}
-                        </div>
-                      ))}
-                    </div>
-                  </div>                
                   <div
                     className="input dropdown section g-col-3 suffix"
                     onClick={sectionDropdown.toggleActive}

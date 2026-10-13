@@ -187,6 +187,39 @@
   /* background: center center / cover no-repeat url(/src/assets/grid.svg); */
 }
 
+/* ─────────────────────────────────────────────────────────
+   isUMAP：只顯示壓力圖（不顯示 RiskRegion 表格 / 呼吸 / 心率）。
+   .pressure 佔滿整列並水平置中；順帶讓 .box 撐滿寬度，
+   RiskIndexBar 的標籤與資訊卡才有足夠空間排在畫布外側。
+   ───────────────────────────────────────────────────────── */
+.monitor.umap-only .pressure {
+  grid-column: 1 / -1;
+  align-items: start; /* .pressure 是 flex column → 子元素水平置中 */
+}
+
+.monitor.umap-only .pressure .box {
+  width: 100%;
+  align-self: stretch;
+}
+
+.monitor.umap-only .bt-box {
+  justify-content: center;
+}
+
+/* 圖例原本用 flex:3 0 0 + 每格 33% 撐滿整排；.box 變全寬後會散得太開，
+   umap-only 改成不伸長、三個圖示靠在一起再整組置中。 */
+.monitor.umap-only .pressure .bt-box .spec.row {
+  flex: 0 0 auto; 
+  column-gap: 0px;
+  display: none;
+}
+
+.monitor.umap-only .bt-box .spec .mr.high,
+.monitor.umap-only .bt-box .spec .mr.mid,
+.monitor.umap-only .bt-box .spec .mr.low {
+  width: auto;
+}
+
 .monitor .title {
   color: var(--600, #666);
   font-size: 24px;
@@ -1359,4 +1392,11 @@
     width: 28px;
     height: 28px;
   }
+}
+
+
+/* 住民編號欄位打了一個清單裡沒有的編號時的提示。
+   .assistive-text 預設是紅色錯誤色，這裡是「將新增住民」的中性提示，改成綠色。 */
+.pp .input .assistive-text.new-patient {
+    color: #43951D;
 }

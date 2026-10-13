@@ -2,9 +2,11 @@ import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import Chart from "chart.js/auto";
-import SimpleBackdrop from "./LoadingOverlay";
+import axios from "axios";
 import api from "../api/apiClient";
 import { useAuth } from "../JS/AuthContext";
+import "/src/CSS/btn.css";
+import "/src/CSS/record-loading.css";
 
 /* ------------------------------ helpers ------------------------------ */
 
@@ -258,36 +260,86 @@ function PatientRecord() {
   const macaddress = searchParams.get("macaddress") || "";
 
   const [loading, setLoading] = useState(false);
+  // 已經等了幾秒。分析的資料量大時這支 API 可能要跑一段時間，
+  // 讓使用者看得到時間，才知道要不要按取消。
+  const [elapsed, setElapsed] = useState(0);
+  // 使用者主動取消 → 不能顯示「資料不足」，那會被誤會成真的沒有資料
+  const [cancelled, setCancelled] = useState(false);
   const [record, setRecord] = useState([]);
   const [deviceType, setDeviceType] = useState(null);
 
+  // 目前這次請求的中止控制器；按取消或換裝置時用它把請求收掉
+  const abortRef = useRef(null);
+
+  const isCanceled = (error) =>
+    axios.isCancel?.(error) ||
+    error?.code === "ERR_CANCELED" ||
+    error?.name === "CanceledError";
+
   const fetchRecord = async () => {
+    // 前一次還在飛的請求先收掉，避免晚回來的結果蓋掉新的
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    setCancelled(false);
     setLoading(true);
     try {
-      let patientId = "";
-      const patientResponse = await api.get(`/api/7284/db/Patient`);
+      const patientResponse = await api.get(`/api/7284/db/Patient`, {
+        signal: controller.signal,
+      });
 
       const data = patientResponse.data;
-      const matchingPatient = data.find((item) => item.deviceid === macaddress);
+      const matchingPatient = (Array.isArray(data) ? data : []).find(
+        (item) => item.deviceid === macaddress,
+      );
 
-      patientId = matchingPatient.patientid;
+      // 查不到對應住民就當作沒有資料，不要讓 undefined.patientid 直接炸掉
+      if (!matchingPatient?.patientid) {
+        setRecord([]);
+        setDeviceType(null);
+        return;
+      }
 
       const response = await api.get(
-        `/api/7284/db/RecordData/analyse?mac=${macaddress}&patientid=${patientId}&timezone=Asia_Taipei`,
+        `/api/7284/db/RecordData/analyse?mac=${macaddress}&patientid=${matchingPatient.patientid}&timezone=Asia_Taipei`,
+        { signal: controller.signal },
       );
       const result = response.data;
       setRecord(Array.isArray(result?.data) ? result.data : []);
       setDeviceType(result?.meta?.deviceType ?? null);
     } catch (error) {
+      // 使用者按取消不是錯誤，安靜收掉就好
+      if (isCanceled(error)) return;
       console.error("Error fetching record data:", error.message, error);
     } finally {
-      setLoading(false);
+      // 期間若又發了新的請求，收尾交給那一次，這裡不要把 loading 關掉
+      if (abortRef.current === controller) {
+        abortRef.current = null;
+        setLoading(false);
+      }
     }
+  };
+
+  const handleCancel = () => {
+    setCancelled(true);
+    abortRef.current?.abort();
   };
 
   useEffect(() => {
     if (macaddress) fetchRecord();
   }, [macaddress]);
+
+  // 離開頁面時把還在飛的請求收掉
+  useEffect(() => () => abortRef.current?.abort(), []);
+
+  // 等待秒數：只在 loading 期間計時
+  useEffect(() => {
+    if (!loading) return;
+    setElapsed(0);
+    const id = setInterval(() => setElapsed((prev) => prev + 1), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
 
   /* --------- 將 record 轉成各 chart 需要的陣列 --------- */
   const labels = record.map((r) => formatDateMMDD(r.date));
@@ -311,10 +363,37 @@ function PatientRecord() {
   const hasData = record.length > 0 && deviceType !== null;
 
   return (
-    <>
-      <SimpleBackdrop open={loading} />
-      <div style={{ padding: "16px 24px" }}>
-        {!loading && !hasData && (
+    <div className="pr-wrap">
+      {/* 區域內的載入遮罩：只蓋住記錄分析這一塊，其餘頁面照常可以操作 */}
+      {loading && (
+        <div className="pr-loading">
+          <div className="pr-loading-box">
+            <div className="pr-spinner" />
+            <p className="pr-loading-msg">{t("PatientRecord.Analysing")}</p>
+            <p className="pr-loading-elapsed">
+              {t("PatientRecord.Elapsed", { seconds: elapsed })}
+            </p>
+            <div
+              className="btn text-only outline sec pr-cancel"
+              onClick={handleCancel}
+            >
+              <p className="btn-text sec-text">{t("PatientRecord.Cancel")}</p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div>
+        {!loading && cancelled && (
+          <div className="pr-cancelled">
+            <span>{t("PatientRecord.Cancelled")}</span>
+            <div className="btn text-only outline sec pr-retry" onClick={fetchRecord}>
+              <p className="btn-text sec-text">{t("PatientRecord.Retry")}</p>
+            </div>
+          </div>
+        )}
+
+        {!loading && !cancelled && !hasData && (
           <div style={{ color: "#888", fontStyle: "italic" }}>{t("PatientRecord.NotEnoughData")}</div>
         )}
 
@@ -373,7 +452,7 @@ function PatientRecord() {
           </>
         )}
       </div>
-    </>
+    </div>
   );
 }
 

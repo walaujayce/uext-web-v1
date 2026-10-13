@@ -1,0 +1,651 @@
+/* ------------------------------------------------------------------
+   Bed List (/bed)
+   結構沿用 panel-list.css 的 .pl（head / item-list / item），
+   這裡只放床位列表專屬的樣式；JSX 內不寫 inline style。
+   ------------------------------------------------------------------ */
+
+/* 欄位內容一律靠左，並讓 header 與每列的欄寬一致。
+   min-width:0 是關鍵 —— 預設 flex item 的 min-width 是 auto，會被長字串
+   （device id / MAC）撐開，導致 header（短字）與資料列（長字）欄寬不同。 */
+.pl.bed-list .head h3,
+.pl.bed-list .item h3 {
+    min-width: 0;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* 狀態欄：小圓點 + 文字，對齊方式與其他欄位一致（靠左） */
+.pl.bed-list .bed-status {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    justify-content: flex-start;
+    min-width: 0;
+}
+
+.pl.bed-list .bed-status .dot {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: transparent;
+}
+
+/* header 的狀態欄沒有圓點，只有可點擊排序的標題 */
+.pl.bed-list .head .bed-status {
+    cursor: pointer;
+}
+
+.pl.bed-list .head .bed-status .dot {
+    display: none;
+}
+
+.pl.bed-list .head .bed-status h3 {
+    color: var(--600, var(--label-color));
+    font-family: "Helvetica Neue", Arial, "PingFang TC", "Microsoft JhengHei", sans-serif;
+}
+
+.pl.bed-list .head .bed-status .selected {
+    color: var(--600, var(--primary-color));
+    font-weight: 800;
+}
+
+/* 佔用中（已指派住民） */
+.pl.bed-list .item .bed-status.occupied .dot {
+    background: #43951D;
+}
+
+.pl.bed-list .item .bed-status.occupied h3 {
+    color: #43951D;
+    font-weight: 500;
+}
+
+/* 空床（未指派住民） */
+.pl.bed-list .item .bed-status.vacant .dot {
+    background: #B3B3B3;
+}
+
+.pl.bed-list .item .bed-status.vacant h3 {
+    color: #8C8C8C;
+    font-weight: 500;
+}
+
+/* 點任一列可開啟編輯 modal */
+.pl.bed-list .item {
+    cursor: pointer;
+}
+
+.pl.bed-list .item:hover {
+    background: var(--50, #F2F2F2);
+}
+
+@media (max-width: 1920px) {
+    .pl.bed-list .bed-status {
+        gap: 12px;
+    }
+    .pl.bed-list .bed-status .dot {
+        width: 12px;
+        height: 12px;
+        margin-left: 10px;
+    }
+}
+
+@media (max-width: 1366px) {
+    .pl.bed-list .head .bed-status,
+    .pl.bed-list .item .bed-status {
+        flex: 1 1 0;
+        justify-content: flex-start;
+        gap: 8px;
+    }
+    /* 窄螢幕只留圓點，文字省略，與 panel-list.css 的 .connection 行為一致 */
+    .pl.bed-list .item .bed-status h3 {
+        display: none;
+    }
+    .pl.bed-list .bed-status .dot {
+        width: 8px;
+        height: 8px;
+        margin-left: 0;
+    }
+}
+
+
+/* ------------------------------------------------------------------
+   Add Bed Modal（.addBed）
+   外框沿用 overlay.css 的 .addDevice 版型，內容是單一欄表單：
+   床位編號 / 區域 / 護理人員 / 住民編號 / 裝置。
+   class 一律加 bed- 前綴，避免和其他頁面的通用 class 撞名；
+   階段切換（填表 / 新增成功）由 JSX 條件渲染負責，這裡不做 display 切換。
+   ------------------------------------------------------------------ */
+
+.addBed {
+    display: block;
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background: rgba(0, 0, 0, 0.75);
+    backdrop-filter: blur(6px);
+}
+
+.addBed .close {
+    position: absolute;
+    width: 36px;
+    height: 36px;
+    top: 24px;
+    right: 24px;
+}
+
+.addBed .close:hover {
+    cursor: pointer;
+    content: url(/src/assets/close-active.svg);
+}
+
+.addBed .window {
+    display: flex;
+    width: 900px;
+    max-width: calc(100vw - 48px);
+    max-height: 90vh;
+    padding: 40px 80px 60px;
+    gap: 40px;
+    flex-direction: column;
+    align-items: center;
+    overflow-y: auto;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+    background: var(--0, var(--bg-color));
+    cursor: default;
+    position: fixed;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+/* 新增成功的畫面內容少，置中即可 */
+.addBed .window.done {
+    justify-content: center;
+}
+
+.addBed .icon {
+    width: 160px;
+    height: 160px;
+}
+
+.addBed .title {
+    color: var(--1000, var(--primary-color));
+    text-align: center;
+    font-size: 48px;
+    font-style: normal;
+    font-weight: 500;
+    line-height: normal;
+}
+
+.addBed .tab-list {
+    display: flex;
+    align-items: center;
+    align-self: stretch;
+}
+
+.addBed .tab {
+    display: flex;
+    padding: 10px;
+    justify-content: center;
+    align-items: center;
+    flex: 1 0 0;
+    border-bottom: 3px solid var(--150, #D9D9D9);
+
+    /* Typography */
+    color: var(--150, #D9D9D9);
+    text-align: center;
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: normal;
+}
+
+.addBed .tab.active {
+    color: var(--850, var(--primary-text-color));
+    font-weight: 500;
+    border-bottom: 3px solid var(--850, var(--primary-text-color));
+}
+
+.addBed form {
+    width: 100%;
+}
+
+/* 單一欄表單：所有欄位由上到下排列，寬度撐滿 */
+.addBed .bed-form {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    row-gap: 24px;
+}
+
+/* 所有欄位（含下拉）寬度一致、撐滿表單寬度。
+   max-width:none 是為了蓋掉 general.css 的 .top-bar .dropdown{max-width:...}，
+   萬一 modal 又被放進 .top-bar 底下也不會被限寬。 */
+.addBed .bed-form .input,
+.addBed .bed-form .input.dropdown {
+    width: 100%;
+    max-width: none;
+}
+
+.addBed .bed-form .input .input-gp,
+.addBed .bed-form .input input {
+    width: 100%;
+}
+
+/* 編輯時床位編號是主鍵，不可變更 */
+.addBed .bed-form input:disabled {
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* ── 選填區塊：住民與指派 ──
+   預設收合，標題列右邊顯示目前狀態（未指派 / 已填的摘要）。 */
+.addBed .bed-optional {
+    display: flex;
+    flex-direction: column;
+    border: 1.5px solid var(--150, #E6E6E6);
+}
+
+.addBed .bed-optional-head {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 150ms ease-out;
+}
+
+.addBed .bed-optional-head:hover {
+    background: var(--50, #F7F7F7);
+}
+
+.addBed .bed-optional-title {
+    flex: none;
+    color: var(--850, var(--primary-text-color));
+    font-size: 18px;
+    font-weight: 500;
+    line-height: 100%;
+}
+
+.addBed .bed-optional-state {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-align: right;
+    color: var(--500, #808080);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 120%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.addBed .bed-optional-chevron {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    content: var(--menu-down-url);
+    transition: transform 200ms ease-out;
+}
+
+.addBed .bed-optional.open .bed-optional-chevron {
+    transform: rotate(180deg);
+}
+
+.addBed .bed-optional-body {
+    display: flex;
+    flex-direction: column;
+    row-gap: 20px;
+    padding: 4px 16px 20px;
+    border-top: 1.5px solid var(--150, #E6E6E6);
+}
+
+/* 鎖住的下拉（例如：還沒填住民時的裝置欄位） */
+.addBed .input.dropdown.is-disabled {
+    cursor: not-allowed;
+}
+
+.addBed .input.dropdown.is-disabled .suffix {
+    opacity: 0.4;
+}
+
+/* 兩欄併排（身高／體重、生日／性別） */
+.addBed .bed-row-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    column-gap: 16px;
+}
+
+.addBed .bed-row-2 .input,
+.addBed .bed-row-2 .bed-dob {
+    min-width: 0;
+}
+
+.addBed .bed-dob .dob-input {
+    padding-top: 2px;
+}
+
+.addBed .bed-optional-note {
+    color: var(--500, #808080);
+    font-size: 13px;
+    font-weight: 400;
+    line-height: 140%;
+}
+
+.addBed .btn-gp {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    margin-top: 40px;
+    justify-content: center;
+    text-align: center;
+}
+
+/* 刪除鍵與刪除的二次確認 */
+.addBed .btn.danger {
+    background: #D53636;
+    border-color: #D53636;
+}
+
+.addBed .btn.danger:hover {
+    background: #B32B2B;
+    border-color: #B32B2B;
+}
+
+.addBed .btn.outline.danger {
+    background: transparent;
+    border: 2px solid #D53636;
+}
+
+.addBed .btn.outline.danger .btn-text {
+    color: #D53636;
+}
+
+.addBed .btn.outline.danger:hover {
+    background: #D53636;
+}
+
+.addBed .btn.outline.danger:hover .btn-text {
+    color: var(--0, #FFF);
+}
+
+.addBed .bed-confirm {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    row-gap: 8px;
+    width: 100%;
+}
+
+.addBed .bed-confirm-text {
+    margin-top: 40px;
+    color: #D53636;
+    text-align: center;
+    font-size: 20px;
+    font-weight: 500;
+    line-height: normal;
+}
+
+.addBed .bed-confirm .btn-gp {
+    margin-top: 16px;
+}
+
+@media (max-width: 1920px) {
+    .addBed .close {
+        width: 32px;
+        height: 32px;
+        top: 12px;
+        right: 12px;
+    }
+    .addBed .window {
+        width: 640px;
+        padding: 40px 48px;
+        gap: 0px;
+    }
+    .addBed .icon {
+        width: 80px;
+        height: 80px;
+    }
+    .addBed .title {
+        font-size: 32px;
+        margin-bottom: 24px;
+    }
+    .addBed .tab-list {
+        margin-bottom: 16px;
+    }
+    .addBed .tab {
+        font-size: 18px;
+    }
+    .addBed .bed-form {
+        row-gap: 16px;
+    }
+    .addBed .bed-optional-head {
+        padding: 10px 12px;
+        column-gap: 8px;
+    }
+    .addBed .bed-optional-title {
+        font-size: 15px;
+    }
+    .addBed .bed-optional-state {
+        font-size: 12px;
+    }
+    .addBed .bed-optional-chevron {
+        width: 16px;
+        height: 16px;
+    }
+    .addBed .bed-optional-body {
+        row-gap: 14px;
+        padding: 4px 12px 14px;
+    }
+    .addBed .bed-optional-note {
+        font-size: 11px;
+    }
+    .addBed .btn-gp {
+        margin-top: 24px;
+    }
+    .addBed .bed-confirm-text {
+        margin-top: 24px;
+        font-size: 16px;
+    }
+}
+
+@media (max-width: 1366px) {
+    .addBed .window {
+        width: 560px;
+        padding: 32px 40px;
+    }
+}
+
+
+/* ------------------------------------------------------------------
+   首頁的床位狀態列（.bed-summary）
+   顯示「尚未綁定裝置」的床位數量，放在 top-bar 與卡片之間。
+   尺寸刻意壓到卡片的一半左右，當作輔助資訊、不跟床位卡片搶視線。
+   兩種狀態：
+     .warn → 還有床位沒綁裝置，用 attention 橘（與 .bed.attention 同色），可點擊
+     .ok   → 全部綁好了，低調的完成樣式
+   配色一律用主題變數或半透明疊色，深淺色模式都成立。
+   ------------------------------------------------------------------ */
+
+.bed-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: 16px;
+    row-gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    /* border-left-width: 3px; */
+    transition: background 200ms ease-out, border-color 200ms ease-out;
+}
+
+/* ── 左側：數量 + 說明（是一個連到 /bed 的 Link，要把 a 的預設樣式清掉） ── */
+.bed-summary-stat {
+    display: flex;
+    align-items: center;
+    column-gap: 9px;
+    min-width: 0;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+}
+
+.bed-summary .badge {
+    flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+}
+
+.bed-summary .label {
+    min-width: 0;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 120%;
+    letter-spacing: 0.01em;
+}
+
+/* ── 右側：對照數字 ── */
+.bed-summary-meta {
+    display: flex;
+    align-items: center;
+    column-gap: 12px;
+}
+
+.bed-summary-meta .cell {
+    display: flex;
+    align-items: baseline;
+    column-gap: 5px;
+}
+
+.bed-summary-meta .cell-label {
+    font-size: 11px;
+    font-weight: 400;
+    line-height: 100%;
+    color: var(--500, #808080);
+}
+
+.bed-summary-meta .cell-value {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 100%;
+    color: var(--950, var(--text-fg-color));
+    font-variant-numeric: tabular-nums;
+}
+
+.bed-summary-meta .sep {
+    width: 1px;
+    height: 10px;
+    background: var(--200, #CCC);
+    opacity: 0.6;
+}
+
+/* ── 還有床位沒綁裝置 ── */
+.bed-summary.warn {
+    /* border-left-color: #FC9F2E; */
+    background: rgba(0, 178, 15, 0.1);
+}
+
+.bed-summary.warn .badge {
+    /* border: 1px solid rgba(67, 149, 29, 0.5);
+    border-radius: 50%; */
+    color: #169000;
+}
+
+.bed-summary.warn .label {
+    color: #949493;
+}
+
+.bed-summary.warn:hover {
+    border-color: rgba(11, 135, 0, 0.17);
+    background: rgba(0, 191, 13, 0.07);
+}
+
+html.dark .bed-summary.warn .label {
+    color: #bbbab9;
+}
+
+/* ── 全部綁好了 ── */
+.bed-summary.ok {
+    border-color: var(--150, #E6E6E6);
+    /* border-left-color: #43951D; */
+    background: transparent;
+}
+
+.bed-summary.ok .badge {
+    background: transparent;
+    border: 1px solid rgba(67, 149, 29, 0.5);
+    color: #43951D;
+}
+
+.bed-summary.ok .label {
+    color: var(--600, var(--label-color));
+}
+
+html.dark .bed-summary.ok {
+    border-color: rgba(255, 255, 255, 0.16);
+    /* border-left-color: #43951D; */
+}
+
+@media (max-width: 1920px) {
+    .bed-summary {
+        padding: 6px 12px;
+        column-gap: 12px;
+    }
+    .bed-summary-stat {
+        column-gap: 8px;
+    }
+    .bed-summary .badge {
+        min-width: 24px;
+        height: 24px;
+        font-size: 13px;
+    }
+    .bed-summary .label {
+        font-size: 12px;
+    }
+    .bed-summary-meta {
+        column-gap: 10px;
+    }
+    .bed-summary-meta .cell-label {
+        font-size: 10px;
+    }
+    .bed-summary-meta .cell-value {
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 1366px) {
+    .bed-summary {
+        padding: 5px 10px;
+        column-gap: 8px;
+    }
+    .bed-summary .badge {
+        min-width: 20px;
+        height: 20px;
+        font-size: 12px;
+    }
+    .bed-summary .label {
+        font-size: 11px;
+    }
+    .bed-summary-meta .cell-value {
+        font-size: 11px;
+    }
+    .bed-summary-meta .sep {
+        height: 8px;
+    }
+}

@@ -16,30 +16,19 @@ function Navbar() {
   const { logout, role, toggleThemeMode, isDarkMode } = useAuth();
 
   // 目前選取樓層/區域對應的後端 IP；錯誤通知(Errorlog)會依此重抓
-  const { selectedServer, servers, floor, section } = useFloorSection();
+  const { selectedServer, servers, section } = useFloorSection();
   const targetIp = selectedServer?.ip ?? null;
   const errorlogRunIdRef = useRef(0); // 只讓最新一次 Errorlog fetch 能寫入
 
   // Errorlog 要涵蓋的後端 IP（與其他頁一致）：
-  //   floor === "All"   → 所有 server
-  //   section === "All" → 該樓層底下所有 server
+  //   section === "All" → 所有 server
   //   其他              → 目前選取的單一 server
   const errorlogTargetIps = useMemo(() => {
-    if (floor === "All") {
+    if (section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return targetIp ? [targetIp] : [];
-  }, [servers, floor, section, targetIp]);
+  }, [servers, section, targetIp]);
 
   const [currentLang, setCurrentLang] = useState("zh");
 
@@ -121,7 +110,7 @@ function Navbar() {
     setActiveAccount(false);
   };
   {
-    /* Handle Multi-Server (IP / Floor / Section) Overlay Visible */
+    /* Handle Multi-Server (IP / Section) Overlay Visible */
   }
   const [isMultiServerOverlayVisible, setMultiServerOverlayVisible] =
     useState(false);
@@ -203,11 +192,9 @@ function Navbar() {
       case 0:
         return "UNDEFINED";
       case 1:
-        return "UEXT";
+        return t("DeviceType.uext");
       case 2:
-        return "UMAP";
-      case 3:
-        return "UNC";
+        return t("DeviceType.umap");
       default:
         return "UNDEFINED";
     }
@@ -305,13 +292,22 @@ function Navbar() {
           >
             {t("Navbar.Home")}
           </Link>
-          <Link
+          {/* <Link
             to="/patient"
             className={`nav-link ${
               location.pathname.includes("/patient") ? "active" : ""
             }`}
           >
             {t("Navbar.Patient")}
+          </Link> */}
+          <Link
+            to="/bed"
+            state={{ reload: true }}
+            className={`nav-link ${
+              location.pathname.includes("/bed") ? "active" : ""
+            }`}
+          >
+            {t("Navbar.Bed")}
           </Link>
           <Link
             to="/alert"

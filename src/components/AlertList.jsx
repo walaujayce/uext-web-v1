@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import { useAuth } from "../JS/AuthContext";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import { is } from "date-fns/locale";
 import api from "../api/apiClient";
 
@@ -30,33 +30,26 @@ function AlertList() {
     isDarkMode,
   } = useAuth(); // Access sound management
 
-  // 目前選取樓層/區域對應的後端 IP；變動時 SignalR 會重新連線到新的 IP
-  const { selectedServer, servers, floor, section } = useFloorSection();
+  // 目前選取區域對應的後端 IP；變動時 SignalR 會重新連線到新的 IP
+  const { selectedServer, servers, section } = useFloorSection();
   const signalrTargetIp = selectedServer?.ip ?? null;
 
-  // 選 "All" 樓層或 "All" 區域時 → 涵蓋多台後端
-  const isAllMode = floor === "All" || section === "All";
+  // 選 "All" 區域時 → 涵蓋多台後端
+  const isAllMode = section === "All";
 
   // 要涵蓋的後端 IP 清單（單一模式=1 台；All 模式=多台）。與 Home 的規則一致：
-  //   floor === "All"   → 所有 server
-  //   section === "All" → 該樓層底下所有 server
+  //   section === "All" → 所有 server
   //   其他              → 目前選取的單一 server
   const alertTargetIps = useMemo(() => {
-    if (floor === "All") {
+    if (section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return signalrTargetIp ? [signalrTargetIp] : [];
-  }, [servers, floor, section, signalrTargetIp]);
+  }, [servers, section, signalrTargetIp]);
+
+  // 多個區域共用同一台後端 → 同一條 SignalR／同一份通知清單會夾帶其他區域的警示，
+  // 顯示與播音之前都要先比對區域（沒帶 Section 的通知一律保留，避免漏掉）
+  const inSection = (value) => matchesSection(section, value);
 
   const handleAlertListExpandClick = () => {
     setExpandAlertList((prev) => {
@@ -99,7 +92,6 @@ function AlertList() {
     mac: parsedMessage.MAC,
     userName: parsedMessage.UserName || "",
     bedNo: parsedMessage.Bed || "",
-    floor: parsedMessage.Floor || "",
     section: parsedMessage.Section || "",
     alertTime:
       new Date(parsedMessage.AlertTime).toLocaleString([], {
@@ -123,13 +115,11 @@ function AlertList() {
   });
 
   // 找出某筆 alert 該打哪一台後端：優先用記錄的 srcIp；
-  // 若沒有(舊資料/單一模式)，退而用 floor+section 反查 servers（同一樓+層唯一對應一台）。
+  // 若沒有(舊資料/單一模式)，退而用 section 反查 servers（一個 section 唯一對應一台）。
   const ipForAlert = (alert) => {
     if (!alert) return undefined;
     if (alert.srcIp) return alert.srcIp;
-    const match = servers.find(
-      (s) => s.floor === alert.floor && s.section === alert.section,
-    );
+    const match = servers.find((s) => s.section === alert.section);
     return match?.ip;
   };
 
@@ -143,6 +133,8 @@ function AlertList() {
           console.log(
             `${topic}: ${parsedMessage.MAC}|${parsedMessage.Status}|${parsedMessage.EventName}`,
           );
+          // 不屬於目前選取區域的通知直接丟掉：不進清單、也不播音
+          if (!inSection(parsedMessage.Section)) return;
           if (isUserInteracted) {
             const status = parsedMessage.Status;
             if (topic === topic_all) {
@@ -247,6 +239,7 @@ function AlertList() {
       playAboutToLeaveSound2,
       playLeaveBedSound,
       isUserInteracted,
+      section,
     ],
   );
 
@@ -301,7 +294,9 @@ function AlertList() {
   //   }
   // }, []);
 
-  const alertsArray = Array.from(alertsMap.values()); // display alert list
+  const alertsArray = Array.from(alertsMap.values()).filter((alert) =>
+    inSection(alert.section),
+  ); // display alert list
 
   {
     /* 
@@ -461,6 +456,8 @@ function AlertList() {
           //console.log(parsedMessage);
 
           setAlertsMap((prevAlertsMap) => {
+            // 同一台後端會回其他區域的通知，不屬於目前區域的不進清單
+            if (!inSection(parsedMessage.Section)) return prevAlertsMap;
             const newAlertsMap = new Map(prevAlertsMap);
             const mac = parsedMessage.MAC;
             const existingAlertMessage = newAlertsMap.get(mac);
@@ -780,9 +777,7 @@ function AlertList() {
                           <div className="caption">
                             {t("AlertList.Section")}
                           </div>
-                          <p>{`${alert.floor}-${alert.section
-                            .split(" ")
-                            .pop()}`}</p>
+                          <p>{alert.section.split(" ").pop()}</p>
                         </div>
                         <div className="item">
                           <div className="caption">{t("AlertList.Bed")}</div>
@@ -831,9 +826,7 @@ function AlertList() {
                           <div className="caption">
                             {t("AlertList.Section")}
                           </div>
-                          <p>{`${alert.floor}-${alert.section
-                            .split(" ")
-                            .pop()}`}</p>
+                          <p>{alert.section.split(" ").pop()}</p>
                         </div>
                         <div className="item">
                           <div className="caption">{t("AlertList.Bed")}</div>
@@ -882,9 +875,7 @@ function AlertList() {
                           <div className="caption">
                             {t("AlertList.Section")}
                           </div>
-                          <p>{`${alert.floor}-${alert.section
-                            .split(" ")
-                            .pop()}`}</p>
+                          <p>{alert.section.split(" ").pop()}</p>
                         </div>
                         <div className="item">
                           <div className="caption">{t("AlertList.Bed")}</div>
@@ -938,9 +929,7 @@ function AlertList() {
                           <div className="caption">
                             {t("AlertList.Section")}
                           </div>
-                          <p>{`${alert.floor}-${alert.section
-                            .split(" ")
-                            .pop()}`}</p>
+                          <p>{alert.section.split(" ").pop()}</p>
                         </div>
                         <div className="item">
                           <div className="caption">{t("AlertList.Bed")}</div>

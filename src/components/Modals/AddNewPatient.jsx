@@ -252,6 +252,7 @@ const AddNewPatient = ({ mac, callback }) => {
                     placeholder="Enter here"
                     value={patientid}
                     onChange={(e) => setPatientId_POST(e.target.value)}
+                    maxLength={8}
                     required
                   />
                   <img className="suffix" src="" alt="dropdown icon" />

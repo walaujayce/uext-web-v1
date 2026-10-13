@@ -124,48 +124,88 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
     }
   };
 
-  const getUMAPColor = (div) => {
-    if (div < 10) {
+  // ─────────────────────────────────────────────────────────
+  // UMAP 專用色階
+  //   下限固定 raw 5：以下一律背景色（深色模式黑 / 淺色模式白）
+  //   上限 hi 依「模糊後影像的最大值」動態決定：
+  //     max <  50        → hi = 50
+  //     50 <= max <= 80  → hi = max
+  //     max >  80        → hi = 80
+  //     也就是 hi = min(80, max(50, max))
+  //   raw >= hi → #eb3a25（飽和紅）；raw 5~hi 之間平均分成 case 0 ~ case 14，共 15 階
+  //
+  // ⚠ hi 一定要取「模糊之後」的最大值，不能取原始 rawdata 的最大值。
+  //   著色是對模糊後的影像做的，而高斯模糊會把孤立的高點大幅削低
+  //   （實測：單一格的峰值 255 → 47；要 4x4 以上的高原才撐得住 255）。
+  //   若用原始最大值當 hi，色階頂端那一段就永遠沒有像素到得了，飽和紅畫不出來。
+  //
+  // ⚠ 回傳的 tuple 之後是以 [2],[1],[0] 的順序寫進 RGBA 的（R/B 對調），
+  //   所以「畫面上的 #eb3a25」在這裡要寫成 [37, 58, 235]，不能寫 [235, 58, 37]。
+  //   下面每個 case 後面標註的是「畫面上實際看到的顏色」。
+  // ─────────────────────────────────────────────────────────
+  const UMAP_RAW_MIN = 5; // 色階下限（raw）
+  const UMAP_HI_MIN = 50; // 上限的下界：整幀都很低時也不要過度放大雜訊
+  const UMAP_HI_MAX = 80; // 上限的上界：維持原本的飽和點
+  const UMAP_LEVELS = 15; // case 0 ~ case 14
+  // 正規化的參考上限：useEffect 把 raw 0~80 線性拉成 0~255（只是為了讓 8-bit 的
+  // 模糊有足夠數值解析度），所以反推 raw 時用的就是這個值。
+  const UMAP_REF_MAX = 80;
+
+  // 灰階值 (0~255) → 對應的 raw 值
+  const grayToRaw = (gray) => (gray / 255) * UMAP_REF_MAX;
+
+  // 這一幀的色階上限
+  const   umapUpperBound = (maxRaw) =>
+    Math.min(UMAP_HI_MAX, Math.max(UMAP_HI_MIN, Number(maxRaw) || 0));
+
+  // 直接在 raw 空間分桶，不再繞一層正規化門檻。
+  // ⚠ [5, hi] 切成 16 等份：前 15 份是 case 0~14 的漸層，最上面那一份是飽和紅。
+  //   不能寫成「rawValue >= hi 才紅」—— hi 現在「就等於」畫面上的最大值，
+  //   那樣紅色只會落在最高的那一個點上，最後縮到 canvas 尺寸時就被鄰居平均掉，
+  //   等於永遠看不到紅色。給紅色一份完整的區間，熱點才畫得出來。
+  const getUMAPColor = (rawValue, hi) => {
+    if (rawValue < UMAP_RAW_MIN) {
       return isDarkMode ? [0, 0, 0] : [255, 255, 255];
     }
-    if (div > 150) return [37, 58, 235];
-    div = Math.floor(div / 16);
+    if (rawValue >= hi) return [37, 58, 235]; // #eb3a25 紅
 
-    switch (div) {
+    const idx = Math.floor(
+      ((rawValue - UMAP_RAW_MIN) / (hi - UMAP_RAW_MIN)) * (UMAP_LEVELS + 1),
+    ); // 0 ~ 15；15 = 最上面那一份，畫成紅色
+
+    switch (idx) {
       case 0:
-        return [104, 4, 1]; //dark red
+        return [104, 4, 1]; // #010468 深藍
       case 1:
-        return [158, 8, 2];
+        return [158, 8, 2]; // #02089e 藍
       case 2:
-        return [245, 57, 21];
+        return [245, 57, 21]; // #1539f5 亮藍
       case 3:
-        return [245, 97, 41];
+        return [245, 97, 41]; // #2961f5 藍
       case 4:
-        return [245, 141, 63];
+        return [245, 141, 63]; // #3f8df5 天藍
       case 5:
-        return [249, 185, 84];
+        return [249, 185, 84]; // #54b9f9 淺藍
       case 6:
-        return [250, 225, 104]; // yellow
+        return [250, 225, 104]; // #68e1fa 青
       case 7:
-        return [160, 226, 110]; // light green
+        return [160, 226, 110]; // #6ee2a0 薄荷綠
       case 8:
-        return [62, 210, 97];
+        return [62, 210, 97]; // #61d23e 綠
       case 9:
-        return [70, 227, 166];
+        return [70, 227, 166]; // #a6e346 黃綠
       case 10:
-        return [75, 234, 211]; // green
+        return [75, 234, 211]; // #d3ea4b 檸檬黃綠
       case 11:
-        return [79, 240, 251]; // light blue
+        return [79, 240, 251]; // #fbf04f 黃
       case 12:
-        return [84, 203, 246];
+        return [84, 203, 246]; // #f6cb54 橘黃
       case 13:
-        return [56, 158, 240];
+        return [56, 158, 240]; // #f09e38 橘
       case 14:
-        return [48, 119, 234];
-      case 15:
-        return [37, 58, 235]; // blue
+        return [48, 119, 234]; // #ea7730 橘紅
       default:
-        return [0, 0, 0];
+        return [37, 58, 235]; // idx 15（最上面那一份）→ #eb3a25 紅
     }
   };
 
@@ -177,24 +217,48 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       return;
     }
 
-    if (!data.length >= sensor_height * sensor_width) {
+    // ⚠ 原本寫成 `!data.length >= sensor_height * sensor_width`：
+    //   `!data.length` 先變成 boolean，再跟數字比大小 → 永遠是 false，
+    //   這個保護從來沒有生效過，長度不足的 rawdata 會直接進到 cv.matFromArray
+    //   而丟出例外（然後被呼叫端的 try/catch 吞掉，順便漏掉一整批 Mat）。
+    if (data.length < sensor_height * sensor_width) {
       const canvas = canvasRef.current;
       const ctx = canvas.getContext("2d");
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       return;
     }
+
+    // ⚠ OpenCV.js 的 Mat 配在 WASM heap 上，GC 不會回收，一定要自己 delete()。
+    //   原本是在函式尾端一個一個 delete，只要中途有任何一行丟出例外就全部漏掉
+    //   （呼叫端有 try/catch，所以畫面看起來正常，記憶體卻一路往上爬）。
+    //   實測：每漏一幀約 1.3 MB，100 幀就讓 WASM heap 多吃 128 MB。
+    //   改成統一登記、在 finally 釋放，任何路徑都不會漏。
+    const pool = [];
+    const track = (mat) => {
+      pool.push(mat);
+      return mat;
+    };
+    const releaseAll = () => {
+      for (const mat of pool) {
+        try {
+          mat.delete();
+        } catch (e) {
+          /* 已經被釋放過就略過 */
+        }
+      }
+      pool.length = 0;
+    };
+
+    try {
     if (sensor_height * sensor_width > 240) {
-      let originalImage = cv.matFromArray(
-        sensor_height,
-        sensor_width,
-        cv.CV_8UC1,
-        data,
+      let originalImage = track(
+        cv.matFromArray(sensor_height, sensor_width, cv.CV_8UC1, data),
       );
 
       let m = 3; // Scaling factor
 
       // Resize step 1
-      let resizedMat1 = new cv.Mat();
+      let resizedMat1 = track(new cv.Mat());
       cv.resize(
         originalImage,
         resizedMat1,
@@ -205,7 +269,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       );
 
       // Apply Gaussian blur
-      let result = new cv.Mat();
+      let result = track(new cv.Mat());
       let kernelSize = new cv.Size(9, 9); // Equivalent kernel size (not 25x25, as OpenCV.js uses width/height separately)
       cv.GaussianBlur(
         resizedMat1,
@@ -216,7 +280,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
         cv.BORDER_DEFAULT,
       );
       // Resize step 2
-      let resizedMat2 = new cv.Mat();
+      let resizedMat2 = track(new cv.Mat());
       cv.resize(
         result,
         resizedMat2,
@@ -227,7 +291,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       );
 
       // Resize step 3
-      let resizedMat3 = new cv.Mat();
+      let resizedMat3 = track(new cv.Mat());
       cv.resize(
         resizedMat2,
         resizedMat3,
@@ -237,9 +301,30 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
         cv.INTER_LINEAR_EXACT,
       );
 
-      // Convert grayscale to RGBA（圓圈外要套 alpha 0.8，需要 alpha 通道）
-      let dst = new cv.Mat();
-      cv.cvtColor(resizedMat3, dst, cv.COLOR_GRAY2RGBA, 0);
+      // ⚠ 先把灰階縮到 canvas 尺寸，「之後」才著色。
+      //   原本的順序是「在 27 倍大的圖上著色 → 再縮到 canvas」，那一次縮圖是對
+      //   「已經上好色的 RGBA」做平均，會把最高點那一小撮顏色跟鄰居混掉——
+      //   熱點永遠混不出飽和紅。改成先縮再著色之後：
+      //     1. 量到的最大值就是畫面上真正會出現的最大值，頂端色階一定畫得到；
+      //     2. 著色迴圈的像素數少一個數量級（27 倍圖約 115 萬 → canvas 約 15 萬），順便快很多。
+      let scaled = track(new cv.Mat());
+      cv.resize(
+        resizedMat3,
+        scaled,
+        new cv.Size(canvasRef.current.width, canvasRef.current.height),
+        0,
+        0,
+        cv.INTER_LINEAR_EXACT,
+      );
+
+      // 色階上限：取「模糊並縮到 canvas 之後」的最大值。
+      // 高斯模糊會把孤立高點大幅削低（實測單格峰值 255 → 47），所以絕不能拿
+      // 原始 rawdata 的最大值當 hi，否則色階頂端沒有任何像素到得了。
+      const umapHi = umapUpperBound(grayToRaw(cv.minMaxLoc(scaled).maxVal));
+
+      // Convert grayscale to RGBA（圓圈外要套 alpha，需要 alpha 通道）
+      let dst = track(new cv.Mat());
+      cv.cvtColor(scaled, dst, cv.COLOR_GRAY2RGBA, 0);
 
       // 若有 risk region：先算出各圓在 dst 座標系的位置（與 RiskArea 相同的換算，
       // 含 180° 旋轉、半徑 = radius * 2.75，再依 dst 與 canvas 的比例放大）。
@@ -270,7 +355,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
 
       // 圓圈外要把值往下降（降壓/變淡）的最大量；圈內不動。
       const OUTSIDE_DROP = 10;
-      const OUTSIDE_ALPHA = 0.6; // 圓圈外的透明度
+      const OUTSIDE_ALPHA = 1; // 圓圈外的透明度
 
       // Apply custom color mapping using `getColor()`
       for (let i = 0; i < dst.rows; i++) {
@@ -301,62 +386,42 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
               alpha = Math.round(255 * (1 - (1 - OUTSIDE_ALPHA) * ratio));
             }
           }
-          const c = getUMAPColor(val);
+          const c = getUMAPColor(grayToRaw(val), umapHi);
           dst.ucharPtr(i, j)[0] = c[2]; // Blue
           dst.ucharPtr(i, j)[1] = c[1]; // Green
           dst.ucharPtr(i, j)[2] = c[0]; // Red
           dst.ucharPtr(i, j)[3] = alpha; // Alpha
         }
       }
-      // ** Resize to match canvas size **
-      let finalOutput = new cv.Mat();
-      // let canvasWidth = canvasRef.current.width;
-      let canvasHeight = canvasRef.current.height;
-      let canvasWidth = canvasRef.current.width;
-      cv.resize(
-        dst,
-        finalOutput,
-        new cv.Size(canvasWidth, canvasHeight),
-        0,
-        0,
-        cv.INTER_LINEAR_EXACT,
-      );
-
-      // Display image on canvas
-      cv.imshow(canvasRef.current, finalOutput);
-      // Free memory
-      originalImage.delete();
-      resizedMat1.delete();
-      resizedMat2.delete();
-      resizedMat3.delete();
-      result.delete();
-      dst.delete();
-      finalOutput.delete(); // Ensure final output is deleted after use
+      // dst 已經是 canvas 尺寸了（縮圖提前到著色之前），直接畫上去
+      cv.imshow(canvasRef.current, dst);
     } else {
-      const mat24 = cv.matFromArray(
-        canvasRef.current.height,
-        canvasRef.current.width,
-        cv.CV_8UC1,
-        Array(canvasRef.current.width * canvasRef.current.height).fill(24),
+      // ⚠ mat24 原本完全沒有 delete → 每幀漏掉一張 canvas 大小的 Mat。
+      //   實測 1 Hz 跑 2000 幀（約 33 分鐘）WASM heap 從 128 MB 漲到 512 MB，
+      //   再跑下去就會 out of memory。現在統一由 finally 釋放。
+      const mat24 = track(
+        cv.matFromArray(
+          canvasRef.current.height,
+          canvasRef.current.width,
+          cv.CV_8UC1,
+          Array(canvasRef.current.width * canvasRef.current.height).fill(24),
+        ),
       );
-      const vis = cv.matFromArray(
-        sensor_height,
-        sensor_width,
-        cv.CV_8UC1,
-        data,
+      const vis = track(
+        cv.matFromArray(sensor_height, sensor_width, cv.CV_8UC1, data),
       );
 
       const dim = new cv.Size(
         canvasRef.current.width,
         canvasRef.current.height,
       );
-      const vis2 = new cv.Mat();
+      const vis2 = track(new cv.Mat());
 
       cv.resize(vis, vis2, dim, 0, 0, cv.INTER_CUBIC);
       cv.divide(vis2, mat24, vis2);
       cv.multiply(vis2, mat24, vis2);
 
-      const dst = new cv.Mat();
+      const dst = track(new cv.Mat());
       cv.cvtColor(vis2, dst, cv.COLOR_GRAY2RGB, 0);
 
       for (let i = 0; i < vis2.size().height; i++) {
@@ -370,10 +435,10 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       }
 
       cv.imshow(canvasRef.current, dst);
-
-      vis.delete();
-      vis2.delete();
-      dst.delete();
+    }
+    } finally {
+      // 正常結束、提早 return、丟出例外 —— 三種路徑都會走到這裡
+      releaseAll();
     }
   };
   const [decimalArray, setDecimalArray] = useState([]);
@@ -386,27 +451,27 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
       const decimalValue = parseInt(hexPair, 16); // Convert to decimal
       decimalArray.push(decimalValue);
     }
-    const sum = decimalArray.reduce(
-      (accumulator, currentValue) => accumulator + currentValue,
-      0,
-    );
-    // //console.log("the total of rawdata is ", sum);
-    // Find the highest value
-    const maxValue = Math.max(...decimalArray);
-    // //console.log("The highest value in decimalArray is:", maxValue);
-    const minValue = Math.min(...decimalArray);
-    // //console.log("The smallest value in decimalArray is:", minValue);
-
+    // 原本這裡每幀都算一次 sum / max / min，但 console.log 早就註解掉、回傳值也用不到。
+    // Math.max(...arr) 還會把整個陣列展開成函式參數，點數再多一點就會
+    // RangeError: Maximum call stack size exceeded。純粹浪費，直接拿掉。
     return decimalArray;
   };
 
+  // const temp1  = "000000000000000000000000000000000026000000000000000000000000000000000000000000000000101000000000000000001200000000000000000000000000001C000B000000000000001903000000000000000000000003030700000000000000000018130000000000000000000000001D10000000000000000007362812010400000000000000000116130400000000000000032A223602000000000000000000051B150000000000000000032844330000000000000000000020150A00000000000000000036361F080000000000000000000F201C03080000000000000111281C04000000000000000000061B1400060000000000000000121B00000000000000000000030603000000000000000000000E110000000000000000000001050000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000200000000000000000000000000000008000000000000000607050000000000000000000000000002000100000000000109050000000000000000000000000000080602010000000003070C0B04000000000000000000000000010B09030000000000000002000000000000000000000100000105020000000000010C0E070000000000000000000000050100040608050000000505060A0900000000000000000000000C0500000000000000100D0A1A07000000000000000000000000032F13000000050C11100C12090000000000000000000000000000042509000F1011120609030400000000000000000000000002070F2308141111130A081100000000000000000000030E09110D09181211161318090C0A00000000000000000000010405130F0D181D10231711141D160B0000000000000000000001070611121A222B3A1F200E0A0C0100000000000000000000030B0F14141B1B2D2B22232130271C0700000000000000000004060711141F1B1B1A1B0E0C0A0000000000000000000000000004060712160D12230C130D110500000000000000000000000000031011080B0E130A0B08000000000000000000000000000000010B0B0A070B140A13110D000000000000000000000000000000000103020705020000000103000000000000000000000000000007061A060000000200000001010000000000000000000000000A0E0C0F0004030900000000000000000200000300000000000909080001120F0E01000000000006000C000F0C01000000000205060300050707000000000000080416000412020000000000090804050F0C0D0100000000000A141600020C080000000000050706070B070B0B00000000060A141100000F0E0000000004020C0A0D070D070A040000000004030D000003090003000204030B0A0C120C120C100700000006020900000107000500040C14120D11190E1817141500000000000000000006050D030E15161815121D1119212319110000000000000000000D1B0B181F18191B151D1D281A3318150700000000000000000B17111715131D1D151E1B1E224323101000000000000000010B0E140F0C15151C15151E141A24180E0A0000000000000000091A0E13170F101A16141A12040C110000000000000000000000000000090809181713120F00000000000000000000000000000000000000040E0B0103010000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000122001100000000000000000000000000000000000000000520370B350900000000000000000000000000000000000000000633002A000000000000000000000000010000000000000000071A071507050200000500090500";
+
+  // 1）若最大值為50-80之間，則將著色設為5-MAX
+  // 2）若最大值小於50，著色設為5-50
+  // 3）若最大值大於80，著色設為5-80
+
   useEffect(() => {
+    // let result = convertHexToDecimalArray(temp1);
     let result = convertHexToDecimalArray(rawdata);
     if (sensor_height * sensor_width > 240) {
       result = result.reverse();
     }
-    // //console.log("ori: ", result);
-    // normalized value between 80 to 0
+    // 固定把 raw 0~80 線性拉成 0~255。
+    // ⚠ 這裡「不」做動態色階 —— UMAP 的上限要等模糊完才量（見 print_img 的 umapHi）。
+    //   這一步純粹是給 8-bit 的高斯模糊足夠的數值解析度，反推時用 UMAP_REF_MAX。
     let scaleData = [];
     for (let i = 0; i < result.length; i++) {
       if (result[i] < 1) {
@@ -418,7 +483,6 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
         scaleData.push(Math.round(normalizeValue * 255));
       }
     }
-    // //console.log("cal: ", scaleData);
 
     setDecimalArray(scaleData); // Store the result in state
   }, [rawdata, isDarkMode]);

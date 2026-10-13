@@ -35,5 +35,4 @@ certs/*
 .env.local
 .env.*.local
 _to_delete/
-certs/
 Claude outputs/

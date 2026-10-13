@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useMemo } from "react";
 import FloorSectionBar from "./FloorSectionBar";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import { Chart } from "chart.js";
 import "/src/CSS/alert.css";
 import ChartDataLabels from "chartjs-plugin-datalabels";
@@ -14,40 +14,28 @@ function AlertGanttChart() {
   const { t, i18n } = useTranslation();
   const { role, isDarkMode } = useAuth();
 
-  // 目前選取樓層/區域對應的後端 IP；變動時重新抓資料
+  // 目前選取區域對應的後端 IP；變動時重新抓資料
   const { selectedServer, servers } = useFloorSection();
   const targetIp = selectedServer?.ip ?? null;
   const fetchRunIdRef = useRef(0); // 只讓最新一次 fetch 能寫入
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     setSelect_Section(section);
   };
 
   // 要涵蓋的後端 IP 清單（與 Home/AlertList 規則一致）：
-  //   floor === "All"   → 所有 server
-  //   section === "All" → 該樓層底下所有 server
+  //   section === "All" → 所有 server
   //   其他              → 目前選取的單一 server（可能為 null，interceptor 會 fallback）
   const targetIps = useMemo(() => {
-    if (select_floor === "All") {
+    if (select_section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (select_section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === select_floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return [targetIp];
-  }, [servers, select_floor, select_section, targetIp]);
+  }, [servers, select_section, targetIp]);
+
+  // 多個區域共用同一台後端，抓回來的資料會夾帶其他區域的，前端要再過濾一次
+  const inSection = (item) => matchesSection(select_section, item?.section);
   const [select_device, setSelect_Device] = useState("");
   const handleSelectDeviceType = (device) => {
     setSelect_Device(device);
@@ -77,7 +65,9 @@ function AlertGanttChart() {
     });
     if (deviceType.size > 1) {
       alert(
-        "批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(UEXT或UMAP)的多個裝置。",
+        `批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(${t(
+          "DeviceType.uext",
+        )}或${t("DeviceType.umap")})的多個裝置。`,
       );
       return;
     }
@@ -92,7 +82,6 @@ function AlertGanttChart() {
   var alertSettingListTemplate = [
     {
       bed_id: "A01",
-      floor: "8F",
       section: "Room SD",
       type: 1,
       patient_name: "Alex",
@@ -126,7 +115,6 @@ function AlertGanttChart() {
     },
     {
       bed_id: "A02",
-      floor: "9F",
       section: "Room SD",
       type: 1,
       patient_name: "David",
@@ -160,7 +148,6 @@ function AlertGanttChart() {
     },
     {
       bed_id: "B00",
-      floor: "8F",
       section: "Room RD",
       type: 2,
       patient_name: "Rose",
@@ -194,7 +181,6 @@ function AlertGanttChart() {
     },
     {
       bed_id: "B02222222222222222222222",
-      floor: "8F",
       section: "Room RD",
       type: 1,
       patient_name: "Felic22222222222222222222",
@@ -297,7 +283,6 @@ function AlertGanttChart() {
         );
         return {
           bed_id: patient.bed,
-          floor: patient.floor,
           section: patient.section,
           patient_name: patient.patientname,
           deviceId: patient.deviceid,
@@ -395,20 +380,7 @@ function AlertGanttChart() {
     setSelectedAlert([]);
     setData(
       result
-        // .filter((patient) => {
-        //   return (
-        //     select_floor === "" ||
-        //     select_floor === "All" ||
-        //     patient.floor === select_floor
-        //   );
-        // })
-        // .filter((patient) => {
-        //   return (
-        //     select_section === "" ||
-        //     select_section === "All" ||
-        //     patient.section === select_section
-        //   );
-        // })
+        .filter(inSection)
         .filter((patient) => {
           return (
             select_device === "" ||
@@ -417,7 +389,7 @@ function AlertGanttChart() {
           );
         }),
     );
-  }, [select_device, select_section, select_floor, result]);
+  }, [select_device, select_section, result]);
 
   useEffect(() => {
     if (data.length === 0) return;
@@ -584,7 +556,6 @@ function AlertGanttChart() {
       <div className="container">
         <div className="top-bar">
           <FloorSectionBar
-            selectFloor={handleSelectFloor}
             selectSection={handleSelectSection}
             selectDeviceType={handleSelectDeviceType}
             enableDeviceType={true}

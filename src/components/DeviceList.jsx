@@ -11,7 +11,10 @@ import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewDevice from "../components/Modals/AddNewDevice";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import {
+  useFloorSection,
+  matchesSectionStrict,
+} from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 import api8031 from "../api/apiClient8031";
 
@@ -33,10 +36,6 @@ const DeviceList = () => {
     setPort(port);
   };
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     setSelect_Section(section);
@@ -47,25 +46,14 @@ const DeviceList = () => {
   };
 
   // 決定要抓哪些後端（與 Home 規則一致）：
-  //   floor === "All"   → 所有 server
-  //   section === "All" → 該樓層底下所有 server
+  //   section === "All" → 所有 server
   //   其他              → null，走目前選取的單一 server
   const targetIps = useMemo(() => {
-    if (select_floor === "All") {
+    if (select_section === "All") {
       return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
     }
-    if (select_section === "All") {
-      return [
-        ...new Set(
-          servers
-            .filter((s) => s.floor === select_floor)
-            .map((s) => s.ip)
-            .filter(Boolean),
-        ),
-      ];
-    }
     return null;
-  }, [servers, select_floor, select_section]);
+  }, [servers, select_section]);
 
   // ping/rssi map 的 key、React key、詳情頁連結：All 模式下同 MAC 可能來自不同 server，
   // 一律用來源 IP 前綴避免衝突。
@@ -73,6 +61,14 @@ const DeviceList = () => {
   const deviceKey = (device) =>
     device.__srcIp ? `${device.__srcIp}-${device.macaddress}` : device.macaddress;
   const ipQuery = (device) => (device.__srcIp ? `&ip=${device.__srcIp}` : "");
+
+  // 多個區域共用同一台後端，抓回來的裝置會夾帶其他區域的，前端要再過濾一次。
+  //
+  // 這裡用嚴格版：section 是裝置自己的欄位（新增裝置時指定，解除床位綁定時會被清成
+  // null＝未指派）。未指派的裝置若在每個區域都列出來，篩選等於沒作用，
+  // 所以只有選 "All" 才看得到它們 —— 要把它重新指派回某一區，
+  // 在床位的裝置下拉仍然選得到（那邊刻意用寬鬆比對）。
+  const inSection = (device) => matchesSectionStrict(select_section, device.section);
 
   {
     /* sort logic */
@@ -84,7 +80,6 @@ const DeviceList = () => {
     "ip",
     "bed",
     "section",
-    "floor",
     "updateDate",
     "status",
   ];
@@ -170,26 +165,17 @@ const DeviceList = () => {
       console.error("Error fetching device data:", error);
     }
   };
+  // select_section 也要當依賴：非 All 模式下 targetIps 恆為 null，
+  // 只靠它的話切換區域不會重跑（現在多個區域共用一台後端，過濾條件也在這裡變）。
   useEffect(() => {
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, [port, targetIps]);
+  }, [port, targetIps, select_section]);
 
   const filteredDevices = devices
     .filter((device) => device.used === true) // Only used devices
-    // .filter(
-    //   (device) =>
-    //     select_floor === "" ||
-    //     select_floor === "All" ||
-    //     device.floor === select_floor
-    // ) // Filter by floor
-    // .filter(
-    //   (device) =>
-    //     select_section === "" ||
-    //     select_section === "All" ||
-    //     device.section === select_section
-    // ) // Filter by section
+    .filter(inSection) // Filter by section
     .filter(
       (device) =>
         select_deviceType === "" ||
@@ -284,18 +270,7 @@ const DeviceList = () => {
               numeric: true,
             });
           }
-        case sortTypes[6]: // floor
-          //console.log("sortType: ", sortType);
-          if (sortDirection) {
-            return valA(a.floor).localeCompare(valA(b.floor), undefined, {
-              numeric: true,
-            });
-          } else {
-            return valA(b.floor).localeCompare(valA(a.floor), undefined, {
-              numeric: true,
-            });
-          }
-        case sortTypes[7]: // date
+        case sortTypes[6]: // date
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             const dateA = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
@@ -306,7 +281,7 @@ const DeviceList = () => {
             const dateB = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
             return dateB - dateA; // Subtracting dates sorts by timestamp
           }
-        case sortTypes[8]: // status
+        case sortTypes[7]: // status
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.devicestatus).localeCompare(String(a.devicestatus));
@@ -340,7 +315,6 @@ const DeviceList = () => {
       <div className="container">
         <div className="top-bar">
           <FloorSectionBar
-            selectFloor={handleSelectFloor}
             selectSection={handleSelectSection}
             selectDeviceType={handleSelectDeviceType}
             enableDeviceType={true}
@@ -405,28 +379,20 @@ const DeviceList = () => {
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
-              className={`fg3 ${sortType === sortTypes[6] ? "selected" : ""}`}
+              className={`fg1 ${sortType === sortTypes[6] ? "selected" : ""}`}
               onClick={() => SortType(6)}
             >
-              {t("DeviceList.Floor")}{" "}
-              {sortType === sortTypes[6] &&
-                (sortDirection ? "\u25BC" : "\u25B2")}
-            </h3>
-            <h3
-              className={`fg1 ${sortType === sortTypes[7] ? "selected" : ""}`}
-              onClick={() => SortType(7)}
-            >
               {t("DeviceList.SettingDate")}{" "}
-              {sortType === sortTypes[7] &&
+              {sortType === sortTypes[6] &&
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             {/* <h3 className="fg3">PING(ms)</h3> */}
             <h3 className="fg3">RSSI(dBm)</h3>
-            <div className="connection fg2" onClick={() => SortType(8)}>
-              <h3 className={`${sortType === sortTypes[8] ? "selected" : ""}`}>
+            <div className="connection fg2" onClick={() => SortType(7)}>
+              <h3 className={`${sortType === sortTypes[7] ? "selected" : ""}`}>
                 {t("DeviceList.DeviceStatus")}
                 {`(${connectedDevicesCount}/${filteredDevices.length})`}
-                {sortType === sortTypes[8] &&
+                {sortType === sortTypes[7] &&
                   (sortDirection ? "\u25BC" : "\u25B2")}
               </h3>
             </div>
@@ -444,13 +410,9 @@ const DeviceList = () => {
                         {device.devicetype === 0
                           ? "Not Specified"
                           : device.devicetype === 1
-                          ? "UEXT"
+                          ? t("DeviceType.uext")
                           : device.devicetype === 2
-                          ? "UMAP"
-                          : device.devicetype === 3
-                          ? "UNC"
-                          : device.devicetype === 201
-                          ? "HaLow-R"
+                          ? t("DeviceType.umap")
                           : "Not Specified"}
                       </h3>
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
@@ -458,7 +420,6 @@ const DeviceList = () => {
                       <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
                       <h3 className="fg3">{device.bed || "N/A"}</h3>
                       <h3 className="fg3">{device.section || "N/A"}</h3>
-                      <h3 className="fg3">{device.floor || "N/A"}</h3>
                       <h3 className="fg1">
                         {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                       </h3>
@@ -486,13 +447,9 @@ const DeviceList = () => {
                       {device.devicetype === 0
                         ? "Not Specified"
                         : device.devicetype === 1
-                        ? "UEXT"
+                        ? t("DeviceType.uext")
                         : device.devicetype === 2
-                        ? "UMAP"
-                        : device.devicetype === 3
-                        ? "UNC"
-                        : device.devicetype === 201
-                        ? "HaLow-R"
+                        ? t("DeviceType.umap")
                         : "Not Specified"}
                     </h3>
                     <h3 className="fg2">{device.deviceid || "N/A"}</h3>
@@ -500,7 +457,6 @@ const DeviceList = () => {
                     <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
                     <h3 className="fg3">{device.bed || "N/A"}</h3>
                     <h3 className="fg3">{device.section || "N/A"}</h3>
-                    <h3 className="fg3">{device.floor || "N/A"}</h3>
                     <h3 className="fg1">
                       {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                     </h3>
