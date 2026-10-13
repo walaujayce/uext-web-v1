@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
 import api from "../../api/apiClient";
 import { useAuth } from "../../JS/AuthContext";
+import { useFloorSection } from "../../JS/FloorSectionContext";
 
 // Backend (IpAddressController.cs) routes:
 //   GET    /api/7284/IpAddress/all
@@ -33,6 +34,11 @@ const MultiServerSetting = ({ callback }) => {
   const { t } = useTranslation();
 
   const { isDarkMode } = useAuth();
+
+  // 這個 modal 自己有一份表格資料，但全域的 servers（區域下拉、要打哪一台後端）
+  // 是 FloorSectionContext 在管的。新增／修改／刪除之後若不一起重抓，
+  // 其他頁面會一直用舊的區域清單，直到使用者重整頁面為止。
+  const { refreshServers } = useFloorSection();
 
   const [loading, setLoading] = useState(false);
   const [rows, setRows] = useState([]); // [{ id, ip, section, isSelf }]
@@ -81,6 +87,12 @@ const MultiServerSetting = ({ callback }) => {
     refresh();
   }, []);
 
+  // 新增／修改／刪除成功後呼叫：自己的表格與全域的 servers 都重新抓一次
+  // （兩者都打 GET /IpAddress/all，但各自需要的欄位不同：這裡要 id，全域只要 ip/section）
+  const refreshAll = async () => {
+    await Promise.all([refresh(), refreshServers?.()]);
+  };
+
   // Pretty-print whatever shape the backend put in the error response body.
   const fmtErr = (err, fallback) => {
     const data = err?.response?.data;
@@ -106,7 +118,7 @@ const MultiServerSetting = ({ callback }) => {
       setNewIp("");
       setNewSection("");
       setNewIsSelf(false);
-      await refresh();
+      await refreshAll();
     } catch (err) {
       console.error("POST /IpAddress failed:", err);
       alert(`Add failed: ${fmtErr(err, "unknown error")}`);
@@ -146,7 +158,7 @@ const MultiServerSetting = ({ callback }) => {
         IsSelf: editIsSelf,
       });
       handleEditCancel();
-      await refresh();
+      await refreshAll();
     } catch (err) {
       console.error("PUT /IpAddress failed:", err);
       alert(`Update failed: ${fmtErr(err, "unknown error")}`);
@@ -166,7 +178,7 @@ const MultiServerSetting = ({ callback }) => {
       await api.delete(`${BASE}/${encodeURIComponent(row.id)}`);
       // If we were editing the row we just deleted, drop the edit state too.
       if (editingId === row.id) handleEditCancel();
-      await refresh();
+      await refreshAll();
     } catch (err) {
       console.error("DELETE /IpAddress failed:", err);
       alert(`Delete failed: ${fmtErr(err, "unknown error")}`);
