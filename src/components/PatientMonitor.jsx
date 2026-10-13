@@ -12,8 +12,8 @@ import HeartBeatGraph from "./HeartRateGraph";
 import RespirationChart from "./RespiratoryGraph";
 import api from "../api/apiClient";
 import api8031, { isSkipped } from "../api/apiClient8031";
-import RiskRegion from "./RiskRegion";
 import RiskArea from "./RiskArea";
+import RiskIndexBar from "./RiskIndexBar";
 
 function PatientMonitor() {
   const { t, i18n } = useTranslation();
@@ -35,13 +35,13 @@ function PatientMonitor() {
 
   const temp = [
     { idx: 1, center_x: 0, center_y: 0, radius: 2, duration_sec: 5 },
-    { idx: 2, center_x: 24, center_y: 0, radius: 2, duration_sec: 5 },
-    { idx: 3, center_x: 0, center_y: 62, radius: 2, duration_sec: 5 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:0 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:1 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:0 },
-    { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5, risk_level:2 },
+    { idx: 2, center_x: 10, center_y: 10, radius: 2, duration_sec: 5 },
+    { idx: 3, center_x: 20, center_y: 52, radius: 2, duration_sec: 5 },
+    { idx: 4, center_x: 50, center_y: 42, radius: 2, duration_sec: 5 },
+    { idx: 4, center_x: 40, center_y: 32, radius: 2, duration_sec: 5, risk_level:0 },
+    { idx: 4, center_x: 80, center_y: 22, radius: 2, duration_sec: 5, risk_level:1 },
+    { idx: 4, center_x: 100, center_y: 2, radius: 2, duration_sec: 5, risk_level:0 },
+    { idx: 4, center_x: 200, center_y: 62, radius: 2, duration_sec: 5, risk_level:2 },
     { idx: 4, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
     { idx: 99, center_x: 24, center_y: 62, radius: 2, duration_sec: 5 },
   ];
@@ -112,8 +112,8 @@ function PatientMonitor() {
             : next;
         });
 
-        // setRiskRegionArray(data.RecordDatumJlog.RiskRegions);
-        setRiskRegionArray(data.RecordDatumJlog.RiskRegions.filter((region)=>region.risk_level !== 0));
+        setRiskRegionArray(data.RecordDatumJlog.RiskRegions);
+        // setRiskRegionArray(data.RecordDatumJlog.RiskRegions.filter((region)=>region.risk_level !== 0));
 
         // setRiskRegionArray(temp);
         console.log("risk regions: ", data.RecordDatumJlog.RiskRegions);
@@ -304,10 +304,11 @@ function PatientMonitor() {
   };
 
   return (
-    <div className="monitor">
+    // isUMAP：只顯示壓力圖，讓 .pressure 佔滿整列並水平置中（見 patient.css 的 .umap-only）
+    <div className={`monitor${isUMAP ? " umap-only" : ""}`}>
       <div className="pressure">
         <div className="title">{t("PatientMonitor.PressureMap")}</div>
-        <div className="box" style={{ position: "relative" }}>
+        <div className="box" style={{ position: "relative", background: isUMAP ? "none" : "" }}>
           {width &&
             height &&
             (rawdatum ? (
@@ -317,14 +318,24 @@ function PatientMonitor() {
                   rawdata={rawdatum}
                   width={width}
                   height={height}
+                  riskRegions={riskRegionArray}
                 />
+                {/* 風險最高的那個 region：在壓力圖上標點並拉引線到資訊卡
+                    （Max / Avg / Duration / Area）。沒資料時不顯示。 */}
                 {isUMAP && (
-                  <RiskArea
+                  <RiskIndexBar
                     data={riskRegionArray}
                     width={width}
                     height={height}
                   />
                 )}
+                {/* {isUMAP && (
+                  <RiskArea
+                    data={riskRegionArray}
+                    width={width}
+                    height={height}
+                  />
+                )} */}
               </>
             ) : (
               <img
@@ -360,9 +371,8 @@ function PatientMonitor() {
           </div>
         </div>
       </div>
-      {isUMAP ? (
-        <RiskRegion data={riskRegionArray} />
-      ) : (
+      {/* isUMAP 時只保留 .pressure，不再顯示 RiskRegion 表格與呼吸/心率 */}
+      {!isUMAP && (
         <>
           <div className="respiration">
             <div className="title">{t("PatientMonitor.RespiratoryRate")}</div>

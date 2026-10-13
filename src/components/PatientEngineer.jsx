@@ -13,6 +13,7 @@ import "react-datepicker/dist/react-datepicker.css";
 import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
 import RiskArea from "./RiskArea";
+import { useFloorSection } from "../JS/FloorSectionContext";
 
 function PatientEngineer() {
   const { t, i18n } = useTranslation();
@@ -34,6 +35,13 @@ function PatientEngineer() {
   const [searchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
 
+  // 這頁該打哪台後端：All 模式用網址帶進來的 ?ip=；單一模式用目前選取的 server。
+  // 重整時 selectedServer 一開始為 null，所以底下 fetch 會等 targetIp 有值再抓、
+  // 並在它出現後自動重抓，避免打到預設台而抓不到資料。
+  const { selectedServer } = useFloorSection();
+  const ipParam = searchParams.get("ip");
+  const targetIp = ipParam ?? selectedServer?.ip ?? null;
+
   const postData = async () => {
     try {
       let response;
@@ -50,7 +58,10 @@ function PatientEngineer() {
         //   throw new Error(`Expected JSON, got: ${contentType}`);
         // }
         // const data = await response.json();
-        response = await api.get(`/api/7284/ss/SocketServer/${macaddress}`);
+        response = await api.get(
+          `/api/7284/ss/SocketServer/${macaddress}`,
+          targetIp ? { targetIp } : undefined,
+        );
 
         const data = response.data;
         setRawData(data);
@@ -81,7 +92,10 @@ function PatientEngineer() {
         //   throw new Error(`Expected JSON, got: ${contentType}`);
         // }
         // const data = await response.json();
-        response = await api8031.get(`/api/8031/rawdata/${macaddress}`);
+        response = await api8031.get(
+          `/api/8031/rawdata/${macaddress}`,
+          targetIp ? { targetIp } : undefined,
+        );
         const data = response.data;
         setRawData(data);
         //console.log("RawData:", data);
@@ -105,10 +119,11 @@ function PatientEngineer() {
   };
 
   useEffect(() => {
+    if (!targetIp) return; // 還不知道要打哪台 → 等 targetIp 出現再抓
     postData();
     const interval = setInterval(postData, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [targetIp, macaddress]);
 
   const formatSecondsToDHMS = (seconds) => {
     const days = Math.floor(seconds / (24 * 3600));
@@ -336,7 +351,10 @@ function PatientEngineer() {
       // }
 
       // const data = await response.json();
-      const response = await api.get(`/api/7284/db/Device/${macaddress}`);
+      const response = await api.get(
+        `/api/7284/db/Device/${macaddress}`,
+        targetIp ? { targetIp } : undefined,
+      );
 
       const data = response.data;
       //console.log(data);
@@ -370,8 +388,9 @@ function PatientEngineer() {
     }
   };
   useEffect(() => {
+    if (!targetIp) return; // 還不知道要打哪台 → 等 targetIp 出現再抓
     fetchDeviceInfo(macaddress);
-  }, []);
+  }, [targetIp, macaddress]);
 
   {
     /* PUT Device  API */
@@ -458,7 +477,11 @@ function PatientEngineer() {
       // }
 
       // const data = await response.json();
-      const response = await api.put(`/api/7284/db/Device/${macaddress}`, updatedData);
+      const response = await api.put(
+        `/api/7284/db/Device/${macaddress}`,
+        updatedData,
+        targetIp ? { targetIp } : undefined,
+      );
       const data = response.data;
       alert("Update Successfully!");
       window.location.reload();

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { Outlet, Link, useLocation, useNavigate } from "react-router-dom";
 import "/src/CSS/index.css";
 import { useAuth } from "../JS/AuthContext";
@@ -16,9 +16,19 @@ function Navbar() {
   const { logout, role, toggleThemeMode, isDarkMode } = useAuth();
 
   // 目前選取樓層/區域對應的後端 IP；錯誤通知(Errorlog)會依此重抓
-  const { selectedServer } = useFloorSection();
+  const { selectedServer, servers, section } = useFloorSection();
   const targetIp = selectedServer?.ip ?? null;
   const errorlogRunIdRef = useRef(0); // 只讓最新一次 Errorlog fetch 能寫入
+
+  // Errorlog 要涵蓋的後端 IP（與其他頁一致）：
+  //   section === "All" → 所有 server
+  //   其他              → 目前選取的單一 server
+  const errorlogTargetIps = useMemo(() => {
+    if (section === "All") {
+      return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
+    }
+    return targetIp ? [targetIp] : [];
+  }, [servers, section, targetIp]);
 
   const [currentLang, setCurrentLang] = useState("zh");
 
@@ -39,7 +49,6 @@ function Navbar() {
     } else {
       changeLanguage("zh");
     }
-    setUserName(JSON.parse(localStorage.getItem("username")));
 
     //   const theme = localStorage.getItem("theme");
     //   if(theme){
@@ -101,7 +110,7 @@ function Navbar() {
     setActiveAccount(false);
   };
   {
-    /* Handle Multi-Server (IP / Floor / Section) Overlay Visible */
+    /* Handle Multi-Server (IP / Section) Overlay Visible */
   }
   const [isMultiServerOverlayVisible, setMultiServerOverlayVisible] =
     useState(false);
@@ -114,28 +123,14 @@ function Navbar() {
   {
     /* Get User ID for account setting */
   }
-  const [selected_user_id, setSelectedUserId] = useState("");
   useEffect(() => {
     async function fetchData() {
       try {
         // Get userid based on username in local storage
-        const response = await api.get("/api/7284/User");
+        const response = await api.get("/api/7284/User/me");
+        console.log("data me : ", response  );
         const data = response.data;
-        // const response = await fetch("/api/7284/User", {
-        //   method: "GET",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        // });
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-        // const data = await response.json();
-        const stored_username = JSON.parse(localStorage.getItem("username"));
-        const selected_user = data.find(
-          (user) => user.username == stored_username,
-        );
-        setSelectedUserId(selected_user.userid);
+        setUserName(data.username ?? "NaN");
       } catch (error) {
         console.error("Error updating password:", error.message);
       }
@@ -197,32 +192,42 @@ function Navbar() {
       case 0:
         return "UNDEFINED";
       case 1:
-        return "UEXT";
+        return t("DeviceType.uext");
       case 2:
-        return "UMAP";
-      case 3:
-        return "UNC";
+        return t("DeviceType.umap");
       default:
         return "UNDEFINED";
     }
   };
   useEffect(() => {
-    // 樓層/區域(IP)切換時重新抓該樓層的錯誤通知；runId 確保只有最新一次能寫入
+    // 樓層/區域(IP)切換時重新抓錯誤通知；runId 確保只有最新一次能寫入。
+    // All 模式會逐台抓取後合併，並把來源 IP 標在每筆上（供關閉通知時打回同一台）。
+    if (!errorlogTargetIps.length) return;
     const runId = ++errorlogRunIdRef.current;
     async function fetchErrorlog() {
       try {
-        const response = await api.get("/api/7284/db/Errorlog", { targetIp });
+        const results = await Promise.all(
+          errorlogTargetIps.map((ip) =>
+            api
+              .get("/api/7284/db/Errorlog", { targetIp: ip })
+              .then((res) =>
+                (res.data || []).map((log) => ({ ...log, __srcIp: ip })),
+              )
+              .catch((err) => {
+                console.error(`Errorlog fetch failed (${ip}):`, err.message);
+                return [];
+              }),
+          ),
+        );
         // 期間又切了樓層 → 丟棄這次結果
         if (runId !== errorlogRunIdRef.current) return;
-        const data = response.data;
-        //console.log("error log: ", data);
-        setErrorlogs(data);
+        setErrorlogs(results.flat());
       } catch (error) {
         console.error("Error :", error.message);
       }
     }
     fetchErrorlog();
-  }, [targetIp]);
+  }, [errorlogTargetIps]);
 
   {
     /* PUT API set Checkstatus */
@@ -230,7 +235,8 @@ function Navbar() {
   const requestbody_PUT = {
     checkStatus: true,
   };
-  const setNotificationChecked_PUT = async (notification_Id) => {
+  const setNotificationChecked_PUT = async (notification_Id, srcIp) => {
+    const ip = srcIp ?? targetIp; // 打回該筆 errorlog 的來源後端
     try {
       // const response = await fetch(`/api/7284/db/Errorlog/${notification_Id}`, {
       //   method: "PUT",
@@ -243,7 +249,11 @@ function Navbar() {
       // if (!response.ok) {
       //   throw new Error(`HTTP error! status: ${response.status}`);
       // }
-      const response = await api.put(`/api/7284/db/Errorlog/${notification_Id}`, requestbody_PUT, { targetIp });
+      const response = await api.put(
+        `/api/7284/db/Errorlog/${notification_Id}`,
+        requestbody_PUT,
+        ip ? { targetIp: ip } : undefined,
+      );
       const data = response.data;
       if (data.code !== 0) {
         //console.log(data.message);
@@ -282,13 +292,22 @@ function Navbar() {
           >
             {t("Navbar.Home")}
           </Link>
-          <Link
+          {/* <Link
             to="/patient"
             className={`nav-link ${
               location.pathname.includes("/patient") ? "active" : ""
             }`}
           >
             {t("Navbar.Patient")}
+          </Link> */}
+          <Link
+            to="/bed"
+            state={{ reload: true }}
+            className={`nav-link ${
+              location.pathname.includes("/bed") ? "active" : ""
+            }`}
+          >
+            {t("Navbar.Bed")}
           </Link>
           <Link
             to="/alert"
@@ -396,7 +415,9 @@ function Navbar() {
                       src="/src/assets/close.svg"
                       alt=""
                       className="close"
-                      onClick={() => setNotificationChecked_PUT(errorlog.guid)}
+                      onClick={() =>
+                        setNotificationChecked_PUT(errorlog.guid, errorlog.__srcIp)
+                      }
                     />
                   </div>
                 ))}
@@ -424,8 +445,8 @@ function Navbar() {
                 <p>{userName}</p>
               </div>
               <Link
-                to={`/account/account-settings?userid=${selected_user_id}`}
-                key={selected_user_id}
+                to={`/account/account-settings?userid=me`}
+                key={"me"}
               >
                 <a
                   href="#"

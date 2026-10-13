@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Outlet, Link } from "react-router-dom";
 import dayjs from "dayjs";
 import "/src/CSS/btn.css";
@@ -12,15 +12,16 @@ import Navbar from "../components/Navbar";
 import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewPatient from "../components/Modals/AddNewPatient";
 import { useTranslation } from "react-i18next";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 
 function Patient() {
   const { t, i18n } = useTranslation();
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
+  // 所有樓層/區域對應的後端清單，供「All」模式逐台抓取所有病患
+  // selectedServer：非 All 模式下，目前選取的區域對應到的那一台
+  const { servers, selectedServer } = useFloorSection();
+
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     setSelect_Section(section);
@@ -28,26 +29,81 @@ function Patient() {
 
   const [patients, setPatients] = useState([]);
 
+  // 決定要抓哪些後端（與 Home 規則一致）：
+  //   section === "All" → 所有 server
+  //   其他              → null，走目前選取的單一 server
+  const targetIps = useMemo(() => {
+    if (select_section === "All") {
+      return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
+    }
+    return null;
+  }, [servers, select_section]);
+
+  // 篩選條件的識別字串。
+  // ⚠ 不能直接把 targetIps 當 useEffect 的依賴：非 All 模式下它「恆為 null」，
+  //   所以 A 區 → B 區 的切換會被 Object.is 判定成沒變，effect 不會重跑，
+  //   列表要等下一次輪詢才更新。這裡改用會真正跟著篩選變動的字串當依賴。
+  const filterKey = useMemo(
+    () =>
+      select_section === "All"
+        ? `all:${(targetIps || []).join(",")}`
+        : `one:${select_section}:${selectedServer?.ip ?? ""}`,
+    [select_section, targetIps, selectedServer],
+  );
+
+  // React key：All 模式下不同 server 可能有相同 deviceid，用來源 IP 前綴保證唯一
+  const patientKey = (patient) =>
+    patient.__srcIp ? `${patient.__srcIp}-${patient.deviceid}` : patient.deviceid;
+
+  // 多個區域共用同一台後端，抓回來的住民會夾帶其他區域的，前端要再過濾一次。
+  // patient.section 是後端用「住民綁定的裝置」的區域帶出來的（PatientGetDto），
+  // 所以還沒綁裝置的住民 section 會是空字串 → matchesSection 讓它在每個區域都看得到，
+  // 否則新建但還沒指派的住民會整個消失。
+  const inSection = (patient) => matchesSection(select_section, patient.section);
+
+  const fetchPatientsFrom = async (targetIp) => {
+    const cfg = targetIp ? { targetIp } : undefined;
+    const response = await api.get("/api/7284/db/Patient", cfg);
+    return response.data || [];
+  };
+
+  // 請求序號：切換區域時，前一次還在飛的請求可能比新的晚回來，
+  // 若不擋掉就會用「舊區域」的資料蓋掉剛抓到的新資料。只採用最後一次發出的請求。
+  const reqSeqRef = useRef(0);
+
   const fetchPatients = async () => {
+    const seq = ++reqSeqRef.current;
     try {
-      // const response = await fetch("/api/7284/db/Patient");
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-      // const data = await response.json();
-      const response = await api.get("/api/7284/db/Patient");
-      const data = response.data;
-      //console.log(data);
-      setPatients(data);
+      let next;
+      if (targetIps) {
+        // 「All」模式：逐台抓取後合併，並標上來源 IP，避免跨 server 資料互相覆蓋
+        const results = await Promise.all(
+          targetIps.map((ip) =>
+            fetchPatientsFrom(ip)
+              .then((list) => list.map((p) => ({ ...p, __srcIp: ip })))
+              .catch((err) => {
+                console.error(`Error fetching patients from ${ip}:`, err);
+                return [];
+              }),
+          ),
+        );
+        next = results.flat();
+      } else {
+        next = await fetchPatientsFrom();
+      }
+      // 已經有更新的請求發出 → 這次的結果過期，丟棄
+      if (seq !== reqSeqRef.current) return;
+      setPatients(next);
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
   };
   useEffect(() => {
+    // 篩選一改就立刻抓一次，不用等下一次輪詢；同時重設輪詢計時器
     fetchPatients();
     const interval = setInterval(fetchPatients, 1000);
     return () => clearInterval(interval);
-  }, []);
+  }, [filterKey]);
 
   {
     /* sort logic */
@@ -58,7 +114,6 @@ function Patient() {
     "sex",
     "bed",
     "section",
-    "floor",
     "deviceId",
     "status",
   ];
@@ -74,20 +129,7 @@ function Patient() {
 
   const filteredDevices = patients
     .slice()
-    // .filter((patient) => {
-    //   return (
-    //     select_floor === "" ||
-    //     select_floor === "All" ||
-    //     patient.floor === select_floor
-    //   );
-    // })
-    // .filter((patient) => {
-    //   return (
-    //     select_section === "" ||
-    //     select_section === "All" ||
-    //     patient.section === select_section
-    //   );
-    // })
+    .filter(inSection)
     .sort((a, b) => {
       // const p_idA = a.patientid?.toUpperCase() || "";
       // const p_idB = b.patientid?.toUpperCase() || "";
@@ -159,18 +201,7 @@ function Patient() {
               numeric: true,
             });
           }
-        case sortTypes[5]: // floor
-          //console.log("sortType: ", sortType);
-          if (sortDirection) {
-            return valA(a.floor).localeCompare(valA(b.floor), undefined, {
-              numeric: true,
-            });
-          } else {
-            return valA(b.floor).localeCompare(valA(a.floor), undefined, {
-              numeric: true,
-            });
-          }
-        case sortTypes[6]: // device id
+        case sortTypes[5]: // device id
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             return valA(a.deviceid).localeCompare(valA(b.deviceid), undefined, {
@@ -181,7 +212,7 @@ function Patient() {
               numeric: true,
             });
           }
-        case sortTypes[7]: // status
+        case sortTypes[6]: // status
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.devicestatus).localeCompare(String(a.devicestatus));
@@ -215,7 +246,6 @@ function Patient() {
           <div className="container">
             <div className="top-bar">
               <FloorSectionBar
-                selectFloor={handleSelectFloor}
                 selectSection={handleSelectSection}
                 enableDeviceType={false}
               />
@@ -289,32 +319,22 @@ function Patient() {
                     (sortDirection ? "\u25BC" : "\u25B2")}
                 </h3>
                 <h3
-                  className={`fg1 ${
+                  className={`fg2 ${
                     sortType === sortTypes[5] ? "selected" : ""
                   }`}
                   onClick={() => SortType(5)}
                 >
-                  {t("PatientList.Floor")}{" "}
+                  {t("PatientList.DeviceID")}{" "}
                   {sortType === sortTypes[5] &&
                     (sortDirection ? "\u25BC" : "\u25B2")}
                 </h3>
-                <h3
-                  className={`fg2 ${
-                    sortType === sortTypes[6] ? "selected" : ""
-                  }`}
-                  onClick={() => SortType(6)}
-                >
-                  {t("PatientList.DeviceID")}{" "}
-                  {sortType === sortTypes[6] &&
-                    (sortDirection ? "\u25BC" : "\u25B2")}
-                </h3>
-                <div className="connection fg2" onClick={() => SortType(7)}>
+                <div className="connection fg2" onClick={() => SortType(6)}>
                   <h3
-                    className={`${sortType === sortTypes[7] ? "selected" : ""}`}
+                    className={`${sortType === sortTypes[6] ? "selected" : ""}`}
                   >
                     {t("PatientList.DeviceStatus")}
-                    {`(${connectedDevicesCount})`}{" "}
-                    {sortType === sortTypes[7] &&
+                    {`(${connectedDevicesCount}/${filteredDevices.length})`}{" "}
+                    {sortType === sortTypes[6] &&
                       (sortDirection ? "\u25BC" : "\u25B2")}
                   </h3>
                 </div>
@@ -323,8 +343,14 @@ function Patient() {
               <div className="item-list">
                 {filteredDevices.map((patient) => (
                   <Link
-                    to={`/patient/patient-detail/patient-monitor?macaddress=${patient.deviceid}`}
-                    key={patient.deviceid}
+                    to={`/patient/patient-detail/patient-monitor?macaddress=${patient.deviceid}${
+                      patient.__srcIp ? `&ip=${patient.__srcIp}` : ""
+                    }${
+                      patient.patientid
+                        ? `&patientid=${encodeURIComponent(patient.patientid)}`
+                        : ""
+                    }`}
+                    key={patientKey(patient)}
                     state={{ from: "/patient" }}
                   >
                     <a className="item">
@@ -339,9 +365,6 @@ function Patient() {
                       <h3 className="fg1">{patient.bed || "N/A"}</h3>
                       <h3 className="fg1">
                         {patient.section === "" ? "N/A" : patient.section}
-                      </h3>
-                      <h3 className="fg1">
-                        {patient.floor === "" ? "N/A" : patient.floor}
                       </h3>
                       <h3 className="fg2">{patient.deviceid || "N/A"}</h3>
                       <div

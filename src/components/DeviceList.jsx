@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { Outlet, Link } from "react-router-dom";
 import dayjs from "dayjs";
 import "/src/CSS/btn.css";
@@ -11,6 +11,10 @@ import FloorSectionBar from "../components/FloorSectionBar";
 import AddNewDevice from "../components/Modals/AddNewDevice";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
+import {
+  useFloorSection,
+  matchesSectionStrict,
+} from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 import api8031 from "../api/apiClient8031";
 
@@ -19,9 +23,12 @@ const DeviceList = () => {
 
   const { role } = useAuth();
 
+  // 所有樓層/區域對應的後端清單，供「All」模式逐台抓取
+  const { servers } = useFloorSection();
+
   const [devices, setDevices] = useState([]);
 
-  const [deviceMap, setDeviceMap] = useState({}); // key: mac, value: { rssi, ping }
+  const [deviceMap, setDeviceMap] = useState({}); // key: (ip-)mac, value: { rssi, ping }
 
   const [port, setPort] = useState("7284");
   const handleSelectPort = (port) => {
@@ -29,10 +36,6 @@ const DeviceList = () => {
     setPort(port);
   };
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     setSelect_Section(section);
@@ -41,6 +44,31 @@ const DeviceList = () => {
   const handleSelectDeviceType = (deviceType) => {
     setSelect_DeviceType(deviceType);
   };
+
+  // 決定要抓哪些後端（與 Home 規則一致）：
+  //   section === "All" → 所有 server
+  //   其他              → null，走目前選取的單一 server
+  const targetIps = useMemo(() => {
+    if (select_section === "All") {
+      return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
+    }
+    return null;
+  }, [servers, select_section]);
+
+  // ping/rssi map 的 key、React key、詳情頁連結：All 模式下同 MAC 可能來自不同 server，
+  // 一律用來源 IP 前綴避免衝突。
+  const mapKey = (ip, mac) => (ip ? `${ip}-${mac}` : mac);
+  const deviceKey = (device) =>
+    device.__srcIp ? `${device.__srcIp}-${device.macaddress}` : device.macaddress;
+  const ipQuery = (device) => (device.__srcIp ? `&ip=${device.__srcIp}` : "");
+
+  // 多個區域共用同一台後端，抓回來的裝置會夾帶其他區域的，前端要再過濾一次。
+  //
+  // 這裡用嚴格版：section 是裝置自己的欄位（新增裝置時指定，解除床位綁定時會被清成
+  // null＝未指派）。未指派的裝置若在每個區域都列出來，篩選等於沒作用，
+  // 所以只有選 "All" 才看得到它們 —— 要把它重新指派回某一區，
+  // 在床位的裝置下拉仍然選得到（那邊刻意用寬鬆比對）。
+  const inSection = (device) => matchesSectionStrict(select_section, device.section);
 
   {
     /* sort logic */
@@ -52,7 +80,6 @@ const DeviceList = () => {
     "ip",
     "bed",
     "section",
-    "floor",
     "updateDate",
     "status",
   ];
@@ -79,95 +106,76 @@ const DeviceList = () => {
   //     console.error("Error fetching device data:", error);
   //   }
   // };
+  // 從「單一」server 抓 db/Device + socketserver/8031，並在「同一台」內比對出 ping/rssi。
+  // 傳入 ip 時把請求釘在該台（All 模式逐台抓取）；不傳則走目前選取的 server。
+  const fetchFromServer = async (ip) => {
+    const cfg = ip ? { targetIp: ip } : undefined;
+    let data = [];
+    let data8031 = [];
+    if (import.meta.env.VITE_MODE === "dev") {
+      const [response, response8031] = await Promise.all([
+        api.get("/api/7284/db/Device", cfg),
+        api.get("/api/7284/ss/SocketServer", cfg),
+      ]);
+      data = response.data || [];
+      data8031 = response8031.data || [];
+    } else {
+      const [response, response8031] = await Promise.all([
+        api.get("/api/7284/db/Device", cfg),
+        api8031.get("/api/8031/devices", cfg),
+      ]);
+      data = response.data || [];
+      data8031 = (response8031.data && response8031.data.DATA) || [];
+    }
+
+    const macSet = new Set(data.map((device) => device.macaddress));
+    const matchedMap = {};
+    data8031.forEach((device) => {
+      if (macSet.has(device.MAC)) {
+        matchedMap[mapKey(ip, device.MAC)] = {
+          rssi: device.RSSI,
+          // ping: device.Ping,
+        };
+      }
+    });
+
+    return { devices: data.map((d) => ({ ...d, __srcIp: ip })), deviceMap: matchedMap };
+  };
+
   const fetchDeviceList = async () => {
     try {
-      if (import.meta.env.VITE_MODE === "dev") {
-        const [response, response8031] = await Promise.all([
-          api.get("/api/7284/db/Device"),
-          api.get("/api/7284/ss/SocketServer"),
-        ]);
-
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-        // if (!response8031.ok) {
-        //   throw new Error(`HTTP error! status: ${response8031.status}`);
-        // }
-        const data = response.data;
-        // const data = await response.json();
-        //console.log(data);
-        const result8031 = response8031.data;
-        // const result8031 = await response8031.json();
-        const data8031 = result8031;
-        ////console.log(data8031);
-        setDevices(data);
-        const macSet = new Set(data.map((device) => device.macaddress));
-        const matchedMap = {};
-        data8031.forEach((device) => {
-          if (macSet.has(device.MAC)) {
-            matchedMap[device.MAC] = {
-              rssi: device.RSSI,
-              ping: device.Ping,
-            };
-          }
-        });
-        ////console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
-        setDeviceMap(matchedMap);
+      if (targetIps) {
+        // 「All」模式：逐台抓取後合併。單台失敗不影響其他台。
+        const results = await Promise.all(
+          targetIps.map((ip) =>
+            fetchFromServer(ip).catch((err) => {
+              console.error(`Error fetching devices from ${ip}:`, err);
+              return { devices: [], deviceMap: {} };
+            }),
+          ),
+        );
+        setDevices(results.flatMap((r) => r.devices));
+        setDeviceMap(Object.assign({}, ...results.map((r) => r.deviceMap)));
       } else {
-        const [response, response8031] = await Promise.all([
-          api.get("/api/7284/db/Device"),
-          api8031.get("/api/8031/devices"),
-        ]);
-
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-        // if (!response8031.ok) {
-        //   throw new Error(`HTTP error! status: ${response8031.status}`);
-        // }
-        const data = response.data;
-        //console.log(data);
-        const result8031 = response8031.data;
-        const data8031 = result8031.DATA;
-        ////console.log(data8031);
-        setDevices(data);
-        const macSet = new Set(data.map((device) => device.macaddress));
-        const matchedMap = {};
-        data8031.forEach((device) => {
-          if (macSet.has(device.MAC)) {
-            matchedMap[device.MAC] = {
-              rssi: device.RSSI,
-              ping: device.Ping,
-            };
-          }
-        });
-        ////console.log("deviceMap " + JSON.stringify(matchedMap, null, 2));
-        setDeviceMap(matchedMap);
+        const r = await fetchFromServer();
+        setDevices(r.devices);
+        setDeviceMap(r.deviceMap);
       }
     } catch (error) {
       console.error("Error fetching device data:", error);
     }
   };
+  // select_section 也要當依賴：非 All 模式下 targetIps 恆為 null，
+  // 只靠它的話切換區域不會重跑（現在多個區域共用一台後端，過濾條件也在這裡變）。
   useEffect(() => {
     fetchDeviceList();
     const interval = setInterval(fetchDeviceList, 1000);
     return () => clearInterval(interval);
-  }, [port]);
+  }, [port, targetIps, select_section]);
 
   const filteredDevices = devices
     .filter((device) => device.used === true) // Only used devices
-    // .filter(
-    //   (device) =>
-    //     select_floor === "" ||
-    //     select_floor === "All" ||
-    //     device.floor === select_floor
-    // ) // Filter by floor
-    // .filter(
-    //   (device) =>
-    //     select_section === "" ||
-    //     select_section === "All" ||
-    //     device.section === select_section
-    // ) // Filter by section
+    .filter(inSection) // Filter by section
     .filter(
       (device) =>
         select_deviceType === "" ||
@@ -262,18 +270,7 @@ const DeviceList = () => {
               numeric: true,
             });
           }
-        case sortTypes[6]: // floor
-          //console.log("sortType: ", sortType);
-          if (sortDirection) {
-            return valA(a.floor).localeCompare(valA(b.floor), undefined, {
-              numeric: true,
-            });
-          } else {
-            return valA(b.floor).localeCompare(valA(a.floor), undefined, {
-              numeric: true,
-            });
-          }
-        case sortTypes[7]: // date
+        case sortTypes[6]: // date
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             const dateA = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
@@ -284,7 +281,7 @@ const DeviceList = () => {
             const dateB = a.Updatedat ? new Date(a.Updatedat) : new Date(0);
             return dateB - dateA; // Subtracting dates sorts by timestamp
           }
-        case sortTypes[8]: // status
+        case sortTypes[7]: // status
           //console.log("sortType: ", sortType);
           if (sortDirection) {
             return String(b.devicestatus).localeCompare(String(a.devicestatus));
@@ -318,7 +315,6 @@ const DeviceList = () => {
       <div className="container">
         <div className="top-bar">
           <FloorSectionBar
-            selectFloor={handleSelectFloor}
             selectSection={handleSelectSection}
             selectDeviceType={handleSelectDeviceType}
             enableDeviceType={true}
@@ -332,7 +328,7 @@ const DeviceList = () => {
             <AddNewDevice callback={handleAddDeviceClick} />
           )}
         </div>
-        <div className="pl">
+        <div className="pl device-list">
           <div className="head">
             <h3
               className={`fg1 ${sortType === sortTypes[0] ? "selected" : ""}`}
@@ -383,28 +379,20 @@ const DeviceList = () => {
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
-              className={`fg3 ${sortType === sortTypes[6] ? "selected" : ""}`}
+              className={`fg1 ${sortType === sortTypes[6] ? "selected" : ""}`}
               onClick={() => SortType(6)}
             >
-              {t("DeviceList.Floor")}{" "}
+              {t("DeviceList.SettingDate")}{" "}
               {sortType === sortTypes[6] &&
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
-            <h3
-              className={`fg1 ${sortType === sortTypes[7] ? "selected" : ""}`}
-              onClick={() => SortType(7)}
-            >
-              {t("DeviceList.SettingDate")}{" "}
-              {sortType === sortTypes[7] &&
-                (sortDirection ? "\u25BC" : "\u25B2")}
-            </h3>
-            <h3 className="fg3">PING(ms)</h3>
+            {/* <h3 className="fg3">PING(ms)</h3> */}
             <h3 className="fg3">RSSI(dBm)</h3>
-            <div className="connection fg2" onClick={() => SortType(8)}>
-              <h3 className={`${sortType === sortTypes[8] ? "selected" : ""}`}>
+            <div className="connection fg2" onClick={() => SortType(7)}>
+              <h3 className={`${sortType === sortTypes[7] ? "selected" : ""}`}>
                 {t("DeviceList.DeviceStatus")}
-                {`(${connectedDevicesCount})`}
-                {sortType === sortTypes[8] &&
+                {`(${connectedDevicesCount}/${filteredDevices.length})`}
+                {sortType === sortTypes[7] &&
                   (sortDirection ? "\u25BC" : "\u25B2")}
               </h3>
             </div>
@@ -414,21 +402,17 @@ const DeviceList = () => {
               filteredDevices.map((device) =>
                 ["administrator", "engineer"].includes(role) ? (
                   <Link
-                    to={`/device/device-settings?macaddress=${device.macaddress}`}
-                    key={device.macaddress}
+                    to={`/device/device-settings?macaddress=${device.macaddress}${ipQuery(device)}`}
+                    key={deviceKey(device)}
                   >
                     <div className="item">
                       <h3 className="fg1">
                         {device.devicetype === 0
                           ? "Not Specified"
                           : device.devicetype === 1
-                          ? "UEXT"
+                          ? t("DeviceType.uext")
                           : device.devicetype === 2
-                          ? "UMAP"
-                          : device.devicetype === 3
-                          ? "UNC"
-                          : device.devicetype === 201
-                          ? "HaLow-R"
+                          ? t("DeviceType.umap")
                           : "Not Specified"}
                       </h3>
                       <h3 className="fg2">{device.deviceid || "N/A"}</h3>
@@ -436,15 +420,14 @@ const DeviceList = () => {
                       <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
                       <h3 className="fg3">{device.bed || "N/A"}</h3>
                       <h3 className="fg3">{device.section || "N/A"}</h3>
-                      <h3 className="fg3">{device.floor || "N/A"}</h3>
                       <h3 className="fg1">
                         {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                       </h3>
+                      {/* <h3 className="fg3">
+                        {deviceMap[mapKey(device.__srcIp, device.macaddress)]?.ping ?? "----"}
+                      </h3> */}
                       <h3 className="fg3">
-                        {deviceMap[device.macaddress]?.ping ?? "----"}
-                      </h3>
-                      <h3 className="fg3">
-                        {deviceMap[device.macaddress]?.rssi ?? "----"}
+                        {deviceMap[mapKey(device.__srcIp, device.macaddress)]?.rssi ?? "----"}
                       </h3>
                       <div
                         className={`connection ${
@@ -459,18 +442,14 @@ const DeviceList = () => {
                     </div>
                   </Link>
                 ) : (
-                  <div className="item" key={device.macaddress}>
+                  <div className="item" key={deviceKey(device)}>
                     <h3 className="fg1">
                       {device.devicetype === 0
                         ? "Not Specified"
                         : device.devicetype === 1
-                        ? "UEXT"
+                        ? t("DeviceType.uext")
                         : device.devicetype === 2
-                        ? "UMAP"
-                        : device.devicetype === 3
-                        ? "UNC"
-                        : device.devicetype === 201
-                        ? "HaLow-R"
+                        ? t("DeviceType.umap")
                         : "Not Specified"}
                     </h3>
                     <h3 className="fg2">{device.deviceid || "N/A"}</h3>
@@ -478,13 +457,12 @@ const DeviceList = () => {
                     <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
                     <h3 className="fg3">{device.bed || "N/A"}</h3>
                     <h3 className="fg3">{device.section || "N/A"}</h3>
-                    <h3 className="fg3">{device.floor || "N/A"}</h3>
                     <h3 className="fg1">
                       {dayjs(device.Updatedat).format("YYYY-MM-DD") || "N/A"}
                     </h3>
-                    <h3 className="fg3">
+                    {/* <h3 className="fg3">
                       {deviceMap[device.macaddress]?.ping ?? "----"}
-                    </h3>
+                    </h3> */}
                     <h3 className="fg3">
                       {deviceMap[device.macaddress]?.rssi ?? "----"}
                     </h3>

@@ -8,31 +8,51 @@ import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
 import api from "../../api/apiClient";
 import { useAuth } from "../../JS/AuthContext";
+import { useFloorSection } from "../../JS/FloorSectionContext";
 
 // Backend (IpAddressController.cs) routes:
 //   GET    /api/7284/IpAddress/all
-//   POST   /api/7284/IpAddress           body: { Ip, Floor, Section }
-//   PUT    /api/7284/IpAddress/{ip}      body: { Floor, Section }
-//   DELETE /api/7284/IpAddress/{ip}
+//   POST   /api/7284/IpAddress           body: { Ip, Section, IsSelf }
+//   PUT    /api/7284/IpAddress/{id}      body: { Ip, Section, IsSelf }
+//   DELETE /api/7284/IpAddress/{id}
+//
+// ⚠ 後端已移除 Floor，IpAddress 只剩 Id / Ip / Section / IsSelf。
+//
+// ⚠ 一台後端可以服務多個區域：同一個 Ip 會出現多筆（每筆一個 Section），
+//   唯一鍵只在 Section 上（一個區域仍然只會落在一台後端）。
+//   主鍵是自增的 Id，所以 PUT / DELETE 都改用 Id 指定資料列，不能再用 Ip。
+//
+// ⚠ IsSelf 是「這個 IP 是不是本機」，屬於 IP 而不是區域：後端會把同一個 IP
+//   的所有資料列一起設成同樣的值，所以清單上同 IP 的列會一起打勾／取消。
+//
+// ⚠ PUT 的後端寫法是 entity.IsSelf = request.IsSelf ?? false，
+//   也就是「沒送 IsSelf 就會被重設為 false」。所以編輯時一定要把
+//   目前的 IsSelf 一起送回去，否則會在使用者只改 Section 時把旗標洗掉。
 const BASE = "/api/7284/IpAddress";
 
 const MultiServerSetting = ({ callback }) => {
   const { t } = useTranslation();
 
-  const {isDarkMode} = useAuth();
+  const { isDarkMode } = useAuth();
+
+  // 這個 modal 自己有一份表格資料，但全域的 servers（區域下拉、要打哪一台後端）
+  // 是 FloorSectionContext 在管的。新增／修改／刪除之後若不一起重抓，
+  // 其他頁面會一直用舊的區域清單，直到使用者重整頁面為止。
+  const { refreshServers } = useFloorSection();
 
   const [loading, setLoading] = useState(false);
-  const [rows, setRows] = useState([]); // [{ ip, floor, section }]
+  const [rows, setRows] = useState([]); // [{ id, ip, section, isSelf }]
 
-  // Inline-edit state for an existing row
-  const [editingIp, setEditingIp] = useState(null);
-  const [editFloor, setEditFloor] = useState("");
+  // Inline-edit state for an existing row（以 id 指定，Ip 與 Section 都可以改）
+  const [editingId, setEditingId] = useState(null);
+  const [editIp, setEditIp] = useState("");
   const [editSection, setEditSection] = useState("");
+  const [editIsSelf, setEditIsSelf] = useState(false);
 
   // "Add new IP" form
   const [newIp, setNewIp] = useState("");
-  const [newFloor, setNewFloor] = useState("");
   const [newSection, setNewSection] = useState("");
+  const [newIsSelf, setNewIsSelf] = useState(false);
 
   // Click on the dim backdrop should not bubble to whatever sits below it.
   const handleWindowClick = (e) => e.stopPropagation();
@@ -47,14 +67,13 @@ const MultiServerSetting = ({ callback }) => {
       // Backend may serialize PascalCase or camelCase depending on settings —
       // normalize both to lowercase for the UI.
       const list = (res.data || []).map((x) => ({
+        id: x.id ?? x.Id ?? null,
         ip: x.ip ?? x.Ip ?? "",
-        floor: x.floor ?? x.Floor ?? "",
         section: x.section ?? x.Section ?? "",
+        isSelf: Boolean(x.isSelf ?? x.IsSelf ?? false),
       }));
-      list.sort((a, b) => {
-        const c1 = (a.floor || "").localeCompare(b.floor || "");
-        return c1 !== 0 ? c1 : (a.section || "").localeCompare(b.section || "");
-      });
+      // Floor 已移除，改成單純依 Section 排序
+      list.sort((a, b) => (a.section || "").localeCompare(b.section || ""));
       setRows(list);
     } catch (err) {
       console.error("GET /IpAddress/all failed:", err);
@@ -67,6 +86,12 @@ const MultiServerSetting = ({ callback }) => {
   useEffect(() => {
     refresh();
   }, []);
+
+  // 新增／修改／刪除成功後呼叫：自己的表格與全域的 servers 都重新抓一次
+  // （兩者都打 GET /IpAddress/all，但各自需要的欄位不同：這裡要 id，全域只要 ip/section）
+  const refreshAll = async () => {
+    await Promise.all([refresh(), refreshServers?.()]);
+  };
 
   // Pretty-print whatever shape the backend put in the error response body.
   const fmtErr = (err, fallback) => {
@@ -82,19 +107,18 @@ const MultiServerSetting = ({ callback }) => {
   // ─────────────────────────────────────────────────────────
   const handleAdd = async () => {
     const ip = newIp.trim();
-    const floor = newFloor.trim();
     const section = newSection.trim();
-    if (!ip || !floor || !section) {
-      alert("Please fill in IP, Floor, and Section.");
+    if (!ip || !section) {
+      alert("Please fill in IP and Section.");
       return;
     }
     try {
       setLoading(true);
-      await api.post(BASE, { Ip: ip, Floor: floor, Section: section });
+      await api.post(BASE, { Ip: ip, Section: section, IsSelf: newIsSelf });
       setNewIp("");
-      setNewFloor("");
       setNewSection("");
-      await refresh();
+      setNewIsSelf(false);
+      await refreshAll();
     } catch (err) {
       console.error("POST /IpAddress failed:", err);
       alert(`Add failed: ${fmtErr(err, "unknown error")}`);
@@ -104,33 +128,37 @@ const MultiServerSetting = ({ callback }) => {
   };
 
   // ─────────────────────────────────────────────────────────
-  // PUT  – inline edit Floor / Section for an existing IP
+  // PUT  – inline edit Section / IsSelf for an existing IP
   // ─────────────────────────────────────────────────────────
   const handleEditStart = (row) => {
-    setEditingIp(row.ip);
-    setEditFloor(row.floor);
+    setEditingId(row.id);
+    setEditIp(row.ip);
     setEditSection(row.section);
+    setEditIsSelf(row.isSelf);
   };
   const handleEditCancel = () => {
-    setEditingIp(null);
-    setEditFloor("");
+    setEditingId(null);
+    setEditIp("");
     setEditSection("");
+    setEditIsSelf(false);
   };
-  const handleEditSave = async (ip) => {
-    const floor = editFloor.trim();
+  const handleEditSave = async (id) => {
     const section = editSection.trim();
-    if (!floor || !section) {
-      alert("Floor and Section cannot be empty.");
+    const ip = editIp.trim();
+    if (!section || !ip) {
+      alert("Section and IP cannot be empty.");
       return;
     }
     try {
       setLoading(true);
-      await api.put(`${BASE}/${encodeURIComponent(ip)}`, {
-        Floor: floor,
+      // IsSelf 一定要一起送：後端是 request.IsSelf ?? false，漏送會被清成 false
+      await api.put(`${BASE}/${encodeURIComponent(id)}`, {
+        Ip: ip,
         Section: section,
+        IsSelf: editIsSelf,
       });
       handleEditCancel();
-      await refresh();
+      await refreshAll();
     } catch (err) {
       console.error("PUT /IpAddress failed:", err);
       alert(`Update failed: ${fmtErr(err, "unknown error")}`);
@@ -143,16 +171,14 @@ const MultiServerSetting = ({ callback }) => {
   // DELETE
   // ─────────────────────────────────────────────────────────
   const handleDelete = async (row) => {
-    const ok = window.confirm(
-      `Delete IP ${row.ip}  (Floor ${row.floor} / Section ${row.section}) ?`,
-    );
+    const ok = window.confirm(`Delete IP ${row.ip}  (Section ${row.section}) ?`);
     if (!ok) return;
     try {
       setLoading(true);
-      await api.delete(`${BASE}/${encodeURIComponent(row.ip)}`);
+      await api.delete(`${BASE}/${encodeURIComponent(row.id)}`);
       // If we were editing the row we just deleted, drop the edit state too.
-      if (editingIp === row.ip) handleEditCancel();
-      await refresh();
+      if (editingId === row.id) handleEditCancel();
+      await refreshAll();
     } catch (err) {
       console.error("DELETE /IpAddress failed:", err);
       alert(`Delete failed: ${fmtErr(err, "unknown error")}`);
@@ -171,7 +197,7 @@ const MultiServerSetting = ({ callback }) => {
         style={{ display: "block" }}
       >
         <div className="window" style={{ maxWidth: 780 }}>
-          <div className="title">樓層 / 區域 IP 設定</div>
+          <div className="title">區域 IP 設定</div>
           <div className="subtitle">新增、修改、或刪除伺服器 IP</div>
           <img
             src="/src/assets/close.svg"
@@ -200,9 +226,11 @@ const MultiServerSetting = ({ callback }) => {
                   }}
                 >
                   <tr>
-                    <th style={thStyle}>Floor</th>
                     <th style={thStyle}>Section</th>
                     <th style={thStyle}>IP</th>
+                    <th style={{ ...thStyle, width: 80, textAlign: "center" }}>
+                      Self
+                    </th>
                     <th style={{ ...thStyle, width: 170, textAlign: "right" }}>
                       Action
                     </th>
@@ -225,24 +253,12 @@ const MultiServerSetting = ({ callback }) => {
                     </tr>
                   )}
                   {rows.map((row) => {
-                    const isEditing = editingIp === row.ip;
+                    const isEditing = editingId === row.id;
                     return (
                       <tr
-                        key={row.ip}
+                        key={row.id ?? `${row.ip}-${row.section}`}
                         style={{ borderTop: "1px solid #ececec" }}
                       >
-                        <td style={tdStyle}>
-                          {isEditing ? (
-                            <input
-                              className="placeholder"
-                              style={inlineInputStyle}
-                              value={editFloor}
-                              onChange={(e) => setEditFloor(e.target.value)}
-                            />
-                          ) : (
-                            row.floor
-                          )}
-                        </td>
                         <td style={tdStyle}>
                           {isEditing ? (
                             <input
@@ -255,14 +271,33 @@ const MultiServerSetting = ({ callback }) => {
                             row.section
                           )}
                         </td>
-                        <td style={tdStyle}>{row.ip}</td>
+                        <td style={tdStyle}>
+                          {isEditing ? (
+                            <input
+                              className="placeholder"
+                              style={inlineInputStyle}
+                              value={editIp}
+                              onChange={(e) => setEditIp(e.target.value)}
+                            />
+                          ) : (
+                            row.ip
+                          )}
+                        </td>
+                        <td style={{ ...tdStyle, textAlign: "center" }}>
+                          <input
+                            type="checkbox"
+                            checked={isEditing ? editIsSelf : row.isSelf}
+                            disabled={!isEditing}
+                            onChange={(e) => setEditIsSelf(e.target.checked)}
+                          />
+                        </td>
                         <td style={{ ...tdStyle, textAlign: "right" }}>
                           {isEditing ? (
                             <>
                               <button
                                 type="button"
                                 style={smallBtnPrimary}
-                                onClick={() => handleEditSave(row.ip)}
+                                onClick={() => handleEditSave(row.id)}
                               >
                                 Save
                               </button>
@@ -313,25 +348,11 @@ const MultiServerSetting = ({ callback }) => {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr 1.4fr auto",
+                gridTemplateColumns: "1fr 1.4fr auto auto",
                 gap: 8,
                 alignItems: "end",
               }}
             >
-              <div className="input">
-                <label className="label-container">
-                  <p>Floor</p>
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    placeholder="e.g. 5F"
-                    value={newFloor}
-                    onChange={(e) => setNewFloor(e.target.value)}
-                  />
-                </div>
-              </div>
               <div className="input">
                 <label className="label-container">
                   <p>Section</p>
@@ -360,6 +381,23 @@ const MultiServerSetting = ({ callback }) => {
                   />
                 </div>
               </div>
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  fontSize: 13,
+                  paddingBottom: 10,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={newIsSelf}
+                  onChange={(e) => setNewIsSelf(e.target.checked)}
+                />
+                Self
+              </label>
               <div
                 className="btn text-only pri"
                 onClick={handleAdd}
@@ -373,7 +411,9 @@ const MultiServerSetting = ({ callback }) => {
           {/* ── Footer ───────────────────────────────────── */}
           <div className="btn-gp" style={{ marginTop: 20 }}>
             <div className="btn text-only outline sec" onClick={callback}>
-              <p className="btn-text sec-text" style={{color:"black"}}>Close</p>
+              <p className="btn-text sec-text" style={{ color: "black" }}>
+                Close
+              </p>
             </div>
           </div>
         </div>

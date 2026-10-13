@@ -9,10 +9,12 @@ import "/src/CSS/patient.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import DisChargePatient from "./Modals/DisChargePatient";
+import UnbindDevice from "./Modals/UnbindDevice";
 import { format } from "date-fns";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "./LoadingOverlay";
 import CalibrationConfirmOverlay from "./Modals/CalibrationConfirmOverlay";
+import { useFloorSection } from "../JS/FloorSectionContext";
 import api from "../api/apiClient"
 import api8031 from "../api/apiClient8031";
 
@@ -30,8 +32,18 @@ function PatientProfile() {
 
 
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const macaddress = searchParams.get("macaddress") || "";
+  // 首頁 / 住民列表點進來時會把床位上指派的住民編號帶在網址上，
+  // 有帶就直接用 GET /db/Patient/{patientid} 取單筆資料。
+  const patientIdParam = searchParams.get("patientid") || "";
+
+  // 這頁該打哪台後端：All 模式用網址帶進來的 ?ip=（該裝置所屬 server）；
+  // 單一模式用目前選取的 server。重整時 selectedServer 一開始為 null（servers 非同步載入），
+  // 所以底下 fetch 會等 targetIp 有值再抓、並在它出現後自動重抓，避免打到預設台而抓不到。
+  const { selectedServer } = useFloorSection();
+  const ipParam = searchParams.get("ip");
+  const targetIp = ipParam ?? selectedServer?.ip ?? null;
 
   {
     /* SEX  */
@@ -125,9 +137,14 @@ function PatientProfile() {
   const patientWeightInput = useSetInfoToInput("");
   const patientBedInput = useSetInfoToInput("");
   const patientSectionInput = useSetInfoToInput("");
-  const patientFloorInput = useSetInfoToInput("");
 
   const [patient, setPatient] = useState([]);
+  // 住民下拉的選項來源（整份住民清單）
+  const [patients, setPatients] = useState([]);
+  // 這位住民目前在哪張床（BedController）。床號 / 區域以床位資料為準。
+  // 裝置不在床位上，而是記在住民身上（patient.deviceid）。
+  const [bed, setBed] = useState(null);
+
   const fetchPatientProfile = async () => {
     try {
       // const response = await fetch(`/api/7284/db/Patient`, {
@@ -143,12 +160,52 @@ function PatientProfile() {
       // }
 
       // const data = await response.json();
-      const response = await api.get(`/api/7284/db/Patient`);
+      const cfg = targetIp ? { targetIp } : undefined;
 
-      const data = response.data;
-      const matchingPatient = data.find(
-        (item) => item.deviceid === macaddress
-      ) || {
+      // 住民清單：住民編號下拉的選項，另外也是沒帶 patientid 時的比對來源
+      const listPromise = api
+        .get(`/api/7284/db/Patient`, cfg)
+        .catch((err) => {
+          console.error("Error fetching patient list:", err.message);
+          return null;
+        });
+
+      // 網址帶了 patientid → 直接查單筆
+      const patientPromise = patientIdParam
+        ? api
+            .get(
+              `/api/7284/db/Patient/${encodeURIComponent(patientIdParam)}`,
+              cfg,
+            )
+            .catch((err) => {
+              console.error("Error fetching patient:", err.message);
+              return null;
+            })
+        : Promise.resolve(null);
+
+      const [listRes, patientRes] = await Promise.all([
+        listPromise,
+        patientPromise,
+      ]);
+
+      const patientList = Array.isArray(listRes?.data) ? listRes.data : [];
+      setPatients(patientList);
+
+      let matchingPatient = null;
+
+      if (patientIdParam) {
+        // 查無資料時後端是回 200 + { code: -1, message }，不是 404，要自己判斷
+        const one = patientRes?.data;
+        if (one && one.code === undefined && one.patientid) {
+          matchingPatient = one;
+        }
+      } else {
+        // 相容舊進入點（網址沒帶 patientid）：用裝置反查住民
+        matchingPatient =
+          patientList.find((item) => item.deviceid === macaddress) || null;
+      }
+
+      matchingPatient = matchingPatient || {
         patientname: "",
         patientid: "",
         sex: "",
@@ -157,10 +214,27 @@ function PatientProfile() {
         weight: "",
         bed: "",
         section: "",
-        floor: "",
         deviceid: "",
         devicestatus: "",
       };
+
+      // 床位：用住民編號反查（床位已經沒有裝置欄位，不能再用 deviceId 查）
+      const matchingBed = matchingPatient.patientid
+        ? ((
+            await api
+              .get(
+                `/api/7284/db/Bed?patientId=${encodeURIComponent(
+                  matchingPatient.patientid,
+                )}`,
+                cfg,
+              )
+              .catch((err) => {
+                console.error("Error fetching bed by patientId:", err.message);
+                return null;
+              })
+          )?.data || [])[0] ?? null
+        : null;
+      setBed(matchingBed);
 
       setPatient(matchingPatient);
       //console.log("patient detail is ", matchingPatient);
@@ -174,19 +248,83 @@ function PatientProfile() {
           ? SEX[0]
           : SEX[1]
       );
-      setSelectedDate(new Date(matchingPatient.birthday));
+      setSelectedDate(
+        matchingPatient.birthday
+          ? new Date(matchingPatient.birthday)
+          : new Date(),
+      );
       patientHeightInput.setInputValue(matchingPatient.height);
       patientWeightInput.setInputValue(matchingPatient.weight);
-      patientBedInput.setInputValue(matchingPatient.bed);
-      patientSectionInput.setInputValue(matchingPatient.section);
-      patientFloorInput.setInputValue(matchingPatient.floor);
+      // 床號 / 區域以床位表為準，沒有床位資料才退回住民 DTO 帶的值
+      patientBedInput.setInputValue(matchingBed?.bedId || matchingPatient.bed || "");
+      patientSectionInput.setInputValue(
+        matchingBed?.section || matchingPatient.section || "",
+      );
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
   };
   useEffect(() => {
+    if (!targetIp) return; // 還不知道要打哪台 → 等 targetIp 出現再抓
     fetchPatientProfile();
+  }, [targetIp, macaddress, patientIdParam]);
+
+  {
+    /* 住民編號下拉：可以從既有住民挑一位綁到這張床，
+       也可以直接打一個不存在的編號 + 填其他欄位，儲存時新增住民。 */
+  }
+  const [isPatientListActive, setPatientListActive] = useState(false);
+  const patientDropdownRef = useRef(null);
+  const dropdownPatientStyleRef = useRef(null);
+
+  useDynamicDropdownHeight(dropdownPatientStyleRef, isPatientListActive);
+
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (
+        patientDropdownRef.current &&
+        !patientDropdownRef.current.contains(event.target)
+      ) {
+        setPatientListActive(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
+
+  // 依已輸入的字串過濾選項，方便從一長串住民裡找人
+  const patientOptions = patients.filter((p) => {
+    const keyword = (patientIDInput.inputValue || "").trim().toLowerCase();
+    if (!keyword) return true;
+    return (
+      String(p.patientid || "").toLowerCase().includes(keyword) ||
+      String(p.patientname || "").toLowerCase().includes(keyword)
+    );
+  });
+
+  // 目前輸入的編號在住民清單裡找不到 → 儲存時會新增住民
+  const typedPatientId = (patientIDInput.inputValue || "").trim();
+  const isNewPatient =
+    typedPatientId !== "" &&
+    !patients.some((p) => p.patientid === typedPatientId);
+
+  const handlePatientIdChange = (e) => {
+    patientIDInput.setInputValue(e.target.value);
+    setPatientListActive(true);
+    setIsChanged(true);
+  };
+
+  // 從下拉選一位既有住民 → 其他欄位一併帶入
+  const handlePatientItemClick = (p) => {
+    patientIDInput.setInputValue(p.patientid ?? "");
+    patientNameInput.setInputValue(p.patientname ?? "");
+    setPlaceholderSex(p.sex === 1 ? SEX[1] : SEX[0]);
+    setSelectedDate(p.birthday ? new Date(p.birthday) : new Date());
+    patientHeightInput.setInputValue(p.height ?? "");
+    patientWeightInput.setInputValue(p.weight ?? "");
+    setPatientListActive(false);
+    setIsChanged(true);
+  };
 
   const formatDOB = (birthday) => {
     if (!birthday) {
@@ -195,57 +333,75 @@ function PatientProfile() {
     return birthday.split("T")[0];
   };
   {
-    /* PUT API */
+    /* 儲存：既有住民 → 更新資料；新編號 → 新增住民。兩者最後都指派到這張床 */
   }
-  const requestBody = {
-    patientname: patientNameInput.inputValue,
-    sex: placeholderSex === SEX[0] ? 0 : 1,
-    birthday: format(selectedDate, "yyyy-MM-dd"),
-    height: parseInt(patientHeightInput.inputValue, 10),
-    weight: parseInt(patientWeightInput.inputValue, 10),
-    deviceid: macaddress,
-  };
+  const handleSave = async () => {
+    const pid = (patientIDInput.inputValue || "").trim();
+    if (!pid) {
+      alert(t("PatientProfile.PatientIDRequired"));
+      return;
+    }
+    if (!(patientNameInput.inputValue || "").trim()) {
+      alert(t("PatientProfile.PatientNameRequired"));
+      return;
+    }
 
-  const handlePut_API = (print_inputvalue) => {
-    //console.log("the input requestbody is ", print_inputvalue);
-    PUT_PatientInfo(patientIDInput.inputValue, print_inputvalue);
-  };
+    const cfg = targetIp ? { targetIp } : undefined;
+    const profile = {
+      patientname: patientNameInput.inputValue,
+      sex: placeholderSex === SEX[0] ? 0 : 1,
+      birthday: format(selectedDate, "yyyy-MM-dd"),
+      height: parseInt(patientHeightInput.inputValue, 10) || 0,
+      weight: parseInt(patientWeightInput.inputValue, 10) || 0,
+      deviceid: macaddress,
+    };
 
-  const PUT_PatientInfo = async (patientid, requestBody) => {
     try {
       setLoading(true);
-      // const response = await fetch(`/api/7284/db/Patient/${patientid}`, {
-      //   method: "PUT",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(requestBody), // Convert the requestBody to JSON
-      // });
 
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-
-      // const data = await response.json();
-      const response = await api.put(`/api/7284/db/Patient/${patientid}`, requestBody);
-      const data = response.data;
-      if (data.code !== 0) {
-        //console.log("Patient fail to update:", data);
-        alert("Patient fail to update!");
-        setIsChanged(false);
+      if (isNewPatient) {
+        // 清單裡沒有這個編號 → 新增住民
+        await api.post(
+          `/api/7284/db/Patient`,
+          { ...profile, patientid: pid, jlog: {} },
+          cfg,
+        );
       } else {
-        //console.log("Patient updated successfully:", data);
-        alert("Update Successfully!");
-        window.location.reload();
-        setIsChanged(false);
+        // 既有住民 → 更新資料。
+        // 注意：後端只有在真的有欄位變動時才回 code 0（SaveChanges > 0），
+        // 只換綁定、沒改資料的情況會回非 0，那不算失敗，所以不在這裡擋。
+        await api.put(`/api/7284/db/Patient/${pid}`, profile, cfg);
       }
-      return data; // Return the response data if needed
+
+      // 指派到這張床（床位是住民與裝置的關聯來源）
+      if (bed && bed.patientId !== pid) {
+        await api.put(
+          `/api/7284/db/Bed/${bed.bedId}/patient`,
+          { patientId: pid },
+          cfg,
+        );
+      }
+
+      setIsChanged(false);
+      alert(t("PatientProfile.SaveSuccess"));
+
+      // 網址上的 patientid 換成剛存好的那位，並重新載入這頁資料
+      const nextParams = new URLSearchParams(searchParams);
+      nextParams.set("patientid", pid);
+      setSearchParams(nextParams, { replace: true });
+      fetchPatientProfile();
     } catch (error) {
-      console.error("Error updating device:", error.message);
+      console.error("Error saving patient:", error);
+      alert(
+        `Error: ${
+          error.response?.data?.message || "Unable to connect to the server."
+        }`,
+      );
     } finally {
       setLoading(false);
     }
   };
+
   {
     /* Discharge Patient Button */
   }
@@ -255,63 +411,130 @@ function PatientProfile() {
     setDischargeOverlayVisible(!isDischargeOverlayVisible);
   };
 
-  const handleDischargePatient = (patientid) => {
-    patientid = patient.patientid;
-    //console.log("delete patient ", patientid);
-    deletePatientAlert_API(patientid);
-    deletePatient_API(patientid);
-  };
+  {
+    /* 住民出院：
+         1. 先解除床位的住民。裝置記在住民身上，住民刪掉裝置自然跟著解除。
+            用 PUT 一次寫完，只需要 Roles.User 權限，也不會動到護理人員。
+         2. 刪掉該住民的警示設定
+         3. 刪掉住民本身
+       原本這三步是兩支沒有 await 的函式各自併發跑，順序無法保證。 */
+  }
+  const handleDischargePatient = async () => {
+    const patientId = patient?.patientid;
+    if (!patientId) {
+      setDischargeOverlayVisible(false);
+      return;
+    }
 
-  const deletePatient_API = async (patientId) => {
+    const cfg = targetIp ? { targetIp } : undefined;
+
     try {
       setLoading(true);
-      // const response = await fetch(`/api/7284/db/Patient/${patientId}`, {
-      //   method: "DELETE",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
 
-      // const contentType = response.headers.get("Content-Type");
-      // if (!response.ok || !contentType?.includes("application/json")) {
-      //   throw new Error(`Expected JSON, got: ${contentType}`);
-      // }
-      // const data = await response.json();
-      const response = await api.delete(`/api/7284/db/Patient/${patientId}`);
+      // 這頁的 bed 是用 deviceId 查到的；沒有綁裝置時查不到，改用住民編號再查一次
+      let targetBed = bed;
+      if (!targetBed) {
+        const bedRes = await api
+          .get(
+            `/api/7284/db/Bed?patientId=${encodeURIComponent(patientId)}`,
+            cfg,
+          )
+          .catch((err) => {
+            console.error("Error fetching bed by patientId:", err.message);
+            return null;
+          });
+        targetBed = (bedRes?.data || [])[0] ?? null;
+      }
 
-      const data = response.data;
-      //console.log("Delete successfully!:", data);
-      alert("Delete successfully!");
+      if (targetBed) {
+        await api.put(
+          `/api/7284/db/Bed/${targetBed.bedId}`,
+          {
+            bedId: targetBed.bedId,
+            section: targetBed.section || null,
+            patientId: null,
+            nurseId: targetBed.nurseId || null,
+          },
+          cfg,
+        );
+      }
+
+      // 警示設定沒有不算錯，失敗只記錄不中斷
+      await api
+        .delete(`/api/7284/db/Alert/${patientId}`, cfg)
+        .catch((err) => console.error("Error deleting alert:", err.message));
+
+      await api.delete(`/api/7284/db/Patient/${patientId}`, cfg);
+
+      setDischargeOverlayVisible(false);
+      alert(t("PatientProfile.DischargeSuccess"));
       navigate("/home");
     } catch (error) {
-      console.error("Error fetching device data:", error.message, error);
+      console.error("Error discharging patient:", error);
+      alert(
+        `Error: ${
+          error.response?.data?.message || "Unable to connect to the server."
+        }`,
+      );
     } finally {
       setLoading(false);
     }
   };
-  const deletePatientAlert_API = async (patientId) => {
+
+  {
+    /* Remove Device Button：解除這位住民的裝置綁定。
+       裝置已經不記在床位上，而是記在住民身上（patient.deviceid），
+       所以「移除裝置」＝ 把住民的 deviceid 清空；裝置自己的 bed / section
+       後端會跟著清掉。床位本身不需要動。 */
+  }
+  const [isUnbindOverlayVisible, setUnbindOverlayVisible] = useState(false);
+  const handleUnbindOverlay = () => {
+    setUnbindOverlayVisible((prev) => !prev);
+  };
+
+  const handleUnbindDevice = async () => {
+    const cfg = targetIp ? { targetIp } : undefined;
+
+    if (!patient?.patientid) {
+      alert(t("UnbindDeviceModal.NotBound"));
+      setUnbindOverlayVisible(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      // const response = await fetch(`/api/7284/db/Alert/${patientId}`, {
-      //   method: "DELETE",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
-      const response = await api.delete(`/api/7284/db/Alert/${patientId}`);
 
-      // const contentType = response.headers.get("Content-Type");
-      // if (!response.ok || !contentType?.includes("application/json")) {
-      //   throw new Error(`Expected JSON, got: ${contentType}`);
-      // }
-      // const data = await response.json();
-      // //console.log("Delete successfully!:", data);
-      // alert("Delete successfully!");
-      // navigate("/home");
+      // 1. 住民身上的 deviceid 清空（這就是解除綁定本身）
+      await api.put(
+        `/api/7284/db/Patient/${patient.patientid}`,
+        {
+          patientname: patient.patientname ?? "",
+          sex: patient.sex ?? 0,
+          birthday: patient.birthday
+            ? format(new Date(patient.birthday), "yyyy-MM-dd")
+            : format(new Date(), "yyyy-MM-dd"),
+          height: patient.height ?? 0,
+          weight: patient.weight ?? 0,
+          deviceid: null,
+        },
+        cfg,
+      );
+
+      // 2. 裝置資料表的 bed / section 由後端在上面那次 PUT 裡一起清掉
+      //    （PatientController 看到 deviceid 從有變成 null 就會處理，
+      //      見 WebAPI 的 Utility/DeviceBedSync.cs），前端不用再打裝置的端點。
+
+      setUnbindOverlayVisible(false);
+      navigate("/home");
     } catch (error) {
-      console.error("Error fetching device data:", error.message, error);
+      console.error("Error unbinding device:", error);
+      alert(
+        `Error: ${
+          error.response?.data?.message || "Unable to connect to the server."
+        }`,
+      );
     } finally {
-      // setLoading(false);
+      setLoading(false);
     }
   };
 
@@ -321,14 +544,15 @@ function PatientProfile() {
     setCalibrationOverlayVisible(!isCalibrationOverlayVisible);
   };
 
+  // 只負責送出校正請求。
+  // 15 秒的等待改由 CalibrationConfirmOverlay 自己倒數並顯示在同一個 modal 裡，
+  // 所以這裡不再 setLoading(true)、不再關 modal、也不再用 setTimeout 排 reload。
   const handleCalibration = async () => {
     //console.log("calibration clicked");
     const requestBody = {
       MAC: macaddress,
     };
     try {
-      setLoading(true);
-
       // const response = await fetch("/api/8031/ucb/denoise", {
       //   method: "POST",
       //   headers: {
@@ -336,25 +560,33 @@ function PatientProfile() {
       //   },
       //   body: JSON.stringify(requestBody),
       // });
-      const response = await api8031.post("/api/8031/ucb/denoise", requestBody);
+      const response = await api8031.post(
+        "/api/8031/ucb/denoise",
+        requestBody,
+        targetIp ? { targetIp } : undefined,
+      );
     } catch (error) {
       console.error("Error while submitting data:", error);
       alert("Error: Unable to connect to the server.");
-    } finally {
-      handleCalibrationOverlay();
-      setTimeout(() => {
-        setLoading(false);
-        window.location.reload();
-      }, 15000);
     }
+  };
+
+  // 倒數結束、使用者按下 modal 上最後那顆「確認」之後：關掉 modal 並重新載入，
+  // 讓畫面拿到校正後的資料（沿用原本 15 秒後 reload 的行為）。
+  const handleCalibrationFinish = () => {
+    setCalibrationOverlayVisible(false);
+    // window.location.reload();
   };
 
   return (
     <div className="pp">
       <h1 className="pp-title" style={{ zIndex: "1" }}>{t("PatientProfile.PatientProfile")}</h1>
       <div className="pfl">
-        {/* Patient ID */}
-        <div className="input g-c-6">
+        {/* Patient ID：可從既有住民挑一位綁到這張床，也可以直接輸入新的編號新增住民 */}
+        <div
+          className="input dropdown suffix g-c-6"
+          ref={patientDropdownRef}
+        >
           <label htmlFor="p-id" className="label-container">
             <p>{t("PatientProfile.PatientID")}</p>
             <img
@@ -369,13 +601,41 @@ function PatientProfile() {
               className="placeholder"
               id="p-id"
               name="p-id"
-              placeholder={patientIDInput.inputValue}
+              placeholder={t("PatientProfile.PatientIDPlaceholder")}
               value={patientIDInput.inputValue}
-              readOnly
+              onChange={handlePatientIdChange}
+              maxLength={8}
+              onFocus={() => setPatientListActive(true)}
+              autoComplete="off"
             />
-            <img className="suffix" src="" alt="dropdown icon" />
+            <img
+              className="suffix active"
+              src="/src/assets/menu-down.svg"
+              alt="dropdown icon"
+              onClick={() => setPatientListActive((prev) => !prev)}
+            />
           </div>
-          <div className="assistive-text">Oops! Something went wrong.</div>
+          <div
+            className={`assistive-text new-patient ${
+              isNewPatient ? "active" : ""
+            }`}
+          >
+            {t("PatientProfile.NewPatientHint")}
+          </div>
+          <div
+            className={`list ${isPatientListActive ? "active" : ""}`}
+            ref={dropdownPatientStyleRef}
+          >
+            {patientOptions.map((p) => (
+              <div
+                className="item"
+                key={p.patientid}
+                onClick={() => handlePatientItemClick(p)}
+              >
+                {p.patientname ? `${p.patientid}（${p.patientname}）` : p.patientid}
+              </div>
+            ))}
+          </div>
         </div>
         {/* Patient Name */}
         <div className="input g-c-6">
@@ -566,32 +826,6 @@ function PatientProfile() {
           </div>
           <div className="assistive-text">Oops! Something went wrong.</div>
         </div>
-        {/* Floor */}
-        <div className="input g-c-2">
-          <label htmlFor="floor" className="label-container">
-            <p>{t("PatientProfile.Floor")}</p>
-            <img
-              className="info"
-              src="/src/assets/information-outline.svg"
-              alt="gray outline information icon"
-            />
-          </label>
-          <div className="input-gp">
-            <input
-              type="text"
-              className="placeholder"
-              id="floor"
-              name="floor"
-              placeholder={patientFloorInput.inputValue}
-              readOnly
-              style={{ cursor: "default" }}
-              tabIndex="-1"
-              onFocus={(e) => e.target.blur()}
-            />
-            <img className="suffix" src="" alt="dropdown icon" />
-          </div>
-          <div className="assistive-text">Oops! Something went wrong.</div>
-        </div>
         {/* Device ID */}
         <div className="input g-c-3">
           <label htmlFor="d-id" className="label-container">
@@ -650,7 +884,7 @@ function PatientProfile() {
           className={`btn text-only ${isChanged ? "" : "inactive"}`}
           onClick={() => {
             if (isChanged) {
-              handlePut_API(requestBody);
+              handleSave();
             }
           }}
           style={{ cursor: isChanged ? "pointer" : "default" }}
@@ -672,6 +906,20 @@ function PatientProfile() {
             />
           )}
         </div>
+        <div
+          className="btn text-only outline"
+          id="unbindDevice"
+          onClick={handleUnbindOverlay}
+        >
+          <img src="" alt="" className="prefix" />
+          <p className="btn-text">{t("PatientProfile.UnbindDevice")}</p>
+          {isUnbindOverlayVisible && (
+            <UnbindDevice
+              callback={handleUnbindOverlay}
+              unbindbtn_click={handleUnbindDevice}
+            />
+          )}
+        </div>
               <div className="btn-gp calibration-display">
         <div
           className="btn text-only outline"
@@ -685,6 +933,8 @@ function PatientProfile() {
           <CalibrationConfirmOverlay
             callback={handleCalibrationOverlay}
             calibrationbtn_click={handleCalibration}
+            onFinish={handleCalibrationFinish}
+            countdownSeconds={15}
           />
         )}
       </div>
@@ -702,6 +952,8 @@ function PatientProfile() {
           <CalibrationConfirmOverlay
             callback={handleCalibrationOverlay}
             calibrationbtn_click={handleCalibration}
+            onFinish={handleCalibrationFinish}
+            countdownSeconds={15}
           />
         )}
       </div>

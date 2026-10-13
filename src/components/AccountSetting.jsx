@@ -100,30 +100,31 @@ function AccountSetting() {
 
   const fetchUserInfo = async (userid) => {
     try {
-      const response = await api.get(`/api/7284/User/${userid}`);
-      // const response = await fetch(`/api/7284/User/${userid}`, {
-      //   method: "GET",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      // });
+      if(userid === "me"){
+        const response = await api.get(`/api/7284/User/me`);
+        const data = response.data;
+        console.log(data);
+        setUserInfo(data);
+  
+        userNameInput.setInputValue(data.username);
+        userIdInput.setInputValue(data.userid);
+        userEmailInput.setInputValue(data.email);
+  
+        setPlaceholderRole(ROLE[data.role]);
 
-      // const contentType = response.headers.get("Content-Type");
-      // if (!response.ok || !contentType?.includes("application/json")) {
-      //   throw new Error(`Expected JSON, got: ${contentType}`);
-      // }
+      }else{
+        const response = await api.get(`/api/7284/User/${userid}`);
+        const data = response.data;
+        // console.log(data);
+        setUserInfo(data);
+  
+        userNameInput.setInputValue(data.username);
+        userIdInput.setInputValue(data.userid);
+        userEmailInput.setInputValue(data.email);
+  
+        setPlaceholderRole(ROLE[data.role]);
 
-      // const data = await response.json();
-      const data = response.data;
-      // console.log(data);
-      setUserInfo(data);
-
-      userNameInput.setInputValue(data.username);
-      userIdInput.setInputValue(data.userid);
-      userEmailInput.setInputValue(data.email);
-      // setPasswordValue(data.password);
-
-      setPlaceholderRole(ROLE[data.role]);
+      }
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -152,13 +153,13 @@ function AccountSetting() {
       PUT_UserInfo(userid, print_inputvalue);
     } else if (isRoleChanged && print_inputvalue === requestBody_PUT_Role) {
       // console.log("the input requestbody is Role", print_inputvalue);
-      if (userInfo.role===0) {
-        alert("Cannot modify Administrator role!");
-        window.location.reload();
-        return;
-      } else {
-        PUT_UserInfo(userid, print_inputvalue);
-      }
+      // if (userInfo.role===0) {
+      //   alert("Cannot modify Administrator role!");
+      //   window.location.reload();
+      //   return;
+      // } else {
+        PUT_UserRole(userid, print_inputvalue);
+      // }
     } else if (
       isPasswordChanged &&
       print_inputvalue === requestBody_PUT_Password
@@ -174,49 +175,40 @@ function AccountSetting() {
         return;
       }
       // console.log("the input requestbody is Password", print_inputvalue);
-      PUT_UserInfo(userid, print_inputvalue);
+      PUT_UserPassword(userid, print_inputvalue);
     }
   };
 
   const PUT_UserInfo = async (userid, requestBody) => {
     try {
-      // Remove 'alertguid' from the alertList
-      const { lastlogin, userid, ...filteredUserInfo } = userInfo; // Destructure to exclude alertguid
-
-      const updatedData = { ...filteredUserInfo, ...requestBody };
-      // console.log("updated data is :", updatedData);
-
       setLoading(true);
 
-      const response = await api.put(`/api/7284/User/${userid}`, updatedData);
-      // const response = await fetch(`/api/7284/User/${userid}`, {
-      //   method: "PUT",
-      //   headers: {
-      //     "Content-Type": "application/json",
-      //   },
-      //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error(`HTTP error! status: ${response.status}`);
-      // }
-
-      // const data = await response.json();
-      // console.log("response",response.data);
-      const data = response.data;
-      if(data.code === 401){
-        alert("Password is incorrect!");
+      const response = await api.patch(`/api/7284/User/info/me`, requestBody);
+      if(response.status!=200){
+        window.alert("Failed to update: ", response.status);
       }
-      
-      if (data.code !== 0) {
-        // console.log("User fail to update:", data);
-        alert("User fail to update!");
-      } else {
-        // console.log("User updated successfully:", data);
-        alert("Update Successfully!");
-        window.location.reload();
-      }
-      return data; // Return the response data if needed
+    } catch (error) {
+      console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const PUT_UserPassword = async (userid, requestBody) => {
+    try {
+      setLoading(true);
+
+      const response = await api.patch(`/api/7284/User/password/me`, requestBody);
+    } catch (error) {
+      console.error("Error updating device:", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+  const PUT_UserRole = async (userid, requestBody) => {
+    try {
+      setLoading(true);
+
+      const response = await api.patch(`/api/7284/User/${userid}/role`, requestBody);
     } catch (error) {
       console.error("Error updating device:", error.message);
     } finally {

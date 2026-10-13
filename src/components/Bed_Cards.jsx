@@ -2,8 +2,7 @@ import "/src/CSS/btn.css";
 import "/src/CSS/general.css";
 import "/src/CSS/input.css";
 import "/src/CSS/index.css";
-import React, { useEffect, useState, useRef } from "react";
-import AddNewPatient from "./Modals/AddNewPatient";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 export function Bed_disconnect({
@@ -13,6 +12,7 @@ export function Bed_disconnect({
   bed,
   deviceType,
 }) {
+  const { t } = useTranslation();
   return (
     <div className="bed disconnect">
       <div className="b-num">{bed}&nbsp;</div>
@@ -27,7 +27,7 @@ export function Bed_disconnect({
         >
           <img src="" alt="" />
           <p className="timer" style={{ display: "block", color: "#CCCCCC" }}>
-            {deviceType === 1 ? "UEXT" : "UMAP"}
+            {deviceType === 1 ? t("DeviceType.uext") : t("DeviceType.umap")}
           </p>
         </div>
         <div style={{ display: "none", alignItems: "center", gap: 4 }}>
@@ -44,40 +44,27 @@ export function Bed_disconnect({
   );
 }
 
-export function Bed_vacant({ bed, macaddress }) {
-  const { t, i18n } = useTranslation();
-
-  const [isOverlayVisible, setOverlayVisible] = useState(false);
-
-  const handleAddPatientClick = (e) => {
-    e.preventDefault();
-    setOverlayVisible(!isOverlayVisible);
-  };
-
-  const isInitialRender = useRef(true);
-  useEffect(() => {
-    if (isInitialRender.current) {
-      isInitialRender.current = false; // Mark initial render as completed
-      return;
-    }
-    console.log("overlay visible is called!");
-  }, [isOverlayVisible]);
+// 空床 = 這張床位還沒綁住民，或有住民但還沒綁裝置。
+// name 有值（已綁住民）就顯示住民姓名，沒有就提示點擊綁定住民。
+// 點擊行為由父層決定（首頁是開啟 AddNewBed modal）。
+export function Bed_vacant({ bed, name, onClick }) {
+  const { t } = useTranslation();
 
   return (
-    <div className="bed vacant" onClick={handleAddPatientClick}>
+    <div className="bed vacant" onClick={onClick}>
       <div className="b-num">{bed}&nbsp;</div>
-      <div className="name">{t("AddPatientModal.ClickToAddPatient")}</div>
+      <div className="name">{name || t("Home.ClickToBindPatient")}</div>
       <div
         className="tag"
         style={{ flexDirection: "column", alignItems: "flex-end", gap: 4 }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
-          <p className="timer">02:14:42</p>
+          <p className="timer">&nbsp;</p>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
           <img src="" alt="" />
-          <p className="timer">02:14:42</p>
+          <p className="timer">&nbsp;</p>
         </div>
       </div>
       <div className="dis-tag">
@@ -85,13 +72,6 @@ export function Bed_vacant({ bed, macaddress }) {
         <p>Disconnected</p>
       </div>
       <img className="add" src="/src/assets/add.svg" alt="add icon" />
-      {isOverlayVisible && (
-        <AddNewPatient
-          key={macaddress}
-          mac={macaddress}
-          callback={handleAddPatientClick}
-        />
-      )}
     </div>
   );
 }
@@ -195,6 +175,7 @@ export function Bed_Online({
   deviceType,
   isAlertSet = false,
 }) {
+  const { t } = useTranslation();
   // POS
   let imgURL = "";
   if (deviceType === 1) {
@@ -280,7 +261,7 @@ export function Bed_Online({
               color: "white",
             }}
           >
-            {deviceType === 1 ? "UEXT" : "UMAP"}
+            {deviceType === 1 ? t("DeviceType.uext") : t("DeviceType.umap")}
           </p>
         </div>
         {/* <div style={{ display: "flex", alignItems: "center", gap: 4 }}> */}

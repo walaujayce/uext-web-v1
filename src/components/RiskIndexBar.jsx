@@ -1,0 +1,415 @@
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
+import { useTranslation } from "react-i18next";
+import "/src/CSS/risk-callout.css";
+
+/**
+ * RiskIndexBar
+ * 每個 risk region 都在壓力圖「外側」放一個標籤（區域編號），用引線連回圖上的實際位置；
+ * 滑鼠移到標籤上才展開資訊卡（Max / Avg / Duration / Area）。
+ *
+ * 設計重點：標籤與資訊卡一律排在 canvas 之外，不會蓋住風險發生的位置；
+ * 圖上只留一個小圓點標出位置本身，加一條細引線。
+ *
+ * Props:
+ *  - data:   Array<risk region>（空陣列 → 不顯示）
+ *  - width:  sensor 寬（data.WIDTH）
+ *  - height: sensor 高（data.HEIGHT）
+ *  - gap:    標籤與 canvas 邊緣的水平間距 px（預設 20）
+ *
+ * 
+ * 對齊原理（與 OpenCVComponent / RiskArea 完全相同的換算）：
+ *  1. canvas 尺寸 = parentBox.clientHeight * 0.9，寬度依 sensor 比例換算後同樣 * 0.9
+ *  2. canvas 在 .box 中是垂直+水平置中
+ *  3. 壓力圖是旋轉 180° 呈現的，所以兩軸都要反轉：
+ *       cx = (width  - 1 - center_x) * (canvasW / (width  - 1))
+ *       cy = (height - 1 - center_y) * (canvasH / (height - 1))
+ *  4. 父層 .box 必須是 position: relative（PatientMonitor 已設定）
+ */
+
+// ─────────────────────────────────────────────────────────
+// ⚠ 後端欄位對照表 —— 確認實際 key 之後只要改這裡
+//   （每個欄位按順序找第一個有值的 key，找不到就顯示 "--"）
+// ─────────────────────────────────────────────────────────
+const FIELD_KEYS = {
+  // 後端欄位：最高壓力 = peak、平均壓力 = mean
+  max: ["peak", "Peak"],
+  avg: ["mean", "Mean"],
+  // 註：目前 RiskRegion 表格是把 radius 當「壓力範圍(cm²)」顯示，這裡沿用同一個來源
+  area: ["area", "area_cm2", "pressure_area", "radius", "Radius"],
+  duration: ["duration_sec", "durationSec", "duration", "Duration"],
+};
+
+const pick = (obj, keys) => {
+  for (const k of keys) {
+    const v = obj?.[k];
+    if (v !== undefined && v !== null && v !== "") return v;
+  }
+  return undefined;
+};
+
+const DASH = "--";
+
+const fmtNum = (v, digits) => {
+  const n = Number(v);
+  if (!Number.isFinite(n)) return DASH;
+  return digits === 0 ? String(Math.round(n)) : n.toFixed(digits);
+};
+
+// 秒數 → HH:MM:SS
+const fmtDuration = (sec) => {
+  const n = Number(sec);
+  if (!Number.isFinite(n) || n < 0) return DASH;
+  const s = Math.floor(n);
+  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+};
+
+const LEVEL_CLASS = { 2: "is-high", 1: "is-medium", 0: "is-low" };
+
+// 圓圈半徑：與 OpenCVComponent 畫遮罩、RiskArea 畫框時完全相同的換算
+//   OpenCVComponent: r = radius * 2.75 * (dst.cols / canvas.width)  → 換回 canvas 座標即 radius * 2.75
+//   RiskArea:        r = radius * 2.75
+// 太小的圈點不到，給一個最小可視半徑。
+const RADIUS_SCALE = 2.75;
+const MIN_RADIUS_PX = 5;
+const regionRadiusPx = (r) =>
+  Math.max(MIN_RADIUS_PX, (Number(r?.radius) || 0) * RADIUS_SCALE);
+
+// 標籤沿 y 軸防重疊：由上而下掃一次，重疊就往下推
+const spreadLabels = (items, minGap, boxH) => {
+  const sorted = [...items].sort((a, b) => a.y - b.y);
+  let prev = -Infinity;
+  for (const it of sorted) {
+    it.labelY = Math.max(it.y, prev + minGap);
+    prev = it.labelY;
+  }
+  // 整批超出下緣就往上平移，再夾一次
+  const overflow = prev - (boxH - minGap / 2);
+  if (overflow > 0) {
+    for (const it of sorted) {
+      it.labelY = Math.max(minGap / 2, it.labelY - overflow);
+    }
+  }
+  return sorted;
+};
+
+function RiskIndexBar({ data = [], width, height, gap = 20 }) {
+  const { t } = useTranslation();
+
+  const rootRef = useRef(null);
+  const labelRef = useRef(null);
+  const panelRef = useRef(null);
+
+  const [box, setBox] = useState({ w: 0, h: 0 });
+  const [canvasSize, setCanvasSize] = useState({ w: 0, h: 0 });
+  const [labelSize, setLabelSize] = useState({ w: 28, h: 22 });
+  const [panelSize, setPanelSize] = useState({ w: 0, h: 0 });
+  // 使用者「點過」的那一張。null = 還沒點過，用預設（mean 最大的那一個）。
+  const [selectedKey, setSelectedKey] = useState(null);
+
+  const regions = (Array.isArray(data) ? data : []).filter(
+    (r) =>
+      r &&
+      Number.isFinite(Number(r.center_x)) &&
+      Number.isFinite(Number(r.center_y)),
+  );
+
+  const notReady =
+    regions.length === 0 ||
+    !canvasSize.w ||
+    !canvasSize.h ||
+    !box.w ||
+    !width ||
+    width <= 1 ||
+    !height ||
+    height <= 1;
+
+  useEffect(() => {
+    const parentBox = rootRef.current?.parentElement;
+    if (!parentBox || !width || !height) return;
+
+    const measure = () => {
+      // ⚠ 這三行必須與 OpenCVComponent 內的計算逐字一致，否則會對不準
+      const h = parentBox.clientHeight * 0.9;
+      const scaleAdjustClientWidth = Math.round(
+        (parentBox.clientHeight * width) / height,
+      );
+      const w = scaleAdjustClientWidth * 0.9;
+      // ⚠ 一律用「值相同就回傳 prev」：ResizeObserver 每次都給新物件，
+      //   直接 setState 會讓 React 認定 state 有變 → 重繪 → 再量 → 無限迴圈。
+      setCanvasSize((p) => (p.w === w && p.h === h ? p : { w, h }));
+      const bw = parentBox.clientWidth;
+      const bh = parentBox.clientHeight;
+      setBox((p) => (p.w === bw && p.h === bh ? p : { w: bw, h: bh }));
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(parentBox);
+    return () => ro.disconnect();
+  }, [width, height]);
+
+  // 量一個標籤的尺寸，用來做防重疊與資訊卡定位。
+  // ⚠ 依賴陣列與「值相同回 prev」兩者缺一不可，否則同樣會無限迴圈。
+  useLayoutEffect(() => {
+    const el = labelRef.current;
+    if (!el) return;
+    const measure = () => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      setLabelSize((p) => (p.w === w && p.h === h ? p : { w, h }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [notReady]);
+
+  // 量資訊卡尺寸，才能把它夾在 .box 內不溢出。
+  // ⚠ 這裡用 callback ref 而不是 useLayoutEffect：資訊卡現在「一開始就存在」
+  //   （預設就展開一張），而它掛載的那一刻常常還在 notReady → 之後才真正出現。
+  //   用 effect 的話依賴陣列少寫一個就永遠量不到，panelSize 卡在 0，
+  //   卡片會一直停在 visibility:hidden。callback ref 在節點掛上的當下就會跑，
+  //   跟依賴陣列無關，之後的尺寸變化再交給 ResizeObserver。
+  const panelRoRef = useRef(null);
+  const setPanelRef = useCallback((el) => {
+    if (panelRoRef.current) {
+      panelRoRef.current.disconnect();
+      panelRoRef.current = null;
+    }
+    panelRef.current = el;
+    if (!el) return;
+    const measure = () => {
+      const w = el.offsetWidth;
+      const h = el.offsetHeight;
+      // 值相同就回傳 prev，否則 ResizeObserver 每次的新物件會造成無限迴圈
+      setPanelSize((p) => (p.w === w && p.h === h ? p : { w, h }));
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    panelRoRef.current = ro;
+  }, []);
+
+  // 沒資料時仍要保留一個節點，才有 parentElement 可以量測
+  if (notReady) return <div ref={rootRef} style={{ display: "none" }} />;
+
+  // canvas 在 .box 中置中 → 換算成 .box 座標系
+  const canvasLeft = (box.w - canvasSize.w) / 2;
+  const canvasTop = (box.h - canvasSize.h) / 2;
+  const canvasRight = canvasLeft + canvasSize.w;
+
+  // 標籤放右側；右邊塞不下就放左側。無論哪一側都在 canvas 之外，不會蓋住壓力圖。
+  const rightRoom = box.w - canvasRight - gap;
+  const leftRoom = canvasLeft - gap;
+  const onRight = rightRoom >= labelSize.w || rightRoom >= leftRoom;
+  const labelX = onRight ? canvasRight + gap : canvasLeft - gap - labelSize.w;
+
+  const items = regions.map((r, i) => {
+    const cx = (width - 1 - Number(r.center_x)) * (canvasSize.w / (width - 1));
+    const cy = (height - 1 - Number(r.center_y)) * (canvasSize.h / (height - 1));
+    return {
+      key: `${r.idx ?? "?"}-${i}`,
+      region: r,
+      idx: r.idx,
+      level: Number(r.risk_level) || 0,
+      r: regionRadiusPx(r),
+      dotX: canvasLeft + cx,
+      dotY: canvasTop + cy,
+      y: canvasTop + cy, // 標籤想對齊的 y，spreadLabels 會調整成 labelY
+    };
+  });
+
+  const placed = spreadLabels(items, labelSize.h + 6, box.h);
+
+  // ── 哪一張資訊卡是展開的 ──
+  // 預設：mean 最大的那一個（只有一個風險區域時，就是它自己）。
+  // 使用者點過之後改用點選的那一個；但資料每秒會重新抓，若點選的區域已經消失，
+  // 就自動退回預設，不會變成「一張都沒展開」。任何時候都只展開一張。
+  const defaultKey = placed.reduce((best, it) => {
+    if (!best) return it;
+    const a = Number(pick(it.region, FIELD_KEYS.avg));
+    const b = Number(pick(best.region, FIELD_KEYS.avg));
+    return (Number.isFinite(a) ? a : -Infinity) >
+      (Number.isFinite(b) ? b : -Infinity)
+      ? it
+      : best;
+  }, null)?.key;
+
+  const activeKey = placed.some((it) => it.key === selectedKey)
+    ? selectedKey
+    : defaultKey;
+
+  const active = placed.find((it) => it.key === activeKey) || null;
+
+  // 資訊卡：緊貼在標籤外側（中間不留縫，滑鼠移過去不會斷開 hover）
+  const panelLeft = onRight
+    ? labelX + labelSize.w
+    : labelX - panelSize.w;
+  const panelTop = active
+    ? Math.min(
+        Math.max(4, active.labelY - panelSize.h / 2),
+        Math.max(4, box.h - panelSize.h - 4),
+      )
+    : 0;
+
+  const rows = active
+    ? [
+        {
+          k: t("RiskRegion.Max", "Max"),
+          v: fmtNum(pick(active.region, FIELD_KEYS.max), 0),
+          u: "mmHg",
+        },
+        {
+          k: t("RiskRegion.Avg", "Avg"),
+          v: fmtNum(pick(active.region, FIELD_KEYS.avg), 1),
+          u: "mmHg",
+        },
+        {
+          k: t("RiskRegion.Duration", "Duration"),
+          v: fmtDuration(pick(active.region, FIELD_KEYS.duration)),
+          u: "",
+        },
+        {
+          k: t("RiskRegion.Area", "Area"),
+          v: fmtNum(pick(active.region, FIELD_KEYS.area), 2),
+          u: "cm²",
+        },
+      ]
+    : [];
+
+  return (
+    <div ref={rootRef} className="risk-callout">
+      {/* 引線與區域圓環都畫在同一張 SVG：SVG 才能精準畫弧段、刻度與旋轉 */}
+      <svg className="risk-callout__svg" aria-hidden="true">
+        {/* 引線：圓環邊緣 → 外側的標籤 */}
+        {placed.map((it) => {
+          const endX = onRight ? labelX : labelX + labelSize.w;
+          // 從圓環「邊緣」起筆，不要從圓心拉線穿過風險區域
+          const startX = it.dotX + (onRight ? it.r : -it.r);
+          const elbowX = onRight
+            ? startX + (endX - startX) * 0.55
+            : startX - (startX - endX) * 0.55;
+          return (
+            <path
+              key={`line-${it.key}`}
+              className={`risk-callout__line${
+                it.key === activeKey ? " is-active" : ""
+              }`}
+              d={`M ${startX} ${it.dotY} L ${elbowX} ${it.labelY} L ${endX} ${it.labelY}`}
+            />
+          );
+        })}
+
+        {/* 區域圓圈：持續旋轉的虛線環（外環半徑 = radius × 2.75），中心留一個小點 */}
+        {placed.map((it) => {
+          const r = it.r;
+          const circumference = 2 * Math.PI * r;
+          // 每段約 8px；用 round 讓 dash 整除圓周，接縫才不會有一段長短不一
+          const segCount = Math.max(6, Math.round(circumference / 8));
+          const segLen = circumference / segCount;
+          const dash = segLen * 0.5;
+          const gapLen = segLen - dash;
+          const cls = `${LEVEL_CLASS[it.level] ?? "is-low"}${
+            it.key === activeKey ? " is-active" : ""
+          }`;
+          return (
+            <g key={`ring-${it.key}`} className={`risk-callout__reticle ${cls}`}>
+              {/* 外暈：同半徑的粗描邊 + 低透明度，讓環在任何底色都浮得起來 */}
+              <circle
+                className="risk-callout__glow"
+                cx={it.dotX}
+                cy={it.dotY}
+                r={r}
+              />
+              {/* 旋轉層：transformOrigin 設在自己的圓心，環才會原地轉 */}
+              <g
+                className="risk-callout__spin"
+                style={{ transformOrigin: `${it.dotX}px ${it.dotY}px` }}
+              >
+                <circle
+                  className="risk-callout__ring"
+                  cx={it.dotX}
+                  cy={it.dotY}
+                  r={r}
+                  strokeDasharray={`${dash} ${gapLen}`}
+                />
+              </g>
+              <circle
+                className="risk-callout__core"
+                cx={it.dotX}
+                cy={it.dotY}
+                r={1.6}
+              />
+            </g>
+          );
+        })}
+      </svg>
+
+      {/* 外側標籤：點擊才展開資訊卡（同一時間只會有一張展開） */}
+      {placed.map((it, i) => (
+        <div
+          key={`label-${it.key}`}
+          ref={i === 0 ? labelRef : undefined}
+          className={`risk-callout__label ${LEVEL_CLASS[it.level] ?? "is-low"}${
+            it.key === activeKey ? " is-active" : ""
+          }`}
+          style={{ left: `${labelX}px`, top: `${it.labelY}px` }}
+          role="button"
+          tabIndex={0}
+          aria-pressed={it.key === activeKey}
+          onClick={() => setSelectedKey(it.key)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              setSelectedKey(it.key);
+            }
+          }}
+        >
+          {t("RiskRegion.CalloutTitle", "RISK REGION")}
+        </div>
+      ))}
+
+      {/* 展開的資訊卡：也在 canvas 之外 */}
+      {active && (
+        <div
+          ref={setPanelRef}
+          className="risk-callout__panel"
+          style={{
+            left: `${panelLeft}px`,
+            top: `${panelTop}px`,
+            // 尚未量到尺寸前先不要閃現在錯的位置
+            visibility: panelSize.w ? "visible" : "hidden",
+          }}
+        >
+          <div className="risk-callout__title">
+            {t("RiskRegion.CalloutTitle", "RISK REGION")}
+            <span className="risk-callout__title-idx">
+              {String(active.idx ?? "?")}
+            </span>
+          </div>
+          <div className="risk-callout__rows">
+            {rows.map((r) => (
+              <div className="risk-callout__row" key={r.k}>
+                <span className="risk-callout__key">{r.k}</span>
+                <span className="risk-callout__sep">:</span>
+                <span className="risk-callout__val">{r.v}</span>
+                {r.u && <span className="risk-callout__unit">{r.u}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default RiskIndexBar;

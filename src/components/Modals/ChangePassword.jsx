@@ -7,11 +7,12 @@ import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
 import SimpleBackdrop from "../LoadingOverlay";
 import api from "../../api/apiClient";
+import { useAuth } from "../../JS/AuthContext";
 
 const ChangePasswordModal = ({ callback }) => {
   const { t, i18n } = useTranslation();
   const [loading, setLoading] = useState(false); //loading screen
-
+  const {isDarkMode} = useAuth();
   {
     /* Handle Overlay Logic */
   }
@@ -87,7 +88,7 @@ const ChangePasswordModal = ({ callback }) => {
   };
   const requestBody_PUT_Password = {
     currentPassword: currentPw.input,
-    NewPassword: NewPw.input,
+    newPassword: NewPw.input,
   };
   const handlePUT_API = async () => {
     try {
@@ -102,44 +103,10 @@ const ChangePasswordModal = ({ callback }) => {
       // if (!response.ok) {
       //   throw new Error(`HTTP error! status: ${response.status}`);
       // }
-      const response = await api.get("/api/7284/User");
+      const response = await api.patch("/api/7284/User/password/me",requestBody_PUT_Password);
       const data = response.data;
-      const stored_username = JSON.parse(localStorage.getItem("username"));
-      const selected_user = data.find((user)=>(user.username == stored_username));
-      //check current password with database password
-      // if(selected_user.password!==currentPw.input){
-      //   alert("Current Password is not correct!");
-      //   return;
-      // }else{
-        //update new password
-        //console.log("userInfo data is :", selected_user);
-
-        const { lastlogin, userid, ...filteredUserInfo } = selected_user; // Destructure to exclude alertguid
-
-        const updatedData = { ...filteredUserInfo, ...requestBody_PUT_Password };
-        //console.log("updated data is :", updatedData);
-  
-        // const response = await fetch(`/api/7284/User/${selected_user.userid}`, {
-        //   method: "PUT",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        //   body: JSON.stringify(updatedData), // Convert the requestBody to JSON
-        // });
-  
-        // if (!response.ok) {
-        //   throw new Error(`HTTP error! status: ${response.status}`);
-        // }
-  
-        // const data = await response.json();
-  
-        const changePwdResponse = await api.put(`/api/7284/User/${selected_user.userid}`, updatedData);
-        if(changePwdResponse.status!==200){
-            alert("Failed to update password!");
-        }else{
-            setActiveStage2(true);
-        }
-      // }
+      setActiveStage2(true);
+      
     } catch (error) {
       console.error("Error updating password:", error.message);
     } finally {
@@ -167,7 +134,7 @@ const ChangePasswordModal = ({ callback }) => {
             <div className="grid">
               {/* Current Password */}
               <div className="input g-c-6 suffix">
-                <label htmlFor="cpw" className="label-container">
+                <label htmlFor="cpw" className="label-container" style={{color: isDarkMode ? "#616060" : ""}}>
                   <p>{t("ChangePassword.CurrentPw")}</p>
                   <img
                     className="info"
@@ -203,7 +170,7 @@ const ChangePasswordModal = ({ callback }) => {
               </div>
               {/* New Password */}
               <div className="input g-c-6 suffix">
-                <label htmlFor="npw" className="label-container">
+                <label htmlFor="npw" className="label-container" style={{color: isDarkMode ? "#616060" : ""}}>
                   <p>{t("ChangePassword.NewPw")}</p>
                   <img
                     className="info"
@@ -239,7 +206,7 @@ const ChangePasswordModal = ({ callback }) => {
               </div>
               {/* Confirm Password */}
               <div className="input g-c-6 suffix">
-                <label htmlFor="cnpw" className="label-container">
+                <label htmlFor="cnpw" className="label-container" style={{color: isDarkMode ? "#616060" : ""}}>
                   <p>{t("ChangePassword.ConfirmNewPw")}</p>
                   <img
                     className="info"
@@ -283,7 +250,7 @@ const ChangePasswordModal = ({ callback }) => {
               </div>
               <div className="btn text-only outline sec" onClick={callback}>
                 <img src="" alt="" className="prefix" />
-                <p className="btn-text sec-text">{t("ChangePassword.Back")}</p>
+                <p className="btn-text sec-text" style={{color: isDarkMode ? "black" : ""}}>{t("ChangePassword.Back")}</p>
               </div>
             </div>
           </form>

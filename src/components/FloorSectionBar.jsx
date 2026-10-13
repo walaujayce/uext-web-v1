@@ -7,32 +7,17 @@ import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
 import { useFloorSection } from "../JS/FloorSectionContext";
 
-function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceType, enableDeviceType }) {
+function FloorSectionBar({ selectPort, selectSection, selectDeviceType, enableDeviceType }) {
       const { t, i18n } = useTranslation();
 
   {
-    /* Floor / Section data from global context (來源: /api/7284/IpAddress/all)
-       section 會依照目前選取的 floor 連動 (cascade) */
+    /* Section data from global context (來源: /api/7284/IpAddress/all)
+       後端已移除 floor，這裡只剩 section */
   }
-  const { floors, sections, floor, section, setSection, chooseFloor } =
-    useFloorSection();
+  const { sections, section, setSection } = useFloorSection();
 
-  {
-    /* Floor Dropdown Menu Logic */
-  }
-  const [isFloorActive, setFloorActive] = useState(false);
-  const handleFloorDropDownMenu = () => {
-    setFloorActive((prev) => !prev);
-  };
-
-  const handleFloorItemClick = (nextFloor) => {
-    // 換樓層時，context 會把 section 重設成該樓層的第一個區域
-    const firstSection = chooseFloor(nextFloor);
-    selectFloor?.(nextFloor); // call back to list filter
-    selectSection?.(firstSection);
-    // setFloorActive(false);
-    handleFloorDropDownMenu;
-  };
+  // 只有一個 section 時，指定單一與 "All" 效果相同 → 下拉只顯示 "All"，簡化 UI
+  const onlyOneSection = sections.length === 1;
 
   {
     /* Section Dropdown Menu Logic */
@@ -50,16 +35,21 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
   };
 
   {
-    /* 初次載入時，把 context 預設的第一個 floor / section 通知父層做篩選（只觸發一次） */
+    /* 初次載入時，把 context 預設的 section 通知父層做篩選（只觸發一次） */
   }
   const didInitDefaults = useRef(false);
   useEffect(() => {
-    if (!didInitDefaults.current && floor && section) {
-      didInitDefaults.current = true;
-      selectFloor?.(floor);
+    // 等 servers 載入（sections 有值）才決定預設
+    if (didInitDefaults.current || sections.length === 0) return;
+    didInitDefaults.current = true;
+    if (onlyOneSection) {
+      // 只有一個 section → 預設就用 "All"
+      setSection("All");
+      selectSection?.("All");
+    } else if (section) {
       selectSection?.(section);
     }
-  }, [floor, section]);
+  }, [sections, section]);
   {
     /* Port Dropdown Menu Logic */
   }
@@ -79,7 +69,15 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
     {
     /* DeviceType Dropdown Menu Logic */
   }
-  const deviceTypes = ["All", "Not specified", "UEXT", "UMAP", "UNC", "HaLow-R"];
+  // ⚠ 這個陣列是「內部值」，不能翻譯：deviceTypeToIndex 用它做 switch，
+  //   localStorage 也存這個值。顯示時才經過 deviceTypeLabel 換成當前語系的字。
+  const deviceTypes = ["All", "Not specified", "UEXT", "UMAP"];
+  const deviceTypeLabel = (v) =>
+    v === "UEXT"
+      ? t("DeviceType.uext")
+      : v === "UMAP"
+      ? t("DeviceType.umap")
+      : v;
 
   const deviceTypeToIndex = (deviceType) =>{
     switch(deviceType) {
@@ -89,10 +87,6 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
         return 1;
       case "UMAP":
         return 2;
-      case "UNC":
-        return 3;
-      case "HaLow-R":
-        return 201;
       default:
         return 'All'; // Not found or not specified
       }
@@ -102,13 +96,30 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
   const handleDeviceTypeDropDownMenu = () => {
     setDeviceTypeActive((prev) => !prev);
   };
-  const [placeholderDeviceType, setPlaceholderDeviceType] = useState(deviceTypes[0]); // Input placeholder
+
+  // DeviceType 也比照 floor/section 存進 localStorage，重整後維持上次選取。
+  const DEVICE_TYPE_KEY = "deviceType";
+  const [placeholderDeviceType, setPlaceholderDeviceType] = useState(() => {
+    const stored = localStorage.getItem(DEVICE_TYPE_KEY);
+    // 只接受合法值，否則 fallback 到預設 "All"
+    return stored && deviceTypes.includes(stored) ? stored : deviceTypes[0];
+  }); // Input placeholder
 
   const handleDeviceTypeItemClick = (deviceType) => {
     setPlaceholderDeviceType(deviceType);
-    selectDeviceType(deviceTypeToIndex(deviceType));
+    localStorage.setItem(DEVICE_TYPE_KEY, deviceType);
+    selectDeviceType?.(deviceTypeToIndex(deviceType));
     handleDeviceTypeDropDownMenu;
   };
+
+  // 初次載入時，把 localStorage 還原的 deviceType 通知父層做篩選（只觸發一次）
+  const didInitDeviceType = useRef(false);
+  useEffect(() => {
+    if (!didInitDeviceType.current && enableDeviceType) {
+      didInitDeviceType.current = true;
+      selectDeviceType?.(deviceTypeToIndex(placeholderDeviceType));
+    }
+  }, [enableDeviceType]);
   {
     /* useRef Logic */
   }
@@ -127,7 +138,6 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
         dropdownRefs.current.every((ref) => ref && !ref.contains(event.target))
       ) {
         // Close all dropdowns or handle logic here
-        setFloorActive(false);
         setSectionActive(false);
         setPortActive(false);
         setDeviceTypeActive(false);
@@ -160,54 +170,15 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
       }
     }, [ref, isActive]);
   };
-  const dropdownFloorStyleRef = useRef(null);
   const dropdownSectionStyleRef = useRef(null);
   const dropdownDeviceTypeStyleRef = useRef(null);
 
-  // Use the custom hook for both dropdowns
-  useDynamicDropdownHeight(dropdownFloorStyleRef, isFloorActive);
+  // Use the custom hook for the dropdowns
   useDynamicDropdownHeight(dropdownSectionStyleRef, isSectionActive);
   useDynamicDropdownHeight(dropdownDeviceTypeStyleRef, isDeviceTypeActive );
 
   return (
     <>
-      <div
-        className="input dropdown floor suffix"
-        onClick={handleFloorDropDownMenu}
-        ref={addDropdownRef}
-      >
-        <label htmlFor="floor" className="label-container">
-          <p>{t('FloorSection.Floor')}</p>
-          <img
-            className="info"
-            src="/src/assets/information-outline.svg"
-            alt="gray outline information icon"
-          />
-        </label>
-        <div className="input-gp">
-          <input
-            type="text"
-            className="placeholder"
-            id="floor"
-            name="name"
-            placeholder={floor || ""}
-            readOnly
-          />
-          <img className="suffix active" src="" alt="dropdown icon" />
-        </div>
-        <div className="assistive-text">this is a line of assistive text</div>
-        <div className={`list ${isFloorActive ? "active" : ""}`} ref={dropdownFloorStyleRef}>
-          {floors.map((floor) => (
-            <div
-              className="item"
-              key={floor}
-              onClick={() => handleFloorItemClick(floor)}
-            >
-              {floor}
-            </div>
-          ))}
-        </div>
-      </div>
       <div
         className="input dropdown section suffix"
         onClick={handleSectionDropDownMenu}
@@ -227,14 +198,14 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
             className="placeholder"
             id="section"
             name="name"
-            placeholder={section || ""}
+            placeholder={onlyOneSection ? "All" : section || ""}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
         </div>
         <div className="assistive-text">this is a line of assistive text</div>
         <div className={`list ${isSectionActive ? "active" : ""}`} ref={dropdownSectionStyleRef}>
-          {sections.map((section) => (
+          {(onlyOneSection ? ["All"] : ["All", ...sections]).map((section) => (
             <div
               className="item"
               key={section}
@@ -265,7 +236,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
             className="placeholder"
             id="deviceType"
             name="name"
-            placeholder={placeholderDeviceType}
+            placeholder={deviceTypeLabel(placeholderDeviceType)}
             readOnly
           />
           <img className="suffix active" src="" alt="dropdown icon" />
@@ -278,7 +249,7 @@ function FloorSectionBar({ selectPort,selectFloor,selectSection, selectDeviceTyp
               key={deviceType}
               onClick={() => handleDeviceTypeItemClick(deviceType)}
             >
-              {deviceType}
+              {deviceTypeLabel(deviceType)}
             </div>
           ))}
         </div>

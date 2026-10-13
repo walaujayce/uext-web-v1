@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import FloorSectionBar from "./FloorSectionBar";
 import { useTranslation } from "react-i18next";
 import { useAuth } from "../JS/AuthContext";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
 import { Chart } from "chart.js";
 import "/src/CSS/alert.css";
 import ChartDataLabels from "chartjs-plugin-datalabels";
@@ -14,19 +14,28 @@ function AlertGanttChart() {
   const { t, i18n } = useTranslation();
   const { role, isDarkMode } = useAuth();
 
-  // 目前選取樓層/區域對應的後端 IP；變動時重新抓資料
-  const { selectedServer } = useFloorSection();
+  // 目前選取區域對應的後端 IP；變動時重新抓資料
+  const { selectedServer, servers } = useFloorSection();
   const targetIp = selectedServer?.ip ?? null;
   const fetchRunIdRef = useRef(0); // 只讓最新一次 fetch 能寫入
 
-  const [select_floor, setSelect_Floor] = useState("");
-  const handleSelectFloor = (floor) => {
-    setSelect_Floor(floor);
-  };
   const [select_section, setSelect_Section] = useState("");
   const handleSelectSection = (section) => {
     setSelect_Section(section);
   };
+
+  // 要涵蓋的後端 IP 清單（與 Home/AlertList 規則一致）：
+  //   section === "All" → 所有 server
+  //   其他              → 目前選取的單一 server（可能為 null，interceptor 會 fallback）
+  const targetIps = useMemo(() => {
+    if (select_section === "All") {
+      return [...new Set(servers.map((s) => s.ip).filter(Boolean))];
+    }
+    return [targetIp];
+  }, [servers, select_section, targetIp]);
+
+  // 多個區域共用同一台後端，抓回來的資料會夾帶其他區域的，前端要再過濾一次
+  const inSection = (item) => matchesSection(select_section, item?.section);
   const [select_device, setSelect_Device] = useState("");
   const handleSelectDeviceType = (device) => {
     setSelect_Device(device);
@@ -56,7 +65,9 @@ function AlertGanttChart() {
     });
     if (deviceType.size > 1) {
       alert(
-        "批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(UEXT或UMAP)的多個裝置。",
+        `批次設定只允許選擇相同類型的裝置！\n請選擇相同類型(${t(
+          "DeviceType.uext",
+        )}或${t("DeviceType.umap")})的多個裝置。`,
       );
       return;
     }
@@ -71,7 +82,6 @@ function AlertGanttChart() {
   var alertSettingListTemplate = [
     {
       bed_id: "A01",
-      floor: "8F",
       section: "Room SD",
       type: 1,
       patient_name: "Alex",
@@ -105,7 +115,6 @@ function AlertGanttChart() {
     },
     {
       bed_id: "A02",
-      floor: "9F",
       section: "Room SD",
       type: 1,
       patient_name: "David",
@@ -139,7 +148,6 @@ function AlertGanttChart() {
     },
     {
       bed_id: "B00",
-      floor: "8F",
       section: "Room RD",
       type: 2,
       patient_name: "Rose",
@@ -173,7 +181,6 @@ function AlertGanttChart() {
     },
     {
       bed_id: "B02222222222222222222222",
-      floor: "8F",
       section: "Room RD",
       type: 1,
       patient_name: "Felic22222222222222222222",
@@ -253,65 +260,68 @@ function AlertGanttChart() {
   const [device, setDevice] = useState(null);
   const [patient, setPatient] = useState(null);
 
-  const fetchPatients = async (ip, runId) => {
-    try {
-      const [responsePatient, responseDevice, responseAlert] =
-        await Promise.all([
-          api.get(`/api/7284/db/Patient`, { targetIp: ip }),
-          api.get(`/api/7284/db/Device`, { targetIp: ip }),
-          api.get(`/api/7284/db/Alert`, { targetIp: ip }),
-        ]);
-      // 期間又切了樓層(有更新的 fetch) → 丟棄這次結果
-      if (runId !== fetchRunIdRef.current) return;
-      // if (!responsePatient.ok) {
-      //   throw new Error(`HTTP error! status: ${responsePatient.status}`);
-      // }
-      // if (!responseDevice.ok) {
-      //   throw new Error(`HTTP error! status: ${responseDevice.status}`);
-      // }
-      // if (!responseAlert.ok) {
-      //   throw new Error(`HTTP error! status: ${responseDevice.status}`);
-      // }
+  // 從「單一」server 抓 Patient/Device/Alert 並整理成 gantt 需要的格式。
+  // patient→device→alert 的比對都在「同一台」內完成，避免跨 server 的 id 撞號。
+  const fetchFormattedFrom = async (ip) => {
+    const [responsePatient, responseDevice, responseAlert] = await Promise.all([
+      api.get(`/api/7284/db/Patient`, { targetIp: ip }),
+      api.get(`/api/7284/db/Device`, { targetIp: ip }),
+      api.get(`/api/7284/db/Alert`, { targetIp: ip }),
+    ]);
+    const patientData = responsePatient.data || [];
+    const deviceData = responseDevice.data || [];
+    const alertData = responseAlert.data || [];
 
-      const patientData = await responsePatient.data;
-      const deviceData = await responseDevice.data;
-      const alertData = await responseAlert.data;
-
-      setPatient(patientData);
-      setDevice(deviceData);
-      // console.log("patients: ", patientData);
-      // console.log("devices: ", deviceData);
-      // console.log("alerts: ", alertData);
-
-      const formattedData = patientData.map((patient) => {
+    const formatted = patientData
+      .map((patient) => {
         const matchingDevice = deviceData.find(
           (device) => device.deviceid === patient.deviceid,
         );
-        if (matchingDevice === undefined) return;
+        if (matchingDevice === undefined) return undefined;
         const matchingAlert = alertData.find(
           (alert) => alert.patientid === patient.patientid,
         );
-        // if (matchingAlert === undefined) return;
-        // console.log("matchingalert :", matchingAlert.jlog.alert_triggers);
         return {
           bed_id: patient.bed,
-          floor: patient.floor,
           section: patient.section,
           patient_name: patient.patientname,
           deviceId: patient.deviceid,
           patientid: patient.patientid,
           type: matchingDevice.devicetype,
+          __srcIp: ip, // 來源 IP，供 React key 去重
           alert_triggers:
             matchingAlert === undefined
               ? []
               : matchingAlert.jlog.alert_triggers,
         };
-      });
+      })
+      .filter((d) => d !== undefined);
 
-      // console.log("formattedData :", formattedData);
-      // 2. Set the result with the CLEAN data
-      setResult(formattedData.filter((data) => data !== undefined));
-      // setResult(alertSettingListTemplate);
+    // 病患/裝置也標上來源 IP，供批次設定時同台比對
+    return {
+      formatted,
+      patientData: patientData.map((p) => ({ ...p, __srcIp: ip })),
+      deviceData: deviceData.map((d) => ({ ...d, __srcIp: ip })),
+    };
+  };
+
+  const fetchPatients = async (ips, runId) => {
+    try {
+      // 逐台抓取（All 模式多台、單一模式 1 台）。單台失敗不影響其他台。
+      const perServer = await Promise.all(
+        ips.map((ip) =>
+          fetchFormattedFrom(ip).catch((err) => {
+            console.error(`Error fetching gantt data from ${ip}:`, err);
+            return { formatted: [], patientData: [], deviceData: [] };
+          }),
+        ),
+      );
+      // 期間又切了樓層(有更新的 fetch) → 丟棄這次結果
+      if (runId !== fetchRunIdRef.current) return;
+
+      setPatient(perServer.flatMap((r) => r.patientData));
+      setDevice(perServer.flatMap((r) => r.deviceData));
+      setResult(perServer.flatMap((r) => r.formatted));
     } catch (error) {
       console.error("Error fetching device data:", error.message, error);
     }
@@ -319,10 +329,23 @@ function AlertGanttChart() {
   useEffect(() => {
     // 樓層/區域(IP)切換時重新抓資料；runId 確保只有最新一次能寫入
     const runId = ++fetchRunIdRef.current;
-    fetchPatients(targetIp, runId);
-  }, [targetIp]);
+    fetchPatients(targetIps, runId);
+  }, [targetIps]);
   useEffect(() => {
     // console.log("result: ", result);
+  }, [result]);
+
+  // React key：All 模式下不同 server 可能有相同 patientid，用來源 IP 前綴保證唯一
+  const ganttKey = (item) =>
+    item.__srcIp ? `${item.__srcIp}-${item.patientid}` : item.patientid;
+
+  // 批次設定 alert 時，每個病患要打回自己所屬的後端 → 建 patientid → 來源 IP 對照表
+  const patientIpMap = useMemo(() => {
+    const m = {};
+    result.forEach((item) => {
+      if (item.patientid) m[item.patientid] = item.__srcIp;
+    });
+    return m;
   }, [result]);
 
   const toDecimal = (t) => t.hour + t.minute / 60;
@@ -357,20 +380,7 @@ function AlertGanttChart() {
     setSelectedAlert([]);
     setData(
       result
-        // .filter((patient) => {
-        //   return (
-        //     select_floor === "" ||
-        //     select_floor === "All" ||
-        //     patient.floor === select_floor
-        //   );
-        // })
-        // .filter((patient) => {
-        //   return (
-        //     select_section === "" ||
-        //     select_section === "All" ||
-        //     patient.section === select_section
-        //   );
-        // })
+        .filter(inSection)
         .filter((patient) => {
           return (
             select_device === "" ||
@@ -379,7 +389,7 @@ function AlertGanttChart() {
           );
         }),
     );
-  }, [select_device, select_section, select_floor, result]);
+  }, [select_device, select_section, result]);
 
   useEffect(() => {
     if (data.length === 0) return;
@@ -546,7 +556,6 @@ function AlertGanttChart() {
       <div className="container">
         <div className="top-bar">
           <FloorSectionBar
-            selectFloor={handleSelectFloor}
             selectSection={handleSelectSection}
             selectDeviceType={handleSelectDeviceType}
             enableDeviceType={true}
@@ -566,6 +575,7 @@ function AlertGanttChart() {
               callback={handleModifyPatientAlert}
               patientIDs={selectedAlert}
               isBatchUEXT={isUEXT}
+              patientIpMap={patientIpMap}
             />
           )}
         </div>
@@ -599,7 +609,7 @@ function AlertGanttChart() {
                   {data.map((item) => {
                     return (
                       <div
-                        key={item.patientid}
+                        key={ganttKey(item)}
                         className="checkbox-row"
                         onClick={() => handleSelectAlert(item.patientid)}
                         onMouseEnter={() =>
@@ -643,7 +653,7 @@ function AlertGanttChart() {
                   {data.map((item) => {
                     return (
                       <div
-                        key={item.patientid}
+                        key={ganttKey(item)}
                         className={`grid-row ${selectedHoverIndex === item.patientid ? "hover" : ""}`}
                       ></div>
                     );

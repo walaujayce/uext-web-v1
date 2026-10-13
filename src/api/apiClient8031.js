@@ -16,7 +16,9 @@ const api8031 = axios.create({
   timeout: REQUEST_TIMEOUT_MS,      // default timeout for ALL calls on this client
 });
 const applyTargetHeader = (config) => {
-  const ip = getCurrentServerIp();
+  // 明確指定的 config.targetIp 優先（讓呼叫端把單一請求釘在某台，供「All」模式逐台抓取）；
+  // 否則才讀目前選取的 IP。
+  const ip = config.targetIp ?? getCurrentServerIp();
   if (!ip || !config.url) return config; // 尚未選取 IP → 不帶 header，走 proxy 預設
   if (!/^\/api\/(8031)(\/|$)/.test(config.url)) return config; // 其他路徑不動
 
