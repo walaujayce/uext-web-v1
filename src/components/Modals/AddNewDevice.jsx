@@ -30,8 +30,8 @@ const AddNewDevice = ({ callback }) => {
   }
   const [isActive_Stage2, setActive_Stage2] = useState(false);
   const handleConfirm_S1_Click = () => {
-    // 床號為選填：裝置新增後再由床位綁定流程寫入（見 WebAPI 的 DeviceBedSync），
-    // 這裡只檢查 MAC。
+    // 床號欄位已移除：devices.bed 由床位綁定流程寫入（見 WebAPI 的 DeviceBedSync），
+    // 不由使用者手填。這裡只檢查 MAC。
     if (!macaddress) {
       setMacError(true); // Mac Input Required
       return;
@@ -173,7 +173,6 @@ const AddNewDevice = ({ callback }) => {
   const [macaddress, setMacAddress_POST] = useState("");
   const [ipaddress, setIpAddress_POST] = useState("");
   const [dhcp, setDhcp_POST] = useState(true);
-  const [bed, setBed_POST] = useState("");
   const [section, setSection_POST] = useState(placeholderSection);
 
   const handleSubmit = async () => {
@@ -182,8 +181,8 @@ const AddNewDevice = ({ callback }) => {
       macaddress,
       dhcp,
       ipaddress,
-      // 床號為選填，沒填就送 null（devices.bed 可為空，之後由床位綁定寫入）
-      bed: bed.trim() || null,
+      // 床號一律為 null：裝置綁定到床位時，後端才會把床號寫進來
+      bed: null,
       section,
       used: true,
       jlog:{}
@@ -210,7 +209,6 @@ const AddNewDevice = ({ callback }) => {
       //console.log("macaddress", macaddress);
       //console.log("dhcp", dhcp);
       //console.log("ipaddress", ipaddress);
-      //console.log("bed", bed);
       //console.log("section", section);
 
       if (response.status === 200) {
@@ -299,29 +297,6 @@ const AddNewDevice = ({ callback }) => {
                 <div className={`assistive-text ${ipError ? "active" : ""} `}>
                   Invalid format.
                 </div>
-              </div>
-              {/* Bed */}
-              <div className="input g-c-3">
-                <label htmlFor="bed" className="label-container">
-                  <p>{t("AddDeviceModal.Bed")}</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="bed"
-                    placeholder="Enter here"
-                    value={bed}
-                    onChange={(e) => setBed_POST(e.target.value)}
-                  />
-                  <img className="suffix" src="" alt="dropdown icon" />
-                </div>
-                <div className="assistive-text" />
               </div>
               {/* Section */}
               <div

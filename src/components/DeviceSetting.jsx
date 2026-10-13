@@ -212,7 +212,6 @@ function DeviceSettings() {
   const dhcpDropdown = useLocationDropdown("");
 
   /// Device Location ///
-  const deviceBedInput = useSetLoactionInput("");
   const sectionDropdown = useLocationDropdown("");
 
   // Section 選項：直接來自 server 清單（後端已移除 floor，不再需要 cascade）
@@ -368,7 +367,6 @@ const handleDhcpItemClick = (dhcp) => {
         data.connect ? "Connected" : "Disconnect"
       );
       
-      deviceBedInput.setInputValue(data.bed || "");
       sectionDropdown.selectItem(data.section);
       sectionDropdown.setIsActiveFalse;
       dhcpDropdown.selectItem(data.dhcp ? "DHCP" : "Static IP");
@@ -459,8 +457,11 @@ const handleDhcpItemClick = (dhcp) => {
     ipaddress: deviceIPInput.inputValue,
   };
   // Update device location
+  // ⚠ 這裡刻意不送 bed：床號由床位綁定流程維護（見 WebAPI 的 DeviceBedSync），
+  //   不開放在這一頁手動修改。saveDeviceLocation 是用
+  //   { ...deviceInfo, ...requestBody_DeviceLocation } 組出整筆，
+  //   所以少了這個欄位就會沿用 deviceInfo 讀回來的現值，不會被清空。
   const requestBody_DeviceLocation = {
-    bed: deviceBedInput.inputValue,
     section: sectionDropdown.placeholder,
   };
   // update device configuration
@@ -587,7 +588,7 @@ const handleDhcpItemClick = (dhcp) => {
     const newSection = sectionDropdown.placeholder;
     const oldIp = targetIp; // 裝置目前所在的後端
     const newIp = servers.find((s) => s.section === newSection)?.ip ?? null;
-    // 保留裝置原本所有設定，只覆蓋 bed/section
+    // 保留裝置原本所有設定，只覆蓋 section（bed 不動，沿用現值）
     const updatedData = { ...deviceInfo, ...requestBody_DeviceLocation };
     try {
       setLoading(true);
@@ -922,30 +923,6 @@ const handleDhcpItemClick = (dhcp) => {
               <h2>{t("DeviceSettings.DeviceLocation")}</h2>
               <div className="opt-list">
                 <div className="opt-grid">
-                  {deviceType !== 201 && (<div className="input g-col-3">
-                    <label htmlFor="bed" className="label-container">
-                      <p>{t("DeviceSettings.Bed")}</p>
-                      <img
-                        className="info"
-                        src="/src/assets/information-outline.svg"
-                        alt="gray outline information icon"
-                      />
-                    </label>
-                    <div className="input-gp">
-                      <input
-                        type="text"
-                        className="placeholder"
-                        id="bed"
-                        placeholder={deviceBedInput.inputValue}
-                        value={deviceBedInput.inputValue}
-                        onChange={deviceBedInput.handleInputChange}
-                      />
-                      <img className="suffix" src="" alt="dropdown icon" />
-                    </div>
-                    <div className="assistive-text">
-                      this is a line of assistive text
-                    </div>
-                  </div>)} 
                   <div
                     className="input dropdown section g-col-3 suffix"
                     onClick={sectionDropdown.toggleActive}
