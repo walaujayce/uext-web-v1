@@ -30,64 +30,16 @@ const AddNewDevice = ({ callback }) => {
   }
   const [isActive_Stage2, setActive_Stage2] = useState(false);
   const handleConfirm_S1_Click = () => {
-    if (isHaLowRSelected) {
-      if (!macaddress) {
-        setMacError(true); // Mac Input Required
-        return;
-      }
-      if (!dhcp && !ipaddress) {
-        setIpError(true);
-        return;
-      }
-      handleSubmit(); //Submit POST Request
-    } else {
-      if (!bed || !macaddress) {
-        setBedError(true); // Bed Input Required
-        setMacError(true); // Mac Input Required
-        return;
-      }
-      if (!bed) {
-        setBedError(true); // Bed Input Required
-        return;
-      }
-      if (!macaddress) {
-        setMacError(true); // Mac Input Required
-        return;
-      }
-      handleSubmit(); //Submit POST Request
+    // 床號為選填：裝置新增後再由床位綁定流程寫入（見 WebAPI 的 DeviceBedSync），
+    // 這裡只檢查 MAC。
+    if (!macaddress) {
+      setMacError(true); // Mac Input Required
+      return;
     }
+    handleSubmit(); //Submit POST Request
   };
-  {
-    /* Handle Device Type Dropdown Menu */
-  }
-  // ⚠ 這個陣列是「內部值」，不能翻譯：handleDeviceTypeItemClick 用它做比對
-  //   決定要 POST 的 deviceType 數字。顯示時才經過 deviceTypeLabel。
-  const deviceTypes = ["Not specified", "UEXT", "UMAP"];
-  const deviceTypeLabel = (v) =>
-    v === "UEXT"
-      ? t("DeviceType.uext")
-      : v === "UMAP"
-      ? t("DeviceType.umap")
-      : v;
-  const [isDeviceTypeActive, setDeviceTypeActive] = useState(false);
-  const handleDeviceTypeDropdownMenu = () => {
-    setDeviceTypeActive((prev) => !prev);
-  };
-  const [placeholderDeviceType, setPlaceholderDeviceType] = useState(
-    deviceTypes[0]
-  ); // Input placeholder
-  const isHaLowRSelected = placeholderDeviceType === "HaLow-R";
-  const handleDeviceTypeItemClick = (deviceType) => {
-    setPlaceholderDeviceType(deviceType);
-    handleDeviceTypeDropdownMenu;
-    if (deviceType === "UEXT") {
-      setDeviceType_POST(1);
-    } else if (deviceType === "UMAP") {
-      setDeviceType_POST(2);
-    } else {
-      setDeviceType_POST(0);
-    }
-  };
+  // 裝置種類欄位已移除：新增時一律以「未指定」(0) 寫入，
+  // 實際型別由裝置連線後回報，或之後在裝置設定頁調整。
   {
     /* Section Dropdown Menu Logic */
   }
@@ -124,6 +76,11 @@ const AddNewDevice = ({ callback }) => {
   }, [servers, sectionOptions]);
   {
     /* DHCP Dropdown Menu Logic */
+  }
+  {
+    /* DHCP / Static IP 的下拉目前沒有顯示在畫面上（原本只在 HaLow-R 機種才出現，
+       而 HaLow-R 已不在裝置種類選項內）。state 與 handler 保留，
+       dhcp 仍會以預設值 true 送出，日後要把欄位加回來時可以直接沿用。 */
   }
   const [isDhcpActive, setDhcpActive] = useState(false);
   const handleDhcpDropDownMenu = () => {
@@ -162,7 +119,6 @@ const AddNewDevice = ({ callback }) => {
       ) {
         // Close all dropdowns or handle logic here
         setSectionActive(false);
-        setDeviceTypeActive(false);
         setDhcpActive(false);
       }
     };
@@ -194,16 +150,13 @@ const AddNewDevice = ({ callback }) => {
     }, [ref, isActive]);
   };
 
-  const dropdownDeviceTypeStyleRef = useRef(null);
   const dropdownDhcpStyleRef = useRef(null);
 
-  useDynamicDropdownHeight(dropdownDeviceTypeStyleRef, isDeviceTypeActive);
   useDynamicDropdownHeight(dropdownDhcpStyleRef, isDhcpActive);
 
   {
     /* handle input error logic */
   }
-  const [bedError, setBedError] = useState(false);
   const [macError, setMacError] = useState(false);
   const [ipError, setIpError] = useState(false);
   {
@@ -214,7 +167,8 @@ const AddNewDevice = ({ callback }) => {
   {
     /* handle submit logic */
   }
-  const [devicetype, setDeviceType_POST] = useState(0);
+  // 裝置種類欄位已移除，一律以「未指定」寫入
+  const devicetype = 0;
   const [deviceid, setDeviceId_POST] = useState("");
   const [macaddress, setMacAddress_POST] = useState("");
   const [ipaddress, setIpAddress_POST] = useState("");
@@ -228,7 +182,8 @@ const AddNewDevice = ({ callback }) => {
       macaddress,
       dhcp,
       ipaddress,
-      bed,
+      // 床號為選填，沒填就送 null（devices.bed 可為空，之後由床位綁定寫入）
+      bed: bed.trim() || null,
       section,
       used: true,
       jlog:{}
@@ -318,52 +273,6 @@ const AddNewDevice = ({ callback }) => {
               className="grid st3 active"
               style={{ display: isActive_Stage2 ? "none" : "" }}
             >
-              {/* Device Type */}
-              <div
-                className="input suffix g-c-3"
-                onClick={handleDeviceTypeDropdownMenu}
-                ref={addDropdownRef}
-              >
-                <label htmlFor="devicetype" className="label-container">
-                  <p>{t("AddDeviceModal.DeviceType")}</p>
-                  <img
-                    className="info"
-                    src="/src/assets/information-outline.svg"
-                    alt="gray outline information icon"
-                  />
-                </label>
-                <div className="input-gp">
-                  <input
-                    type="text"
-                    className="placeholder"
-                    id="devicetype"
-                    placeholder={deviceTypeLabel(placeholderDeviceType)}
-                    readOnly
-                  />
-                  <img
-                    className="suffix active"
-                    src="/src/assets/menu-down.svg"
-                    alt="dropdown icon"
-                  />
-                </div>
-                <div className="assistive-text">
-                  this is a line of assistive text
-                </div>
-                <div
-                  className={`list ${isDeviceTypeActive ? "active" : ""}`}
-                  ref={dropdownDeviceTypeStyleRef}
-                >
-                  {deviceTypes.map((deviceType) => (
-                    <div
-                      className="item"
-                      onClick={() => handleDeviceTypeItemClick(deviceType)}
-                      key={deviceType}
-                    >
-                      {deviceTypeLabel(deviceType)}
-                    </div>
-                  ))}
-                </div>
-              </div>
               {/* MAC */}
               <div className="input g-c-3">
                 <label htmlFor="macaddress" className="label-container">
@@ -391,110 +300,29 @@ const AddNewDevice = ({ callback }) => {
                   Invalid format.
                 </div>
               </div>
-              {isHaLowRSelected && (
-                <div
-                  className="input suffix g-c-3"
-                  onClick={handleDhcpDropDownMenu}
-                  ref={addDropdownRef}
-                >
-                  <label htmlFor="dhcp" className="label-container">
-                    <p>{t("AddDeviceModal.DHCP")}</p>
-                    <img
-                      className="info"
-                      src="/src/assets/information-outline.svg"
-                      alt="gray outline information icon"
-                    />
-                  </label>
-                  <div className="input-gp">
-                    <input
-                      type="text"
-                      className="placeholder"
-                      id="dhcp"
-                      placeholder={placeholderDhcp}
-                      readOnly
-                    />
-                    <img
-                      className="suffix active"
-                      src="/src/assets/menu-down.svg"
-                      alt="dropdown icon"
-                    />
-                  </div>
-                  <div className="assistive-text">
-                    this is a line of assistive text
-                  </div>
-                  <div
-                    className={`list ${isDhcpActive ? "active" : ""}`}
-                    ref={dropdownDhcpStyleRef}
-                  >
-                    {["DHCP", "Static IP"].map((dhcp) => (
-                      <div
-                        className="item"
-                        key={dhcp}
-                        onClick={() => handleDhcpItemClick(dhcp)}
-                      >
-                        {dhcp}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
               {/* Bed */}
-              {isHaLowRSelected ? (
-                <div className="input g-c-3">
-                  <label htmlFor="ip" className="label-container">
-                    <p>{t("AddDeviceModal.IP")}</p>
-                    <img
-                      className="info"
-                      src="/src/assets/information-outline.svg"
-                      alt="gray outline information icon"
-                    />
-                  </label>
-                  <div className="input-gp">
-                    <input
-                      type="text"
-                      className="placeholder"
-                      id="ip"
-                      placeholder="Enter here"
-                      required
-                      value={ipaddress}
-                      onChange={(e) => setIpAddress_POST(e.target.value)}
-                      disabled={isIpAddressInputBoxDisabled}
-                    />
-                    <img className="suffix" src="" alt="dropdown icon" />
-                  </div>
-                  <div className={`assistive-text ${ipError ? "active" : ""} `}>
-                    Invalid format.
-                  </div>
+              <div className="input g-c-3">
+                <label htmlFor="bed" className="label-container">
+                  <p>{t("AddDeviceModal.Bed")}</p>
+                  <img
+                    className="info"
+                    src="/src/assets/information-outline.svg"
+                    alt="gray outline information icon"
+                  />
+                </label>
+                <div className="input-gp">
+                  <input
+                    type="text"
+                    className="placeholder"
+                    id="bed"
+                    placeholder="Enter here"
+                    value={bed}
+                    onChange={(e) => setBed_POST(e.target.value)}
+                  />
+                  <img className="suffix" src="" alt="dropdown icon" />
                 </div>
-              ) : (
-                <div className="input g-c-3">
-                  <label htmlFor="bed" className="label-container">
-                    <p>{t("AddDeviceModal.Bed")}</p>
-                    <img
-                      className="info"
-                      src="/src/assets/information-outline.svg"
-                      alt="gray outline information icon"
-                    />
-                  </label>
-                  <div className="input-gp">
-                    <input
-                      type="text"
-                      className="placeholder"
-                      id="bed"
-                      placeholder="Enter here"
-                      required
-                      value={bed}
-                      onChange={(e) => setBed_POST(e.target.value)}
-                    />
-                    <img className="suffix" src="" alt="dropdown icon" />
-                  </div>
-                  <div
-                    className={`assistive-text ${bedError ? "active" : ""} `}
-                  >
-                    Oops! Something went wrong.
-                  </div>
-                </div>
-              )}
+                <div className="assistive-text" />
+              </div>
               {/* Section */}
               <div
                 className="input suffix g-c-3"

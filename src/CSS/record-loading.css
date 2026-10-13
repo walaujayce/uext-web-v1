@@ -1,0 +1,99 @@
+/* ============================================================================
+   記錄分析（PatientRecord）的「區域內」載入遮罩。
+
+   原本用的是 LoadingOverlay.jsx 的 MUI <Backdrop>，它的 z-index 是
+   theme.zIndex.drawer + 1，會蓋住整個視窗（含側邊警示列與導覽列），
+   分析時間一長使用者等於整頁被鎖住。
+
+   這裡改成只蓋住 PatientRecord 自己的範圍：外層 .pr-wrap 設 position: relative，
+   遮罩用 position: absolute + inset: 0 貼齊它，其餘頁面照常可以操作。
+   ========================================================================== */
+
+.pr-wrap {
+  position: relative;
+  padding: 16px 24px;
+  min-height: 320px;
+}
+
+.pr-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.78);
+  backdrop-filter: blur(1.5px);
+}
+
+html.dark .pr-loading {
+  background: rgba(48, 48, 48, 0.78);
+}
+
+.pr-loading-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 32px;
+  border-radius: 10px;
+  background: var(--bg-color);
+  border: 1px solid var(--grey-secondary);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+/* 轉圈。用 CSS 畫，不另外相依 MUI 的 CircularProgress */
+.pr-spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--grey-secondary);
+  border-top-color: #00b20f;
+  border-radius: 50%;
+  animation: pr-spin 0.9s linear infinite;
+}
+
+@keyframes pr-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pr-spinner {
+    animation-duration: 2.4s;
+  }
+}
+
+.pr-loading-msg {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--primary-text-color);
+}
+
+.pr-loading-elapsed {
+  margin: 0;
+  font-size: 13px;
+  color: var(--label-color);
+}
+
+/* 取消鈕：沿用 btn.css 的外觀，只把寬度與間距收一下 */
+.pr-loading .pr-cancel {
+  margin-top: 6px;
+  min-width: 120px;
+  justify-content: center;
+}
+
+/* 取消後的提示：取代「資料不足」那行，免得使用者以為是沒有資料 */
+.pr-cancelled {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--label-color);
+  font-size: 15px;
+}
+
+.pr-cancelled .pr-retry {
+  min-width: 120px;
+  justify-content: center;
+}

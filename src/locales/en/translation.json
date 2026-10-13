@@ -416,6 +416,11 @@
     "Area": "Area"
   },
   "PatientRecord": {
+    "Analysing": "Analysing records and building charts…",
+    "Elapsed": "{{seconds}}s elapsed",
+    "Cancel": "Cancel",
+    "Cancelled": "Analysis cancelled.",
+    "Retry": "Analyse again",
     "NotEnoughData": "Data is not enough for analysis.",
     "SleepingTime": "Sleeping Time",
     "LeaveBedCount": "Leave Bed Count",

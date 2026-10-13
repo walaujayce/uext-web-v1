@@ -417,6 +417,11 @@
     "Area": "面積"
   },
   "PatientRecord": {
+    "Analysing": "正在分析資料並製作圖表…",
+    "Elapsed": "已等待 {{seconds}} 秒",
+    "Cancel": "取消",
+    "Cancelled": "已取消分析。",
+    "Retry": "重新分析",
     "NotEnoughData": "目前資料不足以分析。",
     "SleepingTime": "睡眠時數",
     "LeaveBedCount": "離床次數",

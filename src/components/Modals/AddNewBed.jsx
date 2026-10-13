@@ -300,18 +300,23 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     };
   }, [targetIp, isEdit, bed]);
 
-  // 顯示這個區域、且尚未被其他住民綁定的裝置：
-  //   - 裝置自己標了 section 就比對，沒標的（尚未歸屬）也一併列出
-  //   - 已被別的住民綁走的一律排除
+  // 可選的裝置：這台後端上「尚未被其他住民綁走」的裝置全部列出。
+  //
+  // ⚠ 刻意不依床位的區域篩選。裝置解除床位綁定時 section 會被清空
+  //   （見 WebAPI 的 DeviceBedSync），依區域篩的話那些裝置會變成哪一張床都綁不上。
+  //   區域在選項文字上以「編號 (區域)」標示，由使用者自行判斷。
+  // 下拉選項的顯示文字：裝置編號後面標註所屬區域，未指派區域的就只顯示編號
+  const deviceLabel = (id, sec) => (sec ? `${id} (${sec})` : id);
+
   const deviceSelectOptions = useMemo(() => {
     const list = devices
-      .filter((d) => !d.section || !section || d.section === section)
       .filter((d) => !takenDeviceIds.includes(d.deviceid))
-      .map((d) => ({ value: d.deviceid, label: d.deviceid }));
+      .map((d) => ({ value: d.deviceid, label: deviceLabel(d.deviceid, d.section) }));
 
     // 目前綁定的裝置若不在清單裡（例如區域被改過），仍要顯示出來
     if (deviceId && !list.some((o) => o.value === deviceId)) {
-      list.unshift({ value: deviceId, label: deviceId });
+      const current = devices.find((d) => d.deviceid === deviceId);
+      list.unshift({ value: deviceId, label: deviceLabel(deviceId, current?.section) });
     }
 
     return [{ value: "", label: t("AddBedModal.Unassigned") }, ...list];
