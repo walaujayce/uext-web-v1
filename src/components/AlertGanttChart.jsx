@@ -450,7 +450,12 @@ function AlertGanttChart() {
         },
       });
     }
-    Chart.register(ChartDataLabels);
+    // ⚠ 這裡以前是 Chart.register(ChartDataLabels) —— 全域註冊。
+    //   全域註冊會影響「所有」Chart.js 圖表：任何沒有明確設定
+    //   datalabels: { display: false } 的圖，都會自動在每個資料點上印出數值。
+    //   而且只有在這個元件被畫過之後才生效，所以會變成
+    //   「先看過警示分析再去其他頁 → 有數值；直接重整那一頁 → 沒數值」的隨機行為。
+    //   改成只掛在這一張圖上（見底下的 plugins 陣列）。
     var myChart = new Chart(
       document.getElementById("myChart").getContext("2d"),
       {
@@ -538,6 +543,8 @@ function AlertGanttChart() {
           //   }
           // }
         },
+        // datalabels 只掛在這張甘特圖上，不影響其他頁面的圖表
+        plugins: [ChartDataLabels],
       },
     );
     // Cleanup: destroy chart on unmount

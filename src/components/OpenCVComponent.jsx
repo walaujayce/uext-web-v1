@@ -512,6 +512,7 @@ const OpenCVComponent = ({ deviceid, rawdata, height, width, riskRegions = [] })
         transform: "translate(-50%, -50%)",
         pointerEvents: "none",
         backgroundColor: backdropColor,
+        boxShadow:"0 4px 16px rgba(0, 0, 0, 0.12)"
       }} ></canvas>;
 };
 
