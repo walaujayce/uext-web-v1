@@ -4,6 +4,8 @@
     "umap":"UMAP"
   },
   "Login": {
+    "NscallServiceError": "The hospital authentication service returned an error. Please try again later.",
+    "NscallTokenFailed": "Cannot reach the hospital authentication service. Please try again later.",
     "title": "Bed Exit Alarm System",
     "Username": "Username:",
     "Password": "Password:",
@@ -50,6 +52,9 @@
     "TotalDevices": "Total devices"
   },
   "FloorSection": {
+    "BedScope": "Beds",
+    "BedScopeAll": "All",
+    "BedScopeMyShift": "My shift",
     "Floor": "Floor",
     "Section": "Section",
     "DeviceType": "Device Type"
@@ -113,6 +118,9 @@
     "NewBed": "New Bed"
   },
   "AddBedModal": {
+    "DeviceMacInvalid": "Invalid device MAC. It must be 12 uppercase characters (colons are stripped automatically).",
+    "BedIdRequired": "Please fill in the bed ID first.",
+    "DeviceTaken": "This device is already assigned to another resident.",
     "AddBed": "Add a Bed",
     "EditBed": "Edit Bed",
     "NewBedAdded": "New Bed Added",

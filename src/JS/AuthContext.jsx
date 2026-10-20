@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { isTokenExpired, clearAccessToken } from "../auth/authStore";
+import { clearAuthSession } from "../auth/nurseStore";
 import { ensureAccessToken } from "../api/apiClient";
 // mp3 已移到 public/src/assets，改用 URL 字串引用(public 的檔不能用 import)
 const alertLeftBedSound = "/src/assets/AlertLeftBed.mp3";
@@ -87,6 +88,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         localStorage.removeItem("isAuthenticated");
         localStorage.removeItem("role");
+        clearAuthSession();
         setRole(null);
         setIsAuthenticated(false);
       }
@@ -116,6 +118,8 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("isAuthenticated");
     // 同時清掉 access token，否則旗標沒了但 token 還在，狀態不一致
     clearAccessToken();
+    // 登入來源與護理師排班資料也要清掉，否則下一個使用者會沿用上一位的排班區域
+    clearAuthSession();
     navigate("/");
   };
 
@@ -127,6 +131,7 @@ export const AuthProvider = ({ children }) => {
         setIsAuthenticated(authStatus);
         if (!authStatus) {
           stopSound();
+          clearAuthSession();
           navigate("/");
         }
       }

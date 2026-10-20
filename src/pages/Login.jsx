@@ -78,6 +78,17 @@ function Login() {
             break;
         }
         navigate("/home");
+      } else if (res.code === -2 || res.reason === "NSCALL_TOKEN_FAILED") {
+        // 醫院 NSCALL 的 GetToken 失敗（連不上 / 逾時 / 回應取不出 authCode）。
+        // 這不是帳密錯誤，要分開告知，否則使用者會一直以為是自己打錯。
+        const msg = t("Login.NscallTokenFailed");
+        setError(msg);
+        alert(msg);
+      } else if (res.reason === "NSCALL_AUTH_ERROR") {
+        // GetToken 成功，但 CheckNurseAuth 連不上 / 回應看不懂（後端回 503）
+        const msg = t("Login.NscallServiceError");
+        setError(msg);
+        alert(msg);
       } else {
         setError("Incorrect password");
         alert("Invalid User account or Password!");

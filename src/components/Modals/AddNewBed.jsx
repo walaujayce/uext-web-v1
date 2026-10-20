@@ -14,6 +14,28 @@ import api from "../../api/apiClient";
 import { useFloorSection } from "../../JS/FloorSectionContext";
 
 // ─────────────────────────────────────────────────────────────
+// 裝置 MAC 的正規化與格式判斷。
+//
+// 掃描器刷出來的字串可能帶分隔符號（AA:BB:CC:DD:EE:FF、aa-bb-cc-dd-ee-ff），
+// 也可能是小寫，所以一律先去掉非英數字元並轉大寫再判斷；
+// 合格的格式只有「大寫 12 位十六進位」一種。
+//
+// slice 到 12 是為了讓「貼上帶冒號的 17 字元」也能完整進來：
+// input 的 maxLength 會在 onChange 之前就截斷，所以 maxLength 要放寬，
+// 真正的長度上限改由這裡控制。
+// ─────────────────────────────────────────────────────────────
+const MAC_LENGTH = 12;
+const MAC_PATTERN = /^[0-9A-F]{12}$/;
+
+const normalizeMac = (raw) =>
+  String(raw ?? "")
+    .replace(/[^0-9A-Za-z]/g, "")
+    .toUpperCase()
+    .slice(0, MAC_LENGTH);
+
+const isValidMac = (value) => MAC_PATTERN.test(value);
+
+// ─────────────────────────────────────────────────────────────
 // 下拉選單欄位（樣式與 AddNewDevice.jsx 的 .input.dropdown 完全一致）
 // options 形式：[{ value, label }]，value 為實際要送出的值。
 // 元件定義在模組層級，避免每次 render 產生新的 component type 造成重新掛載。
@@ -105,6 +127,150 @@ const SelectField = ({
             className="item"
             key={opt.value || "__none__"}
             onClick={() => onSelect(opt.value)}
+          >
+            {opt.label}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────
+// 可輸入的下拉欄位（combo box）。
+// 外觀與 SelectField 完全一樣，差別是：
+//   1. input 不是 readOnly，使用者可以直接手動輸入（例如裝置還沒出現在清單裡）
+//   2. 打字時清單會依輸入內容過濾；打到沒有符合的就顯示全部，不要讓人以為壞了
+//   3. 顯示的是真正的 value（不像 SelectField 借用 placeholder 顯示選取值），
+//      所以字色會是 --input-text-color，這是輸入框該有的樣子
+// ─────────────────────────────────────────────────────────────
+const ComboField = ({
+  id,
+  label,
+  value,
+  placeholder,
+  options,
+  onChange,
+  onSelect,
+  onEnter,
+  normalize,
+  inputRef,
+  maxLength,
+  disabled,
+  error,
+  errorText,
+}) => {
+  const [isActive, setActive] = useState(false);
+  const rootRef = useRef(null);
+  const listRef = useRef(null);
+
+  // 打字時只留符合的選項；沒打字或完全沒符合的就顯示全部
+  const visibleOptions = useMemo(() => {
+    const q = String(value ?? "").trim().toUpperCase();
+    if (!q) return options;
+    const hit = options.filter(
+      (opt) => opt.value && String(opt.value).toUpperCase().includes(q),
+    );
+    return hit.length > 0 ? hit : options;
+  }, [options, value]);
+
+  // 點到元件外面就收合
+  useEffect(() => {
+    const handleOutsideClick = (event) => {
+      if (rootRef.current && !rootRef.current.contains(event.target)) {
+        setActive(false);
+      }
+    };
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  // 展開時依項目數量算出高度（與其他頁面的下拉一致）
+  useEffect(() => {
+    if (!listRef.current) return;
+    if (isActive) {
+      const items = listRef.current.querySelectorAll(".item");
+      const totalHeight = Array.from(items).reduce(
+        (acc, item) => acc + item.offsetHeight,
+        0,
+      );
+      listRef.current.style.height = `${totalHeight}px`;
+    } else {
+      listRef.current.style.height = "0px";
+    }
+  }, [isActive, visibleOptions]);
+
+  return (
+    <div
+      className={`input dropdown suffix ${disabled ? "is-disabled" : ""}`}
+      ref={rootRef}
+    >
+      <label htmlFor={id} className="label-container">
+        <p>{label}</p>
+        <img
+          className="info"
+          src="/src/assets/information-outline.svg"
+          alt="gray outline information icon"
+        />
+      </label>
+      <div className="input-gp">
+        <input
+          type="text"
+          className="placeholder"
+          id={id}
+          name={id}
+          placeholder={placeholder}
+          value={value ?? ""}
+          maxLength={maxLength}
+          disabled={disabled}
+          autoComplete="off"
+          ref={inputRef}
+          onChange={(e) => {
+            const next = normalize ? normalize(e.target.value) : e.target.value;
+            onChange(next);
+            if (!disabled) setActive(true);
+          }}
+          onKeyDown={(e) => {
+            // 掃描器刷完通常會補一個 Enter。這裡要吃掉它，
+            // 不然會冒泡出去觸發 form 的 submit。
+            if (e.key === "Enter") {
+              e.preventDefault();
+              setActive(false);
+              onEnter?.();
+            }
+          }}
+          onFocus={() => {
+            if (!disabled) setActive(true);
+          }}
+        />
+        {/* 箭頭要能單獨開合：整個欄位都綁 onClick 的話，點輸入框想移動游標時
+            會把清單收起來，變得很難用 */}
+        <img
+          className="suffix active"
+          src="/src/assets/menu-down.svg"
+          alt="dropdown icon"
+          onClick={() => {
+            if (!disabled) setActive((prev) => !prev);
+          }}
+        />
+      </div>
+      <div className={`assistive-text ${error ? "active" : ""}`}>
+        {errorText}
+      </div>
+      <div
+        className={`list ${isActive && !disabled ? "active" : ""}`}
+        ref={listRef}
+      >
+        {visibleOptions.map((opt) => (
+          <div
+            className="item"
+            key={opt.value || "__none__"}
+            onClick={() => {
+              // 從清單選取不走 onChange：那條路會觸發掃描完成的自動送出，
+              // 用滑鼠點選單卻被直接送出會很突兀。
+              (onSelect ?? onChange)(opt.value);
+              setActive(false);
+            }}
           >
             {opt.label}
           </div>
@@ -216,6 +382,39 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     Boolean(bed?.patientId || bed?.nurseId),
   );
 
+  {
+    /* ── 掃描器流程 ──────────────────────────────────────────
+       護理師的用法是「打開 modal → 直接刷裝置 MAC → 自動存檔 → 再刷下一張」，
+       所以：
+         1. 一進來就把 focus 放在裝置欄位
+         2. 刷完（湊滿合格的 12 位，或掃描器補的 Enter）就自動送出
+         3. 任何一步失敗都跳 alert，並把 focus 送回裝置欄位 */
+  }
+  const deviceInputRef = useRef(null);
+  // 送出中的旗標：掃描器補的 Enter 會緊接在最後一個字元之後，
+  // 不擋的話同一筆會送兩次
+  const scanBusyRef = useRef(false);
+  // 這次送出是不是掃描觸發的 → 失敗時要不要把 focus 送回裝置欄位
+  const scanModeRef = useRef(false);
+
+  const focusDeviceInput = () => {
+    // alert() 會把 focus 搶走，等它關掉之後才送回來
+    window.setTimeout(() => {
+      deviceInputRef.current?.focus();
+      deviceInputRef.current?.select?.();
+    }, 0);
+  };
+
+  // 掃描流程失敗：顯示錯誤 + alert + 回到裝置欄位，讓護理師直接刷下一台
+  const failBackToDevice = (message) => {
+    scanBusyRef.current = false;
+    scanModeRef.current = false;
+    setDeviceError(message);
+    setOptionalOpen(true);
+    alert(message);
+    focusDeviceInput();
+  };
+
   const [bedIdError, setBedIdError] = useState(false);
   // 裝置欄位的錯誤：沒住民卻選了裝置
   const [deviceError, setDeviceError] = useState("");
@@ -223,6 +422,22 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
   const [confirmMode, setConfirmMode] = useState(null);
   // null = 還在填表；其餘為完成後要顯示的訊息 key
   const [doneMessage, setDoneMessage] = useState(null);
+
+  {
+    /* 一進來就把 focus 放在裝置欄位。
+       ⚠ 條件只看 bed 這個 prop，不能用 deviceLocked 的即時值 ——
+         使用者手動打住民編號的那一刻 deviceLocked 會翻成 false，
+         游標就會從住民編號跳到裝置欄位。
+       沒有住民時裝置欄位是鎖住的（規則：先有住民才能綁裝置），
+       這時不搶 focus，否則游標會落在一個不能打字的欄位上。 */
+  }
+  const shouldAutoFocusDevice = Boolean(bed?.patientId);
+
+  useEffect(() => {
+    if (!shouldAutoFocusDevice) return;
+    setOptionalOpen(true);
+    focusDeviceInput();
+  }, [shouldAutoFocusDevice]);
 
   {
     /* Section 選項 */
@@ -391,7 +606,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
 
   // 裝置欄位何時鎖住：還沒填住民、且目前也沒有已綁定的裝置。
   // （舊資料可能有「有裝置但沒住民」的床位，這時不鎖，讓使用者能把它解除掉）
-  const deviceLocked = !patientId.trim() && !deviceId;
+  const deviceLocked = !patientId.trim() && !deviceId.trim();
 
   {
     /* 裝置資料表自己也有 bed / section 兩欄，但那兩欄已經改由後端維護：
@@ -414,7 +629,8 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
   const optionalSummary = () => {
     const parts = [];
     if (patientId) parts.push(`${t("AddBedModal.PatientID")} ${patientId}`);
-    if (deviceId) parts.push(`${t("AddBedModal.Device")} ${deviceId}`);
+    if (deviceId.trim())
+      parts.push(`${t("AddBedModal.Device")} ${deviceId.trim()}`);
     if (nurseId) parts.push(`${t("AddBedModal.Nurse")} ${nurseId}`);
     return parts.length ? parts.join("・") : t("AddBedModal.Unassigned");
   };
@@ -439,6 +655,69 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     return `${error?.message || fallback}`;
   };
 
+  {
+    /* 裝置欄位：手動輸入 / 掃描器輸入都走這裡。
+       值一湊滿合格的 MAC（大寫 12 位）就自動送出。 */
+  }
+  // 「已被其他住民綁走」的比對要跳過大小寫與分隔符號的差異，
+  // 否則手動輸入 aa:bb:... 會繞過這道檢查
+  const isDeviceTaken = (value) => {
+    const target = normalizeMac(value);
+    if (!target) return false;
+    return takenDeviceIds.some((id) => normalizeMac(id) === target);
+  };
+
+  const handleDeviceInput = (next) => {
+    setDeviceError("");
+    setDeviceId_POST(next);
+    if (isValidMac(next)) handleScanConfirm(next);
+  };
+
+  // 從下拉清單選取：不自動送出
+  const handleDeviceSelect = (value) => {
+    setDeviceError("");
+    setDeviceId_POST(value);
+  };
+
+  {
+    /* 掃描完成後的自動送出。
+       失敗一律 alert + 回到裝置欄位，不走一般的 inline 錯誤，
+       因為護理師此時眼睛在病人身上，不會去看欄位底下的小字。 */
+  }
+  const handleScanConfirm = (rawValue) => {
+    if (scanBusyRef.current || loading) return;
+
+    const mac = normalizeMac(rawValue ?? deviceId);
+
+    // 空值、長度不對、含非十六進位字元，一律是格式不符
+    if (!isValidMac(mac)) {
+      failBackToDevice(t("AddBedModal.DeviceMacInvalid"));
+      return;
+    }
+    if (isDeviceTaken(mac)) {
+      failBackToDevice(t("AddBedModal.DeviceTaken"));
+      return;
+    }
+    if (!bedId.trim()) {
+      setBedIdError(true);
+      failBackToDevice(t("AddBedModal.BedIdRequired"));
+      return;
+    }
+    // 規則：床位一定要先有住民，才能綁定裝置
+    if (!patientId.trim()) {
+      failBackToDevice(t("AddBedModal.DeviceNeedsPatient"));
+      return;
+    }
+
+    scanBusyRef.current = true;
+    scanModeRef.current = true;
+    setBedIdError(false);
+    setDeviceError("");
+    // 正規化後的值才是要存的；setState 是非同步的，所以明確傳給 handleSubmit
+    setDeviceId_POST(mac);
+    handleSubmit(mac);
+  };
+
   const handleConfirmClick = () => {
     setBedIdError(false);
     setDeviceError("");
@@ -448,17 +727,39 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       return;
     }
     // 規則 1：床位一定要先有住民，才能綁定裝置
-    if (deviceId && !patientId.trim()) {
+    if (deviceId.trim() && !patientId.trim()) {
       setDeviceError(t("AddBedModal.DeviceNeedsPatient"));
+      setOptionalOpen(true);
+      return;
+    }
+    // 規則 2：裝置可以手動輸入，所以要自己擋掉「已被其他住民綁走」的裝置
+    //         （下拉選單本來就把這些排除掉了，手動輸入沒有人擋）
+    if (deviceId.trim() && isDeviceTaken(deviceId)) {
+      setDeviceError(t("AddBedModal.DeviceTaken"));
+      setOptionalOpen(true);
+      return;
+    }
+    // 規則 3：手動輸入的 MAC 要符合「大寫 12 位」。
+    //         從下拉選到的既有裝置一律放行 —— 資料庫裡可能有不是 12 位的舊編號，
+    //         不該因為格式檢查而變成選得到卻存不進去。
+    const typedDevice = deviceId.trim();
+    const isKnownDevice = deviceSelectOptions.some(
+      (opt) => opt.value === typedDevice,
+    );
+    if (typedDevice && !isKnownDevice && !isValidMac(normalizeMac(typedDevice))) {
+      setDeviceError(t("AddBedModal.DeviceMacInvalid"));
       setOptionalOpen(true);
       return;
     }
     handleSubmit();
   };
 
-  const handleSubmit = async () => {
+  // deviceOverride：掃描流程會把正規化後的 MAC 傳進來
+  //（setDeviceId_POST 是非同步的，這一刻 deviceId 還是舊值）
+  const handleSubmit = async (deviceOverride) => {
     const pid = patientId.trim();
     const pname = patientName.trim();
+    const did = String(deviceOverride ?? deviceId).trim();
 
     try {
       setLoading(true);
@@ -504,7 +805,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
 
         const profile = {
           patientname: pname || existing?.patientname || pid,
-          deviceid: deviceId || null,
+          deviceid: did || null,
           sex: formIsAuthoritative ? sex : existing.sex ?? 0,
           birthday: format(
             formIsAuthoritative
@@ -538,7 +839,9 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
             }
           }
         } catch (error) {
-          alert(`Error: ${fmtErr(error, "Failed to save resident.")}`);
+          const message = `Error: ${fmtErr(error, "Failed to save resident.")}`;
+          if (scanModeRef.current) failBackToDevice(message);
+          else alert(message);
           return;
         }
       }
@@ -557,16 +860,23 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
 
       if (response.status === 200 || response.status === 201) {
         // 裝置資料表的 bed / section 由後端在上面這些寫入裡一起維護，這裡不用再動
+        scanModeRef.current = false;
         setDoneMessage(isEdit ? "BedUpdated" : "NewBedAdded");
         onCreated?.();
       } else {
-        alert(`Error: ${response.data?.message || "Something went wrong"}`);
+        const message = `Error: ${response.data?.message || "Something went wrong"}`;
+        if (scanModeRef.current) failBackToDevice(message);
+        else alert(message);
       }
     } catch (error) {
       console.error("Error while submitting data:", error);
-      alert(`Error: ${fmtErr(error, "Unable to connect to the server.")}`);
+      const message = `Error: ${fmtErr(error, "Unable to connect to the server.")}`;
+      if (scanModeRef.current) failBackToDevice(message);
+      else alert(message);
     } finally {
       setLoading(false);
+      // 下一次掃描要能再送出（failBackToDevice 裡也會清，這裡是保險）
+      scanBusyRef.current = false;
     }
   };
 
@@ -804,7 +1114,10 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
                             onSelect={setSex_POST}
                           />
                         </div>
-                        <SelectField
+                        {/* 裝置可以從下拉選，也可以直接手動輸入（清單裡還沒有的裝置） */}
+                        {/* 裝置可以從下拉選，也可以手動輸入／用掃描器刷；
+                            刷滿合格的 MAC（或掃描器補的 Enter）就自動送出 */}
+                        <ComboField
                           id="deviceInNewBed"
                           label={t("AddBedModal.Device")}
                           value={deviceId}
@@ -814,10 +1127,14 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
                               : t("AddBedModal.Unassigned")
                           }
                           options={deviceSelectOptions}
-                          onSelect={(value) => {
-                            setDeviceError("");
-                            setDeviceId_POST(value);
-                          }}
+                          onChange={handleDeviceInput}
+                          onSelect={handleDeviceSelect}
+                          onEnter={() => handleScanConfirm()}
+                          normalize={normalizeMac}
+                          inputRef={deviceInputRef}
+                          /* maxLength 放寬，貼上帶冒號的 MAC 才不會先被截斷；
+                             真正的 12 位上限由 normalizeMac 控制 */
+                          maxLength={32}
                           disabled={deviceLocked}
                           error={Boolean(deviceError)}
                           errorText={deviceError}
