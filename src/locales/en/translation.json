@@ -118,6 +118,7 @@
     "NewBed": "New Bed"
   },
   "AddBedModal": {
+    "DeviceNotFound": "This device is not registered. Please add it in the device list first.",
     "DeviceMacInvalid": "Invalid device MAC. It must be 12 uppercase characters (colons are stripped automatically).",
     "BedIdRequired": "Please fill in the bed ID first.",
     "DeviceTaken": "This device is already assigned to another resident.",

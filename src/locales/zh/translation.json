@@ -118,6 +118,7 @@
     "NewBed": "新增床位"
   },
   "AddBedModal": {
+    "DeviceNotFound": "查無此裝置，請先到裝置列表新增這台裝置",
     "DeviceMacInvalid": "裝置 MAC 格式不正確，必須是大寫 12 位（可含冒號，會自動去除）",
     "BedIdRequired": "請先填寫床位編號",
     "DeviceTaken": "此裝置已綁定其他住民",

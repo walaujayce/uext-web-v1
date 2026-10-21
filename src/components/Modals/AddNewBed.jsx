@@ -478,6 +478,10 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
        住民資料仍維持手動輸入，不撈資料庫。 */
   }
   const [devices, setDevices] = useState([]);
+  // 裝置清單是否確實載到了。
+  // ⚠ 不能只看 devices.length：抓失敗時也是空陣列，
+  //   那樣每一次掃描都會被誤判成「這台裝置不存在」。
+  const [devicesLoaded, setDevicesLoaded] = useState(false);
   // 已經被其他住民綁走的裝置。裝置記在 patient.deviceid，所以這裡看的是住民清單，
   // 不是床位清單。
   const [takenDeviceIds, setTakenDeviceIds] = useState([]);
@@ -487,6 +491,7 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     const cfgLocal = targetIp ? { targetIp } : undefined;
 
     const fetchDevices = async () => {
+      setDevicesLoaded(false);
       const [deviceRes, patientRes] = await Promise.all([
         api.get("/api/7284/db/Device", cfgLocal).catch((err) => {
           console.error("Error fetching device list:", err.message);
@@ -500,6 +505,8 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
       if (cancelled) return;
 
       setDevices(Array.isArray(deviceRes?.data) ? deviceRes.data : []);
+      // 只有請求真的成功才算載到（catch 裡回的是 null）
+      setDevicesLoaded(deviceRes !== null);
 
       // 這張床自己的住民所綁的裝置不算「被佔用」，否則會從選單裡消失
       const others = (
@@ -667,6 +674,14 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     return takenDeviceIds.some((id) => normalizeMac(id) === target);
   };
 
+  // 掃到／輸入的 MAC 是不是這台後端上既有的裝置。
+  // 比對前先正規化，資料庫裡存的大小寫或分隔符號不同也找得到。
+  const findDevice = (value) => {
+    const target = normalizeMac(value);
+    if (!target) return undefined;
+    return devices.find((d) => normalizeMac(d.deviceid) === target);
+  };
+
   const handleDeviceInput = (next) => {
     setDeviceError("");
     setDeviceId_POST(next);
@@ -692,6 +707,12 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     // 空值、長度不對、含非十六進位字元，一律是格式不符
     if (!isValidMac(mac)) {
       failBackToDevice(t("AddBedModal.DeviceMacInvalid"));
+      return;
+    }
+    // 裝置必須是既有的裝置。清單還沒載到（或抓失敗）時不做這個判斷，
+    // 讓後端的 400 去擋，不要在前端誤判。
+    if (devicesLoaded && !findDevice(mac)) {
+      failBackToDevice(t("AddBedModal.DeviceNotFound"));
       return;
     }
     if (isDeviceTaken(mac)) {
@@ -743,13 +764,22 @@ const AddNewBed = ({ callback, onCreated, bed = null }) => {
     //         從下拉選到的既有裝置一律放行 —— 資料庫裡可能有不是 12 位的舊編號，
     //         不該因為格式檢查而變成選得到卻存不進去。
     const typedDevice = deviceId.trim();
-    const isKnownDevice = deviceSelectOptions.some(
+    const isKnownOption = deviceSelectOptions.some(
       (opt) => opt.value === typedDevice,
     );
-    if (typedDevice && !isKnownDevice && !isValidMac(normalizeMac(typedDevice))) {
-      setDeviceError(t("AddBedModal.DeviceMacInvalid"));
-      setOptionalOpen(true);
-      return;
+    if (typedDevice && !isKnownOption) {
+      if (!isValidMac(normalizeMac(typedDevice))) {
+        setDeviceError(t("AddBedModal.DeviceMacInvalid"));
+        setOptionalOpen(true);
+        return;
+      }
+      // 手動輸入的裝置也必須已經登錄過：patients.deviceid 有外鍵指向 devices，
+      // 不存在的話後端會因為外鍵違反而失敗
+      if (devicesLoaded && !findDevice(typedDevice)) {
+        setDeviceError(t("AddBedModal.DeviceNotFound"));
+        setOptionalOpen(true);
+        return;
+      }
     }
     handleSubmit();
   };
