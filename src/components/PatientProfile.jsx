@@ -196,6 +196,7 @@ function PatientProfile() {
       if (patientIdParam) {
         // 查無資料時後端是回 200 + { code: -1, message }，不是 404，要自己判斷
         const one = patientRes?.data;
+        console.log("data: ",one);
         if (one && one.code === undefined && one.patientid) {
           matchingPatient = one;
         }
@@ -204,7 +205,8 @@ function PatientProfile() {
         matchingPatient =
           patientList.find((item) => item.deviceid === macaddress) || null;
       }
-
+      console.log(`${matchingPatient.patientid} Connect status: ${matchingPatient.devicestatus}`);
+      
       matchingPatient = matchingPatient || {
         patientname: "",
         patientid: "",
@@ -217,6 +219,7 @@ function PatientProfile() {
         deviceid: "",
         devicestatus: "",
       };
+
 
       // 床位：用住民編號反查（床位已經沒有裝置欄位，不能再用 deviceId 查）
       const matchingBed = matchingPatient.patientid

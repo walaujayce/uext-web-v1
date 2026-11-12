@@ -23,7 +23,11 @@ import AddNewBed from "../components/Modals/AddNewBed";
 import { useTranslation } from "react-i18next";
 import api from "../api/apiClient";
 import api8031 from "../api/apiClient8031";
-import { useFloorSection, matchesSection } from "../JS/FloorSectionContext";
+import {
+  useFloorSection,
+  matchesSection,
+  matchesBedScope,
+} from "../JS/FloorSectionContext";
 import { isSignalREnabled } from "../config/runtimeConfig";
 
 // ─────────────────────────────────────────────────────────
@@ -41,7 +45,7 @@ function Home() {
 
   // 所有區域對應的後端清單（每筆 { ip, section }），
   // 供「All」模式逐台抓取所有 device。
-  const { servers, selectedServer } = useFloorSection();
+  const { servers, selectedServer, bedScope, nurseOperId } = useFloorSection();
 
   const [port, setPort] = useState("8031");
   const handleSelectPort = (port) => {
@@ -625,6 +629,12 @@ function Home() {
   // 多個區域共用同一台後端，抓回來的資料會夾帶其他區域的，前端要再過濾一次
   const inSection = (item) => matchesSection(select_section, item?.section);
 
+  // 透過醫院 NSCALL API 登入的護理師：「床位」篩選選「我的排班」時，
+  // 只顯示 bed.nurseId 等於自己員編(Oper_id)的床位。
+  // 本地帳號沒有員編 → 一律放行（FloorSectionBar 也不會顯示那個下拉）。
+  const inBedScope = (bed) =>
+    matchesBedScope(bedScope, nurseOperId, bed?.nurseId);
+
   const bedCards = useMemo(() => {
     const deviceMap = new Map();
     devices.forEach((d) => {
@@ -632,7 +642,7 @@ function Home() {
       deviceMap.set(deviceMapKey(d.__srcIp, d.MAC), d);
     });
 
-    return beds.filter(inSection).map((bed) => {
+    return beds.filter(inSection).filter(inBedScope).map((bed) => {
       // 裝置來自住民：bed.patientId → patient.deviceid
       const boundDeviceId = bedDeviceId(bed);
       const device = boundDeviceId
@@ -659,7 +669,7 @@ function Home() {
 
       return { bed, device, status, deviceId: boundDeviceId, Bed: bed.bedId };
     });
-  }, [beds, devices, patientMap, select_section]);
+  }, [beds, devices, patientMap, select_section, bedScope, nurseOperId]);
 
   {
     /* deviceType 篩選：空床沒有裝置，沒有 TYPE 可比，
@@ -692,6 +702,8 @@ function Home() {
       select_deviceType === "All" ||
       d.devicetype === select_deviceType;
 
+    // 註：裝置沒有「負責護理人員」的概念（nurse_id 是床位的欄位），
+    // 所以這裡只依區域與裝置種類篩，不套「我的排班」。
     const list = registeredDevices.filter(inSection).filter(matchesType);
     const bound = list.filter((d) =>
       boundIds.has(deviceMapKey(d.__srcIp, d.deviceid)),
@@ -862,6 +874,7 @@ function Home() {
                 selectSection={handleSelectSection}
                 selectDeviceType={handleSelectDeviceType}
                 enableDeviceType={true}
+                enableBedScope={true}
               />
               <div className="sort">
                 <div className="label">{t("Home.Sortby")}</div>

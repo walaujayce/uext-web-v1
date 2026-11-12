@@ -73,6 +73,9 @@ const DeviceList = () => {
   {
     /* sort logic */
   }
+  // ⚠ 裝置編號欄已移除，但 "deviceId" 這一項刻意留著 ——
+  //   底下的 switch 與表頭的 SortType(n) 都是用索引對應的，抽掉會全部要重新編號。
+  //   （它的比較函式本來就是比 macaddress，和 "mac" 同效）
   const sortTypes = [
     "deviceType",
     "deviceId",
@@ -84,7 +87,7 @@ const DeviceList = () => {
     "status",
   ];
 
-  const [sortType, setSortType] = useState(sortTypes[1]);
+  const [sortType, setSortType] = useState(sortTypes[2]); // 預設依 MAC
   const [sortDirection, setSortDirection] = useState(true);
   function SortType(sortTypeIndex) {
     if (sortTypes[sortTypeIndex] !== sortType) setSortDirection(true);
@@ -339,14 +342,6 @@ const DeviceList = () => {
                 (sortDirection ? "\u25BC" : "\u25B2")}
             </h3>
             <h3
-              className={`fg2 ${sortType === sortTypes[1] ? "selected" : ""}`}
-              onClick={() => SortType(1)}
-            >
-              {t("DeviceList.DeviceID")}{" "}
-              {sortType === sortTypes[1] &&
-                (sortDirection ? "\u25BC" : "\u25B2")}
-            </h3>
-            <h3
               className={`fg2 ${sortType === sortTypes[2] ? "selected" : ""}`}
               onClick={() => SortType(2)}
             >
@@ -415,7 +410,6 @@ const DeviceList = () => {
                           ? t("DeviceType.umap")
                           : "Not Specified"}
                       </h3>
-                      <h3 className="fg2">{device.deviceid || "N/A"}</h3>
                       <h3 className="fg2">{device.macaddress || "N/A"}</h3>
                       <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
                       <h3 className="fg3">{device.bed || "N/A"}</h3>
@@ -452,7 +446,6 @@ const DeviceList = () => {
                         ? t("DeviceType.umap")
                         : "Not Specified"}
                     </h3>
-                    <h3 className="fg2">{device.deviceid || "N/A"}</h3>
                     <h3 className="fg2">{device.macaddress || "N/A"}</h3>
                     <h3 className="fg2">{device.ipaddress || "N/A"}</h3>
                     <h3 className="fg3">{device.bed || "N/A"}</h3>
