@@ -331,6 +331,21 @@
     padding-top: 2px;
 }
 
+/* 生日用的是 react-datepicker 自己的 input，不在 .input .input-gp 底下，
+   而且是這個 modal 裡唯一「一開始就有值」的欄位（預設今天）。
+   值是真的 value 而不是 placeholder，字色會吃到 --input-text-color，
+   看起來比旁邊其他欄位深一階。這裡統一成和其他輸入框相同的字色。 */
+.addBed .bed-dob .dob-input input {
+    color: var(--600, var(--label-color));
+    font-weight: 400;
+}
+
+/* 聚焦時比照 input.css 的 input:focus，與其他欄位一致 */
+.addBed .bed-dob .dob-input input:focus {
+    color: var(--850, #262626);
+    font-weight: 500;
+}
+
 .addBed .bed-optional-note {
     color: var(--500, #808080);
     font-size: 13px;

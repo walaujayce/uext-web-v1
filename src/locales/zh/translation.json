@@ -4,6 +4,8 @@
     "umap":"壓力墊"
   },
   "Login": {
+    "NscallServiceError": "醫院驗證服務回應異常，請稍後再試或聯絡資訊室。",
+    "NscallTokenFailed": "無法連線至醫院驗證服務，請稍後再試或聯絡資訊室。",
     "title": "離床警示系統",
     "Username": "Username：",
     "Password": "Password：",
@@ -50,6 +52,9 @@
     "TotalDevices": "裝置總數"
   },
   "FloorSection": {
+    "BedScope": "床位",
+    "BedScopeAll": "全部",
+    "BedScopeMyShift": "我的排班",
     "Floor": "樓層",
     "Section": "區域",
     "DeviceType": "裝置種類"
@@ -113,6 +118,10 @@
     "NewBed": "新增床位"
   },
   "AddBedModal": {
+    "DeviceNotFound": "查無此裝置，請先到裝置列表新增這台裝置",
+    "DeviceMacInvalid": "裝置 MAC 格式不正確，必須是大寫 12 位（可含冒號，會自動去除）",
+    "BedIdRequired": "請先填寫床位編號",
+    "DeviceTaken": "此裝置已綁定其他住民",
     "AddBed": "新增床位",
     "EditBed": "編輯床位",
     "NewBedAdded": "床位新增成功",

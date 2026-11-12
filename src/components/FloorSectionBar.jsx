@@ -5,16 +5,55 @@ import "/src/CSS/input.css";
 import "/src/CSS/overlay.css";
 import "/src/CSS/index.css";
 import { useTranslation } from "react-i18next";
-import { useFloorSection } from "../JS/FloorSectionContext";
+import {
+  useFloorSection,
+  BED_SCOPE_ALL,
+  BED_SCOPE_MY_SHIFT,
+} from "../JS/FloorSectionContext";
 
-function FloorSectionBar({ selectPort, selectSection, selectDeviceType, enableDeviceType }) {
+function FloorSectionBar({
+  selectPort,
+  selectSection,
+  selectDeviceType,
+  enableDeviceType,
+  enableBedScope,
+}) {
       const { t, i18n } = useTranslation();
 
   {
     /* Section data from global context (來源: /api/7284/IpAddress/all)
        後端已移除 floor，這裡只剩 section */
   }
-  const { sections, section, setSection } = useFloorSection();
+  const { sections, section, setSection, bedScope, setBedScope, nurseOperId } =
+    useFloorSection();
+
+  {
+    /* 「床位」篩選（全部 / 我的排班）：
+       「我的排班」= 只看 bed.nurse_id 等於自己員編(Oper_id)的床位。
+       只有透過醫院 NSCALL API 登入、拿到員編的人才看得到 ——
+       本地帳號沒有護理師資料，這個下拉對他沒有意義。
+       另外只有首頁會依它篩選，所以由 enableBedScope 決定要不要出現
+       （作法比照 enableDeviceType）。 */
+  }
+  const showBedScope = Boolean(enableBedScope) && Boolean(nurseOperId);
+
+  // ⚠ 和 deviceTypes 一樣，這是「內部值」，不能翻譯；顯示時才經過 bedScopeLabel
+  const bedScopes = [BED_SCOPE_MY_SHIFT, BED_SCOPE_ALL];
+  const bedScopeLabel = (v) =>
+    v === BED_SCOPE_ALL
+      ? t("FloorSection.BedScopeAll")
+      : t("FloorSection.BedScopeMyShift");
+
+  const [isBedScopeActive, setBedScopeActive] = useState(false);
+  const handleBedScopeDropDownMenu = () => {
+    setBedScopeActive((prev) => !prev);
+  };
+
+  const handleBedScopeItemClick = (scope) => {
+    // 選取由 FloorSectionContext 持久化（localStorage: bedScope），這裡不用自己存
+    setBedScope(scope);
+    handleBedScopeDropDownMenu;
+  };
 
   // 只有一個 section 時，指定單一與 "All" 效果相同 → 下拉只顯示 "All"，簡化 UI
   const onlyOneSection = sections.length === 1;
@@ -141,6 +180,7 @@ function FloorSectionBar({ selectPort, selectSection, selectDeviceType, enableDe
         setSectionActive(false);
         setPortActive(false);
         setDeviceTypeActive(false);
+        setBedScopeActive(false);
       }
     };
 
@@ -172,10 +212,12 @@ function FloorSectionBar({ selectPort, selectSection, selectDeviceType, enableDe
   };
   const dropdownSectionStyleRef = useRef(null);
   const dropdownDeviceTypeStyleRef = useRef(null);
+  const dropdownBedScopeStyleRef = useRef(null);
 
   // Use the custom hook for the dropdowns
   useDynamicDropdownHeight(dropdownSectionStyleRef, isSectionActive);
   useDynamicDropdownHeight(dropdownDeviceTypeStyleRef, isDeviceTypeActive );
+  useDynamicDropdownHeight(dropdownBedScopeStyleRef, isBedScopeActive);
 
   return (
     <>
@@ -250,6 +292,47 @@ function FloorSectionBar({ selectPort, selectSection, selectDeviceType, enableDe
               onClick={() => handleDeviceTypeItemClick(deviceType)}
             >
               {deviceTypeLabel(deviceType)}
+            </div>
+          ))}
+        </div>
+      </div>)}
+      {showBedScope && (
+      <div
+        className="input dropdown bedscope suffix"
+        onClick={handleBedScopeDropDownMenu}
+        ref={addDropdownRef}
+      >
+        <label htmlFor="bedScope" className="label-container">
+          <p>{t("FloorSection.BedScope")}</p>
+          <img
+            className="info"
+            src="/src/assets/information-outline.svg"
+            alt="gray outline information icon"
+          />
+        </label>
+        <div className="input-gp">
+          <input
+            type="text"
+            className="placeholder"
+            id="bedScope"
+            name="name"
+            placeholder={bedScopeLabel(bedScope)}
+            readOnly
+          />
+          <img className="suffix active" src="" alt="dropdown icon" />
+        </div>
+        <div className="assistive-text">this is a line of assistive text</div>
+        <div
+          className={`list ${isBedScopeActive ? "active" : ""}`}
+          ref={dropdownBedScopeStyleRef}
+        >
+          {bedScopes.map((scope) => (
+            <div
+              className="item"
+              key={scope}
+              onClick={() => handleBedScopeItemClick(scope)}
+            >
+              {bedScopeLabel(scope)}
             </div>
           ))}
         </div>

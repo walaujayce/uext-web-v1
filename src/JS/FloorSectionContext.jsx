@@ -9,6 +9,7 @@ import api from "../api/apiClient";
 import { getCurrentServerIp, setCurrentServerIp } from "../api/serverStore";
 import { getWebApiIp } from "../config/runtimeConfig";
 import { useAuth } from "./AuthContext";
+import { getNurseOperId } from "../auth/nurseStore";
 
 // Source of truth: /api/7284/IpAddress/all
 //   每筆 { ip, section }。section → IP 仍然是唯一的（後端 Section 是唯一鍵），
@@ -30,6 +31,24 @@ const BASE = "/api/7284/IpAddress";
 // 把目前選取的 section 存進 localStorage，讓瀏覽器重整後仍記得選取的區域。
 // 註：舊版存的是 { floor, section }，這裡只讀 section，舊資料可以自然相容。
 const STORAGE_KEY = "floorSection";
+
+// 「床位」篩選（FloorSectionBar 的下拉）：
+//   "myShift" → 只顯示 nurse_id 等於自己員編(Oper_id)的床位（預設）
+//   "all"     → 不限制
+// 只有透過醫院 NSCALL API 登入（拿得到員編）時才有意義；
+// 本地帳號沒有護理師資料，FloorSectionBar 不會顯示這個下拉，篩選也一律放行。
+const BED_SCOPE_KEY = "bedScope";
+export const BED_SCOPE_ALL = "all";
+export const BED_SCOPE_MY_SHIFT = "myShift";
+
+const readStoredBedScope = () => {
+  try {
+    const v = localStorage.getItem(BED_SCOPE_KEY);
+    return v === BED_SCOPE_ALL || v === BED_SCOPE_MY_SHIFT ? v : BED_SCOPE_MY_SHIFT;
+  } catch {
+    return BED_SCOPE_MY_SHIFT;
+  }
+};
 const readStoredSection = () => {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -58,6 +77,13 @@ export const matchesSection = (selected, value) =>
 export const matchesSectionStrict = (selected, value) =>
   !selected || selected === "All" || value === selected;
 
+// 「床位」篩選的共用判斷（FloorSectionBar 的下拉 + 首頁）：
+//   不是護理師登入 → 一律通過，這個篩選對他沒有意義
+//   選了「全部」   → 一律通過
+//   「我的排班」   → bed.nurseId 必須與護理師員編(Oper_id)完全相等
+export const matchesBedScope = (bedScope, nurseOperId, value) =>
+  !nurseOperId || bedScope === BED_SCOPE_ALL || (value ?? "") === nurseOperId;
+
 const FloorSectionContext = createContext();
 
 export const FloorSectionProvider = ({ children }) => {
@@ -67,6 +93,15 @@ export const FloorSectionProvider = ({ children }) => {
   const [servers, setServers] = useState([]); // [{ ip, section }]
   // 初始值優先讀 localStorage，重整後維持上次選取；沒有才為 null(待載入後帶預設)
   const [section, setSection] = useState(() => readStoredSection());
+  // 預設「我的排班」
+  const [bedScope, setBedScope] = useState(() => readStoredBedScope());
+
+  // 護理師員編（醫院端 Oper_id）。登入狀態改變時重讀 localStorage
+  //（authService 在 login() 之前就寫好了，所以這裡一定讀得到）。
+  const nurseOperId = useMemo(
+    () => (isAuthenticated ? getNurseOperId() : null),
+    [isAuthenticated],
+  );
 
   const fetchServers = async () => {
     try {
@@ -111,6 +146,14 @@ export const FloorSectionProvider = ({ children }) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify({ section }));
   }, [section]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(BED_SCOPE_KEY, bedScope);
+    } catch {
+      /* 無痕模式等情況讀寫會丟錯，忽略 */
+    }
+  }, [bedScope]);
+
   // 去重後的區域選項
   const sections = useMemo(
     () => [...new Set(servers.map((s) => s.section).filter(Boolean))],
@@ -149,6 +192,9 @@ export const FloorSectionProvider = ({ children }) => {
         setSection,
         chooseSection,
         refreshServers: fetchServers,
+        bedScope,
+        setBedScope,
+        nurseOperId,
       }}
     >
       {children}
